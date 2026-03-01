@@ -1,72 +1,100 @@
 "use client"
 
-import { Gamepad2, Users, UserSearch, LogIn, PenLine, Hand } from "lucide-react"
+// Ajout de LayoutDashboard dans les imports
+import { Gamepad2, Users, UserSearch, LogIn, PenLine, Hand, LogOut, Loader2, LayoutDashboard } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import { supabase } from "@/lib/supabase"
+import { useEffect, useState } from "react"
+import type { User } from "@supabase/supabase-js"
 
 export function Navbar() {
+  const [user, setUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function getUser() {
+      const { data: { session } } = await supabase.auth.getSession()
+      setUser(session?.user || null)
+      setLoading(false)
+    }
+    getUser()
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user || null)
+    })
+
+    return () => {
+      authListener.subscription.unsubscribe()
+    }
+  }, [])
+
+  const handleSignIn = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'discord',
+    })
+    if (error) alert("Erreur de connexion : " + error.message)
+  }
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut()
+  }
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/80 backdrop-blur-xl">
       <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 lg:px-6">
-        <Link
-          href="/"
-          className="flex items-center gap-2.5 text-foreground transition-colors hover:text-primary"
-        >
+        <Link href="/" className="flex items-center gap-2.5 text-foreground transition-colors hover:text-primary">
           <div className="flex size-9 items-center justify-center rounded-xl bg-primary/15">
             <Gamepad2 className="size-5 text-primary" />
           </div>
-          <span className="text-lg font-extrabold tracking-tight">
-            JamSquad
-          </span>
+          <span className="text-lg font-extrabold tracking-tight">JamSquad</span>
         </Link>
 
         <div className="hidden items-center gap-1 md:flex">
-          <Button
-            variant="ghost"
-            asChild
-            className="gap-2 rounded-xl text-muted-foreground hover:text-foreground"
-          >
-            <Link href="/">
-              <Users className="size-4" />
-              Find Teams
-            </Link>
+          <Button variant="ghost" asChild className="gap-2 rounded-xl text-muted-foreground hover:text-foreground">
+            <Link href="/"><Users className="size-4" />Find Teams</Link>
           </Button>
-          <Button
-            variant="ghost"
-            asChild
-            className="gap-2 rounded-xl text-muted-foreground hover:text-foreground"
-          >
-            <Link href="/find-members">
-              <UserSearch className="size-4" />
-              Find Members
-            </Link>
+          <Button variant="ghost" asChild className="gap-2 rounded-xl text-muted-foreground hover:text-foreground">
+            <Link href="/find-members"><UserSearch className="size-4" />Find Members</Link>
           </Button>
-          <Button
-            variant="ghost"
-            asChild
-            className="gap-2 rounded-xl text-muted-foreground hover:text-foreground"
-          >
-            <Link href="/create-team">
-              <PenLine className="size-4" />
-              Post a Team
-            </Link>
+          <Button variant="ghost" asChild className="gap-2 rounded-xl text-muted-foreground hover:text-foreground">
+            <Link href="/create-team"><PenLine className="size-4" />Post a Team</Link>
           </Button>
-          <Button
-            variant="ghost"
-            asChild
-            className="gap-2 rounded-xl text-muted-foreground hover:text-foreground"
-          >
-            <Link href="/create-profile">
-              <Hand className="size-4" />
-              I{"'"}m Available
-            </Link>
+          <Button variant="ghost" asChild className="gap-2 rounded-xl text-muted-foreground hover:text-foreground">
+            <Link href="/create-profile"><Hand className="size-4" />I{"'"}m Available</Link>
           </Button>
         </div>
 
-        <Button className="gap-2 rounded-xl bg-pink text-pink-foreground hover:bg-pink/80">
-          <LogIn className="size-4" />
-          Sign In
-        </Button>
+        <div className="flex items-center gap-4">
+          {loading ? (
+            <Loader2 className="size-5 animate-spin text-muted-foreground" />
+          ) : user ? (
+            <div className="flex items-center gap-3">
+              <span className="hidden text-sm font-medium text-muted-foreground md:inline-block">
+                Hello, <span className="text-foreground">{user.user_metadata.full_name || 'Jammer'}</span> !
+              </span>
+
+              {/* --- LE NOUVEAU BOUTON DASHBOARD --- */}
+              <Button asChild variant="outline" className="gap-2 rounded-xl border-primary/30 text-primary hover:bg-primary/10">
+                <Link href="/dashboard">
+                  <LayoutDashboard className="size-4" />
+                  Dashboard
+                </Link>
+              </Button>
+              {/* ---------------------------------- */}
+
+              <Button onClick={handleSignOut} variant="outline" className="gap-2 rounded-xl text-muted-foreground hover:text-destructive hover:border-destructive/30 hover:bg-destructive/10">
+                <LogOut className="size-4" />
+                Sign Out
+              </Button>
+            </div>
+          ) : (
+            <Button onClick={handleSignIn} className="gap-2 rounded-xl bg-[#5865F2] text-white hover:bg-[#4752C4]">
+              <LogIn className="size-4" />
+              Sign in with Discord
+            </Button>
+          )}
+        </div>
       </nav>
     </header>
   )

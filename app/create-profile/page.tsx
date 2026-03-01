@@ -1,6 +1,7 @@
 import { Navbar } from "@/components/navbar"
 import { AvailabilityForm } from "@/components/availability-form"
 import { Gamepad2, Heart, UserCheck } from "lucide-react"
+import { supabase } from "@/lib/supabase"
 
 export default function AvailabilityPage() {
   return (

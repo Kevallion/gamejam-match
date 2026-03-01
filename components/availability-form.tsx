@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { format } from "date-fns"
 import type { DateRange } from "react-day-picker"
 import { Card, CardContent } from "@/components/ui/card"
@@ -9,7 +9,6 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
-import { Spinner } from "@/components/ui/spinner"
 import { supabase } from "@/lib/supabase" // Ton import Supabase
 import {
   Popover,
@@ -23,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { CalendarDays } from "lucide-react"
+import { Sparkles, Hand, CalendarDays } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 // Options (gardées de ton code original)
@@ -74,6 +73,19 @@ export function AvailabilityForm() {
   const [level, setLevel] = useState("")
   const [engine, setEngine] = useState("")
   const [language, setLanguage] = useState("")
+
+  // 🔐 NOUVEAU : On vérifie si l'utilisateur est connecté
+  const [user, setUser] = useState<any>(null)
+  const [checkingAuth, setCheckingAuth] = useState(true)
+
+  useEffect(() => {
+    async function checkUser() {
+      const { data: { session } } = await supabase.auth.getSession()
+      setUser(session?.user || null)
+      setCheckingAuth(false)
+    }
+    checkUser()
+  }, [])
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -126,128 +138,131 @@ export function AvailabilityForm() {
   }
 
   return (
-    <Card className="rounded-3xl border-border/50 bg-card shadow-xl shadow-lavender/5">
-      <CardContent className="p-6 md:p-10">
-        <form onSubmit={handleSubmit} className="flex flex-col gap-8">
-          
-          {/* Username */}
-          <div className="flex flex-col gap-2.5">
-            <Label htmlFor="username" className="text-sm font-bold text-foreground">
-              Username / Pseudo
-            </Label>
-            <Input
-              id="username"
-              name="username"
-              required
-              placeholder="e.g. PixelWizard42"
-              className="h-12 rounded-xl border-border/60 bg-secondary/50 text-foreground"
-            />
-          </div>
+    <>
+      {/* 🛑 MESSAGE D'ERREUR SI NON CONNECTÉ */}
+      {!checkingAuth && !user && (
+        <Card className="mb-8 rounded-3xl border-destructive/50 bg-destructive/10">
+          <CardContent className="p-6 text-center">
+            <h3 className="mb-2 text-lg font-bold text-destructive">You must be signed in!</h3>
+            <p className="mb-4 text-muted-foreground">Please sign in with Discord using the button in the navigation bar to post your availability.</p>
+          </CardContent>
+        </Card>
+      )}
 
-          {/* Role & Level row */}
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-            <div className="flex flex-col gap-2.5">
-              <Label className="text-sm font-bold text-foreground">Main Role</Label>
-              <Select onValueChange={setRole} required>
-                <SelectTrigger className="h-12 rounded-xl border-border/60 bg-secondary/50">
-                  <SelectValue placeholder="What do you do?" />
-                </SelectTrigger>
-                <SelectContent className="rounded-xl">
-                  {ROLE_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+      {/* ✅ TON FORMULAIRE ACTUEL (affiché seulement si l'utilisateur est connecté) */}
+      {user && (
+        <Card className="rounded-3xl border-border/50 bg-card shadow-xl shadow-lavender/5">
+          <CardContent className="p-6 md:p-10">
+            <form onSubmit={handleSubmit} className="flex flex-col gap-8">
+              
+              {/* Username */}
+              <div className="flex flex-col gap-2.5">
+                <Label htmlFor="username" className="text-sm font-bold text-foreground">
+                  Username / Pseudo
+                </Label>
+                <Input
+                  id="username"
+                  name="username"
+                  required
+                  placeholder="e.g. PixelWizard42"
+                  className="h-12 rounded-xl border-border/60 bg-secondary/50 text-foreground"
+                />
+              </div>
 
-            <div className="flex flex-col gap-2.5">
-              <Label className="text-sm font-bold text-foreground">Experience Level</Label>
-              <Select onValueChange={setLevel} required>
-                <SelectTrigger className="h-12 rounded-xl border-border/60 bg-secondary/50">
-                  <SelectValue placeholder="How experienced?" />
-                </SelectTrigger>
-                <SelectContent className="rounded-xl">
-                  {LEVEL_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>{opt.emoji} {opt.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+              {/* Role & Level row */}
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <div className="flex flex-col gap-2.5">
+                  <Label className="text-sm font-bold text-foreground">Main Role</Label>
+                  <Select onValueChange={setRole} required>
+                    <SelectTrigger className="h-12 rounded-xl border-border/60 bg-secondary/50">
+                      <SelectValue placeholder="What do you do?" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      {ROLE_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-          {/* Engine & Language row */}
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-            <div className="flex flex-col gap-2.5">
-              <Label className="text-sm font-bold text-foreground">Preferred Engine</Label>
-              <Select onValueChange={setEngine} required>
-                <SelectTrigger className="h-12 rounded-xl border-border/60 bg-secondary/50">
-                  <SelectValue placeholder="Pick an engine" />
-                </SelectTrigger>
-                <SelectContent className="rounded-xl">
-                  {ENGINE_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+                <div className="flex flex-col gap-2.5">
+                  <Label className="text-sm font-bold text-foreground">Experience Level</Label>
+                  <Select onValueChange={setLevel} required>
+                    <SelectTrigger className="h-12 rounded-xl border-border/60 bg-secondary/50">
+                      <SelectValue placeholder="How experienced?" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      {LEVEL_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>{opt.emoji} {opt.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
 
-            <div className="flex flex-col gap-2.5">
-              <Label className="text-sm font-bold text-foreground">Spoken Language</Label>
-              <Select onValueChange={setLanguage} required>
-                <SelectTrigger className="h-12 rounded-xl border-border/60 bg-secondary/50">
-                  <SelectValue placeholder="Pick a language" />
-                </SelectTrigger>
-                <SelectContent className="rounded-xl">
-                  {LANGUAGE_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+              {/* Engine & Language row */}
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <div className="flex flex-col gap-2.5">
+                  <Label className="text-sm font-bold text-foreground">Preferred Engine</Label>
+                  <Select onValueChange={setEngine} required>
+                    <SelectTrigger className="h-12 rounded-xl border-border/60 bg-secondary/50">
+                      <SelectValue placeholder="Pick an engine" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      {ENGINE_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
-          {/* Dates */}
-          <div className="flex flex-col gap-2.5">
-            <Label className="text-sm font-bold text-foreground">Availability Date(s)</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className={cn("h-12 w-full justify-start gap-3 rounded-xl border-border/60 bg-secondary/50", !dateRange?.from && "text-muted-foreground")}>
-                  <CalendarDays className="size-4 text-lavender" />
-                  {dateRange?.from ? (
-                    dateRange.to ? `${format(dateRange.from, "MMM d")} - ${format(dateRange.to, "MMM d")}` : format(dateRange.from, "MMM d")
-                  ) : "Pick your available dates"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto rounded-2xl p-0">
-                <Calendar mode="range" selected={dateRange} onSelect={setDateRange} disabled={{ before: new Date() }} numberOfMonths={2} />
-              </PopoverContent>
-            </Popover>
-          </div>
+                <div className="flex flex-col gap-2.5">
+                  <Label className="text-sm font-bold text-foreground">Spoken Language</Label>
+                  <Select onValueChange={setLanguage} required>
+                    <SelectTrigger className="h-12 rounded-xl border-border/60 bg-secondary/50">
+                      <SelectValue placeholder="Pick a language" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      {LANGUAGE_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
 
-          {/* About Me */}
-          <div className="flex flex-col gap-2.5">
-            <Label htmlFor="about" className="text-sm font-bold text-foreground">About Me</Label>
-            <Textarea id="about" name="about" required rows={4} className="rounded-xl border-border/60 bg-secondary/50" />
-          </div>
+              {/* Dates */}
+              <div className="flex flex-col gap-2.5">
+                <Label className="text-sm font-bold text-foreground">Availability Date(s)</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className={cn("h-12 w-full justify-start gap-3 rounded-xl border-border/60 bg-secondary/50", !dateRange?.from && "text-muted-foreground")}>
+                      <CalendarDays className="size-4 text-lavender" />
+                      {dateRange?.from ? (
+                        dateRange.to ? `${format(dateRange.from, "MMM d")} - ${format(dateRange.to, "MMM d")}` : format(dateRange.from, "MMM d")
+                      ) : "Pick your available dates"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto rounded-2xl p-0">
+                    <Calendar mode="range" selected={dateRange} onSelect={setDateRange} disabled={{ before: new Date() }} numberOfMonths={2} />
+                  </PopoverContent>
+                </Popover>
+              </div>
 
-          {/* Submit */}
-          <Button
-            type="submit"
-            disabled={loading}
-            aria-busy={loading}
-            className="w-full rounded-2xl bg-lavender py-7 font-extrabold text-lavender-foreground gap-2 transition-all hover:bg-lavender/90"
-          >
-            {loading ? (
-              <>
-                <Spinner className="text-lavender-foreground" />
-                <span>Sending...</span>
-              </>
-            ) : (
-              "Post My Availability"
-            )}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+              {/* About Me */}
+              <div className="flex flex-col gap-2.5">
+                <Label htmlFor="about" className="text-sm font-bold text-foreground">About Me</Label>
+                <Textarea id="about" name="about" required rows={4} className="rounded-xl border-border/60 bg-secondary/50" />
+              </div>
+
+              {/* Submit */}
+              <Button type="submit" disabled={loading} className="w-full rounded-2xl bg-lavender py-7 font-extrabold text-lavender-foreground">
+                {loading ? "Sending..." : "Post My Availability"}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      )}
+    </>
   )
 }

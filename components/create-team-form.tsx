@@ -1,11 +1,12 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
+import { supabase } from "@/lib/supabase" // Notre pont vers Supabase
 import {
   Select,
   SelectContent,
@@ -33,10 +34,10 @@ const ROLE_OPTIONS = [
 ]
 
 const LEVEL_OPTIONS = [
-  { value: "beginner", label: "Beginner", emoji: "\uD83C\uDF31" },
-  { value: "hobbyist", label: "Hobbyist", emoji: "\uD83D\uDEE0\uFE0F" },
-  { value: "confirmed", label: "Confirmed", emoji: "\uD83D\uDE80" },
-  { value: "veteran", label: "Veteran", emoji: "\u2B50" },
+  { value: "beginner", label: "Beginner", emoji: "🌱" },
+  { value: "hobbyist", label: "Hobbyist", emoji: "🛠️" },
+  { value: "confirmed", label: "Confirmed", emoji: "🚀" },
+  { value: "veteran", label: "Veteran", emoji: "⭐" },
 ]
 
 const ENGINE_OPTIONS = [
@@ -62,9 +63,25 @@ const LANGUAGE_OPTIONS = [
 let roleIdCounter = 1
 
 export function CreateTeamForm() {
-  const [roles, setRoles] = useState<RoleEntry[]>([
-    { id: 0, role: "", level: "" },
-  ])
+
+  
+  const [loading, setLoading] = useState(false)
+  const [engine, setEngine] = useState("")
+  const [language, setLanguage] = useState("")
+  const [roles, setRoles] = useState<RoleEntry[]>([{ id: 0, role: "", level: "" }])
+  
+  // 🔐 NOUVEAU : On vérifie si l'utilisateur est connecté
+  const [user, setUser] = useState<any>(null)
+  const [checkingAuth, setCheckingAuth] = useState(true)
+
+  useEffect(() => {
+    async function checkUser() {
+      const { data: { session } } = await supabase.auth.getSession()
+      setUser(session?.user || null)
+      setCheckingAuth(false)
+    }
+    checkUser()
+  }, [])
 
   function addRole() {
     setRoles((prev) => [...prev, { id: roleIdCounter++, role: "", level: "" }])
@@ -80,180 +97,200 @@ export function CreateTeamForm() {
     )
   }
 
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    
+    const form = event.currentTarget
+    setLoading(true)
+
+    const formData = new FormData(form)
+
+    // On nettoie la liste des rôles pour ne garder que ceux qui sont remplis
+    const cleanRoles = roles.filter(r => r.role !== "" && r.level !== "")
+
+    const teamData = {
+      team_name: formData.get('teamName'), // Le nouveau champ qu'on va créer
+      jam_name: formData.get('jamName'),   // L'ancien champ
+      project_description: formData.get('description'),
+      engine: engine,
+      language: language,
+      looking_for: JSON.stringify(cleanRoles), 
+    }
+
+    const { error } = await supabase
+      .from('teams')
+      .insert([teamData])
+
+    setLoading(false)
+
+    if (error) {
+      alert("Error: " + error.message)
+    } else {
+      alert("Success! Your team announcement is live. 🚀")
+      form.reset()
+      setEngine("")
+      setLanguage("")
+      setRoles([{ id: roleIdCounter++, role: "", level: "" }]) // On remet un seul rôle vide
+    }
+  }
+
   return (
-    <Card className="rounded-3xl border-border/50 bg-card shadow-xl shadow-primary/5">
-      <CardContent className="p-6 md:p-10">
-        <form
-          onSubmit={(e) => e.preventDefault()}
-          className="flex flex-col gap-8"
-        >
-          {/* Game Jam Name */}
-          <div className="flex flex-col gap-2.5">
-            <Label
-              htmlFor="jam-name"
-              className="text-sm font-bold text-foreground"
-            >
-              Game Jam Name
-            </Label>
-            <Input
-              id="jam-name"
-              placeholder="e.g. Ludum Dare 57, GMTK 2026..."
-              className="h-12 rounded-xl border-border/60 bg-secondary/50 text-foreground placeholder:text-muted-foreground focus-visible:border-primary/50"
-            />
-          </div>
+    <>
+      {/* 🛑 MESSAGE D'ERREUR SI NON CONNECTÉ */}
+      {!checkingAuth && !user && (
+        <Card className="mb-8 rounded-3xl border-destructive/50 bg-destructive/10">
+          <CardContent className="p-6 text-center">
+            <h3 className="mb-2 text-lg font-bold text-destructive">You must be signed in!</h3>
+            <p className="mb-4 text-muted-foreground">Please sign in with Discord using the button in the navigation bar to post a team.</p>
+          </CardContent>
+        </Card>
+      )}
 
-          {/* Engine & Language row */}
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-            <div className="flex flex-col gap-2.5">
-              <Label className="text-sm font-bold text-foreground">
-                Engine
-              </Label>
-              <Select>
-                <SelectTrigger className="h-12 rounded-xl border-border/60 bg-secondary/50 text-foreground hover:border-primary/40 transition-colors">
-                  <SelectValue placeholder="Pick an engine" />
-                </SelectTrigger>
-                <SelectContent className="rounded-xl">
-                  {ENGINE_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+      {/* ✅ TON FORMULAIRE ACTUEL (affiché seulement si l'utilisateur est connecté) */}
+      {user && (
+        <Card className="rounded-3xl border-border/50 bg-card shadow-xl shadow-primary/5">
+          <CardContent className="p-6 md:p-10">
+            <form onSubmit={handleSubmit} className="flex flex-col gap-8">
+              
+              {/* Team / Project Name */}
+              <div className="flex flex-col gap-2.5">
+                <Label htmlFor="teamName" className="text-sm font-bold text-foreground">
+                  Team / Project Name
+                </Label>
+                <Input
+                  id="teamName"
+                  name="teamName"
+                  required
+                  placeholder="e.g. The Pixel Knights"
+                  className="h-12 rounded-xl border-border/60 bg-secondary/50 text-foreground"
+                />
+              </div>
 
-            <div className="flex flex-col gap-2.5">
-              <Label className="text-sm font-bold text-foreground">
-                Spoken Language
-              </Label>
-              <Select>
-                <SelectTrigger className="h-12 rounded-xl border-border/60 bg-secondary/50 text-foreground hover:border-primary/40 transition-colors">
-                  <SelectValue placeholder="Pick a language" />
-                </SelectTrigger>
-                <SelectContent className="rounded-xl">
-                  {LANGUAGE_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+              {/* Game Jam Name */}
+              <div className="flex flex-col gap-2.5">
+                <Label htmlFor="jamName" className="text-sm font-bold text-foreground">
+                  Game Jam Name
+                </Label>
+                <Input
+                  id="jamName"
+                  name="jamName"
+                  required
+                  placeholder="e.g. Ludum Dare 57, GMTK 2026..."
+                  className="h-12 rounded-xl border-border/60 bg-secondary/50 text-foreground"
+                />
+              </div>
 
-          {/* Roles Needed */}
-          <div className="flex flex-col gap-4">
-            <div className="flex items-center justify-between">
-              <Label className="text-sm font-bold text-foreground">
-                Roles Needed
-              </Label>
-              <span className="text-xs font-medium text-muted-foreground">
-                {roles.length} role{roles.length !== 1 ? "s" : ""} added
-              </span>
-            </div>
-
-            <div className="flex flex-col gap-3">
-              {roles.map((entry, index) => (
-                <div
-                  key={entry.id}
-                  className="group flex flex-col gap-3 rounded-2xl border border-border/40 bg-secondary/30 p-4 transition-colors hover:border-primary/20 sm:flex-row sm:items-center"
-                >
-                  <div className="flex flex-1 flex-col gap-3 sm:flex-row">
-                    <Select
-                      value={entry.role}
-                      onValueChange={(v) => updateRole(entry.id, "role", v)}
-                    >
-                      <SelectTrigger className="h-11 flex-1 rounded-xl border-border/50 bg-card text-foreground hover:border-primary/40 transition-colors">
-                        <SelectValue placeholder="Select role" />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-xl">
-                        {ROLE_OPTIONS.map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-
-                    <Select
-                      value={entry.level}
-                      onValueChange={(v) => updateRole(entry.id, "level", v)}
-                    >
-                      <SelectTrigger className="h-11 flex-1 rounded-xl border-border/50 bg-card text-foreground hover:border-primary/40 transition-colors">
-                        <SelectValue placeholder="Experience level" />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-xl">
-                        {LEVEL_OPTIONS.map((opt) => (
-                          <SelectItem key={opt.value} value={opt.value}>
-                            {opt.emoji} {opt.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {roles.length > 1 && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => removeRole(entry.id)}
-                      className="size-9 shrink-0 rounded-xl text-muted-foreground hover:bg-destructive/10 hover:text-destructive self-end sm:self-auto"
-                      aria-label={`Remove role ${index + 1}`}
-                    >
-                      <X className="size-4" />
-                    </Button>
-                  )}
+              {/* Engine & Language row */}
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                <div className="flex flex-col gap-2.5">
+                  <Label className="text-sm font-bold text-foreground">Engine</Label>
+                  <Select value={engine} onValueChange={setEngine} required>
+                    <SelectTrigger className="h-12 rounded-xl border-border/60 bg-secondary/50">
+                      <SelectValue placeholder="Pick an engine" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      {ENGINE_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-              ))}
-            </div>
 
-            <Button
-              type="button"
-              variant="outline"
-              onClick={addRole}
-              className="gap-2 self-start rounded-xl border-dashed border-border/60 text-muted-foreground hover:border-primary/40 hover:text-primary"
-            >
-              <Plus className="size-4" />
-              Add another role
-            </Button>
-          </div>
+                <div className="flex flex-col gap-2.5">
+                  <Label className="text-sm font-bold text-foreground">Spoken Language</Label>
+                  <Select value={language} onValueChange={setLanguage} required>
+                    <SelectTrigger className="h-12 rounded-xl border-border/60 bg-secondary/50">
+                      <SelectValue placeholder="Pick a language" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl">
+                      {LANGUAGE_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
 
-          {/* Description */}
-          <div className="flex flex-col gap-2.5">
-            <Label
-              htmlFor="description"
-              className="text-sm font-bold text-foreground"
-            >
-              Project Description / Vibe
-            </Label>
-            <Textarea
-              id="description"
-              placeholder="Tell people about your project idea, the vibe you're going for, schedule expectations, and anything else they should know..."
-              rows={5}
-              className="rounded-xl border-border/60 bg-secondary/50 text-foreground placeholder:text-muted-foreground focus-visible:border-primary/50 leading-relaxed"
-            />
-            <p className="text-xs text-muted-foreground">
-              Tip: Be specific about your vision and what makes this jam exciting
-              for you!
-            </p>
-          </div>
+              {/* Roles Needed */}
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm font-bold text-foreground">Roles Needed</Label>
+                  <span className="text-xs font-medium text-muted-foreground">
+                    {roles.length} role{roles.length !== 1 ? "s" : ""} added
+                  </span>
+                </div>
 
-          {/* Submit */}
-          <div className="relative pt-2">
-            <div className="absolute inset-x-0 bottom-0 h-16 rounded-2xl bg-primary/10 blur-xl" />
-            <Button
-              type="submit"
-              size="lg"
-              className="relative w-full gap-2.5 rounded-2xl bg-primary py-7 text-base font-extrabold text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:bg-primary/85 hover:shadow-xl hover:shadow-primary/30 hover:gap-3"
-            >
-              <Sparkles className="size-5" />
-              Publish Announcement
-              <Rocket className="size-5" />
-            </Button>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
+                <div className="flex flex-col gap-3">
+                  {roles.map((entry, index) => (
+                    <div key={entry.id} className="group flex flex-col gap-3 rounded-2xl border border-border/40 bg-secondary/30 p-4 sm:flex-row sm:items-center">
+                      <div className="flex flex-1 flex-col gap-3 sm:flex-row">
+                        <Select value={entry.role} onValueChange={(v) => updateRole(entry.id, "role", v)}>
+                          <SelectTrigger className="h-11 flex-1 rounded-xl border-border/50 bg-card text-foreground">
+                            <SelectValue placeholder="Select role" />
+                          </SelectTrigger>
+                          <SelectContent className="rounded-xl">
+                            {ROLE_OPTIONS.map((opt) => (
+                              <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+
+                        <Select value={entry.level} onValueChange={(v) => updateRole(entry.id, "level", v)}>
+                          <SelectTrigger className="h-11 flex-1 rounded-xl border-border/50 bg-card text-foreground">
+                            <SelectValue placeholder="Experience level" />
+                          </SelectTrigger>
+                          <SelectContent className="rounded-xl">
+                            {LEVEL_OPTIONS.map((opt) => (
+                              <SelectItem key={opt.value} value={opt.value}>{opt.emoji} {opt.label}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {roles.length > 1 && (
+                        <Button type="button" variant="ghost" size="icon" onClick={() => removeRole(entry.id)} className="size-9 shrink-0 rounded-xl text-muted-foreground hover:bg-destructive/10 hover:text-destructive self-end sm:self-auto">
+                          <X className="size-4" />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                <Button type="button" variant="outline" onClick={addRole} className="gap-2 self-start rounded-xl border-dashed border-border/60 text-muted-foreground hover:border-primary/40 hover:text-primary">
+                  <Plus className="size-4" />
+                  Add another role
+                </Button>
+              </div>
+
+              {/* Description */}
+              <div className="flex flex-col gap-2.5">
+                <Label htmlFor="description" className="text-sm font-bold text-foreground">
+                  Project Description / Vibe
+                </Label>
+                <Textarea
+                  id="description"
+                  name="description" // TRÈS IMPORTANT
+                  required
+                  placeholder="Tell people about your project idea..."
+                  rows={5}
+                  className="rounded-xl border-border/60 bg-secondary/50 text-foreground"
+                />
+              </div>
+
+              {/* Submit */}
+              <Button type="submit" disabled={loading} className="w-full rounded-2xl bg-primary py-7 font-extrabold text-primary-foreground">
+                {loading ? "Publishing..." : (
+                  <>
+                    <Sparkles className="size-5 mr-2" />
+                    Publish Announcement
+                    <Rocket className="size-5 ml-2" />
+                  </>
+                )}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      )}
+    </>
   )
 }
