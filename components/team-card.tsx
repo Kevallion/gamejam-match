@@ -90,7 +90,10 @@ export function TeamCard({ team }: { team: TeamCardData }) {
       <CardFooter>
         {/* ET ON ENTOURE LE BOUTON AVEC LE MODAL ICI */}
         <JoinTeamModal teamId={team.id} teamName={team.name}>
-          <Button className="w-full gap-2 rounded-xl bg-primary text-primary-foreground transition-all hover:bg-primary/85 hover:gap-3">
+          <Button
+            className="w-full gap-2 rounded-xl bg-primary text-primary-foreground transition-all hover:bg-primary/85 hover:gap-3"
+            aria-label={`Join team ${team.name}`}
+          >
             Join Team
             <ArrowRight className="size-4" />
           </Button>
