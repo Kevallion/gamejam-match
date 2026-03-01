@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
+import { Spinner } from "@/components/ui/spinner"
 import { supabase } from "@/lib/supabase" // Ton import Supabase
 import {
   Popover,
@@ -22,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Sparkles, Hand, CalendarDays } from "lucide-react"
+import { CalendarDays } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 // Options (gardées de ton code original)
@@ -230,8 +231,20 @@ export function AvailabilityForm() {
           </div>
 
           {/* Submit */}
-          <Button type="submit" disabled={loading} className="w-full rounded-2xl bg-lavender py-7 font-extrabold text-lavender-foreground">
-            {loading ? "Sending..." : "Post My Availability"}
+          <Button
+            type="submit"
+            disabled={loading}
+            aria-busy={loading}
+            className="w-full rounded-2xl bg-lavender py-7 font-extrabold text-lavender-foreground gap-2 transition-all hover:bg-lavender/90"
+          >
+            {loading ? (
+              <>
+                <Spinner className="text-lavender-foreground" />
+                <span>Sending...</span>
+              </>
+            ) : (
+              "Post My Availability"
+            )}
           </Button>
         </form>
       </CardContent>
