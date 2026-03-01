@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
-import { supabase } from "@/lib/supabase" // Notre pont vers Supabase
+import { supabase } from "@/lib/supabase"
 import {
   Select,
   SelectContent,
@@ -63,14 +63,14 @@ const LANGUAGE_OPTIONS = [
 let roleIdCounter = 1
 
 export function CreateTeamForm() {
-
-  
   const [loading, setLoading] = useState(false)
   const [engine, setEngine] = useState("")
   const [language, setLanguage] = useState("")
   const [roles, setRoles] = useState<RoleEntry[]>([{ id: 0, role: "", level: "" }])
-  
-  // 🔐 NOUVEAU : On vérifie si l'utilisateur est connecté
+  // Nouveau state pour le lien Discord
+  const [discordLink, setDiscordLink] = useState("")
+  const [discordLinkError, setDiscordLinkError] = useState("")
+
   const [user, setUser] = useState<any>(null)
   const [checkingAuth, setCheckingAuth] = useState(true)
 
@@ -99,22 +99,35 @@ export function CreateTeamForm() {
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    
-    const form = event.currentTarget
-    setLoading(true)
 
+    setLoading(true)
+    setDiscordLinkError("") // Reset error before check
+
+    // Validation du lien Discord (s'il est rempli)
+    const discordLinkValue = discordLink.trim()
+    if (
+      discordLinkValue !== "" &&
+      !/^https:\/\/discord\.(gg|com\/invite)\//.test(discordLinkValue)
+    ) {
+      setLoading(false)
+      setDiscordLinkError("Veuillez entrer un lien d'invitation Discord valide")
+      return
+    }
+
+    const form = event.currentTarget
     const formData = new FormData(form)
 
-    // On nettoie la liste des rôles pour ne garder que ceux qui sont remplis
+    // Nettoyage des rôles : on garde ceux remplis
     const cleanRoles = roles.filter(r => r.role !== "" && r.level !== "")
 
     const teamData = {
-      team_name: formData.get('teamName'), // Le nouveau champ qu'on va créer
-      jam_name: formData.get('jamName'),   // L'ancien champ
+      team_name: formData.get('teamName'),
+      jam_name: formData.get('jamName'),
       project_description: formData.get('description'),
       engine: engine,
       language: language,
-      looking_for: JSON.stringify(cleanRoles), 
+      looking_for: JSON.stringify(cleanRoles),
+      discord_link: discordLinkValue,
     }
 
     const { error } = await supabase
@@ -130,7 +143,9 @@ export function CreateTeamForm() {
       form.reset()
       setEngine("")
       setLanguage("")
-      setRoles([{ id: roleIdCounter++, role: "", level: "" }]) // On remet un seul rôle vide
+      setDiscordLink("")
+      setDiscordLinkError("")
+      setRoles([{ id: roleIdCounter++, role: "", level: "" }])
     }
   }
 
@@ -262,6 +277,29 @@ export function CreateTeamForm() {
                 </Button>
               </div>
 
+              {/* Discord Invitation Link */}
+              <div className="flex flex-col gap-2.5">
+                <Label htmlFor="discordLink" className="text-sm font-bold text-foreground">
+                  Discord Invitation Link (optional)
+                </Label>
+                <Input
+                  id="discordLink"
+                  name="discordLink"
+                  type="url"
+                  placeholder="e.g. https://discord.gg/your-server"
+                  value={discordLink}
+                  onChange={e => {
+                    setDiscordLink(e.target.value)
+                    if (discordLinkError) setDiscordLinkError("")
+                  }}
+                  autoComplete="off"
+                  className={`h-12 rounded-xl border-border/60 bg-secondary/50 text-foreground${discordLinkError ? " border-destructive" : ""}`}
+                />
+                {discordLinkError && (
+                  <span className="text-sm text-destructive">{discordLinkError}</span>
+                )}
+              </div>
+
               {/* Description */}
               <div className="flex flex-col gap-2.5">
                 <Label htmlFor="description" className="text-sm font-bold text-foreground">
@@ -269,7 +307,7 @@ export function CreateTeamForm() {
                 </Label>
                 <Textarea
                   id="description"
-                  name="description" // TRÈS IMPORTANT
+                  name="description"
                   required
                   placeholder="Tell people about your project idea..."
                   rows={5}

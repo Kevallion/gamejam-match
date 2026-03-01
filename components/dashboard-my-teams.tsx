@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -8,8 +9,25 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card"
-import { Globe, Cpu, Users, Trash2, PenLine, Rocket } from "lucide-react"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Globe, Cpu, Users, Trash2, PenLine, Rocket, Link2 } from "lucide-react"
 import Link from "next/link"
+
+const DISCORD_LINK_REGEX = /^https:\/\/(discord\.gg\/|discord\.com\/invite\/)/i
+
+function isValidDiscordLink(url: string): boolean {
+  if (!url.trim()) return false
+  return DISCORD_LINK_REGEX.test(url.trim())
+}
 
 export type TeamData = {
   id: any
@@ -22,17 +40,58 @@ export type TeamData = {
   maxMembers: number
   roles: { label: string; emoji: string; color: string }[]
   level: { label: string; emoji: string; color: string }
+  discord_link?: string | null
 }
 
 interface DashboardMyTeamsProps {
   teams: TeamData[]
   onDelete: (id: any) => void
+  onUpdateDiscord: (id: any, discordLink: string) => Promise<void>
 }
 
 export function DashboardMyTeams({
   teams,
   onDelete,
+  onUpdateDiscord,
 }: DashboardMyTeamsProps) {
+  const [editingTeamId, setEditingTeamId] = useState<any>(null)
+  const [discordInputValue, setDiscordInputValue] = useState("")
+  const [submitError, setSubmitError] = useState<string | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const handleOpenChange = (open: boolean, team: TeamData) => {
+    if (open) {
+      setEditingTeamId(team.id)
+      setDiscordInputValue(team.discord_link || "")
+      setSubmitError(null)
+    } else {
+      setEditingTeamId(null)
+      setSubmitError(null)
+    }
+  }
+
+  const handleSubmitDiscord = async (e: React.FormEvent, teamId: any) => {
+    e.preventDefault()
+    setSubmitError(null)
+    const trimmed = discordInputValue.trim()
+    if (!isValidDiscordLink(trimmed)) {
+      setSubmitError(
+        "The link must start with https://discord.gg/ or https://discord.com/invite/"
+      )
+      return
+    }
+    setIsSubmitting(true)
+    try {
+      await onUpdateDiscord(teamId, trimmed)
+      setEditingTeamId(null)
+    } catch (err) {
+      setSubmitError(
+        err instanceof Error ? err.message : "Erreur lors de la mise à jour"
+      )
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
   return (
     <section>
       <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
@@ -129,7 +188,55 @@ export function DashboardMyTeams({
                 </div>
               </CardContent>
 
-              <CardFooter>
+              <CardFooter className="flex flex-col gap-2">
+                <Dialog
+                  open={editingTeamId === team.id}
+                  onOpenChange={(open) => handleOpenChange(open, team)}
+                >
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full gap-2 rounded-xl border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
+                    >
+                      <Link2 className="size-4" />
+                      Edit Discord
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Edit Discord Link</DialogTitle>
+                    </DialogHeader>
+                    <form
+                      onSubmit={(e) => handleSubmitDiscord(e, team.id)}
+                      className="flex flex-col gap-4"
+                    >
+                      <div className="space-y-2">
+                        <Label htmlFor="discord-link">Lien d&apos;invitation Discord</Label>
+                        <Input
+                          id="discord-link"
+                          type="url"
+                          placeholder="https://discord.gg/..."
+                          value={discordInputValue}
+                          onChange={(e) => setDiscordInputValue(e.target.value)}
+                          disabled={isSubmitting}
+                          aria-invalid={!!submitError}
+                        />
+                        {submitError && (
+                          <p className="text-sm text-destructive">{submitError}</p>
+                        )}
+                      </div>
+                      <DialogFooter>
+                        <Button
+                          type="submit"
+                          disabled={isSubmitting}
+                          className="gap-2 rounded-xl"
+                        >
+                          {isSubmitting ? "Saving…" : "Save"}
+                        </Button>
+                      </DialogFooter>
+                    </form>
+                  </DialogContent>
+                </Dialog>
                 <Button
                   variant="outline"
                   onClick={() => onDelete(team.id)}
