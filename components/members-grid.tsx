@@ -4,8 +4,14 @@ import { useEffect, useState } from "react"
 import { PlayerCard, type PlayerCardData } from "@/components/player-card"
 import { supabase } from "@/lib/supabase"
 
+type BadgeStyle = {
+  label: string
+  emoji: string
+  color: string
+}
+
 // --- Notre "Machine à traduire" les styles ---
-const ROLE_STYLES: Record<string, any> = {
+const ROLE_STYLES: Record<string, BadgeStyle> = {
   developer: { label: "Developer", emoji: "💻", color: "bg-teal/15 text-teal" },
   "2d-artist": { label: "2D Artist", emoji: "🎨", color: "bg-pink/15 text-pink" },
   "3d-artist": { label: "3D Artist", emoji: "🗿", color: "bg-peach/15 text-peach" },
@@ -14,7 +20,7 @@ const ROLE_STYLES: Record<string, any> = {
   "game-design": { label: "Game Designer", emoji: "🎯", color: "bg-peach/15 text-peach" },
 }
 
-const LEVEL_STYLES: Record<string, any> = {
+const LEVEL_STYLES: Record<string, BadgeStyle> = {
   beginner: { label: "Beginner", emoji: "🌱", color: "bg-mint/15 text-mint" },
   hobbyist: { label: "Hobbyist", emoji: "🛠️", color: "bg-peach/15 text-peach" },
   confirmed: { label: "Confirmed", emoji: "🚀", color: "bg-teal/15 text-teal" },
