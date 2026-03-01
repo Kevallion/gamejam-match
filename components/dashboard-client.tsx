@@ -182,10 +182,11 @@ export function DashboardClient() {
   })
 
   const loadData = async () => {
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session?.user) { setLoading(false); return }
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.user) { setLoading(false); return }
 
-    const { data: teamsData } = await supabase
+      const { data: teamsData } = await supabase
       .from("teams")
       .select("*, team_members(count)")
       .eq("user_id", session.user.id)
@@ -225,21 +226,30 @@ export function DashboardClient() {
         teams: Array.isArray(a.teams) ? a.teams[0] : a.teams,
       })))
     }
-
-    setLoading(false)
+    } catch (err) {
+      toast.error("Erreur lors du chargement du dashboard.", {
+        description: err instanceof Error ? err.message : "Veuillez rafraîchir la page.",
+      })
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => { loadData() }, [])
 
   const handleDeleteTeam = async (id: string) => {
     if (!confirm("Delete this team?")) return
-    const { error } = await supabase.from("teams").delete().eq("id", id)
-    if (error) {
-      toast.error("Impossible de supprimer l'équipe.", { description: error.message })
-      return
+    try {
+      const { error } = await supabase.from("teams").delete().eq("id", id)
+      if (error) {
+        toast.error("Impossible de supprimer l'équipe.", { description: error.message })
+        return
+      }
+      setTeams((prev) => prev.filter((t) => t.id !== id))
+      toast.success("Équipe supprimée.")
+    } catch (err) {
+      toast.error("Une erreur est survenue.", { description: err instanceof Error ? err.message : "Veuillez réessayer." })
     }
-    setTeams((prev) => prev.filter((t) => t.id !== id))
-    toast.success("Équipe supprimée.")
   }
 
   const handleUpdateDiscord = async (id: string, discordLink: string) => {
@@ -252,78 +262,115 @@ export function DashboardClient() {
     setTeams((prev) =>
       prev.map((t) => (t.id === id ? { ...t, discord_link: discordLink } : t))
     )
+    toast.success("Lien Discord mis à jour.", { description: "L'équipe a bien été modifiée." })
   }
 
   const handleDeleteProfile = async (id: string) => {
     if (!confirm("Delete this profile?")) return
-    await supabase.from("profiles").delete().eq("id", id)
-    setProfiles((prev) => prev.filter((p) => p.id !== id))
+    try {
+      const { error } = await supabase.from("profiles").delete().eq("id", id)
+      if (error) {
+        toast.error("Impossible de supprimer le profil.", { description: error.message })
+        return
+      }
+      setProfiles((prev) => prev.filter((p) => p.id !== id))
+      toast.success("Profil supprimé.")
+    } catch (err) {
+      toast.error("Une erreur est survenue.", { description: err instanceof Error ? err.message : "Veuillez réessayer." })
+    }
   }
 
   const handleAcceptApplication = async (id: string) => {
-    const { data: request, error: fetchError } = await supabase
-      .from("join_requests")
-      .select("*")
-      .eq("id", id)
-      .single()
+    try {
+      const { data: request, error: fetchError } = await supabase
+        .from("join_requests")
+        .select("*")
+        .eq("id", id)
+        .single()
 
-    if (fetchError || !request) {
-      toast.error("Impossible de lire la demande.", { description: fetchError?.message })
-      return
+      if (fetchError || !request) {
+        toast.error("Impossible de lire la demande.", { description: fetchError?.message })
+        return
+      }
+
+      const { error: insertError } = await supabase
+        .from("team_members")
+        .insert({ team_id: request.team_id, user_id: request.sender_id, role: 'member' })
+
+      if (insertError && insertError.code !== '23505') {
+        toast.error("Impossible d'ajouter le membre.", { description: insertError.message })
+        return
+      }
+
+      const { error: updateError } = await supabase.from("join_requests").update({ status: 'accepted' }).eq("id", id)
+      if (updateError) {
+        toast.error("Impossible de valider la candidature.", { description: updateError.message })
+        return
+      }
+      setApplications((prev) => prev.filter((a) => a.id !== id))
+      toast.success("Candidature acceptée !", { description: `${request.sender_name || "Le jammer"} rejoint ton équipe.` })
+    } catch (err) {
+      toast.error("Une erreur est survenue.", { description: err instanceof Error ? err.message : "Veuillez réessayer." })
     }
-
-    const { error: insertError } = await supabase
-      .from("team_members")
-      .insert({ team_id: request.team_id, user_id: request.sender_id, role: 'member' })
-
-    if (insertError && insertError.code !== '23505') {
-      toast.error("Impossible d'ajouter le membre.", { description: insertError.message })
-      return
-    }
-
-    await supabase.from("join_requests").update({ status: 'accepted' }).eq("id", id)
-    setApplications((prev) => prev.filter((a) => a.id !== id))
-    toast.success("Candidature acceptée !", { description: `${request.sender_name || "Le jammer"} rejoint ton équipe.` })
   }
 
   const handleDeclineApplication = async (id: string) => {
-    const { error } = await supabase.from("join_requests").update({ status: 'rejected' }).eq("id", id)
-    if (error) {
-      toast.error("Impossible de refuser la candidature.", { description: error.message })
-      return
+    try {
+      const { error } = await supabase.from("join_requests").update({ status: 'rejected' }).eq("id", id)
+      if (error) {
+        toast.error("Impossible de refuser la candidature.", { description: error.message })
+        return
+      }
+      setApplications((prev) => prev.filter((a) => a.id !== id))
+      toast.success("Candidature déclinée.", { icon: "👎" })
+    } catch (err) {
+      toast.error("Une erreur est survenue.", { description: err instanceof Error ? err.message : "Veuillez réessayer." })
     }
-    setApplications((prev) => prev.filter((a) => a.id !== id))
-    toast("Candidature déclinée.", { icon: "👎" })
   }
 
   const handleAcceptInvitation = async (invitation: InvitationData) => {
-    const { data: { session } } = await supabase.auth.getSession()
-    if (!session?.user) return
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.user) {
+        toast.error("Tu dois être connecté pour accepter une invitation.")
+        return
+      }
 
-    const { error: insertError } = await supabase
-      .from("team_members")
-      .insert({ team_id: invitation.team_id, user_id: session.user.id, role: "member" })
+      const { error: insertError } = await supabase
+        .from("team_members")
+        .insert({ team_id: invitation.team_id, user_id: session.user.id, role: "member" })
 
-    if (insertError && insertError.code !== "23505") {
-      toast.error("Impossible de rejoindre l'équipe.", { description: insertError.message })
-      return
+      if (insertError && insertError.code !== "23505") {
+        toast.error("Impossible de rejoindre l'équipe.", { description: insertError.message })
+        return
+      }
+
+      const { error: updateError } = await supabase.from("join_requests").update({ status: "accepted" }).eq("id", invitation.id)
+      if (updateError) {
+        toast.error("Impossible de valider l'invitation.", { description: updateError.message })
+        return
+      }
+      setInvitations((prev) => prev.filter((i) => i.id !== invitation.id))
+      toast.success(`Tu as rejoint ${invitation.squadName} !`, {
+        description: invitation.discordLink ? "Consulte le lien Discord pour te connecter." : undefined,
+      })
+    } catch (err) {
+      toast.error("Une erreur est survenue.", { description: err instanceof Error ? err.message : "Veuillez réessayer." })
     }
-
-    await supabase.from("join_requests").update({ status: "accepted" }).eq("id", invitation.id)
-    setInvitations((prev) => prev.filter((i) => i.id !== invitation.id))
-    toast.success(`Tu as rejoint ${invitation.squadName} !`, {
-      description: invitation.discordLink ? "Consulte le lien Discord pour te connecter." : undefined,
-    })
   }
 
   const handleDeclineInvitation = async (id: string) => {
-    const { error } = await supabase.from("join_requests").update({ status: "rejected" }).eq("id", id)
-    if (error) {
-      toast.error("Impossible de décliner l'invitation.", { description: error.message })
-      return
+    try {
+      const { error } = await supabase.from("join_requests").update({ status: "rejected" }).eq("id", id)
+      if (error) {
+        toast.error("Impossible de décliner l'invitation.", { description: error.message })
+        return
+      }
+      setInvitations((prev) => prev.filter((i) => i.id !== id))
+      toast.success("Invitation déclinée.", { icon: "👋" })
+    } catch (err) {
+      toast.error("Une erreur est survenue.", { description: err instanceof Error ? err.message : "Veuillez réessayer." })
     }
-    setInvitations((prev) => prev.filter((i) => i.id !== id))
-    toast("Invitation déclinée.", { icon: "👋" })
   }
 
   if (loading) {

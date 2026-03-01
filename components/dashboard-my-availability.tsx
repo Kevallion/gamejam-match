@@ -26,6 +26,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
+import { toast } from "sonner"
 
 // ---------------------------------------------------------------------------
 // Options
@@ -168,8 +169,9 @@ function ProfileCard({ profile, onDelete }: ProfileCardProps) {
       .eq("id", profile.id)
 
     if (error) {
-      alert("Erreur lors de la sauvegarde : " + error.message)
+      toast.error("Erreur lors de la sauvegarde.", { description: error.message })
     } else {
+      toast.success("Profil mis à jour.")
       setRawRole(editRole)
       setRawLevel(editLevel)
       setEngine(editEngine)

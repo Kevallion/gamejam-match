@@ -100,11 +100,11 @@ export function CreateTeamForm() {
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (!user) return
 
     setLoading(true)
     setDiscordLinkError("") // Reset error before check
 
-    // Validation du lien Discord (s'il est rempli)
     const discordLinkValue = discordLink.trim()
     if (
       discordLinkValue !== "" &&
@@ -117,8 +117,6 @@ export function CreateTeamForm() {
 
     const form = event.currentTarget
     const formData = new FormData(form)
-
-    // Nettoyage des rôles : on garde ceux remplis
     const cleanRoles = roles.filter(r => r.role !== "" && r.level !== "")
 
     const teamData = {
@@ -132,22 +130,23 @@ export function CreateTeamForm() {
       discord_link: discordLinkValue,
     }
 
-    const { error } = await supabase
-      .from('teams')
-      .insert([teamData])
-
-    setLoading(false)
-
-    if (error) {
-      toast.error("Impossible de créer l'équipe.", { description: error.message })
-    } else {
-      toast.success("Équipe créée avec succès !", { description: "Ton annonce est maintenant en ligne." })
-      form.reset()
-      setEngine("")
-      setLanguage("")
-      setDiscordLink("")
-      setDiscordLinkError("")
-      setRoles([{ id: roleIdCounter++, role: "", level: "" }])
+    try {
+      const { error } = await supabase.from('teams').insert([teamData])
+      if (error) {
+        toast.error("Impossible de créer l'équipe.", { description: error.message })
+      } else {
+        toast.success("Équipe créée avec succès !", { description: "Ton annonce est maintenant en ligne." })
+        form.reset()
+        setEngine("")
+        setLanguage("")
+        setDiscordLink("")
+        setDiscordLinkError("")
+        setRoles([{ id: roleIdCounter++, role: "", level: "" }])
+      }
+    } catch (err) {
+      toast.error("Une erreur est survenue.", { description: err instanceof Error ? err.message : "Veuillez réessayer." })
+    } finally {
+      setLoading(false)
     }
   }
 

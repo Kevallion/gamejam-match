@@ -145,8 +145,10 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
         setMessage("")
         setStatusMsg(null)
       }, 2000)
-    } catch (err: any) {
-      setStatusMsg({ type: "error", text: err?.message || "Something went wrong. Try again." })
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Une erreur est survenue. Réessaie."
+      setStatusMsg({ type: "error", text: msg })
+      toast.error("Impossible d'envoyer l'invitation.", { description: msg })
     } finally {
       setLoading(false)
     }

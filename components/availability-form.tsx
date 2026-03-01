@@ -91,17 +91,15 @@ export function AvailabilityForm() {
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    
-    // 1. On capture le formulaire et on lance le chargement
-    const form = event.currentTarget 
-    setLoading(true)
+    if (!user) return
 
-    // 2. On prépare les données
+    const form = event.currentTarget
+    setLoading(true)
     const formData = new FormData(form)
-    
+
     let dateString = "Not specified"
     if (dateRange?.from) {
-      dateString = dateRange.to 
+      dateString = dateRange.to
         ? `${format(dateRange.from, "yyyy-MM-dd")} to ${format(dateRange.to, "yyyy-MM-dd")}`
         : format(dateRange.from, "yyyy-MM-dd")
     }
@@ -118,25 +116,27 @@ export function AvailabilityForm() {
       portfolio_link: portfolioLink.trim() || null,
     }
 
-    // 3. ON ENVOIE À SUPABASE — upsert pour permettre la mise à jour si le profil existe déjà
-    const { error } = await supabase
-      .from('profiles')
-      .upsert([profileData], { onConflict: 'id' })
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .upsert([profileData], { onConflict: 'id' })
 
-    setLoading(false)
-
-    // 4. On vérifie le résultat
-    if (error) {
-      toast.error("Impossible de publier le profil.", { description: error.message })
-    } else {
-      toast.success("Profil mis à jour !", { description: "Ta disponibilité est maintenant visible." })
-      form.reset()
-      setDateRange(undefined)
-      setRole("")
-      setLevel("")
-      setEngine("")
-      setLanguage("")
-      setPortfolioLink("")
+      if (error) {
+        toast.error("Impossible de publier le profil.", { description: error.message })
+      } else {
+        toast.success("Profil mis à jour !", { description: "Ta disponibilité est maintenant visible." })
+        form.reset()
+        setDateRange(undefined)
+        setRole("")
+        setLevel("")
+        setEngine("")
+        setLanguage("")
+        setPortfolioLink("")
+      }
+    } catch (err) {
+      toast.error("Une erreur est survenue.", { description: err instanceof Error ? err.message : "Veuillez réessayer." })
+    } finally {
+      setLoading(false)
     }
   }
 

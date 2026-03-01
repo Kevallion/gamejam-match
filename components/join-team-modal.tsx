@@ -112,8 +112,10 @@ export function JoinTeamModal({ teamId, teamName, availableRoles, children }: Jo
       setTimeout(() => {
         handleOpen(false)
       }, 2000)
-    } catch {
-      setStatusMsg({ type: "error", text: "An error occurred. Please try again." })
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Une erreur est survenue. Réessaie."
+      setStatusMsg({ type: "error", text: msg })
+      toast.error("Impossible d'envoyer la candidature.", { description: msg })
     } finally {
       setLoading(false)
     }

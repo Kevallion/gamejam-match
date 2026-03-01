@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { TeamCard, type TeamCardData } from "@/components/team-card"
 import { supabase } from "@/lib/supabase"
 import { Loader2 } from "lucide-react"
+import { toast } from "sonner"
 
 const PAGE_SIZE = 24
 
@@ -95,7 +96,8 @@ export function TeamGrid({
       setHasMore(data.length === PAGE_SIZE)
       offsetRef.current = from + data.length
     } else if (error) {
-      console.error("Erreur Supabase :", error)
+      setTeams([])
+      toast.error("Erreur lors du chargement des équipes.", { description: error.message })
     }
   }, [])
 

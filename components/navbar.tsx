@@ -16,6 +16,7 @@ import { supabase } from "@/lib/supabase"
 import { useEffect, useState } from "react"
 import type { User } from "@supabase/supabase-js"
 import { useNotifications } from "@/hooks/use-notifications"
+import { toast } from "sonner"
 
 const ROLE_LABELS: Record<string, string> = {
   developer: "Developer",
@@ -58,7 +59,7 @@ export function Navbar() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'discord',
     })
-    if (error) console.error("Erreur de connexion :", error.message)
+    if (error) toast.error("Erreur de connexion", { description: error.message })
   }
 
   const handleSignOut = async () => {

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { JammerCard, type JammerCardData, type SquadOption } from "@/components/player-card"
 import { Loader2 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
+import { toast } from "sonner"
 
 const PAGE_SIZE = 24
 
@@ -88,7 +89,8 @@ export function MembersGrid({
       setHasMore(data.length === PAGE_SIZE)
       offsetRef.current = from + data.length
     } else if (error) {
-      console.error("Erreur Supabase :", error)
+      setMembers([])
+      toast.error("Erreur lors du chargement des profils.", { description: error.message })
     }
   }, [])
 
