@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { cn } from "@/lib/utils"
 import { supabase } from "@/lib/supabase"
 import {
   Dialog,
@@ -170,11 +171,10 @@ export function JoinTeamModal({ teamId, teamName, children }: JoinTeamModalProps
             {statusMsg && (
               <div
                 aria-live="polite"
-                className={`flex items-center gap-2.5 rounded-xl border px-3.5 py-2.5 text-sm font-medium ${
-                  statusMsg.type === "error"
-                    ? "border-destructive/30 bg-destructive/10 text-destructive"
-                    : "border-teal/30 bg-teal/10 text-teal"
-                }`}
+                className={cn(
+                  "flex items-center gap-2.5 rounded-xl border px-3.5 py-2.5 text-sm font-medium",
+                  statusMsg.type === "error" ? "status-error" : "status-success",
+                )}
               >
                 {statusMsg.type === "error" ? (
                   <AlertCircle className="size-4 shrink-0" />

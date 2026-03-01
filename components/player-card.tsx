@@ -22,6 +22,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Textarea } from "@/components/ui/textarea"
+import { cn } from "@/lib/utils"
 import { supabase } from "@/lib/supabase"
 import {
   Cpu,
@@ -144,7 +145,7 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
 
   return (
     <>
-      <Card className="group relative flex flex-col rounded-2xl border-border/50 bg-card transition-all duration-300 hover:border-lavender/30 hover:shadow-lg hover:shadow-lavender/5">
+      <Card variant="lavender" className="group flex flex-col">
         <CardContent className="flex flex-1 flex-col gap-4 pt-6">
           {/* Avatar + Username */}
           <div className="flex items-center gap-3.5">
@@ -326,11 +327,10 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
               {statusMsg && (
                 <div
                   aria-live="polite"
-                  className={`flex items-center gap-2.5 rounded-xl border px-3.5 py-2.5 text-sm font-medium ${
-                    statusMsg.type === "error"
-                      ? "border-destructive/30 bg-destructive/10 text-destructive"
-                      : "border-teal/30 bg-teal/10 text-teal"
-                  }`}
+                  className={cn(
+                    "flex items-center gap-2.5 rounded-xl border px-3.5 py-2.5 text-sm font-medium",
+                    statusMsg.type === "error" ? "status-error" : "status-success",
+                  )}
                 >
                   {statusMsg.type === "error" ? (
                     <AlertCircle className="size-4 shrink-0" />
