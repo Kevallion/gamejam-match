@@ -1,0 +1,148 @@
+"use client"
+
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+} from "@/components/ui/card"
+import { Globe, Cpu, Users, Trash2, PenLine, Rocket } from "lucide-react"
+import Link from "next/link"
+
+export type TeamData = {
+  id: any
+  name: string
+  jam: string
+  engine: string
+  language: string
+  description: string
+  members: number
+  maxMembers: number
+  roles: { label: string; emoji: string; color: string }[]
+  level: { label: string; emoji: string; color: string }
+}
+
+interface DashboardMyTeamsProps {
+  teams: TeamData[]
+  onDelete: (id: any) => void
+}
+
+export function DashboardMyTeams({
+  teams,
+  onDelete,
+}: DashboardMyTeamsProps) {
+  return (
+    <section>
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h2 className="text-xl font-extrabold text-foreground">
+            My Teams
+          </h2>
+          <p className="mt-0.5 text-sm text-muted-foreground">
+            Teams you{"'"}ve created or joined
+          </p>
+        </div>
+        <Button
+          asChild
+          className="gap-2 rounded-xl bg-primary text-primary-foreground hover:bg-primary/85"
+        >
+          <Link href="/create-team">
+            <Rocket className="size-4" />
+            Create New Team
+          </Link>
+        </Button>
+      </div>
+
+      {teams.length === 0 ? (
+        <Card className="flex flex-col items-center gap-3 rounded-2xl border-border/50 bg-card px-6 py-12 text-center">
+          <PenLine className="size-8 text-muted-foreground/50" />
+          <p className="text-sm text-muted-foreground">
+            You haven{"'"}t created any teams yet.
+          </p>
+          <Button
+            asChild
+            variant="outline"
+            className="mt-2 gap-2 rounded-xl border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
+          >
+            <Link href="/create-team">Post your first team</Link>
+          </Button>
+        </Card>
+      ) : (
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {teams.map((team) => (
+            <Card
+              key={team.id}
+              className="group relative flex flex-col rounded-2xl border-border/50 bg-card transition-all duration-300 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5"
+            >
+              <CardHeader className="gap-3 pb-0">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <h3 className="truncate text-lg font-bold text-foreground">
+                      {team.name}
+                    </h3>
+                    <p className="mt-0.5 text-sm font-medium text-primary">
+                      {team.jam}
+                    </p>
+                  </div>
+                  <Badge
+                    variant="outline"
+                    className="shrink-0 rounded-full border-border/60 text-xs text-muted-foreground"
+                  >
+                    <Users className="mr-1 size-3" />
+                    {team.members}/{team.maxMembers}
+                  </Badge>
+                </div>
+              </CardHeader>
+
+              <CardContent className="flex flex-1 flex-col gap-3 pt-3">
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                  <span className="inline-flex items-center gap-1.5">
+                    <Cpu className="size-3.5 text-lavender" />
+                    {team.engine}
+                  </span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <Globe className="size-3.5 text-teal" />
+                    {team.language}
+                  </span>
+                </div>
+
+                <p className="flex-1 text-sm leading-relaxed text-muted-foreground line-clamp-2">
+                  {team.description}
+                </p>
+
+                <div className="flex flex-wrap gap-1.5">
+                  <span
+                    className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${team.level.color}`}
+                  >
+                    {team.level.emoji} {team.level.label}
+                  </span>
+                  {team.roles.map((role) => (
+                    <span
+                      key={role.label}
+                      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${role.color}`}
+                    >
+                      {role.emoji} {role.label}
+                    </span>
+                  ))}
+                </div>
+              </CardContent>
+
+              <CardFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => onDelete(team.id)}
+                  className="w-full gap-2 rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                >
+                  <Trash2 className="size-4" />
+                  Delete Team
+                </Button>
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
+      )}
+    </section>
+  )
+}

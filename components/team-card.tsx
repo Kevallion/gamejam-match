@@ -3,6 +3,9 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Globe, Cpu, Users, ArrowRight } from "lucide-react"
 
+// ON IMPORTE LE NOUVEAU COMPOSANT ICI
+import { JoinTeamModal } from "@/components/join-team-modal"
+
 type RoleBadge = {
   label: string
   emoji: string
@@ -85,10 +88,13 @@ export function TeamCard({ team }: { team: TeamCardData }) {
       </CardContent>
 
       <CardFooter>
-        <Button className="w-full gap-2 rounded-xl bg-primary text-primary-foreground transition-all hover:bg-primary/85 hover:gap-3">
-          Join Team
-          <ArrowRight className="size-4" />
-        </Button>
+        {/* ET ON ENTOURE LE BOUTON AVEC LE MODAL ICI */}
+        <JoinTeamModal teamId={team.id} teamName={team.name}>
+          <Button className="w-full gap-2 rounded-xl bg-primary text-primary-foreground transition-all hover:bg-primary/85 hover:gap-3">
+            Join Team
+            <ArrowRight className="size-4" />
+          </Button>
+        </JoinTeamModal>
       </CardFooter>
     </Card>
   )
