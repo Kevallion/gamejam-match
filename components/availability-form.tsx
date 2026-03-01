@@ -280,7 +280,7 @@ export function AvailabilityForm() {
               </div>
 
               {/* Submit */}
-              <Button type="submit" disabled={loading} className="w-full rounded-2xl bg-lavender py-7 font-extrabold text-lavender-foreground">
+              <Button type="submit" disabled={loading} className="w-full rounded-2xl bg-primary py-7 font-extrabold text-primary-foreground">
                 {loading ? "Sending..." : "Post My Availability"}
               </Button>
             </form>

@@ -86,7 +86,7 @@ export function DashboardMyTeams({
       setEditingTeamId(null)
     } catch (err) {
       setSubmitError(
-        err instanceof Error ? err.message : "Erreur lors de la mise à jour"
+        err instanceof Error ? err.message : "Update failed, please try again."
       )
     } finally {
       setIsSubmitting(false)
@@ -133,7 +133,7 @@ export function DashboardMyTeams({
           {teams.map((team) => (
             <Card
               key={team.id}
-              className="group relative flex flex-col rounded-2xl border-border/50 bg-card transition-all duration-300 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5"
+              className="card-interactive group relative flex flex-col"
             >
               <CardHeader className="gap-3 pb-0">
                 <div className="flex items-start justify-between gap-2">
@@ -211,7 +211,7 @@ export function DashboardMyTeams({
                       className="flex flex-col gap-4"
                     >
                       <div className="space-y-2">
-                        <Label htmlFor="discord-link">Lien d&apos;invitation Discord</Label>
+                        <Label htmlFor="discord-link">Discord Invite Link</Label>
                         <Input
                           id="discord-link"
                           type="url"

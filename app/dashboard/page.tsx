@@ -60,59 +60,57 @@ function SentApplicationsSection() {
   if (loading) return null
 
   return (
-    <div className="rounded-xl border border-border/50 bg-card/50 p-6 shadow-sm">
+    <div className="rounded-2xl border border-border/50 bg-card/50 p-6 shadow-sm">
       <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex size-10 items-center justify-center rounded-lg bg-teal/10">
-            <Send className="size-5 text-teal" />
+          <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10">
+            <Send className="size-5 text-primary" />
           </div>
           <div>
-            <h2 className="text-xl font-bold tracking-tight">Mes candidatures envoyées</h2>
-            <p className="text-sm text-muted-foreground">Suis le statut de tes demandes pour rejoindre une équipe.</p>
+            <h2 className="text-xl font-bold tracking-tight">My Sent Applications</h2>
+            <p className="text-sm text-muted-foreground">Track the status of your requests to join a squad.</p>
           </div>
         </div>
       </div>
 
       {sentApplications.length === 0 ? (
-        <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
-          Tu n'as pas encore envoyé de candidature pour rejoindre une équipe.
+        <div className="rounded-xl border border-dashed border-border/60 p-8 text-center text-sm text-muted-foreground">
+          You haven&apos;t applied to join any squad yet.
         </div>
       ) : (
         <div className="flex flex-col gap-3">
           {sentApplications.map(app => (
-            <div key={app.id} className="flex items-center justify-between rounded-lg border bg-background px-4 py-3 shadow-sm">
+            <div key={app.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border/50 bg-background px-4 py-3 shadow-sm">
               <span className="font-medium text-foreground">
-                {app.teams?.team_name || "Équipe inconnue"}
+                {app.teams?.team_name || "Unknown Squad"}
               </span>
-              
+
               <div className="flex items-center gap-3">
-                {/* Badge de statut */}
                 {app.status === "pending" && (
-                  <span className="rounded bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
-                    En attente
+                  <span className="rounded-lg bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
+                    Pending
                   </span>
                 )}
                 {app.status === "rejected" && (
-                  <span className="rounded bg-red-500/10 px-2.5 py-1 text-xs font-medium text-red-600">
-                    Refusée
+                  <span className="status-error rounded-lg px-2.5 py-1 text-xs font-medium">
+                    Declined
                   </span>
                 )}
                 {app.status === "accepted" && (
-                  <span className="rounded bg-green-500/10 px-2.5 py-1 text-xs font-medium text-green-600">
-                    Acceptée
+                  <span className="status-success rounded-lg px-2.5 py-1 text-xs font-medium">
+                    Accepted
                   </span>
                 )}
 
-                {/* Bouton Discord si accepté */}
                 {app.status === "accepted" && app.teams?.discord_link && (
                   <a
                     href={app.teams.discord_link}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 rounded-md bg-[#5865F2]/90 px-3 py-1.5 text-xs font-medium text-white shadow-sm transition-colors hover:bg-[#5865F2]"
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-[#5865F2]/90 px-3 py-1.5 text-xs font-medium text-white shadow-sm transition-colors hover:bg-[#5865F2]"
                   >
                     <MessageCircle className="size-3.5" />
-                    Rejoindre le Discord
+                    Join Discord
                   </a>
                 )}
               </div>

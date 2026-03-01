@@ -79,7 +79,7 @@ export function DashboardIncomingApplications({
           {applications.map((app) => (
             <Card
               key={app.id}
-              className="group relative overflow-hidden rounded-2xl border-border/50 bg-card transition-all duration-300 hover:border-mint/30 hover:shadow-lg hover:shadow-mint/5"
+              className="card-interactive group relative overflow-hidden"
             >
               {/* Subtle top accent line */}
               <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-mint/60 via-teal/40 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
@@ -149,7 +149,7 @@ export function DashboardIncomingApplications({
                 <div className="flex items-center gap-3 pt-0.5">
                   <Button
                     onClick={() => onAccept(app.id)}
-                    className="gap-2 rounded-xl bg-green-600 px-5 text-white shadow-md shadow-green-500/20 transition-all hover:bg-green-700 hover:shadow-lg hover:shadow-green-500/30"
+                    className="gap-2 rounded-xl bg-success px-5 text-success-foreground shadow-sm transition-all hover:bg-success/85"
                   >
                     <Check className="size-4" />
                     Accept
@@ -157,7 +157,7 @@ export function DashboardIncomingApplications({
                   <Button
                     variant="outline"
                     onClick={() => onDecline(app.id)}
-                    className="gap-2 rounded-xl border-red-500/50 px-5 text-red-600 transition-all hover:border-red-500 hover:bg-red-500/10 hover:text-red-700"
+                    className="gap-2 rounded-xl border-destructive/50 px-5 text-destructive transition-all hover:border-destructive hover:bg-destructive/10"
                   >
                     <X className="size-4" />
                     Decline

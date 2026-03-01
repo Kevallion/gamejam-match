@@ -68,7 +68,7 @@ export function DashboardSquadInvitations({
           {invitations.map((inv) => (
             <Card
               key={inv.id}
-              className="group relative overflow-hidden rounded-2xl border-border/50 bg-card transition-all duration-300 hover:border-lavender/30 hover:shadow-lg hover:shadow-lavender/5"
+              className="card-interactive group relative overflow-hidden"
             >
               {/* Subtle top accent line */}
               <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-lavender/60 via-pink/40 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
@@ -93,7 +93,7 @@ export function DashboardSquadInvitations({
                 <div className="flex shrink-0 items-center gap-3">
                   <Button
                     onClick={() => onAccept(inv)}
-                    className="gap-2 rounded-xl bg-green-600 px-5 text-white shadow-md shadow-green-500/20 transition-all hover:bg-green-700 hover:shadow-lg hover:shadow-green-500/30"
+                    className="gap-2 rounded-xl bg-success px-5 text-success-foreground shadow-sm transition-all hover:bg-success/85"
                   >
                     <Check className="size-4" />
                     Accept
@@ -101,7 +101,7 @@ export function DashboardSquadInvitations({
                   <Button
                     variant="outline"
                     onClick={() => onDecline(inv.id)}
-                    className="gap-2 rounded-xl border-red-500/50 px-5 text-red-600 transition-all hover:border-red-500 hover:bg-red-500/10 hover:text-red-700"
+                    className="gap-2 rounded-xl border-destructive/50 px-5 text-destructive transition-all hover:border-destructive hover:bg-destructive/10"
                   >
                     <X className="size-4" />
                     Decline
