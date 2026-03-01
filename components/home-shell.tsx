@@ -123,7 +123,7 @@ export function HomeShell() {
             <span>by</span>
             <span className="inline-flex items-center gap-1.5 font-bold text-foreground">
               <Gamepad2 className="size-4 text-primary" />
-              JamSquad
+              GameJamCrew
             </span>
           </div>
         </div>

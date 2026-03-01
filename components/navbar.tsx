@@ -72,7 +72,7 @@ export function Navbar() {
           <div className="flex size-9 items-center justify-center rounded-xl bg-primary/15">
             <Gamepad2 className="size-5 text-primary" />
           </div>
-          <span className="text-lg font-extrabold tracking-tight">JamSquad</span>
+          <span className="text-lg font-extrabold tracking-tight">GameJamCrew</span>
         </Link>
 
         <div className="hidden items-center gap-1 md:flex">

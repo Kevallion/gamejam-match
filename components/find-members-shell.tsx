@@ -72,7 +72,7 @@ export function FindMembersShell() {
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <span>Made with</span><Heart className="size-4 text-pink" /><span>by</span>
             <span className="inline-flex items-center gap-1.5 font-bold text-foreground">
-              <Gamepad2 className="size-4 text-primary" />JamSquad
+              <Gamepad2 className="size-4 text-primary" />GameJamCrew
             </span>
           </div>
         </div>

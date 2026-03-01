@@ -6,7 +6,9 @@ import { DashboardMyTeams, type TeamData } from "@/components/dashboard-my-teams
 import { DashboardMyAvailability, type ProfileData } from "@/components/dashboard-my-availability"
 import { DashboardIncomingApplications, type ApplicationData } from "@/components/dashboard-incoming-applications"
 import { DashboardSquadInvitations, type InvitationData } from "@/components/dashboard-squad-invitations"
-import { Gamepad2, Heart, LayoutDashboard, Loader2, MessageCircle, Send } from "lucide-react"
+import { Gamepad2, Heart, LayoutDashboard, Loader2, MessageCircle, Send, Users, Bell, UserCircle } from "lucide-react"
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+import { Card, CardContent } from "@/components/ui/card"
 import { supabase } from "@/lib/supabase"
 import { toast } from "sonner"
 
@@ -31,29 +33,9 @@ const LEVEL_STYLES: Record<string, { label: string; emoji: string; color: string
 const FALLBACK_ROLE = { label: "Other", emoji: "❓", color: "bg-muted text-muted-foreground" }
 const FALLBACK_LEVEL = LEVEL_STYLES["beginner"]
 
-function SentApplicationsSection() {
-  const [sentApplications, setSentApplications] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
+type SentApp = { id: string; status: string; target_role?: string; teams?: { team_name?: string; discord_link?: string } }
 
-  useEffect(() => {
-    const fetchSentApplications = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session?.user) { setLoading(false); return }
-
-      const { data, error } = await supabase
-        .from("join_requests")
-        .select("id, status, target_role, teams(team_name, discord_link)")
-        .eq("sender_id", session.user.id)
-        .eq("type", "application")
-
-      if (!error && data) setSentApplications(data)
-      setLoading(false)
-    }
-    fetchSentApplications()
-  }, [])
-
-  if (loading) return null
-
+function SentApplicationsSection({ sentApplications }: { sentApplications: SentApp[] }) {
   return (
     <div className="rounded-xl border border-border/50 bg-card/50 p-6 shadow-sm">
       <div className="mb-6 flex items-center justify-between">
@@ -133,6 +115,7 @@ export function DashboardClient() {
   const [profiles, setProfiles] = useState<ProfileData[]>([])
   const [applications, setApplications] = useState<ApplicationData[]>([])
   const [invitations, setInvitations] = useState<InvitationData[]>([])
+  const [sentApplications, setSentApplications] = useState<SentApp[]>([])
   const [loading, setLoading] = useState(true)
 
   const mapTeamRow = (t: any): TeamData => {
@@ -226,10 +209,22 @@ export function DashboardClient() {
       .eq("status", "pending")
       .eq("type", "invitation")
 
+    const { data: sentAppsData } = await supabase
+      .from("join_requests")
+      .select("id, status, target_role, teams(team_name, discord_link)")
+      .eq("sender_id", session.user.id)
+      .eq("type", "application")
+
     if (teamsData) setTeams(teamsData.map(mapTeamRow))
     if (profilesData) setProfiles(profilesData.map(mapProfileRow))
     if (appsData) setApplications(appsData.map(mapApplicationRow))
     if (rawInvitesData) setInvitations(rawInvitesData.map(mapInvitationRow))
+    if (sentAppsData) {
+      setSentApplications(sentAppsData.map((a: any) => ({
+        ...a,
+        teams: Array.isArray(a.teams) ? a.teams[0] : a.teams,
+      })))
+    }
 
     setLoading(false)
   }
@@ -367,24 +362,75 @@ export function DashboardClient() {
         </section>
 
         <section className="px-4 pb-16 pt-4 lg:px-6 lg:pb-24">
-          <div className="mx-auto max-w-6xl flex flex-col gap-16">
-            <DashboardMyTeams
-              teams={teams}
-              onDelete={handleDeleteTeam}
-              onUpdateDiscord={handleUpdateDiscord}
-            />
-            <DashboardIncomingApplications
-              applications={applications}
-              onAccept={handleAcceptApplication}
-              onDecline={handleDeclineApplication}
-            />
-            <DashboardSquadInvitations
-              invitations={invitations}
-              onAccept={handleAcceptInvitation}
-              onDecline={handleDeclineInvitation}
-            />
-            <SentApplicationsSection />
-            <DashboardMyAvailability profiles={profiles} onDelete={handleDeleteProfile} />
+          <div className="mx-auto max-w-6xl">
+            {/* Stat Cards */}
+            <div className="mb-8 grid gap-4 sm:grid-cols-3">
+              <Card>
+                <CardContent className="flex items-center gap-4 pt-6">
+                  <div className="flex size-12 items-center justify-center rounded-xl bg-teal/15">
+                    <Users className="size-6 text-teal" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">My Teams</p>
+                    <p className="text-2xl font-bold">{teams.length}</p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="flex items-center gap-4 pt-6">
+                  <div className="flex size-12 items-center justify-center rounded-xl bg-peach/15">
+                    <Bell className="size-6 text-peach" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">Pending Requests</p>
+                    <p className="text-2xl font-bold">{applications.length + invitations.length + sentApplications.length}</p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardContent className="flex items-center gap-4 pt-6">
+                  <div className="flex size-12 items-center justify-center rounded-xl bg-lavender/15">
+                    <UserCircle className="size-6 text-lavender" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">My Profiles</p>
+                    <p className="text-2xl font-bold">{profiles.length}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Tabs */}
+            <Tabs defaultValue="teams" className="w-full">
+              <TabsList className="mb-6">
+                <TabsTrigger value="teams">My Teams</TabsTrigger>
+                <TabsTrigger value="requests">Inbox / Requests</TabsTrigger>
+                <TabsTrigger value="availability">Profile</TabsTrigger>
+              </TabsList>
+              <TabsContent value="teams" className="mt-0">
+                <DashboardMyTeams
+                  teams={teams}
+                  onDelete={handleDeleteTeam}
+                  onUpdateDiscord={handleUpdateDiscord}
+                />
+              </TabsContent>
+              <TabsContent value="requests" className="mt-0 flex flex-col gap-8">
+                <DashboardIncomingApplications
+                  applications={applications}
+                  onAccept={handleAcceptApplication}
+                  onDecline={handleDeclineApplication}
+                />
+                <DashboardSquadInvitations
+                  invitations={invitations}
+                  onAccept={handleAcceptInvitation}
+                  onDecline={handleDeclineInvitation}
+                />
+                <SentApplicationsSection sentApplications={sentApplications} />
+              </TabsContent>
+              <TabsContent value="availability" className="mt-0">
+                <DashboardMyAvailability profiles={profiles} onDelete={handleDeleteProfile} />
+              </TabsContent>
+            </Tabs>
           </div>
         </section>
       </main>
@@ -396,7 +442,7 @@ export function DashboardClient() {
             <span>by</span>
             <span className="inline-flex items-center gap-1.5 font-bold text-foreground">
               <Gamepad2 className="size-4 text-primary" />
-              JamSquad
+              GameJamCrew
             </span>
           </div>
           <p className="text-xs text-muted-foreground/70">

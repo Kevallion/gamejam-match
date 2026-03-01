@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import { DashboardClient } from "@/components/dashboard-client"
 
 export const metadata: Metadata = {
-  title: "Dashboard — JamSquad",
+  title: "Dashboard — GameJamCrew",
   description: "Manage your game jam teams, track incoming applications, and keep your jammer profile up to date.",
 }
 

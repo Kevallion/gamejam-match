@@ -4,7 +4,7 @@ import { Gamepad2, Heart, PenLine } from "lucide-react"
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Form a Squad — JamSquad",
+  title: "Form a Squad — GameJamCrew",
   description: "Create a new team listing for your game jam. Describe your project, pick the roles you need, and find the perfect teammates.",
 }
 
@@ -57,7 +57,7 @@ export default function CreateTeamPage() {
             <span>by</span>
             <span className="inline-flex items-center gap-1.5 font-bold text-foreground">
               <Gamepad2 className="size-4 text-primary" />
-              JamSquad
+              GameJamCrew
             </span>
           </div>
           <p className="text-xs text-muted-foreground/70">

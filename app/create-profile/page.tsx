@@ -4,7 +4,7 @@ import { Gamepad2, Heart, UserCheck } from "lucide-react"
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Join a Squad — JamSquad",
+  title: "Join a Squad — GameJamCrew",
   description: "Set up your solo profile and let teams know you're ready to jam. Share your skills and get discovered.",
 }
 
@@ -57,7 +57,7 @@ export default function AvailabilityPage() {
             <span>by</span>
             <span className="inline-flex items-center gap-1.5 font-bold text-foreground">
               <Gamepad2 className="size-4 text-primary" />
-              JamSquad
+              GameJamCrew
             </span>
           </div>
           <p className="text-xs text-muted-foreground/70">

@@ -15,10 +15,30 @@ const _geistMono = Geist_Mono({
   variable: '--font-geist-mono',
 })
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://gamejamcrew.com'
+
 export const metadata: Metadata = {
-  title: 'JamSquad - Find Your Perfect Game Jam Team',
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: 'GameJamCrew - Find Your Game Jam Squad',
+    template: '%s | GameJamCrew',
+  },
   description:
-    'Connect with fellow game developers and form your dream team for the next game jam. Find teammates by engine, role, and experience level.',
+    'GameJamCrew is the team builder for Game Jams. Connect indie developers, artists, programmers and designers to create games together. Find your squad, post your team, or join the next jam.',
+  keywords: ['Game Jam', 'team builder', 'indie developers', 'artists', 'programmers', 'create games', 'game development', 'squad finder'],
+  openGraph: {
+    type: 'website',
+    siteName: 'GameJamCrew',
+    title: 'GameJamCrew - Find Your Game Jam Squad',
+    description: 'The team builder for Game Jams. Connect indie developers, artists and programmers to create games together.',
+    images: ['/og-image.png'],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'GameJamCrew - Find Your Game Jam Squad',
+    description: 'The team builder for Game Jams. Connect indie developers, artists and programmers to create games together.',
+    images: ['/og-image.png'],
+  },
   generator: 'v0.app',
   icons: {
     icon: [
