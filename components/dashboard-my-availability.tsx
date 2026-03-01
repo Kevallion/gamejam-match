@@ -21,6 +21,7 @@ import {
   Hand,
   PenLine,
   Save,
+  Sparkles,
   Trash2,
   X,
 } from "lucide-react"
@@ -429,12 +430,24 @@ export function DashboardMyAvailability({
 }: DashboardMyAvailabilityProps) {
   return (
     <section>
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h2 className="text-xl font-extrabold text-foreground">My Availability</h2>
-          <p className="mt-0.5 text-sm text-muted-foreground">
-            Your posted availability profiles
-          </p>
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="flex size-10 items-center justify-center rounded-xl bg-lavender/15">
+            <Hand className="size-5 text-lavender" />
+          </div>
+          <div>
+            <h2 className="text-xl font-extrabold text-foreground">My Availability</h2>
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              Your public jammer profiles
+            </p>
+          </div>
+          <Badge
+            variant="secondary"
+            className="rounded-full bg-lavender/15 px-3 py-1 text-sm font-bold text-lavender"
+          >
+            <Sparkles className="mr-1 size-3.5" />
+            {profiles.length}
+          </Badge>
         </div>
         <Button
           asChild

@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Globe, Cpu, Users, Trash2, PenLine, Rocket, Link2 } from "lucide-react"
+import { Globe, Cpu, Users, Trash2, PenLine, Rocket, Link2, Sparkles } from "lucide-react"
 import Link from "next/link"
 
 const DISCORD_LINK_REGEX = /^https:\/\/(discord\.gg\/|discord\.com\/invite\/)/i
@@ -105,14 +105,24 @@ export function DashboardMyTeams({
   }
   return (
     <section>
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h2 className="text-xl font-extrabold text-foreground">
-            My Teams
-          </h2>
-          <p className="mt-0.5 text-sm text-muted-foreground">
-            Teams you{"'"}ve created or joined
-          </p>
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="flex size-10 items-center justify-center rounded-xl bg-teal/15">
+            <Users className="size-5 text-teal" />
+          </div>
+          <div>
+            <h2 className="text-xl font-extrabold text-foreground">My Squads</h2>
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              Teams you{"'"}ve created and manage
+            </p>
+          </div>
+          <Badge
+            variant="secondary"
+            className="rounded-full bg-teal/15 px-3 py-1 text-sm font-bold text-teal"
+          >
+            <Sparkles className="mr-1 size-3.5" />
+            {teams.length}
+          </Badge>
         </div>
         <Button
           asChild
@@ -120,23 +130,31 @@ export function DashboardMyTeams({
         >
           <Link href="/create-team">
             <Rocket className="size-4" />
-            Create New Team
+            Create New Squad
           </Link>
         </Button>
       </div>
 
       {teams.length === 0 ? (
-        <Card className="flex flex-col items-center gap-3 rounded-2xl border-border/50 bg-card px-6 py-12 text-center">
-          <PenLine className="size-8 text-muted-foreground/50" />
-          <p className="text-sm text-muted-foreground">
-            You haven{"'"}t created any teams yet.
-          </p>
+        <Card className="flex flex-col items-center gap-3 rounded-2xl border-border/50 border-dashed bg-card/50 px-6 py-14 text-center">
+          <div className="flex size-14 items-center justify-center rounded-full bg-secondary/80">
+            <Users className="size-7 text-muted-foreground/60" />
+          </div>
+          <div>
+            <p className="font-semibold text-foreground">No squads yet</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Create your first squad and start recruiting jammers!
+            </p>
+          </div>
           <Button
             asChild
             variant="outline"
-            className="mt-2 gap-2 rounded-xl border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
+            className="mt-1 gap-2 rounded-xl border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
           >
-            <Link href="/create-team">Post your first team</Link>
+            <Link href="/create-team">
+              <Rocket className="size-4" />
+              Post your first squad
+            </Link>
           </Button>
         </Card>
       ) : (

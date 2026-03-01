@@ -6,7 +6,12 @@ import { DashboardMyTeams, type TeamData } from "@/components/dashboard-my-teams
 import { DashboardMyAvailability, type ProfileData } from "@/components/dashboard-my-availability"
 import { DashboardIncomingApplications, type ApplicationData } from "@/components/dashboard-incoming-applications"
 import { DashboardSquadInvitations, type InvitationData } from "@/components/dashboard-squad-invitations"
-import { Gamepad2, Heart, LayoutDashboard, Loader2, MessageCircle, Send } from "lucide-react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Badge } from "@/components/ui/badge"
+import {
+  Gamepad2, Heart, LayoutDashboard, Loader2, MessageCircle, Send,
+  Users, Inbox, Hand,
+} from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { toast } from "sonner"
 
@@ -35,7 +40,46 @@ const FALLBACK_ROLE = { label: "Other", emoji: "❓", color: "bg-muted text-mute
 const FALLBACK_LEVEL = LEVEL_STYLES["beginner"]
 
 // ---------------------------------------------------------------------------
-// NOUVEAU COMPOSANT : Mes Candidatures Envoyées
+// Stat card — at-a-glance overview above the tabs
+// ---------------------------------------------------------------------------
+type StatCardColor = "teal" | "peach" | "lavender"
+
+const STAT_COLOR_MAP: Record<StatCardColor, { bg: string; text: string; border: string; glow: string }> = {
+  teal:     { bg: "bg-teal/10",     text: "text-teal",     border: "border-teal/20",     glow: "shadow-teal/5" },
+  peach:    { bg: "bg-peach/10",    text: "text-peach",    border: "border-peach/20",    glow: "shadow-peach/5" },
+  lavender: { bg: "bg-lavender/10", text: "text-lavender", border: "border-lavender/20", glow: "shadow-lavender/5" },
+}
+
+function StatCard({
+  label,
+  sublabel,
+  value,
+  icon: Icon,
+  color,
+}: {
+  label: string
+  sublabel: string
+  value: number
+  icon: React.ElementType
+  color: StatCardColor
+}) {
+  const c = STAT_COLOR_MAP[color]
+  return (
+    <div className={`card-interactive flex items-center gap-4 rounded-2xl border ${c.border} bg-card p-5 shadow-sm`}>
+      <div className={`flex size-12 shrink-0 items-center justify-center rounded-xl ${c.bg}`}>
+        <Icon className={`size-6 ${c.text}`} />
+      </div>
+      <div className="min-w-0">
+        <p className={`text-3xl font-extrabold tabular-nums ${c.text}`}>{value}</p>
+        <p className="truncate text-sm font-semibold text-foreground">{label}</p>
+        <p className="truncate text-xs text-muted-foreground">{sublabel}</p>
+      </div>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Sent Applications section (used inside Applications tab)
 // ---------------------------------------------------------------------------
 function SentApplicationsSection() {
   const [sentApplications, setSentApplications] = useState<any[]>([])
@@ -336,11 +380,15 @@ export default function DashboardPage() {
     )
   }
 
+  const pendingCount = applications.length + invitations.length
+
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
       <main className="flex-1">
-        <section className="relative overflow-hidden px-4 pb-8 pt-16 lg:px-6 lg:pt-24 lg:pb-12">
+
+        {/* ── Hero ─────────────────────────────────────────────────────── */}
+        <section className="relative overflow-hidden px-4 pb-6 pt-16 lg:px-6 lg:pt-24 lg:pb-8">
           <div className="pointer-events-none absolute inset-0 opacity-30" aria-hidden="true">
             <div className="absolute left-1/2 top-0 size-[600px] -translate-x-1/2 -translate-y-1/3 rounded-full bg-peach/20 blur-[120px]" />
             <div className="absolute right-0 top-1/2 size-[400px] -translate-y-1/2 rounded-full bg-teal/15 blur-[100px]" />
@@ -359,28 +407,126 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        <section className="px-4 pb-16 pt-4 lg:px-6 lg:pb-24">
-          <div className="mx-auto max-w-6xl flex flex-col gap-16">
-            <DashboardMyTeams
-              teams={teams}
-              onDelete={handleDeleteTeam}
-              onUpdateDiscord={handleUpdateDiscord}
-            />
-            <DashboardIncomingApplications
-              applications={applications}
-              onAccept={handleAcceptApplication}
-              onDecline={handleDeclineApplication}
-            />
-            <DashboardSquadInvitations
-              invitations={invitations}
-              onAccept={handleAcceptInvitation}
-              onDecline={handleDeclineInvitation}
-            />
-            {/* L'APPEL DE LA NOUVELLE SECTION EST BIEN ICI */}
-            <SentApplicationsSection />
-            <DashboardMyAvailability profiles={profiles} onDelete={handleDeleteProfile} />
+        {/* ── At-a-glance stat cards ────────────────────────────────────── */}
+        <section className="px-4 pb-6 pt-2 lg:px-6">
+          <div className="mx-auto max-w-6xl">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <StatCard
+                label="My Squads"
+                sublabel={teams.length === 1 ? "team created" : "teams created"}
+                value={teams.length}
+                icon={Users}
+                color="teal"
+              />
+              <StatCard
+                label="Pending Requests"
+                sublabel={pendingCount === 1 ? "action needed" : "actions needed"}
+                value={pendingCount}
+                icon={Inbox}
+                color="peach"
+              />
+              <StatCard
+                label="My Profiles"
+                sublabel={profiles.length === 1 ? "availability posted" : "availabilities posted"}
+                value={profiles.length}
+                icon={Hand}
+                color="lavender"
+              />
+            </div>
           </div>
         </section>
+
+        {/* ── Tabs ─────────────────────────────────────────────────────── */}
+        <section className="px-4 pb-16 pt-4 lg:px-6 lg:pb-24">
+          <div className="mx-auto max-w-6xl">
+            <Tabs defaultValue="squads" className="gap-0">
+
+              {/* Tab bar */}
+              <TabsList className="mb-8 flex h-auto w-full gap-1 rounded-2xl border border-border/50 bg-card/80 p-1.5 backdrop-blur-sm">
+                <TabsTrigger
+                  value="squads"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold transition-all
+                    data-[state=active]:bg-teal/15 data-[state=active]:text-teal data-[state=active]:shadow-none
+                    data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground"
+                >
+                  <Users className="size-4" />
+                  <span>My Squads</span>
+                  {teams.length > 0 && (
+                    <Badge className="ml-0.5 border-0 bg-teal/20 px-1.5 text-xs font-bold text-teal">
+                      {teams.length}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+
+                <TabsTrigger
+                  value="applications"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold transition-all
+                    data-[state=active]:bg-peach/15 data-[state=active]:text-peach data-[state=active]:shadow-none
+                    data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground"
+                >
+                  <Inbox className="size-4" />
+                  <span>Requests</span>
+                  {pendingCount > 0 && (
+                    <Badge className="ml-0.5 border-0 bg-peach/20 px-1.5 text-xs font-bold text-peach">
+                      {pendingCount}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+
+                <TabsTrigger
+                  value="availability"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold transition-all
+                    data-[state=active]:bg-lavender/15 data-[state=active]:text-lavender data-[state=active]:shadow-none
+                    data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground"
+                >
+                  <Hand className="size-4" />
+                  <span>Availability</span>
+                  {profiles.length > 0 && (
+                    <Badge className="ml-0.5 border-0 bg-lavender/20 px-1.5 text-xs font-bold text-lavender">
+                      {profiles.length}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+              </TabsList>
+
+              {/* My Squads tab */}
+              <TabsContent value="squads" className="mt-0">
+                <DashboardMyTeams
+                  teams={teams}
+                  onDelete={handleDeleteTeam}
+                  onUpdateDiscord={handleUpdateDiscord}
+                />
+              </TabsContent>
+
+              {/* Requests tab — incoming apps + squad invitations + sent apps */}
+              <TabsContent value="applications" className="mt-0">
+                <div className="flex flex-col gap-12">
+                  <DashboardIncomingApplications
+                    applications={applications}
+                    onAccept={handleAcceptApplication}
+                    onDecline={handleDeclineApplication}
+                  />
+                  <DashboardSquadInvitations
+                    invitations={invitations}
+                    onAccept={handleAcceptInvitation}
+                    onDecline={handleDeclineInvitation}
+                  />
+                  <SentApplicationsSection />
+                </div>
+              </TabsContent>
+
+              {/* Availability tab */}
+              <TabsContent value="availability" className="mt-0">
+                <DashboardMyAvailability
+                  profiles={profiles}
+                  onDelete={handleDeleteProfile}
+                />
+              </TabsContent>
+
+            </Tabs>
+          </div>
+        </section>
+
       </main>
       <footer className="border-t border-border/50 bg-card/50">
         <div className="mx-auto flex max-w-6xl flex-col items-center gap-2 px-4 py-8 text-center lg:px-6">
