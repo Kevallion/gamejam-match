@@ -59,7 +59,7 @@ export function Navbar() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'discord',
     })
-    if (error) toast.error("Erreur de connexion", { description: error.message })
+    if (error) toast.error("Connection error", { description: error.message })
   }
 
   const handleSignOut = async () => {
@@ -161,7 +161,7 @@ export function Navbar() {
                   </div>
                 ) : notifications.length === 0 ? (
                   <p className="py-6 text-center text-sm text-muted-foreground">
-                    Aucune nouvelle notification
+                    No new notifications
                   </p>
                 ) : (
                   <div className="flex flex-col gap-0.5">
@@ -187,7 +187,7 @@ export function Navbar() {
                           </span>
                           {notif.targetRole && (
                             <span className="text-xs text-muted-foreground">
-                              Rôle : {ROLE_LABELS[notif.targetRole] ?? notif.targetRole}
+                              Role: {ROLE_LABELS[notif.targetRole] ?? notif.targetRole}
                             </span>
                           )}
                         </Link>

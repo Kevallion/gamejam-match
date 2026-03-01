@@ -169,9 +169,9 @@ function ProfileCard({ profile, onDelete }: ProfileCardProps) {
       .eq("id", profile.id)
 
     if (error) {
-      toast.error("Erreur lors de la sauvegarde.", { description: error.message })
+      toast.error("Error saving.", { description: error.message })
     } else {
-      toast.success("Profil mis à jour.")
+      toast.success("Profile updated.")
       setRawRole(editRole)
       setRawLevel(editLevel)
       setEngine(editEngine)
@@ -227,11 +227,11 @@ function ProfileCard({ profile, onDelete }: ProfileCardProps) {
           </div>
         </div>
 
-        {/* Rôle & Niveau */}
+        {/* Role & Level */}
         {isEditing ? (
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <Label className="text-xs font-semibold text-muted-foreground">Rôle</Label>
+              <Label className="text-xs font-semibold text-muted-foreground">Role</Label>
               <Select value={editRole} onValueChange={setEditRole}>
                 <SelectTrigger className="h-8 rounded-lg border-border/60 bg-secondary/50 text-xs">
                   <SelectValue />
@@ -246,7 +246,7 @@ function ProfileCard({ profile, onDelete }: ProfileCardProps) {
               </Select>
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label className="text-xs font-semibold text-muted-foreground">Expérience</Label>
+              <Label className="text-xs font-semibold text-muted-foreground">Experience</Label>
               <Select value={editLevel} onValueChange={setEditLevel}>
                 <SelectTrigger className="h-8 rounded-lg border-border/60 bg-secondary/50 text-xs">
                   <SelectValue />
@@ -277,10 +277,10 @@ function ProfileCard({ profile, onDelete }: ProfileCardProps) {
           </div>
         )}
 
-        {/* Moteur de jeu */}
+        {/* Game engine */}
         {isEditing ? (
           <div className="flex flex-col gap-1.5">
-            <Label className="text-xs font-semibold text-muted-foreground">Moteur de jeu</Label>
+            <Label className="text-xs font-semibold text-muted-foreground">Game engine</Label>
             <div className="flex items-center gap-1.5">
               <Cpu className="size-3.5 shrink-0 text-lavender" />
               <Select value={editEngine} onValueChange={setEditEngine}>
@@ -309,7 +309,7 @@ function ProfileCard({ profile, onDelete }: ProfileCardProps) {
           <div className="flex flex-col gap-1.5">
             <Label className="text-xs font-semibold text-muted-foreground">
               Portfolio / Itch.io{" "}
-              <span className="font-normal text-muted-foreground/60">(optionnel)</span>
+              <span className="font-normal text-muted-foreground/60">(optional)</span>
             </Label>
             <Input
               type="url"
@@ -346,7 +346,7 @@ function ProfileCard({ profile, onDelete }: ProfileCardProps) {
               className="w-full gap-2 rounded-xl bg-lavender text-lavender-foreground hover:bg-lavender/85"
             >
               <Save className="size-4" />
-              {saving ? "Sauvegarde..." : "Sauvegarder"}
+              {saving ? "Saving..." : "Save"}
             </Button>
             <Button
               variant="outline"
@@ -355,7 +355,7 @@ function ProfileCard({ profile, onDelete }: ProfileCardProps) {
               className="w-full gap-2 rounded-xl"
             >
               <X className="size-4" />
-              Annuler
+              Cancel
             </Button>
           </>
         ) : (
@@ -366,7 +366,7 @@ function ProfileCard({ profile, onDelete }: ProfileCardProps) {
               className="w-full gap-2 rounded-xl border-lavender/30 text-lavender hover:bg-lavender/10 hover:text-lavender"
             >
               <PenLine className="size-4" />
-              Modifier mon profil
+              Edit my profile
             </Button>
             <Button
               variant="outline"

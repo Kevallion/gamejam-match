@@ -111,7 +111,7 @@ export function CreateTeamForm() {
       !/^https:\/\/discord\.(gg|com\/invite)\//.test(discordLinkValue)
     ) {
       setLoading(false)
-      setDiscordLinkError("Veuillez entrer un lien d'invitation Discord valide")
+      setDiscordLinkError("Please enter a valid Discord invite link")
       return
     }
 
@@ -133,9 +133,9 @@ export function CreateTeamForm() {
     try {
       const { error } = await supabase.from('teams').insert([teamData])
       if (error) {
-        toast.error("Impossible de créer l'équipe.", { description: error.message })
+        toast.error("Could not create the team.", { description: error.message })
       } else {
-        toast.success("Équipe créée avec succès !", { description: "Ton annonce est maintenant en ligne." })
+        toast.success("Team created successfully!", { description: "Your listing is now live." })
         form.reset()
         setEngine("")
         setLanguage("")
@@ -144,7 +144,7 @@ export function CreateTeamForm() {
         setRoles([{ id: roleIdCounter++, role: "", level: "" }])
       }
     } catch (err) {
-      toast.error("Une erreur est survenue.", { description: err instanceof Error ? err.message : "Veuillez réessayer." })
+      toast.error("An error occurred.", { description: err instanceof Error ? err.message : "Please try again." })
     } finally {
       setLoading(false)
     }
@@ -152,7 +152,7 @@ export function CreateTeamForm() {
 
   return (
     <>
-      {/* 🛑 MESSAGE D'ERREUR SI NON CONNECTÉ */}
+      {/* Error message when not signed in */}
       {!checkingAuth && !user && (
         <Card className="mb-8 rounded-3xl border-destructive/50 bg-destructive/10">
           <CardContent className="p-6 text-center">
@@ -162,7 +162,7 @@ export function CreateTeamForm() {
         </Card>
       )}
 
-      {/* ✅ TON FORMULAIRE ACTUEL (affiché seulement si l'utilisateur est connecté) */}
+      {/* Form (shown only when user is signed in) */}
       {user && (
         <Card className="rounded-3xl border-border/50 bg-card shadow-xl shadow-primary/5">
           <CardContent className="p-6 md:p-10">

@@ -86,7 +86,7 @@ export function DashboardMyTeams({
       setEditingTeamId(null)
     } catch (err) {
       setSubmitError(
-        err instanceof Error ? err.message : "Erreur lors de la mise à jour"
+        err instanceof Error ? err.message : "Error updating"
       )
     } finally {
       setIsSubmitting(false)
@@ -211,7 +211,7 @@ export function DashboardMyTeams({
                       className="flex flex-col gap-4"
                     >
                       <div className="space-y-2">
-                        <Label htmlFor="discord-link">Lien d&apos;invitation Discord</Label>
+                        <Label htmlFor="discord-link">Discord invite link</Label>
                         <Input
                           id="discord-link"
                           type="url"

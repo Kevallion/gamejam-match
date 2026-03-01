@@ -90,7 +90,7 @@ export function MembersGrid({
       offsetRef.current = from + data.length
     } else if (error) {
       setMembers([])
-      toast.error("Erreur lors du chargement des profils.", { description: error.message })
+      toast.error("Error loading profiles.", { description: error.message })
     }
   }, [])
 

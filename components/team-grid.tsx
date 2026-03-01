@@ -97,7 +97,7 @@ export function TeamGrid({
       offsetRef.current = from + data.length
     } else if (error) {
       setTeams([])
-      toast.error("Erreur lors du chargement des équipes.", { description: error.message })
+      toast.error("Error loading teams.", { description: error.message })
     }
   }, [])
 

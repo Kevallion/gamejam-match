@@ -17,7 +17,7 @@ export function HomeShell() {
   const [levelFilter, setLevelFilter] = useState("all")
   const [languageFilter, setLanguageFilter] = useState("all")
 
-  // Synchroniser l'URL → état au chargement et quand l'URL change
+  // Sync URL to state on load and when URL changes
   useEffect(() => {
     const q = searchParams.get("q") ?? ""
     const engine = searchParams.get("engine") ?? "all"
@@ -31,7 +31,7 @@ export function HomeShell() {
     setLanguageFilter(language)
   }, [searchParams])
 
-  // Mettre à jour l'URL quand les filtres changent (partage de liens)
+  // Update URL when filters change (link sharing)
   const updateUrl = useCallback(
     (updates: { q?: string; engine?: string; role?: string; level?: string; language?: string }) => {
       const params = new URLSearchParams(searchParams.toString())
@@ -77,10 +77,10 @@ export function HomeShell() {
   return (
     <div className="flex min-h-screen flex-col">
       <main className="flex-1">
-        {/* Hero — haut de page */}
+        {/* Hero — top of page */}
         <Hero />
 
-        {/* Barre sticky : recherche + filtres */}
+        {/* Sticky bar: search + filters */}
         <div className="sticky top-16 z-40 -mb-px border-b border-border/50 bg-background/95 backdrop-blur-md">
           <div className="mx-auto max-w-6xl flex flex-col gap-6 px-4 py-6 lg:px-6 lg:py-6">
             <div className="w-full max-w-xl">
@@ -103,7 +103,7 @@ export function HomeShell() {
           </div>
         </div>
 
-        {/* Résultats — grille d'équipes */}
+        {/* Results — team grid */}
         <div className="pt-12 lg:pt-16">
           <TeamGrid
             searchQuery={searchQuery}

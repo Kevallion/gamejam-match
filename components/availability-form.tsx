@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
-import { supabase } from "@/lib/supabase" // Ton import Supabase
+import { supabase } from "@/lib/supabase"
 import {
   Popover,
   PopoverContent,
@@ -26,7 +26,7 @@ import { Sparkles, Hand, CalendarDays } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 
-// Options (gardées de ton code original)
+// Options
 const ROLE_OPTIONS = [
   { value: "developer", label: "Developer" },
   { value: "2d-artist", label: "2D Artist" },
@@ -67,7 +67,7 @@ const LANGUAGE_OPTIONS = [
 ]
 
 export function AvailabilityForm() {
-  // États pour capturer les données
+  // Form state
   const [loading, setLoading] = useState(false)
   const [dateRange, setDateRange] = useState<DateRange | undefined>()
   const [role, setRole] = useState("")
@@ -76,7 +76,7 @@ export function AvailabilityForm() {
   const [language, setLanguage] = useState("")
   const [portfolioLink, setPortfolioLink] = useState("")
 
-  // 🔐 NOUVEAU : On vérifie si l'utilisateur est connecté
+  // Check if user is signed in
   const [user, setUser] = useState<any>(null)
   const [checkingAuth, setCheckingAuth] = useState(true)
 
@@ -122,9 +122,9 @@ export function AvailabilityForm() {
         .upsert([profileData], { onConflict: 'id' })
 
       if (error) {
-        toast.error("Impossible de publier le profil.", { description: error.message })
+        toast.error("Could not publish the profile.", { description: error.message })
       } else {
-        toast.success("Profil mis à jour !", { description: "Ta disponibilité est maintenant visible." })
+        toast.success("Profile updated!", { description: "Your availability is now visible." })
         form.reset()
         setDateRange(undefined)
         setRole("")
@@ -134,7 +134,7 @@ export function AvailabilityForm() {
         setPortfolioLink("")
       }
     } catch (err) {
-      toast.error("Une erreur est survenue.", { description: err instanceof Error ? err.message : "Veuillez réessayer." })
+      toast.error("An error occurred.", { description: err instanceof Error ? err.message : "Please try again." })
     } finally {
       setLoading(false)
     }
@@ -142,7 +142,7 @@ export function AvailabilityForm() {
 
   return (
     <>
-      {/* 🛑 MESSAGE D'ERREUR SI NON CONNECTÉ */}
+      {/* Error message when not signed in */}
       {!checkingAuth && !user && (
         <Card className="mb-8 rounded-3xl border-destructive/50 bg-destructive/10">
           <CardContent className="p-6 text-center">
@@ -152,7 +152,7 @@ export function AvailabilityForm() {
         </Card>
       )}
 
-      {/* ✅ TON FORMULAIRE ACTUEL (affiché seulement si l'utilisateur est connecté) */}
+      {/* Form (shown only when user is signed in) */}
       {user && (
         <Card className="rounded-3xl border-border/50 bg-card shadow-xl shadow-lavender/5">
           <CardContent className="p-6 md:p-10">
@@ -161,7 +161,7 @@ export function AvailabilityForm() {
               {/* Username */}
               <div className="flex flex-col gap-2.5">
                 <Label htmlFor="username" className="text-sm font-bold text-foreground">
-                  Username / Pseudo
+                  Username
                 </Label>
                 <Input
                   id="username"

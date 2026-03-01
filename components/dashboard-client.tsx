@@ -44,15 +44,15 @@ function SentApplicationsSection({ sentApplications }: { sentApplications: SentA
             <Send className="size-5 text-teal" />
           </div>
           <div>
-            <h2 className="text-xl font-bold tracking-tight">Mes candidatures envoyées</h2>
-            <p className="text-sm text-muted-foreground">Suis le statut de tes demandes pour rejoindre une équipe.</p>
+            <h2 className="text-xl font-bold tracking-tight">My sent applications</h2>
+            <p className="text-sm text-muted-foreground">Track your applications to join a team.</p>
           </div>
         </div>
       </div>
 
       {sentApplications.length === 0 ? (
         <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
-          Tu n'as pas encore envoyé de candidature pour rejoindre une équipe.
+          You haven&apos;t sent any applications to join a team yet.
         </div>
       ) : (
         <div className="flex flex-col gap-3">
@@ -64,7 +64,7 @@ function SentApplicationsSection({ sentApplications }: { sentApplications: SentA
               <div key={app.id} className="flex items-center justify-between rounded-lg border bg-background px-4 py-3 shadow-sm gap-2">
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="font-medium text-foreground truncate">
-                    {app.teams?.team_name || "Équipe inconnue"}
+                    {app.teams?.team_name || "Unknown team"}
                   </span>
                   {roleStyle && (
                     <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${roleStyle.color}`}>
@@ -76,17 +76,17 @@ function SentApplicationsSection({ sentApplications }: { sentApplications: SentA
                 <div className="flex shrink-0 items-center gap-3">
                   {app.status === "pending" && (
                     <span className="rounded bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
-                      En attente
+                      Pending
                     </span>
                   )}
                   {app.status === "rejected" && (
                     <span className="rounded bg-red-500/10 px-2.5 py-1 text-xs font-medium text-red-600">
-                      Refusée
+                      Declined
                     </span>
                   )}
                   {app.status === "accepted" && (
                     <span className="rounded bg-green-500/10 px-2.5 py-1 text-xs font-medium text-green-600">
-                      Acceptée
+                      Accepted
                     </span>
                   )}
                   {app.status === "accepted" && app.teams?.discord_link && (
@@ -97,7 +97,7 @@ function SentApplicationsSection({ sentApplications }: { sentApplications: SentA
                       className="inline-flex items-center gap-1.5 rounded-md bg-[#5865F2]/90 px-3 py-1.5 text-xs font-medium text-white shadow-sm transition-colors hover:bg-[#5865F2]"
                     >
                       <MessageCircle className="size-3.5" />
-                      Rejoindre le Discord
+                      Join Discord
                     </a>
                   )}
                 </div>
@@ -227,8 +227,8 @@ export function DashboardClient() {
       })))
     }
     } catch (err) {
-      toast.error("Erreur lors du chargement du dashboard.", {
-        description: err instanceof Error ? err.message : "Veuillez rafraîchir la page.",
+      toast.error("Error loading the dashboard.", {
+        description: err instanceof Error ? err.message : "Please refresh the page.",
       })
     } finally {
       setLoading(false)
@@ -242,13 +242,13 @@ export function DashboardClient() {
     try {
       const { error } = await supabase.from("teams").delete().eq("id", id)
       if (error) {
-        toast.error("Impossible de supprimer l'équipe.", { description: error.message })
+        toast.error("Could not delete the team.", { description: error.message })
         return
       }
       setTeams((prev) => prev.filter((t) => t.id !== id))
-      toast.success("Équipe supprimée.")
+      toast.success("Team deleted.")
     } catch (err) {
-      toast.error("Une erreur est survenue.", { description: err instanceof Error ? err.message : "Veuillez réessayer." })
+      toast.error("An error occurred.", { description: err instanceof Error ? err.message : "Please try again." })
     }
   }
 
@@ -262,7 +262,7 @@ export function DashboardClient() {
     setTeams((prev) =>
       prev.map((t) => (t.id === id ? { ...t, discord_link: discordLink } : t))
     )
-    toast.success("Lien Discord mis à jour.", { description: "L'équipe a bien été modifiée." })
+    toast.success("Discord link updated.", { description: "The team has been updated." })
   }
 
   const handleDeleteProfile = async (id: string) => {
@@ -270,13 +270,13 @@ export function DashboardClient() {
     try {
       const { error } = await supabase.from("profiles").delete().eq("id", id)
       if (error) {
-        toast.error("Impossible de supprimer le profil.", { description: error.message })
+        toast.error("Could not delete the profile.", { description: error.message })
         return
       }
       setProfiles((prev) => prev.filter((p) => p.id !== id))
-      toast.success("Profil supprimé.")
+      toast.success("Profile deleted.")
     } catch (err) {
-      toast.error("Une erreur est survenue.", { description: err instanceof Error ? err.message : "Veuillez réessayer." })
+      toast.error("An error occurred.", { description: err instanceof Error ? err.message : "Please try again." })
     }
   }
 
@@ -289,7 +289,7 @@ export function DashboardClient() {
         .single()
 
       if (fetchError || !request) {
-        toast.error("Impossible de lire la demande.", { description: fetchError?.message })
+        toast.error("Could not read the request.", { description: fetchError?.message })
         return
       }
 
@@ -298,19 +298,19 @@ export function DashboardClient() {
         .insert({ team_id: request.team_id, user_id: request.sender_id, role: 'member' })
 
       if (insertError && insertError.code !== '23505') {
-        toast.error("Impossible d'ajouter le membre.", { description: insertError.message })
+        toast.error("Could not add the member.", { description: insertError.message })
         return
       }
 
       const { error: updateError } = await supabase.from("join_requests").update({ status: 'accepted' }).eq("id", id)
       if (updateError) {
-        toast.error("Impossible de valider la candidature.", { description: updateError.message })
+        toast.error("Could not accept the application.", { description: updateError.message })
         return
       }
       setApplications((prev) => prev.filter((a) => a.id !== id))
-      toast.success("Candidature acceptée !", { description: `${request.sender_name || "Le jammer"} rejoint ton équipe.` })
+      toast.success("Application accepted!", { description: `${request.sender_name || "The jammer"} joined your team.` })
     } catch (err) {
-      toast.error("Une erreur est survenue.", { description: err instanceof Error ? err.message : "Veuillez réessayer." })
+      toast.error("An error occurred.", { description: err instanceof Error ? err.message : "Please try again." })
     }
   }
 
@@ -318,13 +318,13 @@ export function DashboardClient() {
     try {
       const { error } = await supabase.from("join_requests").update({ status: 'rejected' }).eq("id", id)
       if (error) {
-        toast.error("Impossible de refuser la candidature.", { description: error.message })
+        toast.error("Could not decline the application.", { description: error.message })
         return
       }
       setApplications((prev) => prev.filter((a) => a.id !== id))
-      toast.success("Candidature déclinée.", { icon: "👎" })
+      toast.success("Application declined.", { icon: "👎" })
     } catch (err) {
-      toast.error("Une erreur est survenue.", { description: err instanceof Error ? err.message : "Veuillez réessayer." })
+      toast.error("An error occurred.", { description: err instanceof Error ? err.message : "Please try again." })
     }
   }
 
@@ -332,7 +332,7 @@ export function DashboardClient() {
     try {
       const { data: { session } } = await supabase.auth.getSession()
       if (!session?.user) {
-        toast.error("Tu dois être connecté pour accepter une invitation.")
+        toast.error("You must be logged in to accept an invitation.")
         return
       }
 
@@ -341,21 +341,21 @@ export function DashboardClient() {
         .insert({ team_id: invitation.team_id, user_id: session.user.id, role: "member" })
 
       if (insertError && insertError.code !== "23505") {
-        toast.error("Impossible de rejoindre l'équipe.", { description: insertError.message })
+        toast.error("Could not join the team.", { description: insertError.message })
         return
       }
 
       const { error: updateError } = await supabase.from("join_requests").update({ status: "accepted" }).eq("id", invitation.id)
       if (updateError) {
-        toast.error("Impossible de valider l'invitation.", { description: updateError.message })
+        toast.error("Could not accept the invitation.", { description: updateError.message })
         return
       }
       setInvitations((prev) => prev.filter((i) => i.id !== invitation.id))
-      toast.success(`Tu as rejoint ${invitation.squadName} !`, {
-        description: invitation.discordLink ? "Consulte le lien Discord pour te connecter." : undefined,
+      toast.success(`You joined ${invitation.squadName}!`, {
+        description: invitation.discordLink ? "Check the Discord link to connect." : undefined,
       })
     } catch (err) {
-      toast.error("Une erreur est survenue.", { description: err instanceof Error ? err.message : "Veuillez réessayer." })
+      toast.error("An error occurred.", { description: err instanceof Error ? err.message : "Please try again." })
     }
   }
 
@@ -363,13 +363,13 @@ export function DashboardClient() {
     try {
       const { error } = await supabase.from("join_requests").update({ status: "rejected" }).eq("id", id)
       if (error) {
-        toast.error("Impossible de décliner l'invitation.", { description: error.message })
+        toast.error("Could not decline the invitation.", { description: error.message })
         return
       }
       setInvitations((prev) => prev.filter((i) => i.id !== id))
-      toast.success("Invitation déclinée.", { icon: "👋" })
+      toast.success("Invitation declined.", { icon: "👋" })
     } catch (err) {
-      toast.error("Une erreur est survenue.", { description: err instanceof Error ? err.message : "Veuillez réessayer." })
+      toast.error("An error occurred.", { description: err instanceof Error ? err.message : "Please try again." })
     }
   }
 

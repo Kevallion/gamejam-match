@@ -135,7 +135,7 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
       setStatusMsg({ type: "success", text: `Invite sent for the role of ${selectedRole.label}!` })
 
       toast.success(`Invitation envoyée à ${player.username} !`, {
-        description: `Rôle proposé : ${selectedRole.label} dans ${selectedSquad.team_name}.`,
+        description: `Proposed role: ${selectedRole.label} in ${selectedSquad.team_name}.`,
       })
 
       setTimeout(() => {
@@ -146,9 +146,9 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
         setStatusMsg(null)
       }, 2000)
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Une erreur est survenue. Réessaie."
+      const msg = err instanceof Error ? err.message : "An error occurred. Please try again."
       setStatusMsg({ type: "error", text: msg })
-      toast.error("Impossible d'envoyer l'invitation.", { description: msg })
+      toast.error("Could not send the invitation.", { description: msg })
     } finally {
       setLoading(false)
     }

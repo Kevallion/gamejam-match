@@ -105,17 +105,17 @@ export function JoinTeamModal({ teamId, teamName, availableRoles, children }: Jo
         text: `Application sent for the role of ${selectedRole.label}!`,
       })
 
-      toast.success(`Candidature envoyée pour le rôle de ${selectedRole.label} !`, {
-        description: `Tu as postulé pour rejoindre ${teamName}.`,
+      toast.success(`Application sent for the role of ${selectedRole.label}!`, {
+        description: `You applied to join ${teamName}.`,
       })
 
       setTimeout(() => {
         handleOpen(false)
       }, 2000)
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Une erreur est survenue. Réessaie."
+      const msg = err instanceof Error ? err.message : "An error occurred. Please try again."
       setStatusMsg({ type: "error", text: msg })
-      toast.error("Impossible d'envoyer la candidature.", { description: msg })
+      toast.error("Could not send the application.", { description: msg })
     } finally {
       setLoading(false)
     }
