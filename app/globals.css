@@ -35,12 +35,25 @@
   --accent-foreground: oklch(0.90 0.04 330);
 
   --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.577 0.245 27.325);
+  /* Fix: foreground must contrast against the destructive background */
+  --destructive-foreground: oklch(0.97 0.01 27);
+
+  /* Semantic status tokens — success */
+  --success: oklch(0.72 0.14 155);
+  --success-foreground: oklch(0.17 0.04 155);
+
+  /* Semantic status tokens — warning */
+  --warning: oklch(0.82 0.14 78);
+  --warning-foreground: oklch(0.17 0.04 78);
 
   /* Borders: soft purple-tinted */
   --border: oklch(0.30 0.03 280);
   --input: oklch(0.28 0.03 280);
   --ring: oklch(0.72 0.12 185);
+
+  /* Card hover system — consumed by .card-interactive and card components */
+  --card-hover-border: oklch(0.72 0.12 185 / 0.40);
+  --card-glow: oklch(0.72 0.12 185 / 0.07);
 
   --chart-1: oklch(0.72 0.12 185);
   --chart-2: oklch(0.78 0.10 330);
@@ -90,8 +103,18 @@
   --accent: oklch(0.94 0.03 330);
   --accent-foreground: oklch(0.25 0.04 330);
   --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.98 0.02 27);
+  --destructive-foreground: oklch(0.97 0.01 27);
+
+  --success: oklch(0.52 0.15 155);
+  --success-foreground: oklch(0.97 0.01 155);
+
+  --warning: oklch(0.65 0.15 78);
+  --warning-foreground: oklch(0.97 0.01 78);
+
   --border: oklch(0.90 0.02 280);
+
+  --card-hover-border: oklch(0.55 0.15 185 / 0.35);
+  --card-glow: oklch(0.55 0.15 185 / 0.05);
   --input: oklch(0.92 0.02 280);
   --ring: oklch(0.55 0.15 185);
   --chart-1: oklch(0.55 0.15 185);
@@ -139,6 +162,10 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -169,6 +196,8 @@
   --color-peach-foreground: var(--peach-foreground);
   --color-mint: var(--mint);
   --color-mint-foreground: var(--mint-foreground);
+  --color-card-hover-border: var(--card-hover-border);
+  --color-card-glow: var(--card-glow);
 }
 
 @layer base {
@@ -177,5 +206,27 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  /* Shared interactive card hover system — apply to any card that needs hover state */
+  .card-interactive {
+    transition: border-color 0.25s ease, box-shadow 0.25s ease;
+  }
+  .card-interactive:hover {
+    border-color: var(--card-hover-border);
+    box-shadow: 0 8px 32px var(--card-glow);
+  }
+
+  /* Semantic status banners — replaces raw palette colors in feedback UI */
+  .status-success {
+    @apply border border-success/30 bg-success/10 text-success;
+  }
+  .status-error {
+    @apply border border-destructive/30 bg-destructive/10 text-destructive;
+  }
+  .status-warning {
+    @apply border border-warning/30 bg-warning/10 text-warning;
   }
 }
