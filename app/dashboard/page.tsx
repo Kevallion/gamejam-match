@@ -1,6 +1,7 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
+import { useSearchParams, useRouter } from "next/navigation"
 import { Navbar } from "@/components/navbar"
 import { DashboardMyTeams, type TeamData } from "@/components/dashboard-my-teams"
 import { DashboardMyAvailability, type ProfileData } from "@/components/dashboard-my-availability"
@@ -9,7 +10,7 @@ import { DashboardSquadInvitations, type InvitationData } from "@/components/das
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import {
-  Gamepad2, Heart, LayoutDashboard, Loader2, MessageCircle, Send,
+  Gamepad2, Heart, LayoutDashboard, MessageCircle, Send,
   Rocket, Inbox, UserCircle,
 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
@@ -56,24 +57,97 @@ function StatCard({
   value,
   icon: Icon,
   color,
+  onClick,
+  urgent,
 }: {
   label: string
   sublabel: string
   value: number
   icon: React.ElementType
   color: StatCardColor
+  onClick?: () => void
+  urgent?: boolean
 }) {
   const c = STAT_COLOR_MAP[color]
   return (
-    <div className={`card-interactive flex items-center gap-4 rounded-2xl border ${c.border} bg-card p-5 shadow-sm`}>
-      <div className={`flex size-12 shrink-0 items-center justify-center rounded-xl ${c.bg}`}>
+    <button
+      type="button"
+      onClick={onClick}
+      className={`card-interactive group w-full text-left flex items-center gap-4 rounded-2xl border ${c.border} bg-card p-5 shadow-sm transition-all duration-300 ${onClick ? "cursor-pointer hover:shadow-md" : "cursor-default"}`}
+    >
+      <div className={`relative flex size-12 shrink-0 items-center justify-center rounded-xl ${c.bg} transition-transform duration-300 group-hover:scale-110`}>
         <Icon className={`size-6 ${c.text}`} />
+        {urgent && value > 0 && (
+          <span className="absolute -right-1 -top-1 flex size-3">
+            <span className={`absolute inline-flex size-full animate-ping rounded-full ${c.bg} opacity-75`} />
+            <span className={`relative inline-flex size-3 rounded-full ${c.bg} border-2 border-card`} />
+          </span>
+        )}
       </div>
-      <div className="min-w-0">
-        <p className={`text-3xl font-extrabold tabular-nums ${c.text}`}>{value}</p>
-        <p className="truncate text-sm font-semibold text-foreground">{label}</p>
+      <div className="min-w-0 flex-1">
+        <p className={`text-3xl font-extrabold tabular-nums leading-none ${c.text}`}>{value}</p>
+        <p className="mt-1 truncate text-sm font-semibold text-foreground">{label}</p>
         <p className="truncate text-xs text-muted-foreground">{sublabel}</p>
       </div>
+      {onClick && (
+        <svg
+          className={`size-4 shrink-0 ${c.text} opacity-0 transition-opacity duration-200 group-hover:opacity-60`}
+          fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+        </svg>
+      )}
+    </button>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Skeleton loading — mirrors the real layout with animated placeholders
+// ---------------------------------------------------------------------------
+function SkeletonPulse({ className }: { className: string }) {
+  return <div className={`animate-pulse rounded-lg bg-secondary/50 ${className}`} />
+}
+
+function DashboardSkeleton() {
+  return (
+    <div className="flex min-h-screen flex-col">
+      <Navbar />
+      <main className="flex-1">
+        {/* Hero */}
+        <section className="px-4 pb-6 pt-16 lg:px-6 lg:pb-8 lg:pt-24">
+          <div className="mx-auto max-w-6xl space-y-4">
+            <SkeletonPulse className="h-7 w-40" />
+            <SkeletonPulse className="h-12 w-56" />
+            <SkeletonPulse className="h-5 w-80" />
+          </div>
+        </section>
+        {/* Stat cards */}
+        <section className="px-4 pb-6 pt-2 lg:px-6">
+          <div className="mx-auto grid max-w-6xl grid-cols-1 gap-4 sm:grid-cols-3">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="flex items-center gap-4 rounded-2xl border border-border/50 bg-card p-5">
+                <SkeletonPulse className="size-12 rounded-xl" />
+                <div className="flex-1 space-y-2">
+                  <SkeletonPulse className="h-8 w-10" />
+                  <SkeletonPulse className="h-4 w-24" />
+                  <SkeletonPulse className="h-3 w-20" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+        {/* Tabs + cards */}
+        <section className="px-4 pb-16 pt-4 lg:px-6 lg:pb-24">
+          <div className="mx-auto max-w-6xl space-y-6">
+            <SkeletonPulse className="h-11 w-full rounded-xl" />
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {[0, 1, 2].map((i) => (
+                <SkeletonPulse key={i} className="h-64 rounded-2xl" />
+              ))}
+            </div>
+          </div>
+        </section>
+      </main>
     </div>
   )
 }
@@ -176,6 +250,16 @@ export default function DashboardPage() {
   const [applications, setApplications] = useState<ApplicationData[]>([])
   const [invitations, setInvitations] = useState<InvitationData[]>([])
   const [loading, setLoading] = useState(true)
+
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const activeTab = searchParams.get("tab") || "squads"
+
+  const navigateToTab = useCallback((tab: string) => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.set("tab", tab)
+    router.replace(`/dashboard?${params.toString()}`, { scroll: false })
+  }, [searchParams, router])
 
   const mapTeamRow = (t: any): TeamData => {
     let parsed: any[] = []
@@ -339,6 +423,7 @@ export default function DashboardPage() {
   const handleDeclineApplication = async (id: string) => {
     await supabase.from("join_requests").update({ status: 'rejected' }).eq("id", id)
     setApplications((prev) => prev.filter((a) => a.id !== id))
+    toast.info("Application declined.")
   }
 
   const handleAcceptInvitation = async (invitation: InvitationData) => {
@@ -366,19 +451,10 @@ export default function DashboardPage() {
   const handleDeclineInvitation = async (id: string) => {
     await supabase.from("join_requests").update({ status: "rejected" }).eq("id", id)
     setInvitations((prev) => prev.filter((i) => i.id !== id))
+    toast.info("Invitation declined.")
   }
 
-  if (loading) {
-    return (
-      <div className="flex min-h-screen flex-col bg-background">
-        <Navbar />
-        <div className="flex flex-1 flex-col items-center justify-center gap-3">
-          <Loader2 className="size-8 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground">Loading your data...</p>
-        </div>
-      </div>
-    )
-  }
+  if (loading) return <DashboardSkeleton />
 
   const pendingCount = applications.length + invitations.length
 
@@ -417,6 +493,7 @@ export default function DashboardPage() {
                 value={teams.length}
                 icon={Rocket}
                 color="teal"
+                onClick={() => navigateToTab("squads")}
               />
               <StatCard
                 label="Pending Requests"
@@ -424,6 +501,8 @@ export default function DashboardPage() {
                 value={pendingCount}
                 icon={Inbox}
                 color="peach"
+                onClick={() => navigateToTab("applications")}
+                urgent={pendingCount > 0}
               />
               <StatCard
                 label="My Profiles"
@@ -431,6 +510,7 @@ export default function DashboardPage() {
                 value={profiles.length}
                 icon={UserCircle}
                 color="lavender"
+                onClick={() => navigateToTab("availability")}
               />
             </div>
           </div>
@@ -439,7 +519,7 @@ export default function DashboardPage() {
         {/* ── Tabs ─────────────────────────────────────────────────────── */}
         <section className="px-4 pb-16 pt-4 lg:px-6 lg:pb-24">
           <div className="mx-auto max-w-6xl">
-            <Tabs defaultValue="squads" className="gap-0">
+            <Tabs value={activeTab} onValueChange={navigateToTab} className="gap-0">
 
               {/* Tab bar */}
               <TabsList className="mb-8 h-11 w-full rounded-xl bg-secondary/60 p-1">

@@ -30,7 +30,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Globe, Cpu, Users, Trash2, PenLine, Rocket, Link2, Sparkles } from "lucide-react"
+import { Globe, Cpu, Users, Trash2, PenLine, Rocket, Link2, Sparkles, CheckCircle2, AlertCircle, Loader2 } from "lucide-react"
 import Link from "next/link"
 
 const DISCORD_LINK_REGEX = /^https:\/\/(discord\.gg\/|discord\.com\/invite\/)/i
@@ -69,6 +69,7 @@ export function DashboardMyTeams({
   const [discordInputValue, setDiscordInputValue] = useState("")
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
 
   const handleOpenChange = (open: boolean, team: TeamData) => {
     if (open) {
@@ -174,13 +175,22 @@ export function DashboardMyTeams({
                       {team.jam}
                     </p>
                   </div>
-                  <Badge
-                    variant="outline"
-                    className="shrink-0 rounded-full border-border/60 text-xs text-muted-foreground"
-                  >
-                    <Users className="mr-1 size-3" />
-                    {team.members}/{team.maxMembers}
-                  </Badge>
+                  <div className="flex shrink-0 flex-col items-end gap-1.5">
+                    <Badge
+                      variant="outline"
+                      className="rounded-full border-border/60 text-xs text-muted-foreground"
+                    >
+                      <Users className="mr-1 size-3" />
+                      {team.members}/{team.maxMembers}
+                    </Badge>
+                    {/* Member fill bar */}
+                    <div className="h-1 w-16 overflow-hidden rounded-full bg-secondary">
+                      <div
+                        className="h-full rounded-full bg-primary/70 transition-all duration-500"
+                        style={{ width: `${Math.min((team.members / Math.max(team.maxMembers, 1)) * 100, 100)}%` }}
+                      />
+                    </div>
+                  </div>
                 </div>
               </CardHeader>
 
@@ -217,7 +227,8 @@ export function DashboardMyTeams({
                 </div>
               </CardContent>
 
-              <CardFooter className="flex flex-col gap-2">
+              <CardFooter className="grid grid-cols-2 gap-2">
+                {/* Discord link button — status-aware */}
                 <Dialog
                   open={editingTeamId === team.id}
                   onOpenChange={(open) => handleOpenChange(open, team)}
@@ -225,15 +236,26 @@ export function DashboardMyTeams({
                   <DialogTrigger asChild>
                     <Button
                       variant="outline"
-                      className="w-full gap-2 rounded-xl border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
+                      className={`gap-2 rounded-xl transition-colors ${
+                        team.discord_link
+                          ? "border-teal/30 text-teal hover:bg-teal/10"
+                          : "border-peach/30 text-peach hover:bg-peach/10"
+                      }`}
                     >
-                      <Link2 className="size-4" />
-                      Edit Discord
+                      {team.discord_link ? (
+                        <CheckCircle2 className="size-4" />
+                      ) : (
+                        <AlertCircle className="size-4" />
+                      )}
+                      {team.discord_link ? "Discord" : "Add Discord"}
                     </Button>
                   </DialogTrigger>
-                  <DialogContent className="sm:max-w-md">
+                  <DialogContent className="rounded-2xl border-border/60 sm:max-w-md">
                     <DialogHeader>
-                      <DialogTitle>Edit Discord Link</DialogTitle>
+                      <DialogTitle className="flex items-center gap-2">
+                        <Link2 className="size-4 text-primary" />
+                        {team.discord_link ? "Update Discord Link" : "Add Discord Link"}
+                      </DialogTitle>
                     </DialogHeader>
                     <form
                       onSubmit={(e) => handleSubmitDiscord(e, team.id)}
@@ -249,31 +271,47 @@ export function DashboardMyTeams({
                           onChange={(e) => setDiscordInputValue(e.target.value)}
                           disabled={isSubmitting}
                           aria-invalid={!!submitError}
+                          className="rounded-xl"
                         />
                         {submitError && (
-                          <p className="text-sm text-destructive">{submitError}</p>
+                          <p className="flex items-center gap-1.5 text-sm text-destructive">
+                            <AlertCircle className="size-3.5" />
+                            {submitError}
+                          </p>
                         )}
                       </div>
                       <DialogFooter>
                         <Button
                           type="submit"
                           disabled={isSubmitting}
-                          className="gap-2 rounded-xl"
+                          className="gap-2 rounded-xl bg-primary text-primary-foreground hover:bg-primary/85"
                         >
+                          {isSubmitting ? (
+                            <Loader2 className="size-4 animate-spin" />
+                          ) : (
+                            <CheckCircle2 className="size-4" />
+                          )}
                           {isSubmitting ? "Saving…" : "Save"}
                         </Button>
                       </DialogFooter>
                     </form>
                   </DialogContent>
                 </Dialog>
+
+                {/* Delete team */}
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button
                       variant="outline"
-                      className="w-full gap-2 rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                      disabled={deletingId === team.id}
+                      className="gap-2 rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
                     >
-                      <Trash2 className="size-4" />
-                      Delete Team
+                      {deletingId === team.id ? (
+                        <Loader2 className="size-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="size-4" />
+                      )}
+                      Delete
                     </Button>
                   </AlertDialogTrigger>
                   <AlertDialogContent className="rounded-2xl border-border/60">
@@ -286,7 +324,11 @@ export function DashboardMyTeams({
                     <AlertDialogFooter>
                       <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
                       <AlertDialogAction
-                        onClick={() => onDelete(team.id)}
+                        onClick={async () => {
+                          setDeletingId(team.id)
+                          await onDelete(team.id)
+                          setDeletingId(null)
+                        }}
                         className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/85"
                       >
                         <Trash2 className="mr-2 size-4" />
