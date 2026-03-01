@@ -4,14 +4,12 @@ import { useEffect, useState } from "react"
 import { Navbar } from "@/components/navbar"
 import { DashboardMyTeams, type TeamData } from "@/components/dashboard-my-teams"
 import { DashboardMyAvailability, type ProfileData } from "@/components/dashboard-my-availability"
-// IMPORT DU NOUVEAU COMPOSANT
 import { DashboardIncomingApplications, type ApplicationData } from "@/components/dashboard-incoming-applications"
-import { Gamepad2, Heart, LayoutDashboard, Loader2 } from "lucide-react"
+import { Gamepad2, Heart, LayoutDashboard, Loader2, MessageCircle, Send } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 
-
 // ---------------------------------------------------------------------------
-// Dictionnaires de styles (Clés en minuscules pour matcher Supabase)
+// Dictionnaires de styles
 // ---------------------------------------------------------------------------
 const ROLE_STYLES: Record<string, { label: string; emoji: string; color: string }> = {
   developer: { label: "Developer", emoji: "💻", color: "bg-teal/15 text-teal" },
@@ -34,19 +32,109 @@ const LEVEL_STYLES: Record<string, { label: string; emoji: string; color: string
 const FALLBACK_ROLE = { label: "Other", emoji: "❓", color: "bg-muted text-muted-foreground" }
 const FALLBACK_LEVEL = LEVEL_STYLES["beginner"]
 
+// ---------------------------------------------------------------------------
+// NOUVEAU COMPOSANT : Mes Candidatures Envoyées
+// ---------------------------------------------------------------------------
+function SentApplicationsSection() {
+  const [sentApplications, setSentApplications] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchSentApplications = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.user) { setLoading(false); return }
+      
+      const { data, error } = await supabase
+        .from("join_requests")
+        .select("id, status, teams(team_name, discord_link)")
+        .eq("sender_id", session.user.id)
+      
+      if (!error && data) setSentApplications(data)
+      setLoading(false)
+    }
+    fetchSentApplications()
+  }, [])
+
+  if (loading) return null
+
+  return (
+    <div className="rounded-xl border border-border/50 bg-card/50 p-6 shadow-sm">
+      <div className="mb-6 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="flex size-10 items-center justify-center rounded-lg bg-teal/10">
+            <Send className="size-5 text-teal" />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold tracking-tight">Mes candidatures envoyées</h2>
+            <p className="text-sm text-muted-foreground">Suis le statut de tes demandes pour rejoindre une équipe.</p>
+          </div>
+        </div>
+      </div>
+
+      {sentApplications.length === 0 ? (
+        <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
+          Tu n'as pas encore envoyé de candidature pour rejoindre une équipe.
+        </div>
+      ) : (
+        <div className="flex flex-col gap-3">
+          {sentApplications.map(app => (
+            <div key={app.id} className="flex items-center justify-between rounded-lg border bg-background px-4 py-3 shadow-sm">
+              <span className="font-medium text-foreground">
+                {app.teams?.team_name || "Équipe inconnue"}
+              </span>
+              
+              <div className="flex items-center gap-3">
+                {/* Badge de statut */}
+                {app.status === "pending" && (
+                  <span className="rounded bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
+                    En attente
+                  </span>
+                )}
+                {app.status === "rejected" && (
+                  <span className="rounded bg-red-500/10 px-2.5 py-1 text-xs font-medium text-red-600">
+                    Refusée
+                  </span>
+                )}
+                {app.status === "accepted" && (
+                  <span className="rounded bg-green-500/10 px-2.5 py-1 text-xs font-medium text-green-600">
+                    Acceptée
+                  </span>
+                )}
+
+                {/* Bouton Discord si accepté */}
+                {app.status === "accepted" && app.teams?.discord_link && (
+                  <a
+                    href={app.teams.discord_link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 rounded-md bg-[#5865F2]/90 px-3 py-1.5 text-xs font-medium text-white shadow-sm transition-colors hover:bg-[#5865F2]"
+                  >
+                    <MessageCircle className="size-3.5" />
+                    Rejoindre le Discord
+                  </a>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// PAGE PRINCIPALE DU DASHBOARD
+// ---------------------------------------------------------------------------
 export default function DashboardPage() {
   const [teams, setTeams] = useState<TeamData[]>([])
   const [profiles, setProfiles] = useState<ProfileData[]>([])
-  // NOUVEAU STATE POUR LES CANDIDATURES
   const [applications, setApplications] = useState<ApplicationData[]>([])
   const [loading, setLoading] = useState(true)
 
-  // --- Helpers de mapping (pour transformer les lignes Supabase en props propres) ---
   const mapTeamRow = (t: any): TeamData => {
     let parsed: any[] = []
     try { parsed = JSON.parse(t.looking_for || "[]") } catch { parsed = [] }
     const rawLevel = (parsed[0]?.level || "beginner").toLowerCase()
-
     return {
       id: t.id,
       name: t.team_name || "Unnamed",
@@ -58,6 +146,7 @@ export default function DashboardPage() {
       maxMembers: 1 + parsed.length,
       roles: parsed.map((r: any) => ROLE_STYLES[r.role?.toLowerCase()] ?? { ...FALLBACK_ROLE, label: r.role }),
       level: LEVEL_STYLES[rawLevel] ?? FALLBACK_LEVEL,
+      discord_link: t.discord_link ?? null,
     }
   }
 
@@ -76,7 +165,6 @@ export default function DashboardPage() {
     }
   }
 
-  // NOUVEAU MAPPER POUR LES DEMANDES DE RECRUTEMENT
   const mapApplicationRow = (r: any): ApplicationData => {
     return {
       id: r.id,
@@ -92,7 +180,6 @@ export default function DashboardPage() {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session?.user) { setLoading(false); return }
 
-    // On inclut team_members(count) dans la requête pour connaître le nombre de membres (hors créateur)
     const { data: teamsData } = await supabase
       .from("teams")
       .select("*, team_members(count)")
@@ -103,35 +190,13 @@ export default function DashboardPage() {
       .select("*")
       .eq("user_id", session.user.id)
     
-    // NOUVELLE REQUÊTE : On va chercher les gens qui veulent rejoindre tes équipes
     const { data: appsData } = await supabase
       .from("join_requests")
       .select("*, teams!inner(team_name, user_id)")
       .eq("teams.user_id", session.user.id)
       .eq("status", "pending")
 
-    if (teamsData) setTeams(
-      teamsData.map((t: any) => {
-        // On récupère le nombre de membres et ajoute 1 (le créateur)
-        let parsed: any[] = []
-        try { parsed = JSON.parse(t.looking_for || "[]") } catch { parsed = [] }
-        const rawLevel = (parsed[0]?.level || "beginner").toLowerCase()
-        const membersCount = (t.team_members?.[0]?.count ?? 0) + 1 // +1 pour le créateur
-
-        return {
-          id: t.id,
-          name: t.team_name || "Unnamed",
-          jam: t.jam_name || "",
-          engine: t.engine || "",
-          language: t.language || "",
-          description: t.project_description || "",
-          members: membersCount,
-          maxMembers: 1 + parsed.length,
-          roles: parsed.map((r: any) => ROLE_STYLES[r.role?.toLowerCase()] ?? { ...FALLBACK_ROLE, label: r.role }),
-          level: LEVEL_STYLES[rawLevel] ?? FALLBACK_LEVEL,
-        }
-      })
-    )
+    if (teamsData) setTeams(teamsData.map(mapTeamRow))
     if (profilesData) setProfiles(profilesData.map(mapProfileRow))
     if (appsData) setApplications(appsData.map(mapApplicationRow))
     
@@ -146,15 +211,25 @@ export default function DashboardPage() {
     setTeams((prev) => prev.filter((t) => t.id !== id))
   }
 
+  const handleUpdateDiscord = async (id: string | number, discordLink: string) => {
+    const { error } = await supabase
+      .from("teams")
+      .update({ discord_link: discordLink })
+      .eq("id", id)
+
+    if (error) throw new Error(error.message)
+    setTeams((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, discord_link: discordLink } : t))
+    )
+  }
+
   const handleDeleteProfile = async (id: string | number) => {
     if (!confirm("Delete this profile?")) return
     await supabase.from("profiles").delete().eq("id", id)
     setProfiles((prev) => prev.filter((p) => p.id !== id))
   }
 
-  // NOUVELLES FONCTIONS : ACCEPTER / REFUSER
   const handleAcceptApplication = async (id: string | number) => {
-    // 1. Récupération
     const { data: request, error: fetchError } = await supabase
       .from("join_requests")
       .select("*")
@@ -166,8 +241,6 @@ export default function DashboardPage() {
       return
     }
   
-    // 2. Insertion Forcée
-    // On s'assure que team_id est bien un nombre pour le int8
     const teamIdInt = parseInt(String(request.team_id), 10)
     
     const { error: insertError } = await supabase
@@ -178,30 +251,22 @@ export default function DashboardPage() {
         role: 'member'
       })
   
-    if (insertError) {
-      // Si l'erreur est "duplicate key", c'est que le membre y est déjà, on continue
-      if (insertError.code !== '23505') {
-        alert("Erreur Insertion Membre: " + insertError.message)
-        return
-      }
+    if (insertError && insertError.code !== '23505') {
+      alert("Erreur Insertion Membre: " + insertError.message)
+      return
     }
   
-    // 3. Mise à jour statut
     await supabase
       .from("join_requests")
       .update({ status: 'accepted' })
       .eq("id", id)
   
-    // 4. UI
     setApplications((prev) => prev.filter((a) => a.id !== id))
-    alert("Succès ! Vérifie la table team_members maintenant.")
-
-    // ICI : On force le composant à re-télécharger les données de l'équipe
     window.location.reload()
   }
 
   const handleDeclineApplication = async (id: string | number) => {
-    await supabase.from("join_requests").update({ status: 'declined' }).eq("id", id)
+    await supabase.from("join_requests").update({ status: 'rejected' }).eq("id", id)
     setApplications((prev) => prev.filter((a) => a.id !== id))
   }
 
@@ -221,47 +286,43 @@ export default function DashboardPage() {
     <div className="flex min-h-screen flex-col">
       <Navbar />
       <main className="flex-1">
-        {/* Hero header */}
         <section className="relative overflow-hidden px-4 pb-8 pt-16 lg:px-6 lg:pt-24 lg:pb-12">
-          <div
-            className="pointer-events-none absolute inset-0 opacity-30"
-            aria-hidden="true"
-          >
+          <div className="pointer-events-none absolute inset-0 opacity-30" aria-hidden="true">
             <div className="absolute left-1/2 top-0 size-[600px] -translate-x-1/2 -translate-y-1/3 rounded-full bg-peach/20 blur-[120px]" />
             <div className="absolute right-0 top-1/2 size-[400px] -translate-y-1/2 rounded-full bg-teal/15 blur-[100px]" />
           </div>
-
           <div className="relative mx-auto max-w-6xl">
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-peach/20 bg-peach/10 px-4 py-1.5 text-sm font-medium text-peach">
               <LayoutDashboard className="size-4" />
               Command Center
             </div>
-
             <h1 className="text-balance text-4xl font-extrabold tracking-tight text-foreground md:text-5xl">
               Dashboard
             </h1>
-
             <p className="mt-3 max-w-lg text-pretty text-lg leading-relaxed text-muted-foreground">
-              Manage your teams, track your availability, and keep your jam life
-              organized all in one place.
+              Manage your teams, track your availability, and keep your jam life organized all in one place.
             </p>
           </div>
         </section>
 
-        {/* Content sections - même structure que TeamGrid / MembersGrid */}
         <section className="px-4 pb-16 pt-4 lg:px-6 lg:pb-24">
           <div className="mx-auto max-w-6xl flex flex-col gap-16">
-            <DashboardMyTeams teams={teams} onDelete={handleDeleteTeam} />
+            <DashboardMyTeams
+              teams={teams}
+              onDelete={handleDeleteTeam}
+              onUpdateDiscord={handleUpdateDiscord}
+            />
             <DashboardIncomingApplications
               applications={applications}
               onAccept={handleAcceptApplication}
               onDecline={handleDeclineApplication}
             />
+            {/* L'APPEL DE LA NOUVELLE SECTION EST BIEN ICI */}
+            <SentApplicationsSection />
             <DashboardMyAvailability profiles={profiles} onDelete={handleDeleteProfile} />
           </div>
         </section>
       </main>
-
       <footer className="border-t border-border/50 bg-card/50">
         <div className="mx-auto flex max-w-6xl flex-col items-center gap-2 px-4 py-8 text-center lg:px-6">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
