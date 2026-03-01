@@ -73,6 +73,7 @@ export function AvailabilityForm() {
   const [level, setLevel] = useState("")
   const [engine, setEngine] = useState("")
   const [language, setLanguage] = useState("")
+  const [portfolioLink, setPortfolioLink] = useState("")
 
   // 🔐 NOUVEAU : On vérifie si l'utilisateur est connecté
   const [user, setUser] = useState<any>(null)
@@ -105,6 +106,7 @@ export function AvailabilityForm() {
     }
 
     const profileData = {
+      id: user.id,
       username: formData.get('username'),
       role: role,
       experience: level,
@@ -112,12 +114,13 @@ export function AvailabilityForm() {
       language: language,
       bio: formData.get('about'),
       availability: dateString,
+      portfolio_link: portfolioLink.trim() || null,
     }
 
-    // 3. ON ENVOIE À SUPABASE (C'est ici qu'on crée 'error')
+    // 3. ON ENVOIE À SUPABASE — upsert pour permettre la mise à jour si le profil existe déjà
     const { error } = await supabase
       .from('profiles')
-      .insert([profileData])
+      .upsert([profileData], { onConflict: 'id' })
 
     setLoading(false)
 
@@ -134,6 +137,7 @@ export function AvailabilityForm() {
       setLevel("")
       setEngine("")
       setLanguage("")
+      setPortfolioLink("")
     }
   }
 
@@ -247,6 +251,26 @@ export function AvailabilityForm() {
                     <Calendar mode="range" selected={dateRange} onSelect={setDateRange} disabled={{ before: new Date() }} numberOfMonths={2} />
                   </PopoverContent>
                 </Popover>
+              </div>
+
+              {/* Portfolio / Itch.io */}
+              <div className="flex flex-col gap-2.5">
+                <Label htmlFor="portfolio_link" className="text-sm font-bold text-foreground">
+                  Portfolio / Itch.io{" "}
+                  <span className="text-xs font-normal text-muted-foreground">(optional)</span>
+                </Label>
+                <Input
+                  id="portfolio_link"
+                  name="portfolio_link"
+                  type="url"
+                  placeholder="https://yourname.itch.io or https://yourportfolio.com"
+                  value={portfolioLink}
+                  onChange={(e) => setPortfolioLink(e.target.value)}
+                  className="h-12 rounded-xl border-border/60 bg-secondary/50 text-foreground"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Show off your best projects and games!
+                </p>
               </div>
 
               {/* About Me */}

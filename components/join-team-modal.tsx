@@ -25,7 +25,7 @@ import {
 } from "lucide-react"
 
 interface JoinTeamModalProps {
-  teamId: string | number
+  teamId: string
   teamName: string
   children: React.ReactNode
 }
@@ -73,6 +73,7 @@ export function JoinTeamModal({ teamId, teamName, children }: JoinTeamModalProps
         sender_name: session.user.user_metadata?.username || "A Jammer",
         message: message.trim(),
         status: "pending",
+        type: "application",
       })
 
       if (error) throw error

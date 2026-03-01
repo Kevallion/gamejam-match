@@ -30,7 +30,7 @@ function isValidDiscordLink(url: string): boolean {
 }
 
 export type TeamData = {
-  id: any
+  id: string
   name: string
   jam: string
   engine: string
@@ -45,8 +45,8 @@ export type TeamData = {
 
 interface DashboardMyTeamsProps {
   teams: TeamData[]
-  onDelete: (id: any) => void
-  onUpdateDiscord: (id: any, discordLink: string) => Promise<void>
+  onDelete: (id: string) => void
+  onUpdateDiscord: (id: string, discordLink: string) => Promise<void>
 }
 
 export function DashboardMyTeams({
@@ -54,7 +54,7 @@ export function DashboardMyTeams({
   onDelete,
   onUpdateDiscord,
 }: DashboardMyTeamsProps) {
-  const [editingTeamId, setEditingTeamId] = useState<any>(null)
+  const [editingTeamId, setEditingTeamId] = useState<string | null>(null)
   const [discordInputValue, setDiscordInputValue] = useState("")
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -70,7 +70,7 @@ export function DashboardMyTeams({
     }
   }
 
-  const handleSubmitDiscord = async (e: React.FormEvent, teamId: any) => {
+  const handleSubmitDiscord = async (e: React.FormEvent, teamId: string) => {
     e.preventDefault()
     setSubmitError(null)
     const trimmed = discordInputValue.trim()

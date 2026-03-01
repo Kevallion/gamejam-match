@@ -17,9 +17,12 @@ import type { User } from "@supabase/supabase-js"
 export function Navbar() {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const [mounted, setMounted] = useState(false)
   const { setTheme } = useTheme()
 
   useEffect(() => {
+    setMounted(true)
+
     async function getUser() {
       const { data: { session } } = await supabase.auth.getSession()
       setUser(session?.user || null)
@@ -27,7 +30,7 @@ export function Navbar() {
     }
     getUser()
 
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user || null)
     })
 
@@ -73,33 +76,42 @@ export function Navbar() {
         </div>
 
         <div className="flex items-center gap-4">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="rounded-xl">
-                <span className="relative flex size-4">
-                  <Sun className="size-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-                  <Moon className="absolute inset-0 size-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-                </span>
-                <span className="sr-only">Changer le thème</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setTheme("light")}>
-                <Sun className="mr-2 size-4" />
-                Clair
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setTheme("dark")}>
-                <Moon className="mr-2 size-4" />
-                Sombre
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => setTheme("system")}>
-                <Monitor className="mr-2 size-4" />
-                Système
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          {mounted ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="rounded-xl">
+                  <span className="relative flex size-4">
+                    <Sun className="size-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+                    <Moon className="absolute inset-0 size-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+                  </span>
+                  <span className="sr-only">Changer le thème</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setTheme("light")}>
+                  <Sun className="mr-2 size-4" />
+                  Clair
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTheme("dark")}>
+                  <Moon className="mr-2 size-4" />
+                  Sombre
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTheme("system")}>
+                  <Monitor className="mr-2 size-4" />
+                  Système
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Button variant="ghost" size="icon" className="rounded-xl" disabled>
+              <span className="relative flex size-4">
+                <Sun className="size-4" />
+              </span>
+              <span className="sr-only">Changer le thème</span>
+            </Button>
+          )}
 
-          {loading ? (
+          {!mounted || loading ? (
             <Loader2 className="size-5 animate-spin text-muted-foreground" />
           ) : user ? (
             <div className="flex items-center gap-3">
@@ -107,14 +119,12 @@ export function Navbar() {
                 Hello, <span className="text-foreground">{user.user_metadata.full_name || 'Jammer'}</span> !
               </span>
 
-              {/* --- LE NOUVEAU BOUTON DASHBOARD --- */}
               <Button asChild variant="outline" className="gap-2 rounded-xl border-primary/30 text-primary hover:bg-primary/10">
                 <Link href="/dashboard">
                   <LayoutDashboard className="size-4" />
                   Dashboard
                 </Link>
               </Button>
-              {/* ---------------------------------- */}
 
               <Button onClick={handleSignOut} variant="outline" className="gap-2 rounded-xl text-muted-foreground hover:text-destructive hover:border-destructive/30 hover:bg-destructive/10">
                 <LogOut className="size-4" />

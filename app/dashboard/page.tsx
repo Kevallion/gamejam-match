@@ -5,6 +5,7 @@ import { Navbar } from "@/components/navbar"
 import { DashboardMyTeams, type TeamData } from "@/components/dashboard-my-teams"
 import { DashboardMyAvailability, type ProfileData } from "@/components/dashboard-my-availability"
 import { DashboardIncomingApplications, type ApplicationData } from "@/components/dashboard-incoming-applications"
+import { DashboardSquadInvitations, type InvitationData } from "@/components/dashboard-squad-invitations"
 import { Gamepad2, Heart, LayoutDashboard, Loader2, MessageCircle, Send } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 
@@ -48,6 +49,7 @@ function SentApplicationsSection() {
         .from("join_requests")
         .select("id, status, teams(team_name, discord_link)")
         .eq("sender_id", session.user.id)
+        .eq("type", "application")
       
       if (!error && data) setSentApplications(data)
       setLoading(false)
@@ -129,19 +131,23 @@ export default function DashboardPage() {
   const [teams, setTeams] = useState<TeamData[]>([])
   const [profiles, setProfiles] = useState<ProfileData[]>([])
   const [applications, setApplications] = useState<ApplicationData[]>([])
+  const [invitations, setInvitations] = useState<InvitationData[]>([])
   const [loading, setLoading] = useState(true)
 
   const mapTeamRow = (t: any): TeamData => {
     let parsed: any[] = []
-    try { parsed = JSON.parse(t.looking_for || "[]") } catch { parsed = [] }
+    try {
+      const raw = t.looking_for
+      parsed = Array.isArray(raw) ? raw : JSON.parse(raw || "[]")
+    } catch { parsed = [] }
     const rawLevel = (parsed[0]?.level || "beginner").toLowerCase()
     return {
       id: t.id,
       name: t.team_name || "Unnamed",
-      jam: t.jam_name || "",
+      jam: t.game_name || "",
       engine: t.engine || "",
       language: t.language || "",
-      description: t.project_description || "",
+      description: t.description || "",
       members: (t.team_members?.[0]?.count ?? 0) + 1,
       maxMembers: 1 + parsed.length,
       roles: parsed.map((r: any) => ROLE_STYLES[r.role?.toLowerCase()] ?? { ...FALLBACK_ROLE, label: r.role }),
@@ -162,6 +168,9 @@ export default function DashboardPage() {
       engine: m.engine || "",
       language: m.language || "",
       bio: m.bio || "",
+      rawRole,
+      rawLevel,
+      portfolio_link: m.portfolio_link ?? null,
     }
   }
 
@@ -176,6 +185,13 @@ export default function DashboardPage() {
     }
   }
 
+  const mapInvitationRow = (r: any): InvitationData => ({
+    id: r.id,
+    team_id: r.team_id,
+    squadName: r.teams?.team_name || "Unknown Squad",
+    discordLink: r.teams?.discord_link ?? null,
+  })
+
   const loadData = async () => {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session?.user) { setLoading(false); return }
@@ -188,30 +204,43 @@ export default function DashboardPage() {
     const { data: profilesData } = await supabase
       .from("profiles")
       .select("*")
-      .eq("user_id", session.user.id)
+      .eq("id", session.user.id)
     
     const { data: appsData } = await supabase
       .from("join_requests")
       .select("*, teams!inner(team_name, user_id)")
       .eq("teams.user_id", session.user.id)
       .eq("status", "pending")
+      .eq("type", "application")
+
+    // Invitations: records created by a Squad Leader targeting the current user
+    const { data: rawInvitesData } = await supabase
+      .from("join_requests")
+      .select("id, team_id, status, teams(team_name, discord_link)")
+      .eq("sender_id", session.user.id)
+      .eq("status", "pending")
+      .eq("type", "invitation")
 
     if (teamsData) setTeams(teamsData.map(mapTeamRow))
     if (profilesData) setProfiles(profilesData.map(mapProfileRow))
     if (appsData) setApplications(appsData.map(mapApplicationRow))
+
+    if (rawInvitesData) {
+      setInvitations(rawInvitesData.map(mapInvitationRow))
+    }
     
     setLoading(false)
   }
 
   useEffect(() => { loadData() }, [])
 
-  const handleDeleteTeam = async (id: string | number) => {
+  const handleDeleteTeam = async (id: string) => {
     if (!confirm("Delete this team?")) return
     await supabase.from("teams").delete().eq("id", id)
     setTeams((prev) => prev.filter((t) => t.id !== id))
   }
 
-  const handleUpdateDiscord = async (id: string | number, discordLink: string) => {
+  const handleUpdateDiscord = async (id: string, discordLink: string) => {
     const { error } = await supabase
       .from("teams")
       .update({ discord_link: discordLink })
@@ -223,13 +252,13 @@ export default function DashboardPage() {
     )
   }
 
-  const handleDeleteProfile = async (id: string | number) => {
+  const handleDeleteProfile = async (id: string) => {
     if (!confirm("Delete this profile?")) return
     await supabase.from("profiles").delete().eq("id", id)
     setProfiles((prev) => prev.filter((p) => p.id !== id))
   }
 
-  const handleAcceptApplication = async (id: string | number) => {
+  const handleAcceptApplication = async (id: string) => {
     const { data: request, error: fetchError } = await supabase
       .from("join_requests")
       .select("*")
@@ -241,12 +270,10 @@ export default function DashboardPage() {
       return
     }
   
-    const teamIdInt = parseInt(String(request.team_id), 10)
-    
     const { error: insertError } = await supabase
       .from("team_members")
       .insert({
-        team_id: teamIdInt,
+        team_id: request.team_id,
         user_id: request.sender_id,
         role: 'member'
       })
@@ -265,9 +292,35 @@ export default function DashboardPage() {
     window.location.reload()
   }
 
-  const handleDeclineApplication = async (id: string | number) => {
+  const handleDeclineApplication = async (id: string) => {
     await supabase.from("join_requests").update({ status: 'rejected' }).eq("id", id)
     setApplications((prev) => prev.filter((a) => a.id !== id))
+  }
+
+  const handleAcceptInvitation = async (invitation: InvitationData) => {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (!session?.user) return
+
+    const { error: insertError } = await supabase
+      .from("team_members")
+      .insert({ team_id: invitation.team_id, user_id: session.user.id, role: "member" })
+
+    if (insertError && insertError.code !== "23505") {
+      alert("Error joining squad: " + insertError.message)
+      return
+    }
+
+    await supabase
+      .from("join_requests")
+      .update({ status: "accepted" })
+      .eq("id", invitation.id)
+
+    setInvitations((prev) => prev.filter((i) => i.id !== invitation.id))
+  }
+
+  const handleDeclineInvitation = async (id: string) => {
+    await supabase.from("join_requests").update({ status: "rejected" }).eq("id", id)
+    setInvitations((prev) => prev.filter((i) => i.id !== id))
   }
 
   if (loading) {
@@ -316,6 +369,11 @@ export default function DashboardPage() {
               applications={applications}
               onAccept={handleAcceptApplication}
               onDecline={handleDeclineApplication}
+            />
+            <DashboardSquadInvitations
+              invitations={invitations}
+              onAccept={handleAcceptInvitation}
+              onDecline={handleDeclineInvitation}
             />
             {/* L'APPEL DE LA NOUVELLE SECTION EST BIEN ICI */}
             <SentApplicationsSection />
