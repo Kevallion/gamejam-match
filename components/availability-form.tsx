@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/select"
 import { Sparkles, Hand, CalendarDays } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { toast } from "sonner"
 
 // Options (gardées de ton code original)
 const ROLE_OPTIONS = [
@@ -126,12 +127,11 @@ export function AvailabilityForm() {
 
     // 4. On vérifie le résultat
     if (error) {
-      alert("Error: " + error.message)
+      toast.error("Could not save your profile: " + error.message)
     } else {
-      alert("Success! Your availability is now live. 🚀")
-      
-      // 5. On nettoie tout
-      form.reset() 
+      toast.success("Your availability is now live!")
+
+      form.reset()
       setDateRange(undefined)
       setRole("")
       setLevel("")

@@ -8,6 +8,7 @@ import { DashboardIncomingApplications, type ApplicationData } from "@/component
 import { DashboardSquadInvitations, type InvitationData } from "@/components/dashboard-squad-invitations"
 import { Gamepad2, Heart, LayoutDashboard, Loader2, MessageCircle, Send } from "lucide-react"
 import { supabase } from "@/lib/supabase"
+import { toast } from "sonner"
 
 // ---------------------------------------------------------------------------
 // Dictionnaires de styles
@@ -233,9 +234,9 @@ export default function DashboardPage() {
   useEffect(() => { loadData() }, [])
 
   const handleDeleteTeam = async (id: string) => {
-    if (!confirm("Delete this team?")) return
     await supabase.from("teams").delete().eq("id", id)
     setTeams((prev) => prev.filter((t) => t.id !== id))
+    toast.success("Team deleted.")
   }
 
   const handleUpdateDiscord = async (id: string, discordLink: string) => {
@@ -251,9 +252,9 @@ export default function DashboardPage() {
   }
 
   const handleDeleteProfile = async (id: string) => {
-    if (!confirm("Delete this profile?")) return
     await supabase.from("profiles").delete().eq("id", id)
     setProfiles((prev) => prev.filter((p) => p.id !== id))
+    toast.success("Availability profile removed.")
   }
 
   const handleAcceptApplication = async (id: string) => {
@@ -264,7 +265,7 @@ export default function DashboardPage() {
       .single()
   
     if (fetchError || !request) {
-      alert("Erreur lecture demande: " + fetchError?.message)
+      toast.error("Could not load this application. Please try again.")
       return
     }
   
@@ -277,7 +278,7 @@ export default function DashboardPage() {
       })
   
     if (insertError && insertError.code !== '23505') {
-      alert("Erreur Insertion Membre: " + insertError.message)
+      toast.error("Failed to add member: " + insertError.message)
       return
     }
   
@@ -287,6 +288,7 @@ export default function DashboardPage() {
       .eq("id", id)
   
     setApplications((prev) => prev.filter((a) => a.id !== id))
+    toast.success("Application accepted! The jammer has joined your squad.")
     window.location.reload()
   }
 
@@ -304,7 +306,7 @@ export default function DashboardPage() {
       .insert({ team_id: invitation.team_id, user_id: session.user.id, role: "member" })
 
     if (insertError && insertError.code !== "23505") {
-      alert("Error joining squad: " + insertError.message)
+      toast.error("Failed to join squad: " + insertError.message)
       return
     }
 
@@ -314,6 +316,7 @@ export default function DashboardPage() {
       .eq("id", invitation.id)
 
     setInvitations((prev) => prev.filter((i) => i.id !== invitation.id))
+    toast.success(`You joined ${invitation.squadName}!`)
   }
 
   const handleDeclineInvitation = async (id: string) => {

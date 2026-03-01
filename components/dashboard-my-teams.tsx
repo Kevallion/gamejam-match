@@ -17,6 +17,17 @@ import {
   DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Globe, Cpu, Users, Trash2, PenLine, Rocket, Link2 } from "lucide-react"
@@ -237,14 +248,35 @@ export function DashboardMyTeams({
                     </form>
                   </DialogContent>
                 </Dialog>
-                <Button
-                  variant="outline"
-                  onClick={() => onDelete(team.id)}
-                  className="w-full gap-2 rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                >
-                  <Trash2 className="size-4" />
-                  Delete Team
-                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full gap-2 rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    >
+                      <Trash2 className="size-4" />
+                      Delete Team
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent className="rounded-2xl border-border/60">
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete &quot;{team.name}&quot;?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This will permanently delete the team and all associated data. This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => onDelete(team.id)}
+                        className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/85"
+                      >
+                        <Trash2 className="mr-2 size-4" />
+                        Delete Team
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </CardFooter>
             </Card>
           ))}

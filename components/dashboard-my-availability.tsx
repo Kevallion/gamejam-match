@@ -26,6 +26,18 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
+import { toast } from "sonner"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 // ---------------------------------------------------------------------------
 // Options
@@ -168,20 +180,21 @@ function ProfileCard({ profile, onDelete }: ProfileCardProps) {
       .eq("id", profile.id)
 
     if (error) {
-      alert("Erreur lors de la sauvegarde : " + error.message)
+      toast.error("Failed to save profile: " + error.message)
     } else {
       setRawRole(editRole)
       setRawLevel(editLevel)
       setEngine(editEngine)
       setLanguage(editLanguage)
       setPortfolioLink(editPortfolioLink.trim())
+      toast.success("Profile updated!")
       setIsEditing(false)
     }
     setSaving(false)
   }
 
   return (
-    <Card className="group relative flex flex-col rounded-2xl border-border/50 bg-card transition-all duration-300 hover:border-lavender/30 hover:shadow-lg hover:shadow-lavender/5">
+    <Card className="card-interactive group relative flex flex-col">
       <CardContent className="flex flex-1 flex-col gap-4 pt-6">
         {/* Avatar + Username */}
         <div className="flex items-center gap-3.5">
@@ -353,7 +366,7 @@ function ProfileCard({ profile, onDelete }: ProfileCardProps) {
               className="w-full gap-2 rounded-xl"
             >
               <X className="size-4" />
-              Annuler
+              Cancel
             </Button>
           </>
         ) : (
@@ -361,19 +374,40 @@ function ProfileCard({ profile, onDelete }: ProfileCardProps) {
             <Button
               variant="outline"
               onClick={handleEdit}
-              className="w-full gap-2 rounded-xl border-lavender/30 text-lavender hover:bg-lavender/10 hover:text-lavender"
+              className="w-full gap-2 rounded-xl border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
             >
               <PenLine className="size-4" />
-              Modifier mon profil
+              Edit Profile
             </Button>
-            <Button
-              variant="outline"
-              onClick={() => onDelete(profile.id)}
-              className="w-full gap-2 rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
-            >
-              <Trash2 className="size-4" />
-              Remove Profile
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full gap-2 rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                >
+                  <Trash2 className="size-4" />
+                  Remove Profile
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className="rounded-2xl border-border/60">
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Remove your availability profile?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Your profile will no longer appear in the Find Members list. You can always re-post your availability later.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel className="rounded-xl">Keep Profile</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => onDelete(profile.id)}
+                    className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/85"
+                  >
+                    <Trash2 className="mr-2 size-4" />
+                    Remove
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </>
         )}
       </CardFooter>
@@ -404,7 +438,7 @@ export function DashboardMyAvailability({
         </div>
         <Button
           asChild
-          className="gap-2 rounded-xl bg-lavender text-lavender-foreground hover:bg-lavender/85"
+          className="gap-2 rounded-xl bg-primary text-primary-foreground hover:bg-primary/85"
         >
           <Link href="/create-profile">
             <Hand className="size-4" />
@@ -422,7 +456,7 @@ export function DashboardMyAvailability({
           <Button
             asChild
             variant="outline"
-            className="mt-2 gap-2 rounded-xl border-lavender/30 text-lavender hover:bg-lavender/10 hover:text-lavender"
+            className="mt-2 gap-2 rounded-xl border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
           >
             <Link href="/create-profile">Let teams find you</Link>
           </Button>
