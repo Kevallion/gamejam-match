@@ -145,11 +145,11 @@ export function DashboardIncomingApplications({
                   </div>
                 </div>
 
-                {/* Action buttons */}
-                <div className="flex items-center gap-3 pt-0.5">
+                {/* Action buttons — full-width on mobile, auto on sm+ */}
+                <div className="flex flex-col gap-2 pt-0.5 sm:flex-row sm:items-center">
                   <Button
                     onClick={() => onAccept(app.id)}
-                    className="gap-2 rounded-xl bg-teal px-5 text-teal-foreground shadow-md shadow-teal/10 transition-all hover:bg-teal/85"
+                    className="w-full gap-2 rounded-xl bg-teal px-5 text-teal-foreground shadow-md shadow-teal/10 transition-all hover:bg-teal/85 sm:w-auto"
                   >
                     <Check className="size-4" />
                     Accept
@@ -157,7 +157,7 @@ export function DashboardIncomingApplications({
                   <Button
                     variant="outline"
                     onClick={() => onDecline(app.id)}
-                    className="gap-2 rounded-xl border-border/60 px-5 text-muted-foreground transition-all hover:border-destructive/50 hover:bg-destructive/10 hover:text-destructive"
+                    className="w-full gap-2 rounded-xl border-border/60 px-5 text-muted-foreground transition-all hover:border-destructive/50 hover:bg-destructive/10 hover:text-destructive sm:w-auto"
                   >
                     <X className="size-4" />
                     Decline

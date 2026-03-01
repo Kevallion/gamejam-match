@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Plus, X, Rocket, Sparkles } from "lucide-react"
+import { toast } from "sonner"
 
 type RoleEntry = {
   id: number
@@ -110,7 +111,7 @@ export function CreateTeamForm() {
       !/^https:\/\/discord\.(gg|com\/invite)\//.test(discordLinkValue)
     ) {
       setLoading(false)
-      setDiscordLinkError("Veuillez entrer un lien d'invitation Discord valide")
+      setDiscordLinkError("Please enter a valid Discord invite link (https://discord.gg/...)")
       return
     }
 
@@ -138,9 +139,9 @@ export function CreateTeamForm() {
     setLoading(false)
 
     if (error) {
-      alert("Error: " + error.message)
+      toast.error("Could not publish: " + error.message)
     } else {
-      alert("Success! Your team announcement is live. 🚀")
+      toast.success("Your team announcement is live!")
       form.reset()
       setEngine("")
       setLanguage("")

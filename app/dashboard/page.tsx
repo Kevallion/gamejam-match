@@ -392,29 +392,29 @@ export default function DashboardPage() {
 
         {/* ── Stat cards ──────────────────────────────────────────────── */}
         <section className="mx-auto max-w-5xl px-4 pb-8 lg:px-6">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          {/* Always 3 columns: compact on mobile, full on sm+ */}
+          <div className="grid grid-cols-3 gap-3 sm:gap-4">
             {stats.map(s => (
               <Card
                 key={s.label}
                 onClick={() => navigateToTab(s.tab)}
                 className="group cursor-pointer rounded-2xl border-border/50 bg-card/80 backdrop-blur-sm transition-all duration-300 hover:border-border hover:shadow-md"
               >
-                <CardContent className="flex items-center gap-4 p-5">
-                  <div className={`relative flex size-11 shrink-0 items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-110 ${s.bg}`}>
-                    <s.icon className={`size-5 ${s.accent}`} />
-                    {/* Urgency ping — only for peach card when there are pending items */}
+                <CardContent className="flex flex-col items-center gap-1.5 p-3 text-center sm:flex-row sm:items-center sm:gap-4 sm:p-5 sm:text-left">
+                  <div className={`relative flex size-9 shrink-0 items-center justify-center rounded-xl transition-transform duration-300 group-hover:scale-110 sm:size-11 ${s.bg}`}>
+                    <s.icon className={`size-4 sm:size-5 ${s.accent}`} />
                     {s.urgent && (
-                      <span className="absolute -right-1 -top-1 flex size-3">
+                      <span className="absolute -right-0.5 -top-0.5 flex size-2.5 sm:size-3">
                         <span className={`absolute inline-flex size-full animate-ping rounded-full ${s.bg} opacity-75`} />
-                        <span className={`relative inline-flex size-3 rounded-full ${s.bg} border-2 border-card`} />
+                        <span className={`relative inline-flex size-2.5 sm:size-3 rounded-full ${s.bg} border-2 border-card`} />
                       </span>
                     )}
                   </div>
                   <div className="flex min-w-0 flex-col">
-                    <span className="text-2xl font-extrabold tracking-tight text-foreground">
+                    <span className={`text-xl font-extrabold tracking-tight sm:text-2xl ${s.accent}`}>
                       {s.value}
                     </span>
-                    <span className="truncate text-sm text-muted-foreground">
+                    <span className="truncate text-[10px] leading-tight text-muted-foreground sm:text-sm">
                       {s.label}
                     </span>
                   </div>

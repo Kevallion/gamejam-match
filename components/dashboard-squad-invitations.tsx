@@ -89,11 +89,11 @@ export function DashboardSquadInvitations({
                   </div>
                 </div>
 
-                {/* Action buttons */}
-                <div className="flex shrink-0 items-center gap-3">
+                {/* Action buttons — full-width on mobile, auto-sized on sm+ */}
+                <div className="flex gap-3 sm:shrink-0">
                   <Button
                     onClick={() => onAccept(inv)}
-                    className="gap-2 rounded-xl bg-teal px-5 text-teal-foreground shadow-md shadow-teal/10 transition-all hover:bg-teal/85"
+                    className="flex-1 gap-2 rounded-xl bg-teal px-5 text-teal-foreground shadow-md shadow-teal/10 transition-all hover:bg-teal/85 sm:flex-initial"
                   >
                     <Check className="size-4" />
                     Accept
@@ -101,7 +101,7 @@ export function DashboardSquadInvitations({
                   <Button
                     variant="outline"
                     onClick={() => onDecline(inv.id)}
-                    className="gap-2 rounded-xl border-border/60 px-5 text-muted-foreground transition-all hover:border-destructive/50 hover:bg-destructive/10 hover:text-destructive"
+                    className="flex-1 gap-2 rounded-xl border-border/60 px-5 text-muted-foreground transition-all hover:border-destructive/50 hover:bg-destructive/10 hover:text-destructive sm:flex-initial"
                   >
                     <X className="size-4" />
                     Decline
