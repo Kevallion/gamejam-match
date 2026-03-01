@@ -118,7 +118,11 @@ export function DashboardIncomingApplications({
                     <div className="mt-1.5 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
                       <span className="inline-flex items-center gap-1.5">
                         <Users className="size-3.5 text-teal" />
-                        Wants to join{" "}
+                        Applying as{" "}
+                        <span className="font-semibold text-foreground">
+                          {app.role.emoji} {app.role.label}
+                        </span>
+                        {" "}to{" "}
                         <span className="font-semibold text-foreground">
                           {app.teamName}
                         </span>

@@ -1,15 +1,16 @@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
-import { Globe, Cpu, Users, ArrowRight } from "lucide-react"
+import { Globe, Cpu, Users, ArrowRight, ShieldCheck } from "lucide-react"
 
-// ON IMPORTE LE NOUVEAU COMPOSANT ICI
 import { JoinTeamModal } from "@/components/join-team-modal"
 
 type RoleBadge = {
   label: string
   emoji: string
   color: string
+  key?: string
+  filled?: boolean
 }
 
 type LevelBadge = {
@@ -29,11 +30,25 @@ export type TeamCardData = {
   maxMembers: number
   roles: RoleBadge[]
   level: LevelBadge
+  filledRoleKeys?: string[]
 }
 
 export function TeamCard({ team }: { team: TeamCardData }) {
+  const filledKeys = team.filledRoleKeys ?? []
+
+  const availableRoles = team.roles.map((role) => ({
+    key: role.key ?? role.label.toLowerCase().replace(/\s+/g, "-"),
+    label: role.label,
+    emoji: role.emoji,
+    color: role.color,
+    filled: filledKeys.includes(role.key ?? role.label.toLowerCase().replace(/\s+/g, "-")),
+  }))
+
+  const isSquadFull =
+    availableRoles.length > 0 && availableRoles.every((r) => r.filled)
+
   return (
-    <Card className="card-interactive group relative">
+    <Card className="card-interactive group relative flex flex-col">
       <CardHeader className="gap-3 pb-0">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
@@ -54,7 +69,7 @@ export function TeamCard({ team }: { team: TeamCardData }) {
         </div>
       </CardHeader>
 
-      <CardContent className="gap-4 pt-3">
+      <CardContent className="flex flex-col gap-4 pt-3 flex-1">
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
           <span className="inline-flex items-center gap-1.5">
             <Cpu className="size-3.5 text-lavender" />
@@ -66,20 +81,26 @@ export function TeamCard({ team }: { team: TeamCardData }) {
           </span>
         </div>
 
-        <p className="mt-3 text-sm leading-relaxed text-muted-foreground line-clamp-2">
+        <p className="text-sm leading-relaxed text-muted-foreground line-clamp-2">
           {team.description}
         </p>
 
-        <div className="mt-4 flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-1.5">
           <span
             className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${team.level.color}`}
           >
             {team.level.emoji} {team.level.label}
           </span>
-          {team.roles.map((role) => (
+          {availableRoles.map((role, index) => (
             <span
-              key={role.label}
-              className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${role.color}`}
+              key={`${role.key}-${index}`}
+              className={[
+                "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold transition-opacity",
+                role.filled
+                  ? "opacity-40 line-through bg-muted text-muted-foreground"
+                  : role.color,
+              ].join(" ")}
+              title={role.filled ? `${role.label} — Filled` : `${role.label} — Open`}
             >
               {role.emoji} {role.label}
             </span>
@@ -88,13 +109,23 @@ export function TeamCard({ team }: { team: TeamCardData }) {
       </CardContent>
 
       <CardFooter>
-        {/* ET ON ENTOURE LE BOUTON AVEC LE MODAL ICI */}
-        <JoinTeamModal teamId={team.id} teamName={team.name}>
-          <Button className="w-full gap-2 rounded-xl bg-primary text-primary-foreground transition-all hover:bg-primary/85 hover:gap-3">
-            Join Team
-            <ArrowRight className="size-4" />
-          </Button>
-        </JoinTeamModal>
+        {isSquadFull ? (
+          <div className="w-full flex items-center justify-center gap-2 rounded-xl border border-border/60 bg-muted/50 px-4 py-2.5 text-sm font-bold text-muted-foreground">
+            <ShieldCheck className="size-4 text-primary" />
+            SQUAD FULL
+          </div>
+        ) : (
+          <JoinTeamModal
+            teamId={team.id}
+            teamName={team.name}
+            availableRoles={availableRoles}
+          >
+            <Button className="w-full gap-2 rounded-xl bg-primary text-primary-foreground transition-all hover:bg-primary/85 hover:gap-3">
+              Join Team
+              <ArrowRight className="size-4" />
+            </Button>
+          </JoinTeamModal>
+        )}
       </CardFooter>
     </Card>
   )

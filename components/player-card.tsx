@@ -36,7 +36,9 @@ import {
   AlertCircle,
   Sparkles,
   MessageSquareText,
+  Target,
 } from "lucide-react"
+import { toast } from "sonner"
 
 export type JammerCardData = {
   id: string
@@ -61,6 +63,8 @@ export type JammerCardData = {
 export type SquadOption = {
   id: string
   team_name: string
+  game_name?: string
+  needed_roles?: { key: string; label: string; emoji: string; color: string }[]
 }
 
 interface JammerCardProps {
@@ -70,6 +74,7 @@ interface JammerCardProps {
 
 export function JammerCard({ player, mySquads }: JammerCardProps) {
   const [selectedSquad, setSelectedSquad] = useState<SquadOption | null>(null)
+  const [selectedRoleIdx, setSelectedRoleIdx] = useState<number | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [message, setMessage] = useState("")
   const [loading, setLoading] = useState(false)
@@ -78,8 +83,12 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
 
   const maxChars = 500
 
+  const squadRoles = selectedSquad?.needed_roles ?? []
+  const selectedRole = selectedRoleIdx !== null ? squadRoles[selectedRoleIdx] ?? null : null
+
   function openInviteDialog(squad: SquadOption) {
     setSelectedSquad(squad)
+    setSelectedRoleIdx(null)
     setMessage("")
     setStatusMsg(null)
     setDialogOpen(true)
@@ -89,12 +98,17 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
     if (!open && !loading) {
       setDialogOpen(false)
       setSelectedSquad(null)
+      setSelectedRoleIdx(null)
       setMessage("")
       setStatusMsg(null)
     }
   }
 
   async function handleSendInvite() {
+    if (!selectedRole) {
+      setStatusMsg({ type: "error", text: "Please select the role you're inviting this jammer for." })
+      return
+    }
     if (!message.trim()) {
       setStatusMsg({ type: "error", text: "Please write a short message for this jammer." })
       return
@@ -105,14 +119,6 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
     setStatusMsg(null)
 
     try {
-      console.log("[DEBUG] Sending invite with squad:", {
-        squadId: selectedSquad.id,
-        squadIdType: typeof selectedSquad.id,
-        squadName: selectedSquad.team_name,
-        playerId: player.id,
-        playerIdType: typeof player.id,
-      })
-
       const { error } = await supabase.from("join_requests").insert({
         team_id: selectedSquad.id,
         sender_id: player.id,
@@ -120,16 +126,22 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
         message: message.trim(),
         status: "pending",
         type: "invitation",
+        target_role: selectedRole.key,
       })
 
       if (error) throw error
 
       setSentSquadIds((prev) => new Set(prev).add(selectedSquad.id))
-      setStatusMsg({ type: "success", text: "Invite sent successfully!" })
+      setStatusMsg({ type: "success", text: `Invite sent for the role of ${selectedRole.label}!` })
+
+      toast.success(`Invitation envoyée à ${player.username} !`, {
+        description: `Rôle proposé : ${selectedRole.label} dans ${selectedSquad.team_name}.`,
+      })
 
       setTimeout(() => {
         setDialogOpen(false)
         setSelectedSquad(null)
+        setSelectedRoleIdx(null)
         setMessage("")
         setStatusMsg(null)
       }, 2000)
@@ -285,41 +297,84 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
                 <Badge className="rounded-full border-0 bg-teal/15 px-2.5 py-0.5 text-xs font-bold text-teal">
                   {selectedSquad?.team_name}
                 </Badge>
+                {selectedSquad?.game_name && (
+                  <>
+                    <span className="text-sm text-muted-foreground">for</span>
+                    <Badge className="rounded-full border-0 bg-peach/15 px-2.5 py-0.5 text-xs font-bold text-peach">
+                      {selectedSquad.game_name}
+                    </Badge>
+                  </>
+                )}
               </div>
 
               <DialogDescription className="text-sm leading-relaxed text-muted-foreground">
-                Write a message to introduce your squad and explain why you think this jammer would be a great fit.
+                Specify the role you need and write a message to convince this jammer.
               </DialogDescription>
             </DialogHeader>
           </div>
 
           {/* Body */}
           <div className="px-6 pb-2">
-            <div className="flex flex-col gap-3">
-              <div className="flex items-center gap-2">
-                <MessageSquareText className="size-4 text-lavender" />
-                <label htmlFor="invite-message" className="text-sm font-bold text-foreground">
-                  Your message
-                </label>
-              </div>
-              <p className="text-xs leading-relaxed text-muted-foreground">
-                Tell them about your project, what role you need, and what makes your squad exciting to join.
-              </p>
+            <div className="flex flex-col gap-4">
 
-              <div className="relative">
-                <Textarea
-                  id="invite-message"
-                  placeholder="Hey! We're building a platformer for the GMTK Jam and we'd love to have you on board as our..."
-                  value={message}
-                  onChange={(e) => {
-                    if (e.target.value.length <= maxChars) setMessage(e.target.value)
-                  }}
-                  className="min-h-[140px] resize-none rounded-xl border-border/60 bg-secondary/50 text-sm leading-relaxed text-foreground placeholder:text-muted-foreground/60 transition-colors focus-visible:border-primary/40 focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:ring-offset-0"
-                  disabled={loading || statusMsg?.type === "success"}
-                />
-                <span className="absolute right-3 bottom-2.5 text-xs tabular-nums text-muted-foreground/50">
-                  {message.length}/{maxChars}
-                </span>
+              {/* Role selector */}
+              {squadRoles.length > 0 && (
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center gap-2">
+                    <Target className="size-4 text-primary" />
+                    <span className="text-sm font-bold text-foreground">Role offered</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {squadRoles.map((role, idx) => {
+                      const isSelected = selectedRoleIdx === idx
+                      return (
+                        <button
+                          key={`${role.key}-${idx}`}
+                          type="button"
+                          disabled={loading || statusMsg?.type === "success"}
+                          onClick={() => setSelectedRoleIdx(idx)}
+                          className={[
+                            "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer",
+                            isSelected
+                              ? `ring-2 ring-offset-2 ring-offset-card ring-primary ${role.color} scale-105`
+                              : `${role.color} hover:scale-105`,
+                          ].join(" ")}
+                        >
+                          {role.emoji} {role.label}
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Motivation message */}
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <MessageSquareText className="size-4 text-lavender" />
+                  <label htmlFor="invite-message" className="text-sm font-bold text-foreground">
+                    Your message
+                  </label>
+                </div>
+                <p className="text-xs leading-relaxed text-muted-foreground">
+                  Tell them about your project and what makes your squad exciting to join.
+                </p>
+
+                <div className="relative">
+                  <Textarea
+                    id="invite-message"
+                    placeholder="Hey! We're building a platformer for the GMTK Jam and we'd love to have you on board as our..."
+                    value={message}
+                    onChange={(e) => {
+                      if (e.target.value.length <= maxChars) setMessage(e.target.value)
+                    }}
+                    className="min-h-[120px] resize-none rounded-xl border-border/60 bg-secondary/50 text-sm leading-relaxed text-foreground placeholder:text-muted-foreground/60 transition-colors focus-visible:border-primary/40 focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:ring-offset-0"
+                    disabled={loading || statusMsg?.type === "success"}
+                  />
+                  <span className="absolute right-3 bottom-2.5 text-xs tabular-nums text-muted-foreground/50">
+                    {message.length}/{maxChars}
+                  </span>
+                </div>
               </div>
 
               {/* Status message */}
@@ -353,7 +408,7 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
             </Button>
             <Button
               onClick={handleSendInvite}
-              disabled={loading || statusMsg?.type === "success" || message.length === 0}
+              disabled={loading || statusMsg?.type === "success" || message.length === 0 || !selectedRole}
               className="gap-2 rounded-xl bg-primary font-bold text-primary-foreground transition-all hover:bg-primary/85 disabled:opacity-50 sm:h-11"
             >
               {loading ? (

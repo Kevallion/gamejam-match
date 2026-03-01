@@ -8,6 +8,7 @@ import { DashboardIncomingApplications, type ApplicationData } from "@/component
 import { DashboardSquadInvitations, type InvitationData } from "@/components/dashboard-squad-invitations"
 import { Gamepad2, Heart, LayoutDashboard, Loader2, MessageCircle, Send } from "lucide-react"
 import { supabase } from "@/lib/supabase"
+import { toast } from "sonner"
 
 // ---------------------------------------------------------------------------
 // Dictionnaires de styles
@@ -47,7 +48,7 @@ function SentApplicationsSection() {
       
       const { data, error } = await supabase
         .from("join_requests")
-        .select("id, status, teams(team_name, discord_link)")
+        .select("id, status, target_role, teams(team_name, discord_link)")
         .eq("sender_id", session.user.id)
         .eq("type", "application")
       
@@ -79,45 +80,54 @@ function SentApplicationsSection() {
         </div>
       ) : (
         <div className="flex flex-col gap-3">
-          {sentApplications.map(app => (
-            <div key={app.id} className="flex items-center justify-between rounded-lg border bg-background px-4 py-3 shadow-sm">
-              <span className="font-medium text-foreground">
-                {app.teams?.team_name || "Équipe inconnue"}
-              </span>
-              
-              <div className="flex items-center gap-3">
-                {/* Badge de statut */}
-                {app.status === "pending" && (
-                  <span className="rounded bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
-                    En attente
+          {sentApplications.map(app => {
+            const roleStyle = app.target_role
+              ? (ROLE_STYLES[app.target_role] ?? { label: app.target_role, emoji: "🎭", color: "bg-muted text-muted-foreground" })
+              : null
+            return (
+              <div key={app.id} className="flex items-center justify-between rounded-lg border bg-background px-4 py-3 shadow-sm gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="font-medium text-foreground truncate">
+                    {app.teams?.team_name || "Équipe inconnue"}
                   </span>
-                )}
-                {app.status === "rejected" && (
-                  <span className="rounded bg-red-500/10 px-2.5 py-1 text-xs font-medium text-red-600">
-                    Refusée
-                  </span>
-                )}
-                {app.status === "accepted" && (
-                  <span className="rounded bg-green-500/10 px-2.5 py-1 text-xs font-medium text-green-600">
-                    Acceptée
-                  </span>
-                )}
+                  {roleStyle && (
+                    <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${roleStyle.color}`}>
+                      {roleStyle.emoji} {roleStyle.label}
+                    </span>
+                  )}
+                </div>
 
-                {/* Bouton Discord si accepté */}
-                {app.status === "accepted" && app.teams?.discord_link && (
-                  <a
-                    href={app.teams.discord_link}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 rounded-md bg-[#5865F2]/90 px-3 py-1.5 text-xs font-medium text-white shadow-sm transition-colors hover:bg-[#5865F2]"
-                  >
-                    <MessageCircle className="size-3.5" />
-                    Rejoindre le Discord
-                  </a>
-                )}
+                <div className="flex shrink-0 items-center gap-3">
+                  {app.status === "pending" && (
+                    <span className="rounded bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
+                      En attente
+                    </span>
+                  )}
+                  {app.status === "rejected" && (
+                    <span className="rounded bg-red-500/10 px-2.5 py-1 text-xs font-medium text-red-600">
+                      Refusée
+                    </span>
+                  )}
+                  {app.status === "accepted" && (
+                    <span className="rounded bg-green-500/10 px-2.5 py-1 text-xs font-medium text-green-600">
+                      Acceptée
+                    </span>
+                  )}
+                  {app.status === "accepted" && app.teams?.discord_link && (
+                    <a
+                      href={app.teams.discord_link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 rounded-md bg-[#5865F2]/90 px-3 py-1.5 text-xs font-medium text-white shadow-sm transition-colors hover:bg-[#5865F2]"
+                    >
+                      <MessageCircle className="size-3.5" />
+                      Rejoindre le Discord
+                    </a>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>
@@ -175,12 +185,15 @@ export default function DashboardPage() {
   }
 
   const mapApplicationRow = (r: any): ApplicationData => {
+    const targetRole = r.target_role
+      ? (ROLE_STYLES[r.target_role] ?? { label: r.target_role, emoji: "🎭", color: "bg-muted text-muted-foreground" })
+      : { label: "Applicant", emoji: "👋", color: "bg-teal/15 text-teal" }
     return {
       id: r.id,
       username: r.sender_name || "A Jammer",
       avatarUrl: `https://api.dicebear.com/9.x/adventurer/svg?seed=${r.sender_name || 'anon'}`,
       teamName: r.teams?.team_name || "Unknown Team",
-      role: { label: "Applicant", emoji: "👋", color: "bg-teal/15 text-teal" },
+      role: targetRole,
       motivation: r.message || "No motivation provided.",
     }
   }
@@ -189,7 +202,9 @@ export default function DashboardPage() {
     id: r.id,
     team_id: r.team_id,
     squadName: r.teams?.team_name || "Unknown Squad",
+    gameName: r.teams?.game_name ?? null,
     discordLink: r.teams?.discord_link ?? null,
+    targetRole: r.target_role ?? null,
   })
 
   const loadData = async () => {
@@ -208,7 +223,7 @@ export default function DashboardPage() {
     
     const { data: appsData } = await supabase
       .from("join_requests")
-      .select("*, teams!inner(team_name, user_id)")
+      .select("*, target_role, teams!inner(team_name, user_id)")
       .eq("teams.user_id", session.user.id)
       .eq("status", "pending")
       .eq("type", "application")
@@ -216,7 +231,7 @@ export default function DashboardPage() {
     // Invitations: records created by a Squad Leader targeting the current user
     const { data: rawInvitesData } = await supabase
       .from("join_requests")
-      .select("id, team_id, status, teams(team_name, discord_link)")
+      .select("id, team_id, status, target_role, teams(team_name, game_name, discord_link)")
       .eq("sender_id", session.user.id)
       .eq("status", "pending")
       .eq("type", "invitation")
@@ -236,8 +251,13 @@ export default function DashboardPage() {
 
   const handleDeleteTeam = async (id: string) => {
     if (!confirm("Delete this team?")) return
-    await supabase.from("teams").delete().eq("id", id)
+    const { error } = await supabase.from("teams").delete().eq("id", id)
+    if (error) {
+      toast.error("Impossible de supprimer l'équipe.", { description: error.message })
+      return
+    }
     setTeams((prev) => prev.filter((t) => t.id !== id))
+    toast.success("Équipe supprimée.")
   }
 
   const handleUpdateDiscord = async (id: string, discordLink: string) => {
@@ -266,7 +286,7 @@ export default function DashboardPage() {
       .single()
   
     if (fetchError || !request) {
-      alert("Erreur lecture demande: " + fetchError?.message)
+      toast.error("Impossible de lire la demande.", { description: fetchError?.message })
       return
     }
   
@@ -279,7 +299,7 @@ export default function DashboardPage() {
       })
   
     if (insertError && insertError.code !== '23505') {
-      alert("Erreur Insertion Membre: " + insertError.message)
+      toast.error("Impossible d'ajouter le membre.", { description: insertError.message })
       return
     }
   
@@ -289,12 +309,17 @@ export default function DashboardPage() {
       .eq("id", id)
   
     setApplications((prev) => prev.filter((a) => a.id !== id))
-    window.location.reload()
+    toast.success("Candidature acceptée !", { description: `${request.sender_name || "Le jammer"} rejoint ton équipe.` })
   }
 
   const handleDeclineApplication = async (id: string) => {
-    await supabase.from("join_requests").update({ status: 'rejected' }).eq("id", id)
+    const { error } = await supabase.from("join_requests").update({ status: 'rejected' }).eq("id", id)
+    if (error) {
+      toast.error("Impossible de refuser la candidature.", { description: error.message })
+      return
+    }
     setApplications((prev) => prev.filter((a) => a.id !== id))
+    toast("Candidature déclinée.", { icon: "👎" })
   }
 
   const handleAcceptInvitation = async (invitation: InvitationData) => {
@@ -306,7 +331,7 @@ export default function DashboardPage() {
       .insert({ team_id: invitation.team_id, user_id: session.user.id, role: "member" })
 
     if (insertError && insertError.code !== "23505") {
-      alert("Error joining squad: " + insertError.message)
+      toast.error("Impossible de rejoindre l'équipe.", { description: insertError.message })
       return
     }
 
@@ -316,11 +341,17 @@ export default function DashboardPage() {
       .eq("id", invitation.id)
 
     setInvitations((prev) => prev.filter((i) => i.id !== invitation.id))
+    toast.success(`Tu as rejoint ${invitation.squadName} !`, { description: invitation.discordLink ? "Consulte le lien Discord pour te connecter." : undefined })
   }
 
   const handleDeclineInvitation = async (id: string) => {
-    await supabase.from("join_requests").update({ status: "rejected" }).eq("id", id)
+    const { error } = await supabase.from("join_requests").update({ status: "rejected" }).eq("id", id)
+    if (error) {
+      toast.error("Impossible de décliner l'invitation.", { description: error.message })
+      return
+    }
     setInvitations((prev) => prev.filter((i) => i.id !== id))
+    toast("Invitation déclinée.", { icon: "👋" })
   }
 
   if (loading) {

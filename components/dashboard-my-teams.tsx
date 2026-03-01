@@ -177,9 +177,9 @@ export function DashboardMyTeams({
                   >
                     {team.level.emoji} {team.level.label}
                   </span>
-                  {team.roles.map((role) => (
+                  {team.roles.map((role, roleIdx) => (
                     <span
-                      key={role.label}
+                      key={`${role.label}-${roleIdx}`}
                       className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${role.color}`}
                     >
                       {role.emoji} {role.label}

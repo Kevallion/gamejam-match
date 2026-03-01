@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Plus, X, Rocket, Sparkles } from "lucide-react"
+import { toast } from "sonner"
 
 type RoleEntry = {
   id: number
@@ -138,9 +139,9 @@ export function CreateTeamForm() {
     setLoading(false)
 
     if (error) {
-      alert("Error: " + error.message)
+      toast.error("Impossible de créer l'équipe.", { description: error.message })
     } else {
-      alert("Success! Your team announcement is live. 🚀")
+      toast.success("Équipe créée avec succès !", { description: "Ton annonce est maintenant en ligne." })
       form.reset()
       setEngine("")
       setLanguage("")

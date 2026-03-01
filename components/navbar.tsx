@@ -1,11 +1,13 @@
 "use client"
 
-import { Gamepad2, Users, UserSearch, LogIn, PenLine, Hand, LogOut, Loader2, LayoutDashboard, Sun, Moon, Monitor } from "lucide-react"
+import { Bell, Gamepad2, Hand, LayoutDashboard, Loader2, LogIn, LogOut, Monitor, Moon, PenLine, Sun, UserSearch, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useTheme } from "next-themes"
@@ -13,12 +15,25 @@ import Link from "next/link"
 import { supabase } from "@/lib/supabase"
 import { useEffect, useState } from "react"
 import type { User } from "@supabase/supabase-js"
+import { useNotifications } from "@/hooks/use-notifications"
+
+const ROLE_LABELS: Record<string, string> = {
+  developer: "Developer",
+  "2d-artist": "2D Artist",
+  "3d-artist": "3D Artist",
+  audio: "Audio",
+  writer: "Writer",
+  "game-design": "Game Designer",
+  "ui-ux": "UI/UX",
+  qa: "QA",
+}
 
 export function Navbar() {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [mounted, setMounted] = useState(false)
   const { setTheme } = useTheme()
+  const { notifications, unreadCount, loading: notifLoading } = useNotifications(user?.id ?? null)
 
   useEffect(() => {
     setMounted(true)
@@ -43,7 +58,7 @@ export function Navbar() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'discord',
     })
-    if (error) alert("Erreur de connexion : " + error.message)
+    if (error) console.error("Erreur de connexion :", error.message)
   }
 
   const handleSignOut = async () => {
@@ -75,7 +90,8 @@ export function Navbar() {
           </Button>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
+          {/* Theme switcher */}
           {mounted ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -111,6 +127,89 @@ export function Navbar() {
             </Button>
           )}
 
+          {/* Bell notifications — visible uniquement quand l'utilisateur est connecté */}
+          {mounted && user && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="relative rounded-xl">
+                  <Bell className="size-4" />
+                  {unreadCount > 0 && (
+                    <span className="absolute right-1.5 top-1.5 flex size-2">
+                      <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary opacity-75" />
+                      <span className="relative inline-flex size-2 rounded-full bg-primary" />
+                    </span>
+                  )}
+                  <span className="sr-only">Notifications</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-80 rounded-2xl p-2">
+                <DropdownMenuLabel className="flex items-center gap-2 px-2 py-1.5 text-sm font-bold">
+                  <Bell className="size-4 text-primary" />
+                  Notifications
+                  {unreadCount > 0 && (
+                    <span className="ml-auto rounded-full bg-primary px-2 py-0.5 text-xs font-bold text-primary-foreground">
+                      {unreadCount}
+                    </span>
+                  )}
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+
+                {notifLoading ? (
+                  <div className="flex items-center justify-center py-6">
+                    <Loader2 className="size-4 animate-spin text-muted-foreground" />
+                  </div>
+                ) : notifications.length === 0 ? (
+                  <p className="py-6 text-center text-sm text-muted-foreground">
+                    Aucune nouvelle notification
+                  </p>
+                ) : (
+                  <div className="flex flex-col gap-0.5">
+                    {notifications.map((notif) => (
+                      <DropdownMenuItem key={notif.id} asChild>
+                        <Link
+                          href="/dashboard"
+                          className="flex cursor-pointer flex-col gap-0.5 rounded-xl px-3 py-2.5 focus:bg-accent"
+                        >
+                          <span className="text-sm font-medium leading-snug text-foreground">
+                            {notif.kind === "application" ? (
+                              <>
+                                <span className="text-primary">{notif.senderName || "Quelqu'un"}</span>
+                                {" a candidaté pour "}
+                                <span className="font-bold">{notif.teamName}</span>
+                              </>
+                            ) : (
+                              <>
+                                <span className="font-bold">{notif.teamName}</span>
+                                {" t'a invité(e)"}
+                              </>
+                            )}
+                          </span>
+                          {notif.targetRole && (
+                            <span className="text-xs text-muted-foreground">
+                              Rôle : {ROLE_LABELS[notif.targetRole] ?? notif.targetRole}
+                            </span>
+                          )}
+                        </Link>
+                      </DropdownMenuItem>
+                    ))}
+                  </div>
+                )}
+
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link
+                    href="/dashboard"
+                    className="flex cursor-pointer items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-semibold text-primary"
+                  >
+                    <LayoutDashboard className="size-3.5" />
+                    Voir tout dans le Dashboard
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+
+          {/* Auth buttons */}
           {!mounted || loading ? (
             <Loader2 className="size-5 animate-spin text-muted-foreground" />
           ) : user ? (

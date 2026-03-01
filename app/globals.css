@@ -229,4 +229,17 @@
   .status-warning {
     @apply border border-warning/30 bg-warning/10 text-warning;
   }
+
+  /* Role badge states */
+  .role-badge-open {
+    @apply cursor-pointer transition-transform hover:scale-105;
+  }
+  .role-badge-filled {
+    @apply opacity-40 line-through cursor-not-allowed bg-muted text-muted-foreground;
+  }
+  .role-badge-selected {
+    @apply ring-2 ring-offset-2 scale-105;
+    ring-offset-color: var(--card);
+    ring-color: var(--primary);
+  }
 }

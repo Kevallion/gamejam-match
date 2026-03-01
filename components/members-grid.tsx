@@ -50,7 +50,7 @@ export function MembersGrid({ searchQuery = "", roleFilter = "all", engineFilter
       const [membersResult, teamsResult] = await Promise.all([
         supabase.from("profiles").select("*"),
         userId
-          ? supabase.from("teams").select("id, team_name").eq("user_id", userId)
+          ? supabase.from("teams").select("id, team_name, game_name, looking_for").eq("user_id", userId)
           : Promise.resolve({ data: [], error: null }),
       ])
 
@@ -75,7 +75,20 @@ export function MembersGrid({ searchQuery = "", roleFilter = "all", engineFilter
       }
 
       if (!teamsResult.error && teamsResult.data) {
-        setMySquads(teamsResult.data as SquadOption[])
+        const squads: SquadOption[] = (teamsResult.data as any[]).map((t) => {
+          const parsedRoles: any[] = Array.isArray(t.looking_for) ? t.looking_for : []
+          const needed_roles = parsedRoles.map((r: any) => ({
+            key: r.role,
+            ...(ROLE_STYLES[r.role] ?? { label: r.role, emoji: "❓", color: "bg-gray-500/10 text-gray-500" }),
+          }))
+          return {
+            id: t.id,
+            team_name: t.team_name,
+            game_name: t.game_name ?? undefined,
+            needed_roles,
+          }
+        })
+        setMySquads(squads)
       }
 
       setLoading(false)

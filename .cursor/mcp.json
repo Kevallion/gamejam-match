@@ -4,7 +4,7 @@
       "type": "http",
       "url": "https://mcp.supabase.com/mcp",
       "headers": {
-        "Authorization": "sbp_658abec1d02bddb366a6614d4d16bb0b8da8c4ef"
+        "Authorization": "Bearer sbp_658abec1d02bddb366a6614d4d16bb0b8da8c4ef"
       }
     }
   }
