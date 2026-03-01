@@ -1,6 +1,12 @@
 import { Navbar } from "@/components/navbar"
 import { CreateTeamForm } from "@/components/create-team-form"
 import { Gamepad2, Heart, PenLine } from "lucide-react"
+import type { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "Form a Squad — JamSquad",
+  description: "Create a new team listing for your game jam. Describe your project, pick the roles you need, and find the perfect teammates.",
+}
 
 export default function CreateTeamPage() {
   return (

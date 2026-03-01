@@ -6,15 +6,30 @@ import {
 import { SlidersHorizontal } from "lucide-react"
 
 interface FiltersProps {
+  engine?: string
+  role?: string
+  level?: string
+  language?: string
+  compact?: boolean
   onEngineChange: (val: string) => void
   onRoleChange: (val: string) => void
   onLevelChange: (val: string) => void
   onLanguageChange: (val: string) => void
 }
 
-export function Filters({ onEngineChange, onRoleChange, onLevelChange, onLanguageChange }: FiltersProps) {
+export function Filters({
+  engine = "all",
+  role = "all",
+  level = "all",
+  language = "all",
+  compact = false,
+  onEngineChange,
+  onRoleChange,
+  onLevelChange,
+  onLanguageChange,
+}: FiltersProps) {
   return (
-    <section className="px-4 py-6 lg:px-6">
+    <section className={compact ? "py-0" : "px-4 py-6 lg:px-6"}>
       <div className="mx-auto max-w-6xl">
         <div className="flex items-center gap-3 mb-4">
           <SlidersHorizontal className="size-4 text-muted-foreground" />
@@ -24,7 +39,7 @@ export function Filters({ onEngineChange, onRoleChange, onLevelChange, onLanguag
         </div>
         <div className="flex flex-wrap items-center gap-3">
           
-          <Select onValueChange={onEngineChange} defaultValue="all">
+          <Select onValueChange={onEngineChange} value={engine}>
             <SelectTrigger className="w-[160px] rounded-xl border-border/60 bg-card">
               <SelectValue placeholder="Engine" />
             </SelectTrigger>
@@ -38,7 +53,7 @@ export function Filters({ onEngineChange, onRoleChange, onLevelChange, onLanguag
             </SelectContent>
           </Select>
 
-          <Select onValueChange={onRoleChange} defaultValue="all">
+          <Select onValueChange={onRoleChange} value={role}>
             <SelectTrigger className="w-[180px] rounded-xl border-border/60 bg-card">
               <SelectValue placeholder="Role Needed" />
             </SelectTrigger>
@@ -53,7 +68,7 @@ export function Filters({ onEngineChange, onRoleChange, onLevelChange, onLanguag
             </SelectContent>
           </Select>
 
-          <Select onValueChange={onLevelChange} defaultValue="all">
+          <Select onValueChange={onLevelChange} value={level}>
             <SelectTrigger className="w-[180px] rounded-xl border-border/60 bg-card">
               <SelectValue placeholder="Experience Level" />
             </SelectTrigger>
@@ -66,7 +81,7 @@ export function Filters({ onEngineChange, onRoleChange, onLevelChange, onLanguag
             </SelectContent>
           </Select>
 
-          <Select onValueChange={onLanguageChange} defaultValue="all">
+          <Select onValueChange={onLanguageChange} value={language}>
             <SelectTrigger className="w-[160px] rounded-xl border-border/60 bg-card">
               <SelectValue placeholder="Language" />
             </SelectTrigger>

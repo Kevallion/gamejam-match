@@ -1,7 +1,12 @@
 import { Navbar } from "@/components/navbar"
 import { AvailabilityForm } from "@/components/availability-form"
 import { Gamepad2, Heart, UserCheck } from "lucide-react"
-import { supabase } from "@/lib/supabase"
+import type { Metadata } from "next"
+
+export const metadata: Metadata = {
+  title: "Join a Squad — JamSquad",
+  description: "Set up your solo profile and let teams know you're ready to jam. Share your skills and get discovered.",
+}
 
 export default function AvailabilityPage() {
   return (

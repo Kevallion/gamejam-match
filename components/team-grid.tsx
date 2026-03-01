@@ -1,8 +1,11 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { TeamCard, type TeamCardData } from "@/components/team-card"
 import { supabase } from "@/lib/supabase"
+import { Loader2 } from "lucide-react"
+
+const PAGE_SIZE = 24
 
 const ROLE_STYLES: Record<string, { label: string; emoji: string; color: string }> = {
   developer: { label: "Developer", emoji: "💻", color: "bg-teal/15 text-teal" },
@@ -30,6 +33,35 @@ interface TeamGridProps {
   languageFilter: string
 }
 
+function formatTeam(t: any) {
+  const parsedRoles: any[] = Array.isArray(t.looking_for) ? t.looking_for : []
+  const roleBadges = parsedRoles.map((r: any) => ({
+    ...(ROLE_STYLES[r.role] ?? { label: r.role, emoji: "❓", color: "bg-gray-500/10 text-gray-500" }),
+    key: r.role,
+  }))
+  const mainLevel = parsedRoles.length > 0 ? parsedRoles[0].level : "beginner"
+  const levelBadge = LEVEL_STYLES[mainLevel] || LEVEL_STYLES["beginner"]
+  const acceptedRoleKeys: string[] = (t.join_requests ?? [])
+    .filter((jr: any) => jr.status === "accepted" && jr.type === "application" && jr.target_role)
+    .map((jr: any) => jr.target_role as string)
+  const acceptedMembersCount = t.team_members ? t.team_members.length : 0
+
+  return {
+    id: t.id,
+    name: t.team_name || "Unknown Team",
+    jam: t.game_name || "",
+    engine: t.engine || "",
+    language: t.language || "",
+    description: t.description || "",
+    rawRoles: parsedRoles,
+    members: 1 + acceptedMembersCount,
+    maxMembers: 1 + parsedRoles.length,
+    roles: roleBadges,
+    level: levelBadge,
+    filledRoleKeys: acceptedRoleKeys,
+  }
+}
+
 export function TeamGrid({
   searchQuery = "",
   engineFilter = "all",
@@ -39,61 +71,50 @@ export function TeamGrid({
 }: TeamGridProps) {
   const [teams, setTeams] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [hasMore, setHasMore] = useState(true)
+  const offsetRef = useRef(0)
 
+  // Debounced search query — met à jour 250ms après la dernière frappe
+  const [debouncedSearch, setDebouncedSearch] = useState(searchQuery)
   useEffect(() => {
-    async function getTeams() {
-      // On sélectionne les membres avec leur rôle (target_role depuis join_requests acceptés)
-      const { data, error } = await supabase
-        .from("teams")
-        .select("*, team_members(id, role, user_id), join_requests(target_role, status, type)")
-        .order("created_at", { ascending: false })
+    const timer = setTimeout(() => setDebouncedSearch(searchQuery), 250)
+    return () => clearTimeout(timer)
+  }, [searchQuery])
 
-      if (!error && data) {
-        const formattedTeams = data.map((t) => {
-          const parsedRoles: any[] = Array.isArray(t.looking_for) ? t.looking_for : []
+  const fetchPage = useCallback(async (from: number, append: boolean) => {
+    const { data, error } = await supabase
+      .from("teams")
+      .select("*, team_members(id, role, user_id), join_requests(target_role, status, type)")
+      .order("created_at", { ascending: false })
+      .range(from, from + PAGE_SIZE - 1)
 
-          const roleBadges = parsedRoles.map((r: any) => ({
-            ...(ROLE_STYLES[r.role] ?? { label: r.role, emoji: "❓", color: "bg-gray-500/10 text-gray-500" }),
-            key: r.role,
-          }))
-
-          const mainLevel = parsedRoles.length > 0 ? parsedRoles[0].level : "beginner"
-          const levelBadge = LEVEL_STYLES[mainLevel] || LEVEL_STYLES["beginner"]
-
-          // Rôles déjà pris : on regarde les join_requests acceptées avec un target_role
-          const acceptedRoleKeys: string[] = (t.join_requests ?? [])
-            .filter((jr: any) => jr.status === "accepted" && jr.type === "application" && jr.target_role)
-            .map((jr: any) => jr.target_role as string)
-
-          const acceptedMembersCount = t.team_members ? t.team_members.length : 0
-
-          return {
-            id: t.id,
-            name: t.team_name || "Unknown Team",
-            jam: t.game_name || "",
-            engine: t.engine || "",
-            language: t.language || "",
-            description: t.description || "",
-            rawRoles: parsedRoles,
-            members: 1 + acceptedMembersCount,
-            maxMembers: 1 + parsedRoles.length,
-            roles: roleBadges,
-            level: levelBadge,
-            filledRoleKeys: acceptedRoleKeys,
-          }
-        })
-        setTeams(formattedTeams)
-      } else if (error) {
-        console.error("Erreur Supabase :", error)
-      }
-      setLoading(false)
+    if (!error && data) {
+      const formatted = data.map(formatTeam)
+      setTeams((prev) => (append ? [...prev, ...formatted] : formatted))
+      setHasMore(data.length === PAGE_SIZE)
+      offsetRef.current = from + data.length
+    } else if (error) {
+      console.error("Erreur Supabase :", error)
     }
-    getTeams()
   }, [])
 
+  useEffect(() => {
+    setLoading(true)
+    offsetRef.current = 0
+    fetchPage(0, false).finally(() => setLoading(false))
+  }, [fetchPage])
+
+  const handleLoadMore = async () => {
+    setLoadingMore(true)
+    await fetchPage(offsetRef.current, true)
+    setLoadingMore(false)
+  }
+
   const displayedTeams = teams.filter((t) => {
-    const searchLower = searchQuery.toLowerCase()
+    const searchLower = debouncedSearch.toLowerCase()
     const matchSearch =
+      !searchLower ||
       t.name.toLowerCase().includes(searchLower) ||
       t.jam.toLowerCase().includes(searchLower) ||
       t.description.toLowerCase().includes(searchLower)
@@ -133,6 +154,22 @@ export function TeamGrid({
             {displayedTeams.map((team) => (
               <TeamCard key={team.id} team={team} />
             ))}
+          </div>
+        )}
+
+        {hasMore && (
+          <div className="mt-10 flex justify-center">
+            <button
+              onClick={handleLoadMore}
+              disabled={loadingMore}
+              className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-6 py-3 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-accent disabled:opacity-60"
+            >
+              {loadingMore ? (
+                <><Loader2 className="size-4 animate-spin" /> Loading...</>
+              ) : (
+                "Load more teams"
+              )}
+            </button>
           </div>
         )}
       </div>
