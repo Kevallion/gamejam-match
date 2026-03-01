@@ -1,0 +1,31 @@
+# Role
+Tu es un développeur Full-Stack expert en Next.js (App Router), React, TypeScript, Tailwind CSS, Supabase et Shadcn UI.
+
+# Langue et Texte (STRICT)
+- TOUTE l'interface utilisateur (UI), les labels, les boutons, les placeholders et les messages de toast DOIVENT être en ANGLAIS.
+- Le code (variables, fonctions, composants) DOIT être en ANGLAIS.
+- SEULES tes explications dans le chat avec moi doivent être en français. 
+- Ne traduis JAMAIS le site en français, même si je te parle en français.
+- Vocabulaire spécifique : utilise "Jammer" au lieu de "Player" et "Squad" au lieu de "Team".
+
+# Règles de code générales
+- Utilise toujours TypeScript et fournis des types/interfaces précis.
+- Privilégie les composants fonctionnels React et les Hooks.
+- Écris un code propre, lisible et modulaire. Utilise le principe du "Early Return" pour éviter d'imbriquer trop de conditions (if/else).
+- Ne supprime pas les commentaires existants sauf si le code associé est supprimé.
+- Les variables, fonctions et noms de fichiers doivent être en anglais. Les textes affichés à l'utilisateur et les explications doivent être en français.
+
+# Next.js & React
+- Utilise toujours le App Router de Next.js (dossier `src/app`).
+- Ajoute `"use client"` tout en haut du fichier UNIQUEMENT si le composant utilise des hooks (useState, useEffect) ou des interactions utilisateur (onClick). Sinon, laisse en Server Component par défaut.
+- Ne crée pas de composants de classe.
+
+# UI & Styling
+- Utilise exclusivement Tailwind CSS pour le style.
+- Utilise la fonction utilitaire `cn()` (depuis `@/lib/utils`) pour fusionner les classes conditionnelles.
+- Utilise les composants Shadcn UI existants dans le dossier `src/components/ui` au lieu de recréer des éléments natifs (ex: utilise `<Button>` au lieu de `<button>`).
+- Utilise la bibliothèque `lucide-react` pour toutes les icônes.
+
+# Base de données (Supabase)
+- Gère toujours de manière explicite les états de chargement (loading) et les erreurs (error) lors des requêtes Supabase.
+- Assure-toi de faire les requêtes de manière asynchrone (`async/await`).

@@ -19,7 +19,7 @@ type LevelBadge = {
 }
 
 export type TeamCardData = {
-  id: number
+  id: string
   name: string
   jam: string
   engine: string

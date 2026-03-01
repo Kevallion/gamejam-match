@@ -42,35 +42,28 @@ export function TeamGrid({ searchQuery = "", engineFilter = "all", roleFilter = 
 
       if (!error && data) {
         const formattedTeams = data.map((t) => {
-          let parsedRoles: any[] = []
-          try { parsedRoles = JSON.parse(t.looking_for || "[]") } catch (e) { parsedRoles = [] }
+          // looking_for est jsonb : Supabase le retourne déjà en tableau JS, pas en string
+          const parsedRoles: any[] = Array.isArray(t.looking_for) ? t.looking_for : []
 
-          const roleBadges = parsedRoles.map((r: any) => 
+          const roleBadges = parsedRoles.map((r: any) =>
             ROLE_STYLES[r.role] || { label: r.role, emoji: "❓", color: "bg-gray-500/10 text-gray-500" }
           )
 
           const mainLevel = parsedRoles.length > 0 ? parsedRoles[0].level : "beginner"
           const levelBadge = LEVEL_STYLES[mainLevel] || LEVEL_STYLES["beginner"]
-          
-          // CHANGEMENT 2 : On compte simplement la taille du tableau renvoyé !
-          const acceptedMembersCount = t.team_members ? t.team_members.length : 0
 
-          // DEBUG : On affiche ce qu'on reçoit dans la console
-          console.log(`L'équipe "${t.team_name}" a ${acceptedMembersCount} membre(s) en base :`, t.team_members)
+          const acceptedMembersCount = t.team_members ? t.team_members.length : 0
 
           return {
             id: t.id,
             name: t.team_name || "Unknown Team",
-            jam: t.jam_name || "Unknown Jam",
-            engine: t.engine || "Unknown",
-            language: t.language || "Unknown",
-            description: t.project_description || "",
+            jam: t.game_name || "",
+            engine: t.engine || "",
+            language: t.language || "",
+            description: t.description || "",
             rawRoles: parsedRoles,
-            
-            // 1 (le créateur) + les membres acceptés
-            members: 1 + acceptedMembersCount, 
-            
-            maxMembers: 1 + parsedRoles.length, 
+            members: 1 + acceptedMembersCount,
+            maxMembers: 1 + parsedRoles.length,
             roles: roleBadges,
             level: levelBadge,
           }

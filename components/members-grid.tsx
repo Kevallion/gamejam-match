@@ -1,7 +1,13 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { PlayerCard, type PlayerCardData } from "@/components/player-card"
+import { JammerCard, type JammerCardData, type SquadOption } from "@/components/player-card"
+
+type JammerWithFilters = JammerCardData & {
+  rawRole: string
+  rawEngine: string
+  rawLevel: string
+}
 import { supabase } from "@/lib/supabase"
 
 const ROLE_STYLES: Record<string, any> = {
@@ -30,46 +36,60 @@ interface MembersGridProps {
 }
 
 export function MembersGrid({ searchQuery = "", roleFilter = "all", engineFilter = "all", levelFilter = "all" }: MembersGridProps) {
-  const [members, setMembers] = useState<any[]>([])
+  const [members, setMembers] = useState<JammerWithFilters[]>([])
+  const [mySquads, setMySquads] = useState<SquadOption[]>([])
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    async function getMembers() {
-      // J'ai remis le tri par created_at si tu as créé la colonne, sinon efface juste la ligne .order()
-      const { data, error } = await supabase.from('profiles').select('*')
-      
-      if (!error && data) {
-        const formattedMembers = data.map((m) => ({
-          id: m.id || m.username,
+    async function loadData() {
+      const { data: { session } } = await supabase.auth.getSession()
+      const userId = session?.user?.id ?? null
+      setCurrentUserId(userId)
+
+      const [membersResult, teamsResult] = await Promise.all([
+        supabase.from("profiles").select("*"),
+        userId
+          ? supabase.from("teams").select("id, team_name").eq("user_id", userId)
+          : Promise.resolve({ data: [], error: null }),
+      ])
+
+      if (!membersResult.error && membersResult.data) {
+        const formattedMembers = membersResult.data.map((m) => {
+          return {
+          id: m.id as string,
           username: m.username,
           avatarUrl: `https://api.dicebear.com/9.x/adventurer/svg?seed=${m.username}&backgroundColor=d1d4f9`,
-          // On garde les données "brutes" (raw) pour que les filtres puissent les lire facilement
           rawRole: m.role || "",
           rawLevel: m.experience || "",
           rawEngine: m.engine || "",
-          // On génère les jolis badges pour l'affichage
           role: ROLE_STYLES[m.role] || { label: m.role, emoji: "❓", color: "bg-gray-500/10 text-gray-500" },
           level: LEVEL_STYLES[m.experience] || { label: m.experience, emoji: "⭐", color: "bg-gray-500/10 text-gray-500" },
           engine: m.engine,
           language: m.language,
           bio: m.bio,
-        }))
+          portfolio_link: m.portfolio_link || "",
+        }
+        })
         setMembers(formattedMembers)
       }
+
+      if (!teamsResult.error && teamsResult.data) {
+        setMySquads(teamsResult.data as SquadOption[])
+      }
+
       setLoading(false)
     }
-    getMembers()
+
+    loadData()
   }, [])
 
-  // 🚀 LE FILTRE ULTRA-ROBUSTE
   const displayedMembers = members.filter((m) => {
     const matchSearch = m.username.toLowerCase().includes(searchQuery.toLowerCase())
-    
-    // On compare les mots exacts en minuscules
     const matchRole = roleFilter === "all" || m.rawRole.toLowerCase() === roleFilter.toLowerCase()
     const matchEngine = engineFilter === "all" || m.rawEngine.toLowerCase() === engineFilter.toLowerCase()
     const matchLevel = levelFilter === "all" || m.rawLevel.toLowerCase() === levelFilter.toLowerCase()
-    
+
     return matchSearch && matchRole && matchEngine && matchLevel
   })
 
@@ -83,15 +103,15 @@ export function MembersGrid({ searchQuery = "", roleFilter = "all", engineFilter
             Showing <span className="font-semibold text-foreground">{displayedMembers.length}</span> available jammers
           </p>
         </div>
-        
+
         {displayedMembers.length === 0 ? (
           <div className="text-center py-10 bg-card/50 rounded-3xl border border-dashed border-border">
             No jammers found matching these filters. 😢
           </div>
         ) : (
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {displayedMembers.map((player) => (
-              <PlayerCard key={player.id} player={player} />
+            {displayedMembers.map((jammer) => (
+              <JammerCard key={jammer.id} player={jammer} mySquads={mySquads} />
             ))}
           </div>
         )}

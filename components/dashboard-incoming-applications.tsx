@@ -15,7 +15,7 @@ import {
 } from "lucide-react"
 
 export type ApplicationData = {
-  id: number | string
+  id: string
   username: string
   avatarUrl: string
   teamName: string
@@ -25,8 +25,8 @@ export type ApplicationData = {
 
 interface DashboardIncomingApplicationsProps {
   applications: ApplicationData[]
-  onAccept: (id: number | string) => void
-  onDecline: (id: number | string) => void
+  onAccept: (id: string) => void
+  onDecline: (id: string) => void
 }
 
 export function DashboardIncomingApplications({

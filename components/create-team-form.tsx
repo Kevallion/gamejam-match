@@ -121,12 +121,13 @@ export function CreateTeamForm() {
     const cleanRoles = roles.filter(r => r.role !== "" && r.level !== "")
 
     const teamData = {
+      user_id: user.id,
       team_name: formData.get('teamName'),
-      jam_name: formData.get('jamName'),
-      project_description: formData.get('description'),
+      game_name: formData.get('jamName'),
+      description: formData.get('description'),
       engine: engine,
       language: language,
-      looking_for: JSON.stringify(cleanRoles),
+      looking_for: cleanRoles,
       discord_link: discordLinkValue,
     }
 
