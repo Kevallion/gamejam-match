@@ -25,11 +25,12 @@ export function MemberFilters({ onRoleChange, onEngineChange, onLevelChange }: M
             Filter members
           </span>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
-          
-          {/* RÔLES */}
+        {/* 3-col grid on mobile (one select per cell, last centered), flex-wrap on sm+ */}
+        <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:items-center">
+
+          {/* Role */}
           <Select onValueChange={onRoleChange} defaultValue="all">
-            <SelectTrigger className="w-[170px] rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40">
+            <SelectTrigger className="w-full rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-primary/40 sm:w-[170px]">
               <SelectValue placeholder="Role" />
             </SelectTrigger>
             <SelectContent className="rounded-xl">
@@ -45,9 +46,9 @@ export function MemberFilters({ onRoleChange, onEngineChange, onLevelChange }: M
             </SelectContent>
           </Select>
 
-          {/* MOTEUR (ENGINE) */}
+          {/* Engine */}
           <Select onValueChange={onEngineChange} defaultValue="all">
-            <SelectTrigger className="w-[170px] rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40">
+            <SelectTrigger className="w-full rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-primary/40 sm:w-[170px]">
               <SelectValue placeholder="Engine" />
             </SelectTrigger>
             <SelectContent className="rounded-xl">
@@ -61,9 +62,9 @@ export function MemberFilters({ onRoleChange, onEngineChange, onLevelChange }: M
             </SelectContent>
           </Select>
 
-          {/* EXPÉRIENCE (Corrigé avec confirmed et expert !) */}
+          {/* Experience level — spans full width on mobile to avoid orphan */}
           <Select onValueChange={onLevelChange} defaultValue="all">
-            <SelectTrigger className="w-[190px] rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40">
+            <SelectTrigger className="col-span-2 w-full rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-primary/40 sm:col-span-1 sm:w-[190px]">
               <SelectValue placeholder="Experience Level" />
             </SelectTrigger>
             <SelectContent className="rounded-xl">

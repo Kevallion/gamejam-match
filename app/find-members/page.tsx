@@ -26,13 +26,13 @@ export default function MembersPage() {
           </div>
 
           <div className="relative mx-auto max-w-2xl text-center">
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-lavender/20 bg-lavender/10 px-4 py-1.5 text-sm font-medium text-lavender">
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary">
               <UserSearch className="size-4" />
               Browse available jammers
             </div>
 
             <h1 className="text-balance text-4xl font-extrabold tracking-tight text-foreground md:text-5xl lg:text-6xl">
-              Find <span className="text-lavender">Teammates</span>
+              Find <span className="text-primary">Teammates</span>
             </h1>
 
             <p className="mx-auto mt-4 max-w-lg text-pretty text-lg leading-relaxed text-muted-foreground">
@@ -41,8 +41,8 @@ export default function MembersPage() {
 
             {/* Barre de recherche connectée au state */}
             <div className="relative mx-auto mt-10 max-w-xl">
-              <div className="absolute inset-0 -m-1 rounded-[1.25rem] bg-lavender/20 blur-md" />
-              <div className="relative flex items-center overflow-hidden rounded-2xl border-2 border-lavender/30 bg-card shadow-lg shadow-lavender/5">
+              <div className="absolute inset-0 -m-1 rounded-[1.25rem] bg-primary/20 blur-md" />
+              <div className="relative flex items-center overflow-hidden rounded-2xl border-2 border-primary/30 bg-card shadow-lg shadow-primary/5">
                 <Search className="ml-5 size-5 shrink-0 text-muted-foreground" />
                 <Input
                   type="text"

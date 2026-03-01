@@ -22,10 +22,11 @@ export function Filters({ onEngineChange, onRoleChange, onLevelChange, onLanguag
             Filter teams
           </span>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
+        {/* 2-col grid on mobile, flex-wrap on sm+ */}
+        <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap sm:items-center">
           
           <Select onValueChange={onEngineChange} defaultValue="all">
-            <SelectTrigger className="w-[160px] rounded-xl border-border/60 bg-card">
+            <SelectTrigger className="w-full rounded-xl border-border/60 bg-card transition-colors hover:border-primary/40 sm:w-[160px]">
               <SelectValue placeholder="Engine" />
             </SelectTrigger>
             <SelectContent className="rounded-xl">
@@ -39,7 +40,7 @@ export function Filters({ onEngineChange, onRoleChange, onLevelChange, onLanguag
           </Select>
 
           <Select onValueChange={onRoleChange} defaultValue="all">
-            <SelectTrigger className="w-[180px] rounded-xl border-border/60 bg-card">
+            <SelectTrigger className="w-full rounded-xl border-border/60 bg-card transition-colors hover:border-primary/40 sm:w-[180px]">
               <SelectValue placeholder="Role Needed" />
             </SelectTrigger>
             <SelectContent className="rounded-xl">
@@ -54,7 +55,7 @@ export function Filters({ onEngineChange, onRoleChange, onLevelChange, onLanguag
           </Select>
 
           <Select onValueChange={onLevelChange} defaultValue="all">
-            <SelectTrigger className="w-[180px] rounded-xl border-border/60 bg-card">
+            <SelectTrigger className="w-full rounded-xl border-border/60 bg-card transition-colors hover:border-primary/40 sm:w-[180px]">
               <SelectValue placeholder="Experience Level" />
             </SelectTrigger>
             <SelectContent className="rounded-xl">
@@ -67,7 +68,7 @@ export function Filters({ onEngineChange, onRoleChange, onLevelChange, onLanguag
           </Select>
 
           <Select onValueChange={onLanguageChange} defaultValue="all">
-            <SelectTrigger className="w-[160px] rounded-xl border-border/60 bg-card">
+            <SelectTrigger className="w-full rounded-xl border-border/60 bg-card transition-colors hover:border-primary/40 sm:w-[160px]">
               <SelectValue placeholder="Language" />
             </SelectTrigger>
             <SelectContent className="rounded-xl">
