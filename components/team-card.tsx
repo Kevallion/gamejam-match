@@ -33,7 +33,7 @@ export type TeamCardData = {
 
 export function TeamCard({ team }: { team: TeamCardData }) {
   return (
-    <Card className="group relative rounded-2xl border-border/50 bg-card transition-all duration-300 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5">
+    <Card className="card-interactive group relative">
       <CardHeader className="gap-3 pb-0">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">

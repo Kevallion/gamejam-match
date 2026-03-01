@@ -144,7 +144,7 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
 
   return (
     <>
-      <Card className="group relative flex flex-col rounded-2xl border-border/50 bg-card transition-all duration-300 hover:border-lavender/30 hover:shadow-lg hover:shadow-lavender/5">
+      <Card className="card-interactive group relative flex flex-col">
         <CardContent className="flex flex-1 flex-col gap-4 pt-6">
           {/* Avatar + Username */}
           <div className="flex items-center gap-3.5">
@@ -210,7 +210,7 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
               <DropdownMenuTrigger asChild>
                 <Button
                   disabled={allSent}
-                  className="w-full gap-2 rounded-xl bg-lavender text-lavender-foreground transition-all hover:bg-lavender/85"
+                  className="w-full gap-2 rounded-xl bg-primary text-primary-foreground transition-all hover:bg-primary/85"
                 >
                   <Mail className="size-4" />
                   {allSent ? "All invites sent ✓" : "Invite to Squad"}
@@ -248,7 +248,7 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
               href={player.portfolio_link}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl border border-border/60 px-3 py-2 text-xs font-medium text-muted-foreground transition-colors hover:border-lavender/40 hover:text-lavender"
+              className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl border border-border/60 px-3 py-2 text-xs font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
             >
               <ExternalLink className="size-3.5" />
               View Portfolio
@@ -314,7 +314,7 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
                   onChange={(e) => {
                     if (e.target.value.length <= maxChars) setMessage(e.target.value)
                   }}
-                  className="min-h-[140px] resize-none rounded-xl border-border/60 bg-secondary/50 text-sm leading-relaxed text-foreground placeholder:text-muted-foreground/60 transition-colors focus-visible:border-lavender/40 focus-visible:ring-2 focus-visible:ring-lavender/20 focus-visible:ring-offset-0"
+                  className="min-h-[140px] resize-none rounded-xl border-border/60 bg-secondary/50 text-sm leading-relaxed text-foreground placeholder:text-muted-foreground/60 transition-colors focus-visible:border-primary/40 focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:ring-offset-0"
                   disabled={loading || statusMsg?.type === "success"}
                 />
                 <span className="absolute right-3 bottom-2.5 text-xs tabular-nums text-muted-foreground/50">
@@ -326,10 +326,8 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
               {statusMsg && (
                 <div
                   aria-live="polite"
-                  className={`flex items-center gap-2.5 rounded-xl border px-3.5 py-2.5 text-sm font-medium ${
-                    statusMsg.type === "error"
-                      ? "border-destructive/30 bg-destructive/10 text-destructive"
-                      : "border-teal/30 bg-teal/10 text-teal"
+                  className={`flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-sm font-medium ${
+                    statusMsg.type === "error" ? "status-error" : "status-success"
                   }`}
                 >
                   {statusMsg.type === "error" ? (
@@ -356,7 +354,7 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
             <Button
               onClick={handleSendInvite}
               disabled={loading || statusMsg?.type === "success" || message.length === 0}
-              className="gap-2 rounded-xl bg-lavender font-bold text-lavender-foreground transition-all hover:bg-lavender/85 disabled:opacity-50 sm:h-11"
+              className="gap-2 rounded-xl bg-primary font-bold text-primary-foreground transition-all hover:bg-primary/85 disabled:opacity-50 sm:h-11"
             >
               {loading ? (
                 <Loader2 className="size-4 animate-spin" />
