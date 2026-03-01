@@ -108,10 +108,10 @@ export function DashboardMyTeams({
       <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="flex size-10 items-center justify-center rounded-xl bg-teal/15">
-            <Users className="size-5 text-teal" />
+            <Rocket className="size-5 text-teal" />
           </div>
           <div>
-            <h2 className="text-xl font-extrabold text-foreground">My Squads</h2>
+            <h2 className="text-xl font-extrabold text-foreground">My Teams</h2>
             <p className="mt-0.5 text-sm text-muted-foreground">
               Teams you{"'"}ve created and manage
             </p>
@@ -130,7 +130,7 @@ export function DashboardMyTeams({
         >
           <Link href="/create-team">
             <Rocket className="size-4" />
-            Create New Squad
+            Create New Team
           </Link>
         </Button>
       </div>
@@ -162,7 +162,7 @@ export function DashboardMyTeams({
           {teams.map((team) => (
             <Card
               key={team.id}
-              className="card-interactive group relative flex flex-col"
+              className="group relative flex flex-col transition-all duration-300 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5"
             >
               <CardHeader className="gap-3 pb-0">
                 <div className="flex items-start justify-between gap-2">

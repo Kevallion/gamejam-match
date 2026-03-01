@@ -149,7 +149,7 @@ export function DashboardIncomingApplications({
                 <div className="flex items-center gap-3 pt-0.5">
                   <Button
                     onClick={() => onAccept(app.id)}
-                    className="gap-2 rounded-xl bg-success px-5 text-success-foreground shadow-sm transition-all hover:bg-success/85"
+                    className="gap-2 rounded-xl bg-teal px-5 text-teal-foreground shadow-md shadow-teal/10 transition-all hover:bg-teal/85"
                   >
                     <Check className="size-4" />
                     Accept
@@ -157,7 +157,7 @@ export function DashboardIncomingApplications({
                   <Button
                     variant="outline"
                     onClick={() => onDecline(app.id)}
-                    className="gap-2 rounded-xl border-destructive/50 px-5 text-destructive transition-all hover:border-destructive hover:bg-destructive/10"
+                    className="gap-2 rounded-xl border-border/60 px-5 text-muted-foreground transition-all hover:border-destructive/50 hover:bg-destructive/10 hover:text-destructive"
                   >
                     <X className="size-4" />
                     Decline

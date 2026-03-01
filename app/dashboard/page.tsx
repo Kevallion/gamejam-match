@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import {
   Gamepad2, Heart, LayoutDashboard, Loader2, MessageCircle, Send,
-  Users, Inbox, Hand,
+  Rocket, Inbox, UserCircle,
 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { toast } from "sonner"
@@ -412,10 +412,10 @@ export default function DashboardPage() {
           <div className="mx-auto max-w-6xl">
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
               <StatCard
-                label="My Squads"
+                label="My Teams"
                 sublabel={teams.length === 1 ? "team created" : "teams created"}
                 value={teams.length}
-                icon={Users}
+                icon={Rocket}
                 color="teal"
               />
               <StatCard
@@ -429,7 +429,7 @@ export default function DashboardPage() {
                 label="My Profiles"
                 sublabel={profiles.length === 1 ? "availability posted" : "availabilities posted"}
                 value={profiles.length}
-                icon={Hand}
+                icon={UserCircle}
                 color="lavender"
               />
             </div>
@@ -442,17 +442,17 @@ export default function DashboardPage() {
             <Tabs defaultValue="squads" className="gap-0">
 
               {/* Tab bar */}
-              <TabsList className="mb-8 flex h-auto w-full gap-1 rounded-2xl border border-border/50 bg-card/80 p-1.5 backdrop-blur-sm">
+              <TabsList className="mb-8 h-11 w-full rounded-xl bg-secondary/60 p-1">
                 <TabsTrigger
                   value="squads"
-                  className="flex flex-1 items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold transition-all
-                    data-[state=active]:bg-teal/15 data-[state=active]:text-teal data-[state=active]:shadow-none
+                  className="flex flex-1 items-center justify-center gap-2 rounded-lg text-sm font-semibold
+                    data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm
                     data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground"
                 >
-                  <Users className="size-4" />
-                  <span>My Squads</span>
+                  <Rocket className="size-4" />
+                  <span className="hidden sm:inline">My Teams</span>
                   {teams.length > 0 && (
-                    <Badge className="ml-0.5 border-0 bg-teal/20 px-1.5 text-xs font-bold text-teal">
+                    <Badge className="ml-0.5 border-0 bg-teal/15 px-1.5 text-xs font-bold text-teal">
                       {teams.length}
                     </Badge>
                   )}
@@ -460,14 +460,14 @@ export default function DashboardPage() {
 
                 <TabsTrigger
                   value="applications"
-                  className="flex flex-1 items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold transition-all
-                    data-[state=active]:bg-peach/15 data-[state=active]:text-peach data-[state=active]:shadow-none
+                  className="flex flex-1 items-center justify-center gap-2 rounded-lg text-sm font-semibold
+                    data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm
                     data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground"
                 >
                   <Inbox className="size-4" />
-                  <span>Requests</span>
+                  <span className="hidden sm:inline">Applications</span>
                   {pendingCount > 0 && (
-                    <Badge className="ml-0.5 border-0 bg-peach/20 px-1.5 text-xs font-bold text-peach">
+                    <Badge className="ml-0.5 border-0 bg-peach/15 px-1.5 text-xs font-bold text-peach">
                       {pendingCount}
                     </Badge>
                   )}
@@ -475,14 +475,14 @@ export default function DashboardPage() {
 
                 <TabsTrigger
                   value="availability"
-                  className="flex flex-1 items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold transition-all
-                    data-[state=active]:bg-lavender/15 data-[state=active]:text-lavender data-[state=active]:shadow-none
+                  className="flex flex-1 items-center justify-center gap-2 rounded-lg text-sm font-semibold
+                    data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm
                     data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground"
                 >
-                  <Hand className="size-4" />
-                  <span>Availability</span>
+                  <UserCircle className="size-4" />
+                  <span className="hidden sm:inline">My Availability</span>
                   {profiles.length > 0 && (
-                    <Badge className="ml-0.5 border-0 bg-lavender/20 px-1.5 text-xs font-bold text-lavender">
+                    <Badge className="ml-0.5 border-0 bg-lavender/15 px-1.5 text-xs font-bold text-lavender">
                       {profiles.length}
                     </Badge>
                   )}
