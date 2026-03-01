@@ -105,14 +105,6 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
     setStatusMsg(null)
 
     try {
-      console.log("[DEBUG] Sending invite with squad:", {
-        squadId: selectedSquad.id,
-        squadIdType: typeof selectedSquad.id,
-        squadName: selectedSquad.team_name,
-        playerId: player.id,
-        playerIdType: typeof player.id,
-      })
-
       const { error } = await supabase.from("join_requests").insert({
         team_id: selectedSquad.id,
         sender_id: player.id,

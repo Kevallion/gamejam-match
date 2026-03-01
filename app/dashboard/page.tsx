@@ -21,7 +21,6 @@ import {
   MessageCircle,
   Send,
 } from "lucide-react"
-import { useState as useStateReact } from "react"
 
 // ---------------------------------------------------------------------------
 // Style dictionaries (lowercase keys to match Supabase column values)
@@ -42,6 +41,9 @@ const LEVEL_STYLES: Record<string, { label: string; emoji: string; color: string
   hobbyist:  { label: "Hobbyist",  emoji: "🛠️", color: "bg-peach/15 text-peach" },
   confirmed: { label: "Confirmed", emoji: "🚀", color: "bg-teal/15 text-teal" },
   veteran:   { label: "Veteran",   emoji: "⭐", color: "bg-lavender/15 text-lavender" },
+  // "expert" is used by availability-form when creating jammer profiles;
+  // both keys must exist so profiles display correctly alongside team data
+  expert:    { label: "Expert",    emoji: "👑", color: "bg-lavender/15 text-lavender" },
 }
 
 const FALLBACK_ROLE  = { label: "Other", emoji: "❓", color: "bg-muted text-muted-foreground" }
