@@ -84,7 +84,7 @@ interface ProfileCardProps {
 function ProfileCard({ profile, onDelete, onAvatarUpdate, discordAvatarUrl }: ProfileCardProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [displayedAvatars, setDisplayedAvatars] = useState(() => [...AVATAR_GALLERY])
+  const [displayedAvatars, setDisplayedAvatars] = useState<{ id: string; url: string }[]>(() => [...AVATAR_GALLERY])
 
   // États d'affichage (mis à jour après sauvegarde)
   const [rawRole, setRawRole] = useState(profile.rawRole)
