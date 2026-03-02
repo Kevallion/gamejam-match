@@ -8,8 +8,15 @@ export async function GET(request: Request) {
   if (!next.startsWith('/')) next = '/'
 
   if (!code) {
-    const reason = encodeURIComponent('no_code')
-    return NextResponse.redirect(`${origin}/auth/auth-code-error?reason=${reason}`)
+    // Supabase peut renvoyer error/error_description au lieu de code en cas d'échec OAuth
+    const oauthError = searchParams.get('error')
+    const oauthDesc = searchParams.get('error_description')
+    const reason = oauthError || oauthDesc
+      ? encodeURIComponent(`${oauthError || 'oauth_error'}: ${oauthDesc || 'Unknown'}`)
+      : encodeURIComponent('no_code')
+    const res = NextResponse.redirect(`${origin}/auth/auth-code-error?reason=${reason}`)
+    res.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate')
+    return res
   }
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -35,5 +42,7 @@ export async function GET(request: Request) {
       ? `https://${forwardedHost}`
       : origin
 
-  return NextResponse.redirect(`${baseUrl}${next}`)
+  const res = NextResponse.redirect(`${baseUrl}${next}`)
+  res.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate')
+  return res
 }
