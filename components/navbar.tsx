@@ -64,8 +64,12 @@ export function Navbar() {
   }, [])
 
   const handleSignIn = async () => {
+    const redirectTo = typeof window !== 'undefined'
+      ? `${window.location.origin}/auth/callback`
+      : `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'discord',
+      options: { redirectTo },
     })
     if (error) toast.error("Connection error", { description: error.message })
   }
