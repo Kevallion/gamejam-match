@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { format } from "date-fns"
+import { useIsMobile } from "@/hooks/use-mobile"
 import type { DateRange } from "react-day-picker"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -23,7 +24,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Sparkles, Hand, CalendarDays } from "lucide-react"
+import { Sparkles, CalendarDays } from "lucide-react"
+import { SignInButton } from "@/components/sign-in-button"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 import { ENGINE_OPTIONS_WITH_ANY, EXPERIENCE_OPTIONS, JAM_STYLE_OPTIONS, ROLE_OPTIONS } from "@/lib/constants"
@@ -40,6 +42,7 @@ const LANGUAGE_OPTIONS = [
 ]
 
 export function AvailabilityForm() {
+  const isMobile = useIsMobile()
   // Form state
   const [loading, setLoading] = useState(false)
   const [dateRange, setDateRange] = useState<DateRange | undefined>()
@@ -195,7 +198,8 @@ export function AvailabilityForm() {
         <Card className="mb-8 rounded-3xl border-destructive/50 bg-destructive/10">
           <CardContent className="p-6 text-center">
             <h3 className="mb-2 text-lg font-bold text-destructive">You must be signed in!</h3>
-            <p className="mb-4 text-muted-foreground">Please sign in with Discord using the button in the navigation bar to post your availability.</p>
+            <p className="mb-4 text-muted-foreground">Please sign in with Discord to post your availability.</p>
+            <SignInButton />
           </CardContent>
         </Card>
       )}
@@ -326,7 +330,7 @@ export function AvailabilityForm() {
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto rounded-2xl p-0">
-                    <Calendar mode="range" selected={dateRange} onSelect={setDateRange} disabled={{ before: new Date() }} numberOfMonths={2} />
+                    <Calendar mode="range" selected={dateRange} onSelect={setDateRange} disabled={{ before: new Date() }} numberOfMonths={isMobile === false ? 2 : 1} />
                   </PopoverContent>
                 </Popover>
               </div>

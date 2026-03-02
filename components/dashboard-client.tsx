@@ -7,7 +7,7 @@ import { DashboardMyTeams, type TeamData } from "@/components/dashboard-my-teams
 import { DashboardMyAvailability } from "@/components/dashboard-my-availability"
 import { DashboardIncomingApplications, type ApplicationData } from "@/components/dashboard-incoming-applications"
 import { DashboardSquadInvitations, type InvitationData } from "@/components/dashboard-squad-invitations"
-import { Gamepad2, LayoutDashboard, Loader2, MessageCircle, Send, Users, Bell, UserCircle, UserMinus } from "lucide-react"
+import { Gamepad2, LayoutDashboard, Loader2, MessageCircle, Send, Users, Bell, UserCircle, UserMinus, Trash2 } from "lucide-react"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Card, CardContent } from "@/components/ui/card"
 import {
@@ -132,6 +132,8 @@ export function DashboardClient() {
   const [showAvailabilityModal, setShowAvailabilityModal] = useState(false)
   const [availabilityModalContext, setAvailabilityModalContext] = useState<string | null>(null)
   const [hasShownAvailabilityPrompt, setHasShownAvailabilityPrompt] = useState(false)
+  const [teamIdToDelete, setTeamIdToDelete] = useState<string | null>(null)
+  const [availabilityPostIdToDelete, setAvailabilityPostIdToDelete] = useState<string | null>(null)
 
   const mapTeamRow = (t: any): TeamData => {
     let parsed: any[] = []
@@ -265,7 +267,6 @@ export function DashboardClient() {
   }, [loading, session?.user?.id, sentApplications, availabilityPosts, hasShownAvailabilityPrompt])
 
   const handleDeleteTeam = async (id: string) => {
-    if (!confirm("Delete this team?")) return
     try {
       const { error } = await supabase.from("teams").delete().eq("id", id)
       if (error) {
@@ -273,10 +274,15 @@ export function DashboardClient() {
         return
       }
       setTeams((prev) => prev.filter((t) => t.id !== id))
+      setTeamIdToDelete(null)
       toast.success("Team deleted.")
     } catch (err) {
       toast.error("An error occurred.", { description: err instanceof Error ? err.message : "Please try again." })
     }
+  }
+
+  const handleDeleteTeamClick = (id: string) => {
+    setTeamIdToDelete(id)
   }
 
   const handleUpdateDiscord = async (id: string, discordLink: string) => {
@@ -304,7 +310,6 @@ export function DashboardClient() {
   }
 
   const handleDeleteAvailabilityPost = async (postId: string) => {
-    if (!window.confirm("Remove this availability announcement?")) return
     try {
       const { error } = await supabase.from("availability_posts").delete().eq("id", postId)
       if (error) {
@@ -312,10 +317,15 @@ export function DashboardClient() {
         return
       }
       setAvailabilityPosts((prev) => prev.filter((p) => p.id !== postId))
+      setAvailabilityPostIdToDelete(null)
       toast.success("Announcement removed.")
     } catch (err) {
       toast.error("An error occurred.", { description: err instanceof Error ? err.message : "Please try again." })
     }
+  }
+
+  const handleDeleteAvailabilityPostClick = (postId: string) => {
+    setAvailabilityPostIdToDelete(postId)
   }
 
   const handleAcceptApplication = async (id: string) => {
@@ -563,7 +573,7 @@ export function DashboardClient() {
               <TabsContent value="teams" className="mt-0">
                 <DashboardMyTeams
                   teams={teams}
-                  onDelete={handleDeleteTeam}
+                  onDelete={handleDeleteTeamClick}
                   onUpdateDiscord={handleUpdateDiscord}
                   onRenew={handleRenewTeam}
                 />
@@ -584,7 +594,7 @@ export function DashboardClient() {
               <TabsContent value="availability" className="mt-0">
                 <DashboardMyAvailability
                   availabilityPosts={availabilityPosts}
-                  onDeletePost={handleDeleteAvailabilityPost}
+                  onDeletePost={handleDeleteAvailabilityPostClick}
                   discordAvatarUrl={session?.user?.user_metadata?.avatar_url ?? null}
                 />
               </TabsContent>
@@ -618,6 +628,56 @@ export function DashboardClient() {
             </AlertDialogCancel>
             <AlertDialogAction onClick={handleAvailabilityModalConfirm} className="bg-primary">
               Yes, remove me
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={teamIdToDelete !== null} onOpenChange={(open) => !open && setTeamIdToDelete(null)}>
+        <AlertDialogContent className="rounded-2xl border-border/60">
+          <AlertDialogHeader>
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 items-center justify-center rounded-xl bg-destructive/15">
+                <Trash2 className="size-5 text-destructive" />
+              </div>
+              <AlertDialogTitle className="text-left">Delete this team?</AlertDialogTitle>
+            </div>
+            <AlertDialogDescription className="text-left">
+              This action cannot be undone. The team listing will be permanently removed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-row gap-2 sm:justify-end">
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => teamIdToDelete && handleDeleteTeam(teamIdToDelete)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={availabilityPostIdToDelete !== null} onOpenChange={(open) => !open && setAvailabilityPostIdToDelete(null)}>
+        <AlertDialogContent className="rounded-2xl border-border/60">
+          <AlertDialogHeader>
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 items-center justify-center rounded-xl bg-destructive/15">
+                <Trash2 className="size-5 text-destructive" />
+              </div>
+              <AlertDialogTitle className="text-left">Remove this availability announcement?</AlertDialogTitle>
+            </div>
+            <AlertDialogDescription className="text-left">
+              Your announcement will be removed from the Available Players list.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-row gap-2 sm:justify-end">
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => availabilityPostIdToDelete && handleDeleteAvailabilityPost(availabilityPostIdToDelete)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Remove
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

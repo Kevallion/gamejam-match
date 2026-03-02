@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -16,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Plus, X, Rocket, Sparkles } from "lucide-react"
+import { SignInButton } from "@/components/sign-in-button"
 import { toast } from "sonner"
 import { ENGINE_OPTIONS, EXPERIENCE_OPTIONS, JAM_STYLE_OPTIONS, ROLE_OPTIONS } from "@/lib/constants"
 
@@ -39,6 +41,7 @@ const LANGUAGE_OPTIONS = [
 let roleIdCounter = 1
 
 export function CreateTeamForm() {
+  const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [engine, setEngine] = useState("")
   const [language, setLanguage] = useState("")
@@ -110,7 +113,7 @@ export function CreateTeamForm() {
     }
 
     try {
-      const { error } = await supabase.from('teams').insert([teamData])
+      const { data, error } = await supabase.from('teams').insert([teamData]).select('id').single()
       if (error) {
         toast.error("Could not create the team.", { description: error.message })
       } else {
@@ -123,6 +126,7 @@ export function CreateTeamForm() {
         setDiscordLink("")
         setDiscordLinkError("")
         setRoles([{ id: roleIdCounter++, role: "", level: "" }])
+        router.push(data?.id ? `/teams/${data.id}/manage` : "/dashboard")
       }
     } catch (err) {
       toast.error("An error occurred.", { description: err instanceof Error ? err.message : "Please try again." })
@@ -138,7 +142,8 @@ export function CreateTeamForm() {
         <Card className="mb-8 rounded-3xl border-destructive/50 bg-destructive/10">
           <CardContent className="p-6 text-center">
             <h3 className="mb-2 text-lg font-bold text-destructive">You must be signed in!</h3>
-            <p className="mb-4 text-muted-foreground">Please sign in with Discord using the button in the navigation bar to post a team.</p>
+            <p className="mb-4 text-muted-foreground">Please sign in with Discord to post a team.</p>
+            <SignInButton />
           </CardContent>
         </Card>
       )}
