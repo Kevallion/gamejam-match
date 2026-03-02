@@ -106,10 +106,25 @@ export function JoinTeamModal({ teamId, teamName, availableRoles, ownerUserId, c
         return
       }
 
+      // Prefer profile username, then Discord metadata
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("username")
+        .eq("id", session.user.id)
+        .single()
+      const meta = session.user.user_metadata as Record<string, string> | undefined
+      const senderName =
+        profile?.username?.trim() ||
+        meta?.full_name ||
+        meta?.name ||
+        meta?.user_name ||
+        meta?.username ||
+        "A Jammer"
+
       const { error } = await supabase.from("join_requests").insert({
         team_id: teamId,
         sender_id: session.user.id,
-        sender_name: session.user.user_metadata?.username || "A Jammer",
+        sender_name: senderName,
         message: message.trim(),
         status: "pending",
         type: "application",

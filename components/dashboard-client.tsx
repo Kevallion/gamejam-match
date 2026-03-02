@@ -157,14 +157,19 @@ export function DashboardClient() {
     }
   }
 
-  const mapApplicationRow = (r: any): ApplicationData => {
+  const mapApplicationRow = (r: any, profileMap: Record<string, { username?: string; avatar_url?: string }>): ApplicationData => {
     const targetRole = r.target_role
       ? (ROLE_STYLES[r.target_role] ?? { label: r.target_role, emoji: "🎭", color: "bg-muted text-muted-foreground" })
       : { label: "Applicant", emoji: "👋", color: "bg-teal/15 text-teal" }
+    const profile = r.sender_id ? profileMap[r.sender_id] : null
+    const username = profile?.username || r.sender_name || "A Jammer"
+    const avatarUrl =
+      profile?.avatar_url ||
+      `https://api.dicebear.com/9.x/adventurer/svg?seed=${encodeURIComponent(username)}`
     return {
       id: r.id,
-      username: r.sender_name || "A Jammer",
-      avatarUrl: `https://api.dicebear.com/9.x/adventurer/svg?seed=${r.sender_name || 'anon'}`,
+      username,
+      avatarUrl,
       teamName: r.teams?.team_name || "Unknown Team",
       role: targetRole,
       motivation: r.message || "No motivation provided.",
@@ -198,6 +203,19 @@ export function DashboardClient() {
       .eq("status", "pending")
       .eq("type", "application")
 
+    // Fetch sender profiles for username and avatar
+    const senderIds = [...new Set((appsData || []).map((a: any) => a.sender_id).filter(Boolean))]
+    const profileMap: Record<string, { username?: string; avatar_url?: string }> = {}
+    if (senderIds.length > 0) {
+      const { data: profilesData } = await supabase
+        .from("profiles")
+        .select("id, username, avatar_url")
+        .in("id", senderIds)
+      for (const p of profilesData || []) {
+        profileMap[p.id] = { username: p.username, avatar_url: p.avatar_url ?? undefined }
+      }
+    }
+
     const { data: rawInvitesData } = await supabase
       .from("join_requests")
       .select("id, team_id, status, target_role, teams(team_name, game_name, discord_link)")
@@ -221,7 +239,7 @@ export function DashboardClient() {
       .eq("user_id", authSession.user.id)
       .order("updated_at", { ascending: false })
     if (postsData) setAvailabilityPosts(postsData as AvailabilityPostRow[])
-    if (appsData) setApplications(appsData.map(mapApplicationRow))
+    if (appsData) setApplications(appsData.map((r: any) => mapApplicationRow(r, profileMap)))
     if (rawInvitesData) setInvitations(rawInvitesData.map(mapInvitationRow))
     if (sentAppsData) {
       setSentApplications(sentAppsData.map((a: any) => ({
