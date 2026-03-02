@@ -1,6 +1,6 @@
 "use client"
 
-import { Bell, Gamepad2, Hand, LayoutDashboard, Loader2, LogIn, LogOut, Monitor, Moon, PenLine, Sun, UserSearch, Users } from "lucide-react"
+import { Bell, Gamepad2, Hand, LayoutDashboard, Loader2, LogIn, LogOut, Menu, Monitor, Moon, PenLine, Sun, UserSearch, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -10,6 +10,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet"
 import { useTheme } from "next-themes"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
@@ -33,6 +40,7 @@ export function Navbar() {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [mounted, setMounted] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const { setTheme } = useTheme()
   const { notifications, unreadCount, loading: notifLoading } = useNotifications(user?.id ?? null)
 
@@ -92,6 +100,100 @@ export function Navbar() {
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Mobile menu trigger */}
+          <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+            <SheetTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="md:hidden rounded-xl"
+                aria-label="Ouvrir le menu"
+              >
+                <Menu className="size-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="flex flex-col w-[min(100vw-2rem,320px)] sm:max-w-sm bg-background border-border">
+              <SheetHeader className="sr-only">
+                <SheetTitle>GameJamCrew - Menu de navigation</SheetTitle>
+              </SheetHeader>
+              <div className="flex flex-1 flex-col pt-4">
+                <div className="flex items-center gap-2.5 pb-6 border-b border-border">
+                  <div className="flex size-9 items-center justify-center rounded-xl bg-primary/15">
+                    <Gamepad2 className="size-5 text-primary" />
+                  </div>
+                  <span className="text-lg font-extrabold tracking-tight text-foreground">GameJamCrew</span>
+                </div>
+                <nav className="flex flex-col gap-4 mt-8">
+                  <Link
+                    href="/"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                  >
+                    <Users className="size-4" />
+                    Find Teams
+                  </Link>
+                  <Link
+                    href="/find-members"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                  >
+                    <UserSearch className="size-4" />
+                    Find Members
+                  </Link>
+                  <Link
+                    href="/create-team"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                  >
+                    <PenLine className="size-4" />
+                    Créer une équipe
+                  </Link>
+                  <Link
+                    href="/create-profile"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                  >
+                    <Hand className="size-4" />
+                    I{"'"}m Available
+                  </Link>
+                </nav>
+                <div className="mt-auto pt-8 flex flex-col gap-3 border-t border-border">
+                  {!mounted || loading ? (
+                    <Loader2 className="size-5 animate-spin text-muted-foreground self-center" />
+                  ) : user ? (
+                    <>
+                      <span className="text-sm font-medium text-muted-foreground px-3">
+                        Hello, <span className="text-foreground">{user.user_metadata.full_name || "Jammer"}</span> !
+                      </span>
+                      <Button asChild variant="outline" className="gap-2 rounded-xl border-primary/30 text-primary hover:bg-primary/10 w-full justify-start">
+                        <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}>
+                          <LayoutDashboard className="size-4" />
+                          Dashboard
+                        </Link>
+                      </Button>
+                      <Button
+                        variant="outline"
+                        className="gap-2 rounded-xl text-muted-foreground hover:text-destructive hover:border-destructive/30 hover:bg-destructive/10 w-full justify-start"
+                        onClick={() => { handleSignOut(); setMobileMenuOpen(false); }}
+                      >
+                        <LogOut className="size-4" />
+                        Sign Out
+                      </Button>
+                    </>
+                  ) : (
+                    <Button
+                      onClick={() => { handleSignIn(); setMobileMenuOpen(false); }}
+                      className="gap-2 rounded-xl bg-[#5865F2] text-white hover:bg-[#4752C4] w-full justify-center"
+                    >
+                      <LogIn className="size-4" />
+                      Connexion (Discord)
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </SheetContent>
+          </Sheet>
+
           {/* Theme switcher */}
           {mounted ? (
             <DropdownMenu>
@@ -210,33 +312,35 @@ export function Navbar() {
             </DropdownMenu>
           )}
 
-          {/* Auth buttons */}
-          {!mounted || loading ? (
-            <Loader2 className="size-5 animate-spin text-muted-foreground" />
-          ) : user ? (
-            <div className="flex items-center gap-3">
-              <span className="hidden text-sm font-medium text-muted-foreground md:inline-block">
-                Hello, <span className="text-foreground">{user.user_metadata.full_name || 'Jammer'}</span> !
-              </span>
+          {/* Auth buttons — masqués sur mobile (présents dans le menu burger) */}
+          <div className="hidden md:flex items-center gap-3">
+            {!mounted || loading ? (
+              <Loader2 className="size-5 animate-spin text-muted-foreground" />
+            ) : user ? (
+              <>
+                <span className="text-sm font-medium text-muted-foreground">
+                  Hello, <span className="text-foreground">{user.user_metadata.full_name || 'Jammer'}</span> !
+                </span>
 
-              <Button asChild variant="outline" className="gap-2 rounded-xl border-primary/30 text-primary hover:bg-primary/10">
-                <Link href="/dashboard">
-                  <LayoutDashboard className="size-4" />
-                  Dashboard
-                </Link>
-              </Button>
+                <Button asChild variant="outline" className="gap-2 rounded-xl border-primary/30 text-primary hover:bg-primary/10">
+                  <Link href="/dashboard">
+                    <LayoutDashboard className="size-4" />
+                    Dashboard
+                  </Link>
+                </Button>
 
-              <Button onClick={handleSignOut} variant="outline" className="gap-2 rounded-xl text-muted-foreground hover:text-destructive hover:border-destructive/30 hover:bg-destructive/10">
-                <LogOut className="size-4" />
-                Sign Out
+                <Button onClick={handleSignOut} variant="outline" className="gap-2 rounded-xl text-muted-foreground hover:text-destructive hover:border-destructive/30 hover:bg-destructive/10">
+                  <LogOut className="size-4" />
+                  Sign Out
+                </Button>
+              </>
+            ) : (
+              <Button onClick={handleSignIn} className="gap-2 rounded-xl bg-[#5865F2] text-white hover:bg-[#4752C4]">
+                <LogIn className="size-4" />
+                Sign in with Discord
               </Button>
-            </div>
-          ) : (
-            <Button onClick={handleSignIn} className="gap-2 rounded-xl bg-[#5865F2] text-white hover:bg-[#4752C4]">
-              <LogIn className="size-4" />
-              Sign in with Discord
-            </Button>
-          )}
+            )}
+          </div>
         </div>
       </nav>
     </header>
