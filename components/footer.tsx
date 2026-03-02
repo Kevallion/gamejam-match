@@ -24,6 +24,12 @@ export function Footer({ tagline, className }: FooterProps) {
           <span className="hidden text-muted-foreground/50 sm:inline">•</span>
           <nav className="flex items-center gap-4 text-sm">
             <Link
+              href="/showcase"
+              className="text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Showcase
+            </Link>
+            <Link
               href="/privacy"
               className="text-muted-foreground transition-colors hover:text-foreground"
             >
