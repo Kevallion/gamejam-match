@@ -12,7 +12,9 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,6 +26,7 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { supabase } from "@/lib/supabase"
 import {
+  ArrowRight,
   Cpu,
   Mail,
   Globe,
@@ -158,118 +161,204 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
 
   return (
     <>
-      <Card className="card-interactive group relative flex flex-col">
-        <CardContent className="flex flex-1 flex-col gap-4 pt-6">
-          {/* Avatar + Username */}
-          <div className="flex items-center gap-3.5">
-            <Avatar className="size-12 ring-2 ring-border/60">
-              <AvatarImage src={player.avatarUrl} alt={player.username} />
-              <AvatarFallback className="bg-secondary text-sm font-bold text-secondary-foreground">
-                {player.username
-                  .split(/[\s_]+/)
-                  .map((w) => w[0])
-                  .join("")
-                  .slice(0, 2)
-                  .toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-            <div className="min-w-0 flex-1">
-              <h3 className="truncate text-lg font-bold text-foreground">
-                {player.username}
-              </h3>
-              <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                <Globe className="size-3.5 text-teal" />
-                {player.language}
+      <Dialog>
+        <DialogTrigger asChild>
+          <Card className="card-interactive group relative flex flex-col cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all">
+            <CardContent className="flex flex-1 flex-col gap-4 pt-6">
+              {/* Avatar + Username */}
+              <div className="flex items-center gap-3.5">
+                <Avatar className="size-12 ring-2 ring-border/60">
+                  <AvatarImage src={player.avatarUrl} alt={player.username} />
+                  <AvatarFallback className="bg-secondary text-sm font-bold text-secondary-foreground">
+                    {player.username
+                      .split(/[\s_]+/)
+                      .map((w) => w[0])
+                      .join("")
+                      .slice(0, 2)
+                      .toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="min-w-0 flex-1">
+                  <h3 className="truncate text-lg font-bold text-foreground">
+                    {player.username}
+                  </h3>
+                  <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                    <Globe className="size-3.5 text-teal" />
+                    {player.language}
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
 
-          {/* Role + Level badges */}
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge
-              variant="secondary"
-              className={`rounded-full px-3 py-1 text-xs font-semibold ${player.role.color}`}
-            >
-              {player.role.emoji} {player.role.label}
-            </Badge>
-            <span
-              className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${player.level.color}`}
-            >
-              {player.level.emoji} {player.level.label}
-            </span>
-          </div>
-
-          {/* Engine */}
-          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-            <Cpu className="size-3.5 text-lavender" />
-            {player.engine}
-          </div>
-
-          {/* Bio */}
-          <p className="flex-1 text-sm leading-relaxed text-muted-foreground line-clamp-3">
-            {player.bio}
-          </p>
-        </CardContent>
-
-        <CardFooter className="flex flex-col gap-2">
-          {mySquads.length === 0 ? (
-            <div className="w-full rounded-xl border border-dashed border-border/60 px-3 py-2.5 text-center">
-              <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
-                <Users className="size-3.5" />
-                <span>Create a squad to invite this jammer</span>
-              </div>
-            </div>
-          ) : (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  disabled={allSent}
-                  className="w-full gap-2 rounded-xl bg-primary text-primary-foreground transition-all hover:bg-primary/85"
+              {/* Role + Level badges */}
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge
+                  variant="secondary"
+                  className={`rounded-full px-3 py-1 text-xs font-semibold ${player.role.color}`}
                 >
-                  <Mail className="size-4" />
-                  {allSent ? "All invites sent ✓" : "Invite to Squad"}
-                  {!allSent && <ChevronDown className="size-3.5 ml-auto" />}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-52">
-                <DropdownMenuLabel className="text-xs text-muted-foreground">
-                  Pick a squad
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                {mySquads.map((squad) => {
-                  const sent = sentSquadIds.has(squad.id)
-                  return (
-                    <DropdownMenuItem
-                      key={squad.id}
-                      disabled={sent}
-                      onSelect={() => openInviteDialog(squad)}
-                      className="cursor-pointer"
-                    >
-                      {sent && <span className="mr-2">✓</span>}
-                      {squad.team_name}
-                      {sent && (
-                        <span className="ml-auto text-xs text-muted-foreground">Sent</span>
-                      )}
-                    </DropdownMenuItem>
-                  )
-                })}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
+                  {player.role.emoji} {player.role.label}
+                </Badge>
+                <span
+                  className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${player.level.color}`}
+                >
+                  {player.level.emoji} {player.level.label}
+                </span>
+              </div>
 
-          {player.portfolio_link && (
-            <a
-              href={player.portfolio_link}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex w-full items-center justify-center gap-1.5 rounded-xl border border-border/60 px-3 py-2 text-xs font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
-            >
-              <ExternalLink className="size-3.5" />
-              View Portfolio
-            </a>
-          )}
-        </CardFooter>
-      </Card>
+              {/* Engine */}
+              <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                <Cpu className="size-3.5 text-lavender" />
+                {player.engine}
+              </div>
+
+              {/* Bio */}
+              <p className="flex-1 text-sm leading-relaxed text-muted-foreground line-clamp-3">
+                {player.bio}
+              </p>
+            </CardContent>
+
+            <CardFooter className="flex flex-col gap-2">
+              {mySquads.length === 0 ? (
+                <div className="w-full rounded-xl border border-dashed border-border/60 px-3 py-2.5 text-center">
+                  <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
+                    <Users className="size-3.5" />
+                    <span>Crée une équipe pour inviter ce jammer</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="w-full flex items-center justify-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-4 py-2.5 text-sm font-semibold text-primary">
+                  <ArrowRight className="size-4" />
+                  Voir les détails
+                </div>
+              )}
+            </CardFooter>
+          </Card>
+        </DialogTrigger>
+
+        {/* Profile Details Modal */}
+        <DialogContent className="max-w-lg rounded-2xl border-border/60 bg-card p-0 shadow-2xl shadow-lavender/10 overflow-hidden">
+          <DialogHeader className="px-6 pt-6 pb-4 space-y-1 text-left border-b border-border/60">
+            <div className="flex items-center gap-4">
+              <Avatar className="size-14 ring-2 ring-border/60">
+                <AvatarImage src={player.avatarUrl} alt={player.username} />
+                <AvatarFallback className="bg-secondary text-base font-bold text-secondary-foreground">
+                  {player.username
+                    .split(/[\s_]+/)
+                    .map((w) => w[0])
+                    .join("")
+                    .slice(0, 2)
+                    .toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <DialogTitle className="text-xl font-bold text-foreground">
+                  {player.username}
+                </DialogTitle>
+                <div className="flex items-center gap-1.5 text-sm text-muted-foreground mt-1">
+                  <Globe className="size-3.5 text-teal" />
+                  {player.language}
+                </div>
+              </div>
+            </div>
+          </DialogHeader>
+
+          <ScrollArea className="max-h-[60vh] px-6 py-4">
+            <div className="flex flex-col gap-4 pr-4">
+              {/* Badges Rôle, Niveau, Moteur */}
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge
+                  variant="outline"
+                  className={`rounded-full border-border/60 px-3 py-1 text-xs font-semibold ${player.role.color}`}
+                >
+                  {player.role.emoji} {player.role.label}
+                </Badge>
+                <span
+                  className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold ${player.level.color}`}
+                >
+                  {player.level.emoji} {player.level.label}
+                </span>
+                <Badge
+                  variant="outline"
+                  className="inline-flex items-center gap-1.5 rounded-full border-border/60 bg-lavender/10 px-3 py-1 text-xs font-semibold text-lavender"
+                >
+                  <Cpu className="size-3.5" />
+                  {player.engine}
+                </Badge>
+              </div>
+
+              {/* Bio complète */}
+              <div>
+                <h4 className="mb-2 text-sm font-semibold text-foreground">
+                  À propos
+                </h4>
+                <p className="whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">
+                  {player.bio}
+                </p>
+              </div>
+
+              {/* Portfolio */}
+              {player.portfolio_link && (
+                <a
+                  href={player.portfolio_link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 rounded-xl border border-border/60 px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
+                >
+                  <ExternalLink className="size-4" />
+                  Voir le portfolio
+                </a>
+              )}
+            </div>
+          </ScrollArea>
+
+          {/* Pied de page avec Inviter */}
+          <div className="border-t border-border/60 px-6 py-4 bg-muted/20">
+            {mySquads.length === 0 ? (
+              <div className="flex items-center justify-center gap-2 rounded-xl border border-dashed border-border/60 px-4 py-3 text-sm text-muted-foreground">
+                <Users className="size-4" />
+                Crée une équipe pour inviter ce jammer
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      disabled={allSent}
+                      className="w-full gap-2 rounded-xl bg-primary text-primary-foreground transition-all hover:bg-primary/85"
+                    >
+                      <Mail className="size-4" />
+                      {allSent ? "Toutes les invitations envoyées ✓" : "Inviter dans mon équipe"}
+                      {!allSent && <ChevronDown className="size-3.5 ml-auto" />}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-52">
+                    <DropdownMenuLabel className="text-xs text-muted-foreground">
+                      Choisir une équipe
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {mySquads.map((squad) => {
+                      const sent = sentSquadIds.has(squad.id)
+                      return (
+                        <DropdownMenuItem
+                          key={squad.id}
+                          disabled={sent}
+                          onSelect={() => openInviteDialog(squad)}
+                          className="cursor-pointer"
+                        >
+                          {sent && <span className="mr-2">✓</span>}
+                          {squad.team_name}
+                          {sent && (
+                            <span className="ml-auto text-xs text-muted-foreground">Envoyé</span>
+                          )}
+                        </DropdownMenuItem>
+                      )
+                    })}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Invite Dialog */}
       <Dialog open={dialogOpen} onOpenChange={handleDialogClose}>
