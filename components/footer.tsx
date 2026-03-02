@@ -27,7 +27,7 @@ export function Footer({ tagline, className }: FooterProps) {
               href="/showcase"
               className="text-muted-foreground transition-colors hover:text-foreground"
             >
-              Showcase
+              Discover
             </Link>
             <Link
               href="/privacy"
