@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Globe, Cpu, Users, Trash2, PenLine, Rocket, Link2, RotateCw } from "lucide-react"
+import { Globe, Cpu, Users, Trash2, PenLine, Rocket, Link2, RotateCw, Settings } from "lucide-react"
 import Link from "next/link"
 
 const DISCORD_LINK_REGEX = /^https:\/\/(discord\.gg\/|discord\.com\/invite\/)/i
@@ -192,6 +192,16 @@ export function DashboardMyTeams({
               </CardContent>
 
               <CardFooter className="flex flex-col gap-2">
+                <Button
+                  asChild
+                  variant="outline"
+                  className="w-full gap-2 rounded-xl border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
+                >
+                  <Link href={`/teams/${team.id}/manage`}>
+                    <Settings className="size-4" />
+                    Manage Team
+                  </Link>
+                </Button>
                 {onRenew && (
                   <Button
                     variant="outline"

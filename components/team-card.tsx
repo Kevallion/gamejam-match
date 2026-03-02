@@ -29,6 +29,7 @@ type LevelBadge = {
 
 export type TeamCardData = {
   id: string
+  user_id?: string
   name: string
   jam: string
   engine: string
@@ -38,19 +39,34 @@ export type TeamCardData = {
   maxMembers: number
   roles: RoleBadge[]
   level: LevelBadge
+  teamVibe?: { label: string; emoji: string; color: string; badgeColor?: string }
   filledRoleKeys?: string[]
 }
 
 export function TeamCard({ team }: { team: TeamCardData }) {
   const filledKeys = team.filledRoleKeys ?? []
 
-  const availableRoles = team.roles.map((role) => ({
-    key: role.key ?? role.label.toLowerCase().replace(/\s+/g, "-"),
-    label: role.label,
-    emoji: role.emoji,
-    color: role.color,
-    filled: filledKeys.includes(role.key ?? role.label.toLowerCase().replace(/\s+/g, "-")),
-  }))
+  // Count acceptances per role (e.g. 2 artists, 1 acceptance -> only first slot filled)
+  const filledCountByKey: Record<string, number> = {}
+  for (const key of filledKeys) {
+    filledCountByKey[key] = (filledCountByKey[key] ?? 0) + 1
+  }
+
+  const consumedByKey: Record<string, number> = {}
+  const availableRoles = team.roles.map((role) => {
+    const key = role.key ?? role.label.toLowerCase().replace(/\s+/g, "-")
+    const filledForRole = filledCountByKey[key] ?? 0
+    const consumed = consumedByKey[key] ?? 0
+    const filled = consumed < filledForRole
+    consumedByKey[key] = consumed + 1
+    return {
+      key,
+      label: role.label,
+      emoji: role.emoji,
+      color: role.color,
+      filled,
+    }
+  })
 
   const isSquadFull =
     availableRoles.length > 0 && availableRoles.every((r) => r.filled)
@@ -62,9 +78,19 @@ export function TeamCard({ team }: { team: TeamCardData }) {
           <CardHeader className="gap-3 pb-0">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0 flex-1">
-                <h3 className="truncate text-lg font-bold text-foreground">
-                  {team.name}
-                </h3>
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="truncate text-lg font-bold text-foreground">
+                    {team.name}
+                  </h3>
+                  {team.teamVibe && (
+                    <span
+                      className={`shrink-0 inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-bold ${team.teamVibe.badgeColor ?? team.teamVibe.color}`}
+                      title={team.teamVibe.label}
+                    >
+                      {team.teamVibe.emoji} {team.teamVibe.label}
+                    </span>
+                  )}
+                </div>
                 <p className="mt-0.5 text-sm font-medium text-primary">
                   {team.jam}
                 </p>
@@ -144,7 +170,7 @@ export function TeamCard({ team }: { team: TeamCardData }) {
 
         <ScrollArea className="max-h-[60vh] px-6 py-4">
           <div className="flex flex-col gap-4 pr-4">
-            {/* Badges Moteur, Langue, Niveau */}
+            {/* Badges Engine, Language, Level, Jam Style */}
             <div className="flex flex-wrap items-center gap-2">
               <Badge
                 variant="outline"
@@ -165,9 +191,16 @@ export function TeamCard({ team }: { team: TeamCardData }) {
               >
                 {team.level.emoji} {team.level.label}
               </span>
+              {team.teamVibe && (
+                <span
+                  className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold ${team.teamVibe.color}`}
+                >
+                  {team.teamVibe.emoji} {team.teamVibe.label}
+                </span>
+              )}
             </div>
 
-            {/* Description complète */}
+            {/* Full description */}
             <div>
               <h4 className="mb-2 text-sm font-semibold text-foreground">
                 Description
@@ -177,7 +210,7 @@ export function TeamCard({ team }: { team: TeamCardData }) {
               </p>
             </div>
 
-            {/* Liste des rôles recherchés */}
+            {/* Roles sought */}
             <div>
               <h4 className="mb-2 text-sm font-semibold text-foreground">
                 Roles sought
@@ -230,6 +263,7 @@ export function TeamCard({ team }: { team: TeamCardData }) {
               teamId={team.id}
               teamName={team.name}
               availableRoles={availableRoles}
+              ownerUserId={team.user_id}
             >
               <Button className="w-full gap-2 rounded-xl bg-primary text-primary-foreground transition-all hover:bg-primary/85 hover:gap-3">
                 Apply

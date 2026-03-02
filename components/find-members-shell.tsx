@@ -55,6 +55,9 @@ export function FindMembersShell() {
         </section>
 
         <MemberFilters
+          role={roleFilter}
+          engine={engineFilter}
+          level={levelFilter}
           onRoleChange={setRoleFilter}
           onEngineChange={setEngineFilter}
           onLevelChange={setLevelFilter}

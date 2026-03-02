@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { supabase } from "@/lib/supabase"
+import type { User } from "@supabase/supabase-js"
 import {
   Popover,
   PopoverContent,
@@ -25,7 +26,7 @@ import {
 import { Sparkles, Hand, CalendarDays } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
-import { ENGINE_OPTIONS_WITH_ANY, EXPERIENCE_OPTIONS, ROLE_OPTIONS } from "@/lib/constants"
+import { ENGINE_OPTIONS_WITH_ANY, EXPERIENCE_OPTIONS, JAM_STYLE_OPTIONS, ROLE_OPTIONS } from "@/lib/constants"
 
 const LANGUAGE_OPTIONS = [
   { value: "english", label: "English" },
@@ -44,13 +45,17 @@ export function AvailabilityForm() {
   const [dateRange, setDateRange] = useState<DateRange | undefined>()
   const [role, setRole] = useState("")
   const [level, setLevel] = useState("")
+  const [jamStyle, setJamStyle] = useState("")
   const [engine, setEngine] = useState("")
   const [language, setLanguage] = useState("")
   const [portfolioLink, setPortfolioLink] = useState("")
+  const [username, setUsername] = useState("")
+  const [bio, setBio] = useState("")
 
   // Check if user is signed in
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<User | null>(null)
   const [checkingAuth, setCheckingAuth] = useState(true)
+  const [hasLoadedProfile, setHasLoadedProfile] = useState(false)
 
   useEffect(() => {
     async function checkUser() {
@@ -61,13 +66,45 @@ export function AvailabilityForm() {
     checkUser()
   }, [])
 
+  useEffect(() => {
+    if (!user || hasLoadedProfile) return
+    async function loadProfile() {
+      const { data } = await supabase.from("profiles").select("*").eq("id", user!.id).single()
+      if (data) {
+        setUsername(data.username || "")
+        setRole(data.role || "")
+        setLevel(data.experience || data.experience_level || "")
+        setJamStyle(data.jam_style || "")
+        setEngine(data.engine || "")
+        setLanguage(data.language || "")
+        setBio(data.bio || "")
+        setPortfolioLink(data.portfolio_link || "")
+        setHasLoadedProfile(true)
+      }
+    }
+    loadProfile()
+  }, [user, hasLoadedProfile])
+
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!user) return
 
+    // Client-side validation (backup if HTML required is bypassed)
+    if (!role || !level || !engine || !language) {
+      toast.error("Please fill all required fields.", { description: "Role, Experience Level, Engine, and Language are required." })
+      return
+    }
+
     const form = event.currentTarget
-    setLoading(true)
     const formData = new FormData(form)
+    const usernameValue = String(formData.get("username") ?? username ?? "").trim()
+    const bioValue = String(formData.get("about") ?? bio ?? "").trim()
+    if (!usernameValue || !bioValue) {
+      toast.error("Please fill all required fields.", { description: "Username and About Me are required." })
+      return
+    }
+
+    setLoading(true)
 
     let dateString = "Not specified"
     if (dateRange?.from) {
@@ -76,43 +113,73 @@ export function AvailabilityForm() {
         : format(dateRange.from, "yyyy-MM-dd")
     }
 
-    // Récupérer l'avatar existant pour ne pas écraser un choix galerie
-    const { data: existingProfile } = await supabase
-      .from('profiles')
-      .select('avatar_url')
-      .eq('id', user.id)
-      .single()
-
-    const profileData = {
-      id: user.id,
-      username: formData.get('username'),
-      role: role,
-      experience: level,
-      engine: engine,
-      language: language,
-      bio: formData.get('about'),
-      availability: dateString,
-      portfolio_link: portfolioLink.trim() || null,
-      // Conserver la galerie si définie, sinon sync l'avatar Discord pour Find Members
-      avatar_url: existingProfile?.avatar_url ?? user.user_metadata?.avatar_url ?? null,
-    }
-
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .upsert([profileData], { onConflict: 'id' })
+      // Check current count (max 3 per user)
+      const { count, error: countError } = await supabase
+        .from("availability_posts")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user.id)
 
-      if (error) {
-        toast.error("Could not publish the profile.", { description: error.message })
+      if (countError) {
+        toast.error("Could not check your announcements.", { description: countError.message })
+        setLoading(false)
+        return
+      }
+      if ((count ?? 0) >= 3) {
+        toast.error("Maximum reached.", {
+          description: "You can have up to 3 availability announcements. Delete one from your dashboard to add another.",
+        })
+        setLoading(false)
+        return
+      }
+
+      // Fetch existing avatar to avoid overwriting gallery choice
+      const { data: existingProfile } = await supabase
+        .from("profiles")
+        .select("avatar_url")
+        .eq("id", user.id)
+        .single()
+
+      const avatarUrl = existingProfile?.avatar_url ?? user.user_metadata?.avatar_url ?? null
+
+      const { error: postError } = await supabase.from("availability_posts").insert({
+        user_id: user.id,
+        availability: dateString,
+        username: usernameValue,
+        role: role,
+        experience: level,
+        jam_style: jamStyle || null,
+        engine: engine,
+        language: language,
+        bio: bioValue,
+        portfolio_link: portfolioLink.trim() || null,
+        avatar_url: avatarUrl,
+      })
+
+      if (!postError) {
+        await supabase.from("profiles").upsert([{
+          id: user.id,
+          username: usernameValue,
+          role: role,
+          experience: level,
+          experience_level: level,
+          jam_style: jamStyle || null,
+          engine: engine,
+          language: language,
+          bio: bioValue,
+          portfolio_link: portfolioLink.trim() || null,
+          avatar_url: avatarUrl,
+        }], { onConflict: "id" })
+      }
+
+      if (postError) {
+        toast.error("Could not add announcement.", { description: postError.message })
       } else {
-        toast.success("Profile updated!", { description: "Your availability is now visible." })
-        form.reset()
+        toast.success("Announcement added!", {
+          description: `You have ${(count ?? 0) + 1} of 3 announcements.`,
+        })
         setDateRange(undefined)
-        setRole("")
-        setLevel("")
-        setEngine("")
-        setLanguage("")
-        setPortfolioLink("")
+        // Keep other fields so user can add another with same profile info
       }
     } catch (err) {
       toast.error("An error occurred.", { description: err instanceof Error ? err.message : "Please try again." })
@@ -148,6 +215,8 @@ export function AvailabilityForm() {
                   id="username"
                   name="username"
                   required
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
                   placeholder="e.g. PixelWizard42"
                   className="h-12 rounded-xl border-border/60 bg-secondary/50 text-foreground"
                 />
@@ -157,7 +226,7 @@ export function AvailabilityForm() {
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                 <div className="flex flex-col gap-2.5">
                   <Label className="text-sm font-bold text-foreground">Main Role</Label>
-                  <Select onValueChange={setRole} required>
+                  <Select value={role} onValueChange={setRole} required>
                     <SelectTrigger className="h-12 rounded-xl border-border/60 bg-secondary/50">
                       <SelectValue placeholder="What do you do?" />
                     </SelectTrigger>
@@ -171,24 +240,53 @@ export function AvailabilityForm() {
 
                 <div className="flex flex-col gap-2.5">
                   <Label className="text-sm font-bold text-foreground">Experience Level</Label>
-                  <Select onValueChange={setLevel} required>
+                  <Select value={level} onValueChange={setLevel} required>
                     <SelectTrigger className="h-12 rounded-xl border-border/60 bg-secondary/50">
                       <SelectValue placeholder="How experienced?" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl">
                       {EXPERIENCE_OPTIONS.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>{opt.emoji} {opt.label}</SelectItem>
+                        <SelectItem key={opt.value} value={opt.value}>
+                          <span className={`inline-flex items-center gap-2 rounded px-1.5 py-0.5 ${opt.color ?? "bg-muted text-muted-foreground"}`}>
+                            {opt.emoji} {opt.label}
+                          </span>
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
               </div>
 
+              {/* Jam Style */}
+              <div className="flex flex-col gap-2.5">
+                <Label className="text-sm font-bold text-foreground">Jam Style</Label>
+                <Select value={jamStyle} onValueChange={setJamStyle}>
+                  <SelectTrigger className="h-12 rounded-xl border-border/60 bg-secondary/50">
+                    <SelectValue placeholder="What vibe are you looking for?" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl">
+                    {JAM_STYLE_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        <div>
+                          <span className={`inline-flex items-center gap-2 rounded px-1.5 py-0.5 ${opt.color ?? "bg-muted text-muted-foreground"}`}>
+                            {opt.emoji} {opt.label}
+                          </span>
+                          <span className="ml-2 text-xs text-muted-foreground">— {opt.description}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Chill ☕, Learning 📖, Dedicated 🔥, Competitive 🏆 — helps match you with teams that share your approach.
+                </p>
+              </div>
+
               {/* Engine & Language row */}
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                 <div className="flex flex-col gap-2.5">
                   <Label className="text-sm font-bold text-foreground">Preferred Engine</Label>
-                  <Select onValueChange={setEngine} required>
+                  <Select value={engine} onValueChange={setEngine} required>
                     <SelectTrigger className="h-12 rounded-xl border-border/60 bg-secondary/50">
                       <SelectValue placeholder="Pick an engine" />
                     </SelectTrigger>
@@ -202,7 +300,7 @@ export function AvailabilityForm() {
 
                 <div className="flex flex-col gap-2.5">
                   <Label className="text-sm font-bold text-foreground">Spoken Language</Label>
-                  <Select onValueChange={setLanguage} required>
+                  <Select value={language} onValueChange={setLanguage} required>
                     <SelectTrigger className="h-12 rounded-xl border-border/60 bg-secondary/50">
                       <SelectValue placeholder="Pick a language" />
                     </SelectTrigger>
@@ -256,7 +354,15 @@ export function AvailabilityForm() {
               {/* About Me */}
               <div className="flex flex-col gap-2.5">
                 <Label htmlFor="about" className="text-sm font-bold text-foreground">About Me</Label>
-                <Textarea id="about" name="about" required rows={4} className="rounded-xl border-border/60 bg-secondary/50" />
+                <Textarea
+                  id="about"
+                  name="about"
+                  required
+                  rows={4}
+                  value={bio}
+                  onChange={(e) => setBio(e.target.value)}
+                  className="rounded-xl border-border/60 bg-secondary/50"
+                />
               </div>
 
               {/* Submit */}

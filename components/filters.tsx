@@ -4,18 +4,20 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select"
 import { SlidersHorizontal } from "lucide-react"
-import { ENGINE_OPTIONS, EXPERIENCE_OPTIONS, ROLE_OPTIONS } from "@/lib/constants"
+import { ENGINE_OPTIONS, EXPERIENCE_OPTIONS, JAM_STYLE_OPTIONS, LANGUAGE_OPTIONS, ROLE_OPTIONS } from "@/lib/constants"
 
 interface FiltersProps {
   engine?: string
   role?: string
   level?: string
   language?: string
+  style?: string
   compact?: boolean
   onEngineChange: (val: string) => void
   onRoleChange: (val: string) => void
   onLevelChange: (val: string) => void
   onLanguageChange: (val: string) => void
+  onStyleChange?: (val: string) => void
 }
 
 export function Filters({
@@ -23,11 +25,13 @@ export function Filters({
   role = "all",
   level = "all",
   language = "all",
+  style = "all",
   compact = false,
   onEngineChange,
   onRoleChange,
   onLevelChange,
   onLanguageChange,
+  onStyleChange,
 }: FiltersProps) {
   return (
     <section className={compact ? "py-0" : "px-4 py-6 lg:px-6"}>
@@ -71,7 +75,11 @@ export function Filters({
             <SelectContent className="rounded-xl">
               <SelectItem value="all">Any Experience</SelectItem>
               {EXPERIENCE_OPTIONS.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>{opt.emoji} {opt.label}</SelectItem>
+                <SelectItem key={opt.value} value={opt.value}>
+                  <span className={`inline-flex items-center gap-2 rounded px-1.5 py-0.5 ${opt.color ?? "bg-muted text-muted-foreground"}`}>
+                    {opt.emoji} {opt.label}
+                  </span>
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -82,11 +90,29 @@ export function Filters({
             </SelectTrigger>
             <SelectContent className="rounded-xl">
               <SelectItem value="all">Any Language</SelectItem>
-              <SelectItem value="english">English</SelectItem>
-              <SelectItem value="french">French</SelectItem>
-              <SelectItem value="spanish">Spanish</SelectItem>
+              {LANGUAGE_OPTIONS.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
+
+          {onStyleChange && (
+            <Select onValueChange={onStyleChange} value={style}>
+              <SelectTrigger className="w-[180px] rounded-xl border-border/60 bg-card">
+                <SelectValue placeholder="Jam Style" />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl">
+                <SelectItem value="all">Any Style</SelectItem>
+                {JAM_STYLE_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    <span className={`inline-flex items-center gap-2 rounded px-1.5 py-0.5 ${opt.color ?? "bg-muted text-muted-foreground"}`}>
+                      {opt.emoji} {opt.label}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
 
         </div>
       </div>

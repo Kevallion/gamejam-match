@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { supabase } from "@/lib/supabase"
 import {
   Dialog,
@@ -39,19 +39,31 @@ interface JoinTeamModalProps {
   teamId: string
   teamName: string
   availableRoles: RoleOption[]
+  ownerUserId?: string
   children: React.ReactNode
 }
 
-export function JoinTeamModal({ teamId, teamName, availableRoles, children }: JoinTeamModalProps) {
+export function JoinTeamModal({ teamId, teamName, availableRoles, ownerUserId, children }: JoinTeamModalProps) {
   const [selectedRoleIdx, setSelectedRoleIdx] = useState<number | null>(null)
   const selectedRole = selectedRoleIdx !== null ? availableRoles[selectedRoleIdx] ?? null : null
   const [message, setMessage] = useState("")
   const [loading, setLoading] = useState(false)
   const [open, setOpen] = useState(false)
+  const [isOwnTeam, setIsOwnTeam] = useState(false)
   const [statusMsg, setStatusMsg] = useState<{
     type: "error" | "success"
     text: string
   } | null>(null)
+
+  useEffect(() => {
+    if (open && ownerUserId) {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        setIsOwnTeam(session?.user?.id === ownerUserId)
+      })
+    } else {
+      setIsOwnTeam(false)
+    }
+  }, [open, ownerUserId])
 
   const charCount = message.length
   const maxChars = 500
@@ -88,6 +100,12 @@ export function JoinTeamModal({ teamId, teamName, availableRoles, children }: Jo
         return
       }
 
+      if (ownerUserId && session.user.id === ownerUserId) {
+        setStatusMsg({ type: "error", text: "You cannot join your own team." })
+        setLoading(false)
+        return
+      }
+
       const { error } = await supabase.from("join_requests").insert({
         team_id: teamId,
         sender_id: session.user.id,
@@ -112,8 +130,11 @@ export function JoinTeamModal({ teamId, teamName, availableRoles, children }: Jo
       setTimeout(() => {
         handleOpen(false)
       }, 2000)
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : "An error occurred. Please try again."
+    } catch (err: unknown) {
+      const isFkError = err && typeof err === "object" && "code" in err && (err as { code?: string }).code === "23503"
+      const msg = isFkError
+        ? "This team may have been removed. Please refresh the page."
+        : (err instanceof Error ? err.message : (err as { message?: string }).message ?? "An error occurred. Please try again.")
       setStatusMsg({ type: "error", text: msg })
       toast.error("Could not send the application.", { description: msg })
     } finally {
@@ -157,6 +178,16 @@ export function JoinTeamModal({ teamId, teamName, availableRoles, children }: Jo
         {/* Body */}
         <div className="px-6 pb-2">
           <div className="flex flex-col gap-4">
+
+            {isOwnTeam && (
+              <div
+                aria-live="polite"
+                className="flex items-center gap-2.5 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3.5 py-2.5 text-sm font-medium text-amber-700 dark:text-amber-400"
+              >
+                <AlertCircle className="size-4 shrink-0" />
+                <p className="leading-snug">You cannot join your own team.</p>
+              </div>
+            )}
 
             {/* Role selector */}
             <div className="flex flex-col gap-2">
@@ -223,7 +254,7 @@ export function JoinTeamModal({ teamId, teamName, availableRoles, children }: Jo
                     if (e.target.value.length <= maxChars) setMessage(e.target.value)
                   }}
                   className="min-h-[120px] resize-none rounded-xl border-border/60 bg-secondary/50 text-sm leading-relaxed text-foreground placeholder:text-muted-foreground/60 transition-colors focus-visible:border-teal/40 focus-visible:ring-2 focus-visible:ring-teal/20 focus-visible:ring-offset-0"
-                  disabled={loading || statusMsg?.type === "success"}
+                  disabled={loading || statusMsg?.type === "success" || isOwnTeam}
                 />
                 <span className="absolute right-3 bottom-2.5 text-xs tabular-nums text-muted-foreground/50">
                   {charCount}/{maxChars}
@@ -269,7 +300,8 @@ export function JoinTeamModal({ teamId, teamName, availableRoles, children }: Jo
               statusMsg?.type === "success" ||
               !selectedRole ||
               charCount === 0 ||
-              openRoles.length === 0
+              openRoles.length === 0 ||
+              isOwnTeam
             }
             className="gap-2 rounded-xl bg-primary font-bold text-primary-foreground transition-all hover:bg-primary/90 disabled:opacity-50 sm:h-11"
           >

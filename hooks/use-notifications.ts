@@ -1,7 +1,26 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { supabase } from "@/lib/supabase"
+
+const SEEN_STORAGE_KEY = "gamejam_notifications_seen"
+
+function getSeenIds(userId: string): Set<string> {
+  if (typeof window === "undefined") return new Set()
+  try {
+    const raw = localStorage.getItem(`${SEEN_STORAGE_KEY}_${userId}`)
+    return new Set(raw ? JSON.parse(raw) : [])
+  } catch {
+    return new Set()
+  }
+}
+
+function addSeenId(userId: string, id: string) {
+  if (typeof window === "undefined") return
+  const seen = getSeenIds(userId)
+  seen.add(id)
+  localStorage.setItem(`${SEEN_STORAGE_KEY}_${userId}`, JSON.stringify([...seen]))
+}
 
 export type NotificationItem = {
   id: string
@@ -16,16 +35,14 @@ export function useNotifications(userId: string | null) {
   const [notifications, setNotifications] = useState<NotificationItem[]>([])
   const [loading, setLoading] = useState(false)
 
-  useEffect(() => {
+  const fetchNotifications = useCallback(async () => {
     if (!userId) {
       setNotifications([])
       return
     }
-
-    async function fetchNotifications() {
-      setLoading(true)
-
-      const [{ data: apps }, { data: invites }] = await Promise.all([
+    setLoading(true)
+    try {
+    const [{ data: apps }, { data: invites }] = await Promise.all([
         supabase
           .from("join_requests")
           .select("id, sender_name, target_role, created_at, teams!inner(team_name, user_id)")
@@ -75,12 +92,26 @@ export function useNotifications(userId: string | null) {
         (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       )
 
-      setNotifications(combined.slice(0, 5))
+      const seenIds = getSeenIds(userId)
+      const filtered = combined.slice(0, 5).filter((n) => !seenIds.has(n.id))
+      setNotifications(filtered)
+    } finally {
       setLoading(false)
     }
-
-    fetchNotifications()
   }, [userId])
 
-  return { notifications, unreadCount: notifications.length, loading }
+  useEffect(() => {
+    fetchNotifications()
+  }, [fetchNotifications])
+
+  const dismissNotification = useCallback(
+    (id: string) => {
+      if (!userId) return
+      addSeenId(userId, id)
+      setNotifications((prev) => prev.filter((n) => n.id !== id))
+    },
+    [userId]
+  )
+
+  return { notifications, unreadCount: notifications.length, loading, refetch: fetchNotifications, dismissNotification }
 }

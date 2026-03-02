@@ -15,7 +15,7 @@ const MOCK_TEAMS = [
       { label: "2D Artist", emoji: "\uD83C\uDFA8", color: "bg-pink/15 text-pink" },
       { label: "Audio", emoji: "\uD83C\uDFB5", color: "bg-lavender/15 text-lavender" },
     ],
-    level: { label: "Hobbyist", emoji: "\uD83D\uDEE0\uFE0F", color: "bg-peach/15 text-peach" },
+    level: { label: "Junior / Student", emoji: "📚", color: "bg-emerald-500/15 text-emerald-400" },
   },
   {
     name: "Neon Runners",
@@ -29,7 +29,7 @@ const MOCK_TEAMS = [
       { label: "Developer", emoji: "\uD83D\uDCBB", color: "bg-teal/15 text-teal" },
       { label: "Game Designer", emoji: "\uD83C\uDFAF", color: "bg-peach/15 text-peach" },
     ],
-    level: { label: "Confirmed", emoji: "\uD83D\uDE80", color: "bg-teal/15 text-teal" },
+    level: { label: "Regular Jammer", emoji: "🎮", color: "bg-blue-500/15 text-blue-400" },
   },
   {
     name: "Dreamweaver Studio",
@@ -43,7 +43,7 @@ const MOCK_TEAMS = [
       { label: "3D Artist", emoji: "\uD83D\uDDFF", color: "bg-peach/15 text-peach" },
       { label: "Writer", emoji: "\u270D\uFE0F", color: "bg-pink/15 text-pink" },
     ],
-    level: { label: "Beginner", emoji: "\uD83C\uDF31", color: "bg-mint/15 text-mint" },
+    level: { label: "Beginner / Learner", emoji: "🌱", color: "bg-sky-400/15 text-sky-400" },
   },
   {
     name: "Chaos Collective",
@@ -58,7 +58,7 @@ const MOCK_TEAMS = [
       { label: "2D Artist", emoji: "\uD83C\uDFA8", color: "bg-pink/15 text-pink" },
       { label: "Audio", emoji: "\uD83C\uDFB5", color: "bg-lavender/15 text-lavender" },
     ],
-    level: { label: "Hobbyist", emoji: "\uD83D\uDEE0\uFE0F", color: "bg-peach/15 text-peach" },
+    level: { label: "Junior / Student", emoji: "📚", color: "bg-emerald-500/15 text-emerald-400" },
   },
 ]
 

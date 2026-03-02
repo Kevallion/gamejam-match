@@ -4,13 +4,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { cn } from "@/lib/utils"
 
 export interface UserAvatarProps {
-  /** URL de l'avatar choisi dans la galerie (profiles.avatar_url) - priorité 1 */
+  /** Avatar URL from gallery (profiles.avatar_url) - priority 1 */
   profileAvatarUrl?: string | null
-  /** URL de l'avatar Discord (user_metadata.avatar_url) - priorité 2 */
+  /** Discord avatar URL (user_metadata.avatar_url) - priority 2 */
   discordAvatarUrl?: string | null
-  /** URL de secours (ex: DiceBear) quand pas de galerie ni Discord - priorité 3 */
+  /** Fallback URL (e.g. DiceBear) when no gallery or Discord - priority 3 */
   fallbackImageUrl?: string | null
-  /** Nom d'affichage pour les initiales */
+  /** Display name for initials */
   username: string
   className?: string
   size?: "sm" | "md" | "lg"
@@ -23,10 +23,10 @@ const sizeClasses = {
 }
 
 /**
- * Logique de priorité :
- * 1. profiles.avatar_url (galerie interne)
+ * Priority order:
+ * 1. profiles.avatar_url (internal gallery)
  * 2. user.user_metadata.avatar_url (Discord)
- * 3. fallbackImageUrl (ex: DiceBear) ou AvatarFallback avec initiales
+ * 3. fallbackImageUrl (e.g. DiceBear) or AvatarFallback with initials
  */
 export function UserAvatar({
   profileAvatarUrl,

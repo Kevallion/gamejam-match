@@ -11,12 +11,22 @@ import { SlidersHorizontal } from "lucide-react"
 import { ENGINE_OPTIONS, EXPERIENCE_OPTIONS, ROLE_OPTIONS } from "@/lib/constants"
 
 interface MemberFiltersProps {
+  role?: string
+  engine?: string
+  level?: string
   onRoleChange: (val: string) => void
   onEngineChange: (val: string) => void
   onLevelChange: (val: string) => void
 }
 
-export function MemberFilters({ onRoleChange, onEngineChange, onLevelChange }: MemberFiltersProps) {
+export function MemberFilters({
+  role = "all",
+  engine = "all",
+  level = "all",
+  onRoleChange,
+  onEngineChange,
+  onLevelChange,
+}: MemberFiltersProps) {
   return (
     <section className="px-4 py-6 lg:px-6">
       <div className="mx-auto max-w-6xl">
@@ -28,7 +38,7 @@ export function MemberFilters({ onRoleChange, onEngineChange, onLevelChange }: M
         </div>
         <div className="flex flex-wrap items-center gap-3">
           
-          <Select onValueChange={onRoleChange} defaultValue="all">
+          <Select onValueChange={onRoleChange} value={role}>
             <SelectTrigger className="w-[170px] rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40">
               <SelectValue placeholder="Role" />
             </SelectTrigger>
@@ -40,7 +50,7 @@ export function MemberFilters({ onRoleChange, onEngineChange, onLevelChange }: M
             </SelectContent>
           </Select>
 
-          <Select onValueChange={onEngineChange} defaultValue="all">
+          <Select onValueChange={onEngineChange} value={engine}>
             <SelectTrigger className="w-[170px] rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40">
               <SelectValue placeholder="Engine" />
             </SelectTrigger>
@@ -52,14 +62,18 @@ export function MemberFilters({ onRoleChange, onEngineChange, onLevelChange }: M
             </SelectContent>
           </Select>
 
-          <Select onValueChange={onLevelChange} defaultValue="all">
+          <Select onValueChange={onLevelChange} value={level}>
             <SelectTrigger className="w-[190px] rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40">
               <SelectValue placeholder="Experience" />
             </SelectTrigger>
             <SelectContent className="rounded-xl">
               <SelectItem value="all">Any Experience</SelectItem>
               {EXPERIENCE_OPTIONS.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>{opt.emoji} {opt.label}</SelectItem>
+                <SelectItem key={opt.value} value={opt.value}>
+                  <span className={`inline-flex items-center gap-2 rounded px-1.5 py-0.5 ${opt.color ?? "bg-muted text-muted-foreground"}`}>
+                    {opt.emoji} {opt.label}
+                  </span>
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>

@@ -25,8 +25,10 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Textarea } from "@/components/ui/textarea"
 import { supabase } from "@/lib/supabase"
+import { cn } from "@/lib/utils"
 import {
   ArrowRight,
+  Calendar,
   Cpu,
   Mail,
   Globe,
@@ -41,6 +43,7 @@ import {
   MessageSquareText,
   Target,
 } from "lucide-react"
+import { format, parseISO, isPast, addDays, isBefore } from "date-fns"
 import { toast } from "sonner"
 
 export type JammerCardData = {
@@ -57,10 +60,16 @@ export type JammerCardData = {
     emoji: string
     color: string
   }
+  jamStyle?: {
+    label: string
+    emoji: string
+    color: string
+  }
   engine: string
   bio: string
   language: string
   portfolio_link?: string
+  availability?: string
 }
 
 export type SquadOption = {
@@ -68,6 +77,31 @@ export type SquadOption = {
   team_name: string
   game_name?: string
   needed_roles?: { key: string; label: string; emoji: string; color: string }[]
+}
+
+/** Parse availability string ("yyyy-MM-dd to yyyy-MM-dd" or "yyyy-MM-dd") into readable display + whether to show warning (past/near expiry) */
+function parseAvailability(availability: string | undefined): { label: string; isWarning: boolean } | null {
+  if (!availability || availability === "Not specified" || !availability.trim()) return null
+  const trimmed = availability.trim()
+  const parts = trimmed.split(/\s+to\s+/i).map((s) => s.trim())
+  const fromStr = parts[0]
+  const toStr = parts[1]
+  try {
+    const fromDate = parseISO(fromStr)
+    const fromLabel = format(fromDate, "MMM d")
+    const endDate = toStr ? parseISO(toStr) : fromDate
+    const endLabel = toStr ? format(endDate, "MMM d") : fromLabel
+    const now = new Date()
+    const sevenDaysFromNow = addDays(now, 7)
+    const isPastOrExpired = isPast(endDate)
+    const nearExpiry = !isPast(endDate) && isBefore(endDate, sevenDaysFromNow)
+    return {
+      label: toStr ? `${fromLabel} – ${endLabel}` : fromLabel,
+      isWarning: isPastOrExpired || nearExpiry,
+    }
+  } catch {
+    return { label: trimmed, isWarning: false }
+  }
 }
 
 interface JammerCardProps {
@@ -158,6 +192,7 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
   }
 
   const allSent = mySquads.length > 0 && mySquads.every((s) => sentSquadIds.has(s.id))
+  const availabilityInfo = parseAvailability(player.availability)
 
   return (
     <>
@@ -189,7 +224,7 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
                 </div>
               </div>
 
-              {/* Role + Level badges */}
+              {/* Role + Level + Jam Style badges */}
               <div className="flex flex-wrap items-center gap-2">
                 <Badge
                   variant="secondary"
@@ -202,6 +237,14 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
                 >
                   {player.level.emoji} {player.level.label}
                 </span>
+                {player.jamStyle && (
+                  <span
+                    className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${player.jamStyle.color}`}
+                    title={player.jamStyle.label}
+                  >
+                    {player.jamStyle.emoji} {player.jamStyle.label}
+                  </span>
+                )}
               </div>
 
               {/* Engine */}
@@ -209,6 +252,21 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
                 <Cpu className="size-3.5 text-lavender" />
                 {player.engine}
               </div>
+
+              {/* Availability */}
+              {availabilityInfo && (
+                <div
+                  className={cn(
+                    "inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-medium",
+                    availabilityInfo.isWarning
+                      ? "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400"
+                      : "border-border/60 bg-muted/50 text-muted-foreground",
+                  )}
+                >
+                  <Calendar className="size-3.5 shrink-0" />
+                  <span>Available: {availabilityInfo.label}</span>
+                </div>
+              )}
 
               {/* Bio */}
               <p className="flex-1 text-sm leading-relaxed text-muted-foreground line-clamp-3">
@@ -263,7 +321,7 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
 
           <ScrollArea className="max-h-[60vh] px-6 py-4">
             <div className="flex flex-col gap-4 pr-4">
-              {/* Badges Rôle, Niveau, Moteur */}
+              {/* Badges Role, Level, Jam Style, Engine */}
               <div className="flex flex-wrap items-center gap-2">
                 <Badge
                   variant="outline"
@@ -276,6 +334,13 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
                 >
                   {player.level.emoji} {player.level.label}
                 </span>
+                {player.jamStyle && (
+                  <span
+                    className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold ${player.jamStyle.color}`}
+                  >
+                    {player.jamStyle.emoji} {player.jamStyle.label}
+                  </span>
+                )}
                 <Badge
                   variant="outline"
                   className="inline-flex items-center gap-1.5 rounded-full border-border/60 bg-lavender/10 px-3 py-1 text-xs font-semibold text-lavender"
@@ -285,7 +350,22 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
                 </Badge>
               </div>
 
-              {/* Bio complète */}
+              {/* Availability */}
+              {availabilityInfo && (
+                <div
+                  className={cn(
+                    "inline-flex w-fit items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-medium",
+                    availabilityInfo.isWarning
+                      ? "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400"
+                      : "border-border/60 bg-muted/50 text-muted-foreground",
+                  )}
+                >
+                  <Calendar className="size-3.5 shrink-0" />
+                  <span>Available: {availabilityInfo.label}</span>
+                </div>
+              )}
+
+              {/* Full bio */}
               <div>
                 <h4 className="mb-2 text-sm font-semibold text-foreground">
                   About

@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { supabase } from "@/lib/supabase"
+import type { User } from "@supabase/supabase-js"
 import {
   Select,
   SelectContent,
@@ -16,7 +17,7 @@ import {
 } from "@/components/ui/select"
 import { Plus, X, Rocket, Sparkles } from "lucide-react"
 import { toast } from "sonner"
-import { ENGINE_OPTIONS, EXPERIENCE_OPTIONS, ROLE_OPTIONS } from "@/lib/constants"
+import { ENGINE_OPTIONS, EXPERIENCE_OPTIONS, JAM_STYLE_OPTIONS, ROLE_OPTIONS } from "@/lib/constants"
 
 type RoleEntry = {
   id: number
@@ -41,12 +42,14 @@ export function CreateTeamForm() {
   const [loading, setLoading] = useState(false)
   const [engine, setEngine] = useState("")
   const [language, setLanguage] = useState("")
+  const [teamVibe, setTeamVibe] = useState("")
+  const [experienceRequired, setExperienceRequired] = useState("")
   const [roles, setRoles] = useState<RoleEntry[]>([{ id: 0, role: "", level: "" }])
   // Nouveau state pour le lien Discord
   const [discordLink, setDiscordLink] = useState("")
   const [discordLinkError, setDiscordLinkError] = useState("")
 
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<User | null>(null)
   const [checkingAuth, setCheckingAuth] = useState(true)
 
   useEffect(() => {
@@ -102,6 +105,8 @@ export function CreateTeamForm() {
       language: language,
       looking_for: cleanRoles,
       discord_link: discordLinkValue,
+      team_vibe: teamVibe || null,
+      experience_required: experienceRequired && experienceRequired !== "any" ? experienceRequired : null,
     }
 
     try {
@@ -113,6 +118,8 @@ export function CreateTeamForm() {
         form.reset()
         setEngine("")
         setLanguage("")
+        setTeamVibe("")
+        setExperienceRequired("")
         setDiscordLink("")
         setDiscordLinkError("")
         setRoles([{ id: roleIdCounter++, role: "", level: "" }])
@@ -175,7 +182,7 @@ export function CreateTeamForm() {
                 <div className="flex flex-col gap-2.5">
                   <Label className="text-sm font-bold text-foreground">Engine</Label>
                   <Select value={engine} onValueChange={setEngine} required>
-                    <SelectTrigger className="h-12 rounded-xl border-border/60 bg-secondary/50">
+                    <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-secondary/50">
                       <SelectValue placeholder="Pick an engine" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl">
@@ -189,7 +196,7 @@ export function CreateTeamForm() {
                 <div className="flex flex-col gap-2.5">
                   <Label className="text-sm font-bold text-foreground">Spoken Language</Label>
                   <Select value={language} onValueChange={setLanguage} required>
-                    <SelectTrigger className="h-12 rounded-xl border-border/60 bg-secondary/50">
+                    <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-secondary/50">
                       <SelectValue placeholder="Pick a language" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl">
@@ -199,6 +206,54 @@ export function CreateTeamForm() {
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
+
+              {/* Jam Style — full width to avoid dropdown overlap */}
+              <div className="flex flex-col gap-2.5">
+                <Label className="text-sm font-bold text-foreground">Jam Style</Label>
+                <Select value={teamVibe} onValueChange={setTeamVibe}>
+                  <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-secondary/50">
+                    <SelectValue placeholder="What vibe is your team?" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl">
+                    {JAM_STYLE_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        <div>
+                          <span className={`inline-flex items-center gap-2 rounded px-1.5 py-0.5 ${opt.color ?? "bg-muted text-muted-foreground"}`}>
+                            {opt.emoji} {opt.label}
+                          </span>
+                          <span className="ml-2 text-xs text-muted-foreground">— {opt.description}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Attracts jammers who match your team's energy.
+                </p>
+              </div>
+
+              {/* Experience Required */}
+              <div className="flex flex-col gap-2.5">
+                <Label className="text-sm font-bold text-foreground">Preferred Experience Level</Label>
+                <Select value={experienceRequired || "any"} onValueChange={setExperienceRequired}>
+                  <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-secondary/50">
+                    <SelectValue placeholder="Minimum level (optional)" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl">
+                    <SelectItem value="any">Any level</SelectItem>
+                    {EXPERIENCE_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        <span className={`inline-flex items-center gap-2 rounded px-1.5 py-0.5 ${opt.color ?? "bg-muted text-muted-foreground"}`}>
+                          {opt.emoji} {opt.label}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Indicates the minimum experience you expect.
+                </p>
               </div>
 
               {/* Roles Needed */}
@@ -231,7 +286,11 @@ export function CreateTeamForm() {
                           </SelectTrigger>
                           <SelectContent className="rounded-xl">
                             {EXPERIENCE_OPTIONS.map((opt) => (
-                              <SelectItem key={opt.value} value={opt.value}>{opt.emoji} {opt.label}</SelectItem>
+                              <SelectItem key={opt.value} value={opt.value}>
+                                <span className={`inline-flex items-center gap-2 rounded px-1.5 py-0.5 ${opt.color ?? "bg-muted text-muted-foreground"}`}>
+                                  {opt.emoji} {opt.label}
+                                </span>
+                              </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>

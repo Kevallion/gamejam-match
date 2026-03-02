@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Nunito, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
+import { FeedbackButton } from '@/components/FeedbackButton'
 import { ThemeProvider } from '@/components/theme-provider'
 import { Toaster } from '@/components/ui/sonner'
 import './globals.css'
@@ -75,6 +76,7 @@ export default function RootLayout({
       >
         <ThemeProvider attribute="class" defaultTheme="dark">
           {children}
+          <FeedbackButton />
           <Toaster richColors position="bottom-right" />
           <Analytics />
         </ThemeProvider>

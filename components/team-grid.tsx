@@ -5,7 +5,7 @@ import { TeamCard, type TeamCardData } from "@/components/team-card"
 import { supabase } from "@/lib/supabase"
 import { Loader2 } from "lucide-react"
 import { toast } from "sonner"
-import { EXPERIENCE_STYLES, ROLE_STYLES } from "@/lib/constants"
+import { EXPERIENCE_STYLES, JAM_STYLE_STYLES, ROLE_STYLES } from "@/lib/constants"
 
 const PAGE_SIZE = 24
 
@@ -15,6 +15,7 @@ interface TeamGridProps {
   roleFilter: string
   levelFilter: string
   languageFilter: string
+  styleFilter?: string
 }
 
 function formatTeam(t: any) {
@@ -29,19 +30,23 @@ function formatTeam(t: any) {
     .filter((jr: any) => jr.status === "accepted" && jr.type === "application" && jr.target_role)
     .map((jr: any) => jr.target_role as string)
   const acceptedMembersCount = t.team_members ? t.team_members.length : 0
+  const teamVibe = t.team_vibe ? JAM_STYLE_STYLES[t.team_vibe] : undefined
 
   return {
     id: t.id,
+    user_id: t.user_id,
     name: t.team_name || "Unknown Team",
     jam: t.game_name || "",
     engine: t.engine || "",
     language: t.language || "",
     description: t.description || "",
     rawRoles: parsedRoles,
+    rawTeamVibe: t.team_vibe || null,
     members: 1 + acceptedMembersCount,
     maxMembers: 1 + parsedRoles.length,
     roles: roleBadges,
     level: levelBadge,
+    teamVibe: teamVibe ?? undefined,
     filledRoleKeys: acceptedRoleKeys,
   }
 }
@@ -52,6 +57,7 @@ export function TeamGrid({
   roleFilter = "all",
   levelFilter = "all",
   languageFilter = "all",
+  styleFilter = "all",
 }: TeamGridProps) {
   const [teams, setTeams] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
@@ -59,7 +65,7 @@ export function TeamGrid({
   const [hasMore, setHasMore] = useState(true)
   const offsetRef = useRef(0)
 
-  // Debounced search query — met à jour 250ms après la dernière frappe
+  // Debounced search query — updates 250ms after last keystroke
   const [debouncedSearch, setDebouncedSearch] = useState(searchQuery)
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(searchQuery), 250)
@@ -98,6 +104,9 @@ export function TeamGrid({
   }
 
   const displayedTeams = teams.filter((t) => {
+    // Hide full teams
+    if (t.members >= t.maxMembers) return false
+
     const searchLower = debouncedSearch.toLowerCase()
     const matchSearch =
       !searchLower ||
@@ -111,15 +120,20 @@ export function TeamGrid({
       languageFilter === "all" || String(t.language).toLowerCase() === languageFilter.toLowerCase()
     const matchRole =
       roleFilter === "all" || t.rawRoles.some((r: any) => r.role.toLowerCase() === roleFilter.toLowerCase())
+    const legacyMap: Record<string, string> = { hobbyist: "junior", confirmed: "regular", expert: "senior" }
     const matchLevel =
       levelFilter === "all" ||
       t.rawRoles.some((r: any) => {
-        const raw = r.level?.toLowerCase() || ""
+        const raw = (r.level?.toLowerCase() || "")
+        const normalized = legacyMap[raw] ?? raw
         const filter = levelFilter.toLowerCase()
-        return raw === filter || (filter === "expert" && raw === "veteran") || (filter === "veteran" && raw === "expert")
+        return normalized === filter
       })
+    const matchStyle =
+      styleFilter === "all" ||
+      (t.rawTeamVibe && String(t.rawTeamVibe).toLowerCase() === styleFilter.toLowerCase())
 
-    return matchSearch && matchEngine && matchLanguage && matchRole && matchLevel
+    return matchSearch && matchEngine && matchLanguage && matchRole && matchLevel && matchStyle
   })
 
   if (loading)

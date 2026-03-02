@@ -16,6 +16,7 @@ export function HomeShell() {
   const [roleFilter, setRoleFilter] = useState("all")
   const [levelFilter, setLevelFilter] = useState("all")
   const [languageFilter, setLanguageFilter] = useState("all")
+  const [styleFilter, setStyleFilter] = useState("all")
 
   // Sync URL to state on load and when URL changes
   useEffect(() => {
@@ -24,16 +25,18 @@ export function HomeShell() {
     const role = searchParams.get("role") ?? "all"
     const level = searchParams.get("level") ?? "all"
     const language = searchParams.get("language") ?? "all"
+    const style = searchParams.get("style") ?? "all"
     setSearchQuery(q)
     setEngineFilter(engine)
     setRoleFilter(role)
     setLevelFilter(level)
     setLanguageFilter(language)
+    setStyleFilter(style)
   }, [searchParams])
 
   // Update URL when filters change (link sharing)
   const updateUrl = useCallback(
-    (updates: { q?: string; engine?: string; role?: string; level?: string; language?: string }) => {
+    (updates: { q?: string; engine?: string; role?: string; level?: string; language?: string; style?: string }) => {
       const params = new URLSearchParams(searchParams.toString())
       const set = (key: string, val: string) => {
         if (val && val !== "all") params.set(key, val)
@@ -44,6 +47,7 @@ export function HomeShell() {
       if (updates.role !== undefined) set("role", updates.role)
       if (updates.level !== undefined) set("level", updates.level)
       if (updates.language !== undefined) set("language", updates.language)
+      if (updates.style !== undefined) set("style", updates.style)
       window.history.replaceState(null, "", `${window.location.pathname}?${params.toString()}`)
     },
     [searchParams]
@@ -74,6 +78,11 @@ export function HomeShell() {
     updateUrl({ language: val })
   }
 
+  const handleStyleChange = (val: string) => {
+    setStyleFilter(val)
+    updateUrl({ style: val })
+  }
+
   return (
     <div className="flex min-h-screen flex-col">
       <main className="flex-1">
@@ -94,11 +103,13 @@ export function HomeShell() {
               role={roleFilter}
               level={levelFilter}
               language={languageFilter}
+              style={styleFilter}
               compact
               onEngineChange={handleEngineChange}
               onRoleChange={handleRoleChange}
               onLevelChange={handleLevelChange}
               onLanguageChange={handleLanguageChange}
+              onStyleChange={handleStyleChange}
             />
           </div>
         </div>
@@ -111,6 +122,7 @@ export function HomeShell() {
             roleFilter={roleFilter}
             levelFilter={levelFilter}
             languageFilter={languageFilter}
+            styleFilter={styleFilter}
           />
         </div>
       </main>

@@ -4,37 +4,47 @@ import { useEffect, useState } from "react"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { DashboardMyTeams, type TeamData } from "@/components/dashboard-my-teams"
-import { DashboardMyAvailability, type ProfileData } from "@/components/dashboard-my-availability"
+import { DashboardMyAvailability } from "@/components/dashboard-my-availability"
 import { DashboardIncomingApplications, type ApplicationData } from "@/components/dashboard-incoming-applications"
 import { DashboardSquadInvitations, type InvitationData } from "@/components/dashboard-squad-invitations"
-import { Gamepad2, LayoutDashboard, Loader2, MessageCircle, Send, Users, Bell, UserCircle } from "lucide-react"
+import { Gamepad2, LayoutDashboard, Loader2, MessageCircle, Send, Users, Bell, UserCircle, UserMinus } from "lucide-react"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Card, CardContent } from "@/components/ui/card"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { supabase } from "@/lib/supabase"
+import type { Session } from "@supabase/supabase-js"
 import { toast } from "sonner"
+import { EXPERIENCE_STYLES, ROLE_STYLES } from "@/lib/constants"
 
-const ROLE_STYLES: Record<string, { label: string; emoji: string; color: string }> = {
-  developer: { label: "Developer", emoji: "💻", color: "bg-teal/15 text-teal" },
-  "2d-artist": { label: "2D Artist", emoji: "🎨", color: "bg-pink/15 text-pink" },
-  "3d-artist": { label: "3D Artist", emoji: "🗿", color: "bg-peach/15 text-peach" },
-  audio: { label: "Audio", emoji: "🎵", color: "bg-lavender/15 text-lavender" },
-  writer: { label: "Writer", emoji: "✍️", color: "bg-pink/15 text-pink" },
-  "game-design": { label: "Game Designer", emoji: "🎯", color: "bg-peach/15 text-peach" },
-  "ui-ux": { label: "UI / UX", emoji: "✨", color: "bg-mint/15 text-mint" },
-  qa: { label: "QA / Playtester", emoji: "🐛", color: "bg-peach/15 text-peach" },
-}
-
-const LEVEL_STYLES: Record<string, { label: string; emoji: string; color: string }> = {
-  beginner: { label: "Beginner", emoji: "🌱", color: "bg-mint/15 text-mint" },
-  hobbyist: { label: "Hobbyist", emoji: "🛠️", color: "bg-peach/15 text-peach" },
-  confirmed: { label: "Confirmed", emoji: "🚀", color: "bg-teal/15 text-teal" },
-  veteran: { label: "Veteran", emoji: "⭐", color: "bg-lavender/15 text-lavender" },
-}
-
+const LEVEL_STYLES = EXPERIENCE_STYLES
 const FALLBACK_ROLE = { label: "Other", emoji: "❓", color: "bg-muted text-muted-foreground" }
-const FALLBACK_LEVEL = LEVEL_STYLES["beginner"]
+const FALLBACK_LEVEL = EXPERIENCE_STYLES["beginner"]
 
 type SentApp = { id: string; status: string; target_role?: string; teams?: { team_name?: string; discord_link?: string } }
+
+export type AvailabilityPostRow = {
+  id: string
+  user_id: string
+  availability: string
+  username?: string | null
+  role?: string | null
+  experience?: string | null
+  jam_style?: string | null
+  engine?: string | null
+  language?: string | null
+  bio?: string | null
+  portfolio_link?: string | null
+  avatar_url?: string | null
+}
 
 function SentApplicationsSection({ sentApplications }: { sentApplications: SentApp[] }) {
   return (
@@ -112,13 +122,16 @@ function SentApplicationsSection({ sentApplications }: { sentApplications: SentA
 }
 
 export function DashboardClient() {
-  const [session, setSession] = useState<{ user: { user_metadata?: { avatar_url?: string } } } | null>(null)
+  const [session, setSession] = useState<Session | null>(null)
   const [teams, setTeams] = useState<TeamData[]>([])
-  const [profiles, setProfiles] = useState<ProfileData[]>([])
+  const [availabilityPosts, setAvailabilityPosts] = useState<AvailabilityPostRow[]>([])
   const [applications, setApplications] = useState<ApplicationData[]>([])
   const [invitations, setInvitations] = useState<InvitationData[]>([])
   const [sentApplications, setSentApplications] = useState<SentApp[]>([])
   const [loading, setLoading] = useState(true)
+  const [showAvailabilityModal, setShowAvailabilityModal] = useState(false)
+  const [availabilityModalContext, setAvailabilityModalContext] = useState<string | null>(null)
+  const [hasShownAvailabilityPrompt, setHasShownAvailabilityPrompt] = useState(false)
 
   const mapTeamRow = (t: any): TeamData => {
     let parsed: any[] = []
@@ -139,30 +152,6 @@ export function DashboardClient() {
       roles: parsed.map((r: any) => ROLE_STYLES[r.role?.toLowerCase()] ?? { ...FALLBACK_ROLE, label: r.role }),
       level: LEVEL_STYLES[rawLevel] ?? FALLBACK_LEVEL,
       discord_link: t.discord_link ?? null,
-    }
-  }
-
-  const mapProfileRow = (m: any, discordAvatarUrl?: string | null): ProfileData => {
-    const rawLevel = (m.experience || "beginner").toLowerCase()
-    const rawRole = (m.role || "developer").toLowerCase()
-    const fallbackUrl = `https://api.dicebear.com/9.x/adventurer/svg?seed=${m.username}&backgroundColor=d1d4f9`
-    const avatarUrl =
-      m.avatar_url?.trim() ||
-      discordAvatarUrl?.trim() ||
-      fallbackUrl
-    return {
-      id: m.id,
-      username: m.username || "Anonymous",
-      avatar_url: m.avatar_url ?? null,
-      avatarUrl,
-      role: ROLE_STYLES[rawRole] ?? { ...FALLBACK_ROLE, label: m.role },
-      level: LEVEL_STYLES[rawLevel] ?? FALLBACK_LEVEL,
-      engine: m.engine || "",
-      language: m.language || "",
-      bio: m.bio || "",
-      rawRole,
-      rawLevel,
-      portfolio_link: m.portfolio_link ?? null,
     }
   }
 
@@ -200,11 +189,6 @@ export function DashboardClient() {
       .select("*, team_members(count)")
       .eq("user_id", authSession.user.id)
 
-    const { data: profilesData } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", authSession.user.id)
-
     const { data: appsData } = await supabase
       .from("join_requests")
       .select("*, target_role, teams!inner(team_name, user_id)")
@@ -227,16 +211,14 @@ export function DashboardClient() {
 
     const discordAvatarUrl = authSession.user.user_metadata?.avatar_url ?? null
 
-    // Sync l'avatar Discord vers profiles pour les profils sans galerie (visible sur Find Members)
-    if (profilesData?.length && discordAvatarUrl) {
-      const toSync = profilesData.filter((m: any) => !m.avatar_url?.trim())
-      for (const p of toSync) {
-        await supabase.from("profiles").update({ avatar_url: discordAvatarUrl }).eq("id", p.id)
-      }
-    }
-
     if (teamsData) setTeams(teamsData.map(mapTeamRow))
-    if (profilesData) setProfiles(profilesData.map((m) => mapProfileRow(m, discordAvatarUrl)))
+
+    const { data: postsData } = await supabase
+      .from("availability_posts")
+      .select("id, user_id, availability, username, role, experience, jam_style, engine, language, bio, portfolio_link, avatar_url")
+      .eq("user_id", authSession.user.id)
+      .order("updated_at", { ascending: false })
+    if (postsData) setAvailabilityPosts(postsData as AvailabilityPostRow[])
     if (appsData) setApplications(appsData.map(mapApplicationRow))
     if (rawInvitesData) setInvitations(rawInvitesData.map(mapInvitationRow))
     if (sentAppsData) {
@@ -255,6 +237,32 @@ export function DashboardClient() {
   }
 
   useEffect(() => { loadData() }, [])
+
+  // Offer to disable availability when user has joined a team (application accepted)
+  // Persist in localStorage so the prompt is not shown again after the user has responded (e.g. on refresh)
+  useEffect(() => {
+    if (loading) return
+    const userId = session?.user?.id
+    const storageKey = userId ? `gamejam_availability_prompt_seen_${userId}` : null
+    if (storageKey && typeof window !== "undefined") {
+      const alreadySeen = localStorage.getItem(storageKey) === "true"
+      if (alreadySeen) {
+        setHasShownAvailabilityPrompt(true)
+        return
+      }
+    }
+    if (hasShownAvailabilityPrompt) return
+    const hasAcceptedApp = sentApplications.some((a) => a.status === "accepted")
+    const hasAvailability = availabilityPosts.length > 0
+    if (hasAcceptedApp && hasAvailability) {
+      setAvailabilityModalContext(null)
+      setShowAvailabilityModal(true)
+      setHasShownAvailabilityPrompt(true)
+      if (storageKey && typeof window !== "undefined") {
+        localStorage.setItem(storageKey, "true")
+      }
+    }
+  }, [loading, session?.user?.id, sentApplications, availabilityPosts, hasShownAvailabilityPrompt])
 
   const handleDeleteTeam = async (id: string) => {
     if (!confirm("Delete this team?")) return
@@ -295,33 +303,16 @@ export function DashboardClient() {
     toast.success("Listing renewed.", { description: "Your listing is now visible for another 30 days." })
   }
 
-  const handleAvatarUpdate = (id: string, avatarUrl: string | null) => {
-    setProfiles((prev) =>
-      prev.map((p) =>
-        p.id === id
-          ? {
-              ...p,
-              avatar_url: avatarUrl,
-              avatarUrl:
-                avatarUrl?.trim() ||
-                (session?.user?.user_metadata?.avatar_url ?? null) ||
-                `https://api.dicebear.com/9.x/adventurer/svg?seed=${p.username}&backgroundColor=d1d4f9`,
-            }
-          : p
-      )
-    )
-  }
-
-  const handleDeleteProfile = async (id: string) => {
-    if (!confirm("Delete this profile?")) return
+  const handleDeleteAvailabilityPost = async (postId: string) => {
+    if (!window.confirm("Remove this availability announcement?")) return
     try {
-      const { error } = await supabase.from("profiles").delete().eq("id", id)
+      const { error } = await supabase.from("availability_posts").delete().eq("id", postId)
       if (error) {
-        toast.error("Could not delete the profile.", { description: error.message })
+        toast.error("Could not remove announcement.", { description: error.message })
         return
       }
-      setProfiles((prev) => prev.filter((p) => p.id !== id))
-      toast.success("Profile deleted.")
+      setAvailabilityPosts((prev) => prev.filter((p) => p.id !== postId))
+      toast.success("Announcement removed.")
     } catch (err) {
       toast.error("An error occurred.", { description: err instanceof Error ? err.message : "Please try again." })
     }
@@ -337,6 +328,35 @@ export function DashboardClient() {
 
       if (fetchError || !request) {
         toast.error("Could not read the request.", { description: fetchError?.message })
+        return
+      }
+
+      // Race condition guard: verify role slot is still open before accepting
+      const targetRole = request.target_role
+      const { data: teamData } = await supabase
+        .from("teams")
+        .select("looking_for")
+        .eq("id", request.team_id)
+        .single()
+
+      const lookingFor = Array.isArray(teamData?.looking_for) ? teamData.looking_for : []
+      const slotsForRole = lookingFor.filter((r: { role?: string }) => (r?.role || "").toLowerCase() === (targetRole || "").toLowerCase()).length
+      if (slotsForRole === 0) {
+        toast.error("Role no longer available.", { description: "This role may have been filled. Please refresh." })
+        return
+      }
+
+      const { data: existingAccepted } = await supabase
+        .from("join_requests")
+        .select("id")
+        .eq("team_id", request.team_id)
+        .eq("status", "accepted")
+        .eq("type", "application")
+        .eq("target_role", targetRole)
+
+      const acceptedForRole = existingAccepted?.length ?? 0
+      if (acceptedForRole >= slotsForRole) {
+        toast.error("Role already filled.", { description: "Someone else was accepted for this role. Please refresh." })
         return
       }
 
@@ -398,12 +418,51 @@ export function DashboardClient() {
         return
       }
       setInvitations((prev) => prev.filter((i) => i.id !== invitation.id))
+      loadData() // Refresh sent applications
       toast.success(`You joined ${invitation.squadName}!`, {
         description: invitation.discordLink ? "Check the Discord link to connect." : undefined,
       })
+      setAvailabilityModalContext(invitation.squadName)
+      setHasShownAvailabilityPrompt(true)
+      setShowAvailabilityModal(true)
     } catch (err) {
       toast.error("An error occurred.", { description: err instanceof Error ? err.message : "Please try again." })
     }
+  }
+
+  const persistAvailabilityPromptSeen = () => {
+    const userId = session?.user?.id
+    if (userId && typeof window !== "undefined") {
+      localStorage.setItem(`gamejam_availability_prompt_seen_${userId}`, "true")
+    }
+  }
+
+  const handleAvailabilityModalConfirm = async () => {
+    if (!session?.user) return
+    persistAvailabilityPromptSeen()
+    try {
+      const { error } = await supabase
+        .from("availability_posts")
+        .delete()
+        .eq("user_id", session.user.id)
+      if (error) {
+        toast.error("Could not update your profile.", { description: error.message })
+        return
+      }
+      setAvailabilityPosts([])
+      toast.success("You're no longer on the Available Players list.")
+    } catch (err) {
+      toast.error("An error occurred.", { description: err instanceof Error ? err.message : "Please try again." })
+    } finally {
+      setShowAvailabilityModal(false)
+      setAvailabilityModalContext(null)
+    }
+  }
+
+  const handleAvailabilityModalCancel = () => {
+    persistAvailabilityPromptSeen()
+    setShowAvailabilityModal(false)
+    setAvailabilityModalContext(null)
   }
 
   const handleDeclineInvitation = async (id: string) => {
@@ -487,8 +546,8 @@ export function DashboardClient() {
                     <UserCircle className="size-6 text-lavender" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">My Profiles</p>
-                    <p className="text-2xl font-bold">{profiles.length}</p>
+                    <p className="text-sm font-medium text-muted-foreground">Availability</p>
+                    <p className="text-2xl font-bold">{availabilityPosts.length}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -524,9 +583,8 @@ export function DashboardClient() {
               </TabsContent>
               <TabsContent value="availability" className="mt-0">
                 <DashboardMyAvailability
-                  profiles={profiles}
-                  onDelete={handleDeleteProfile}
-                  onAvatarUpdate={handleAvatarUpdate}
+                  availabilityPosts={availabilityPosts}
+                  onDeletePost={handleDeleteAvailabilityPost}
                   discordAvatarUrl={session?.user?.user_metadata?.avatar_url ?? null}
                 />
               </TabsContent>
@@ -535,6 +593,35 @@ export function DashboardClient() {
         </section>
       </main>
       <Footer tagline="Connect, create, and ship games together." />
+
+      <AlertDialog open={showAvailabilityModal} onOpenChange={(open) => !open && handleAvailabilityModalCancel()}>
+        <AlertDialogContent className="rounded-2xl border-border/60">
+          <AlertDialogHeader>
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 items-center justify-center rounded-xl bg-green-500/15">
+                <UserMinus className="size-5 text-green-600" />
+              </div>
+              <AlertDialogTitle className="text-left">
+                Congratulations! You&apos;ve joined the team.
+              </AlertDialogTitle>
+            </div>
+            <AlertDialogDescription className="text-left">
+              {availabilityModalContext ? (
+                <>You&apos;ve joined {availabilityModalContext}. </>
+              ) : null}
+              Would you like to remove your profile from the &quot;Available Players&quot; list to stop receiving requests?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-row gap-2 sm:justify-end">
+            <AlertDialogCancel onClick={handleAvailabilityModalCancel}>
+              No, keep it
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={handleAvailabilityModalConfirm} className="bg-primary">
+              Yes, remove me
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

@@ -42,7 +42,7 @@ export function Navbar() {
   const [mounted, setMounted] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const { setTheme } = useTheme()
-  const { notifications, unreadCount, loading: notifLoading } = useNotifications(user?.id ?? null)
+  const { notifications, unreadCount, loading: notifLoading, refetch: refetchNotifications, dismissNotification } = useNotifications(user?.id ?? null)
 
   useEffect(() => {
     setMounted(true)
@@ -234,9 +234,9 @@ export function Navbar() {
             </Button>
           )}
 
-          {/* Bell notifications — visible uniquement quand l'utilisateur est connecté */}
+          {/* Bell notifications — visible only when user is signed in */}
           {mounted && user && (
-            <DropdownMenu>
+            <DropdownMenu onOpenChange={(open) => open && refetchNotifications()}>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="relative rounded-xl">
                   <Bell className="size-4" />
@@ -275,6 +275,7 @@ export function Navbar() {
                       <DropdownMenuItem key={notif.id} asChild>
                         <Link
                           href="/dashboard"
+                          onClick={() => dismissNotification(notif.id)}
                           className="flex cursor-pointer flex-col gap-0.5 rounded-xl px-3 py-2.5 focus:bg-accent"
                         >
                           <span className="text-sm font-medium leading-snug text-foreground">
@@ -316,7 +317,7 @@ export function Navbar() {
             </DropdownMenu>
           )}
 
-          {/* Auth buttons — masqués sur mobile (présents dans le menu burger) */}
+          {/* Auth buttons — hidden on mobile (shown in burger menu) */}
           <div className="hidden md:flex items-center gap-3">
             {!mounted || loading ? (
               <Loader2 className="size-5 animate-spin text-muted-foreground" />

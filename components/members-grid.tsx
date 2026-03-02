@@ -5,7 +5,7 @@ import { JammerCard, type JammerCardData, type SquadOption } from "@/components/
 import { Loader2 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { toast } from "sonner"
-import { EXPERIENCE_STYLES, ROLE_STYLES } from "@/lib/constants"
+import { EXPERIENCE_STYLES, JAM_STYLE_STYLES, ROLE_STYLES } from "@/lib/constants"
 
 const PAGE_SIZE = 24
 
@@ -13,6 +13,7 @@ type JammerWithFilters = JammerCardData & {
   rawRole: string
   rawEngine: string
   rawLevel: string
+  availabilityPostId?: string // Unique per announcement for React key
 }
 
 interface MembersGridProps {
@@ -24,19 +25,22 @@ interface MembersGridProps {
 
 function formatMember(m: any): JammerWithFilters {
   const fallbackUrl = `https://api.dicebear.com/9.x/adventurer/svg?seed=${m.username}&backgroundColor=d1d4f9`
+  const jamStyle = m.jam_style ? JAM_STYLE_STYLES[m.jam_style] : undefined
   return {
     id: m.id as string,
-    username: m.username,
+    username: m.username || "Anonymous",
     avatarUrl: m.avatar_url?.trim() || fallbackUrl,
     rawRole: m.role || "",
-    rawLevel: m.experience || "",
+    rawLevel: m.experience || m.experience_level || "",
     rawEngine: m.engine || "",
     role: ROLE_STYLES[m.role] || { label: m.role, emoji: "❓", color: "bg-gray-500/10 text-gray-500" },
-    level: EXPERIENCE_STYLES[m.experience] || { label: m.experience, emoji: "⭐", color: "bg-gray-500/10 text-gray-500" },
+    level: EXPERIENCE_STYLES[m.experience || m.experience_level] || { label: m.experience || m.experience_level, emoji: "⭐", color: "bg-gray-500/10 text-gray-500" },
+    jamStyle: jamStyle ?? undefined,
     engine: m.engine,
     language: m.language,
     bio: m.bio,
     portfolio_link: m.portfolio_link || "",
+    availability: m.availability || undefined,
   }
 }
 
@@ -54,7 +58,7 @@ export function MembersGrid({
   const [hasMore, setHasMore] = useState(true)
   const offsetRef = useRef(0)
 
-  // Debounced search — se déclenche 250ms après la dernière frappe
+  // Debounced search — updates 250ms after last keystroke
   const [debouncedSearch, setDebouncedSearch] = useState(searchQuery)
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(searchQuery), 250)
@@ -62,20 +66,32 @@ export function MembersGrid({
   }, [searchQuery])
 
   const fetchPage = useCallback(async (from: number, append: boolean) => {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("*")
+    const { data: postsData, error: postsError } = await supabase
+      .from("availability_posts")
+      .select("id, user_id, availability, username, avatar_url, role, experience, jam_style, engine, language, bio, portfolio_link")
+      .order("updated_at", { ascending: false })
       .range(from, from + PAGE_SIZE - 1)
 
-    if (!error && data) {
-      const formatted = data.map(formatMember)
-      setMembers((prev) => (append ? [...prev, ...formatted] : formatted))
-      setHasMore(data.length === PAGE_SIZE)
-      offsetRef.current = from + data.length
-    } else if (error) {
-      setMembers([])
-      toast.error("Error loading profiles.", { description: error.message })
+    if (postsError || !postsData?.length) {
+      if (postsError) {
+        setMembers([])
+        toast.error("Error loading profiles.", { description: postsError.message })
+      } else if (!append) {
+        setMembers([])
+      }
+      setHasMore(false)
+      return
     }
+
+    const formatted = (postsData as any[]).map((row) => {
+      const member = formatMember({ ...row, id: row.user_id }) as JammerWithFilters
+      member.availabilityPostId = row.id
+      return member
+    }).filter(Boolean) as JammerWithFilters[]
+
+    setMembers((prev) => (append ? [...prev, ...formatted] : formatted))
+    setHasMore(postsData.length === PAGE_SIZE)
+    offsetRef.current = from + postsData.length
   }, [])
 
   useEffect(() => {
@@ -118,17 +134,18 @@ export function MembersGrid({
   }
 
   const displayedMembers = members.filter((m) => {
+    // Hide profiles with availability disabled (removed from list)
+    if (m.availability == null || m.availability === "") return false
+
     const matchSearch =
       !debouncedSearch || m.username.toLowerCase().includes(debouncedSearch.toLowerCase())
     const matchRole = roleFilter === "all" || m.rawRole.toLowerCase() === roleFilter.toLowerCase()
     const matchEngine = engineFilter === "all" || m.rawEngine.toLowerCase() === engineFilter.toLowerCase()
     const rawLevel = m.rawLevel?.toLowerCase() || ""
     const filterLevel = levelFilter.toLowerCase()
-    const matchLevel =
-      levelFilter === "all" ||
-      rawLevel === filterLevel ||
-      (filterLevel === "expert" && rawLevel === "veteran") ||
-      (filterLevel === "veteran" && rawLevel === "expert")
+    const legacyMap: Record<string, string> = { hobbyist: "junior", confirmed: "regular", expert: "senior" }
+    const normalizedRaw = legacyMap[rawLevel] ?? rawLevel
+    const matchLevel = levelFilter === "all" || normalizedRaw === filterLevel
 
     return matchSearch && matchRole && matchEngine && matchLevel
   })
@@ -151,7 +168,7 @@ export function MembersGrid({
         ) : (
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {displayedMembers.map((jammer) => (
-              <JammerCard key={jammer.id} player={jammer} mySquads={mySquads} />
+              <JammerCard key={jammer.availabilityPostId ?? jammer.id} player={jammer} mySquads={mySquads} />
             ))}
           </div>
         )}
