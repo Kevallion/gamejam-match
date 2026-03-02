@@ -18,18 +18,24 @@ const Loader = () => (
 
 /**
  * Bloque le rendu des erreurs tant que Supabase n'a pas fini d'initialiser la session.
- * Vérifie si une session existe avant d'afficher l'erreur (évite le flash en race condition).
+ * Si hasErrorInUrl est true (reason ou error dans l'URL), affiche immédiatement l'erreur
+ * sans retenter l'auth (évite les boucles sur navigateurs in-app avec cookies bloqués).
  */
 export function AuthCodeErrorClient({
   children,
+  hasErrorInUrl = false,
 }: {
   children: React.ReactNode
+  hasErrorInUrl?: boolean
 }) {
   const router = useRouter()
   const { isInitializing } = useAuth()
-  const [hasSession, setHasSession] = useState<boolean | null>(null)
+  const [hasSession, setHasSession] = useState<boolean | null>(
+    hasErrorInUrl ? false : null
+  )
 
   useEffect(() => {
+    if (hasErrorInUrl) return
     if (isInitializing) return
 
     function redirectIfSession() {
@@ -59,7 +65,12 @@ export function AuthCodeErrorClient({
     checkSessionWithRetries()
 
     return () => subscription.unsubscribe()
-  }, [router, isInitializing])
+  }, [router, isInitializing, hasErrorInUrl])
+
+  // Si erreur connue dans l'URL : afficher immédiatement (pas de retry)
+  if (hasErrorInUrl) {
+    return <>{children}</>
+  }
 
   // Pendant l'init Supabase : spinner (pas d'erreur)
   if (isInitializing) {
