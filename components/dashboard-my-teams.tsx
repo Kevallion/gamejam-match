@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Globe, Cpu, Users, Trash2, PenLine, Rocket, Link2 } from "lucide-react"
+import { Globe, Cpu, Users, Trash2, PenLine, Rocket, Link2, RotateCw } from "lucide-react"
 import Link from "next/link"
 
 const DISCORD_LINK_REGEX = /^https:\/\/(discord\.gg\/|discord\.com\/invite\/)/i
@@ -47,17 +47,20 @@ interface DashboardMyTeamsProps {
   teams: TeamData[]
   onDelete: (id: string) => void
   onUpdateDiscord: (id: string, discordLink: string) => Promise<void>
+  onRenew?: (id: string) => Promise<void>
 }
 
 export function DashboardMyTeams({
   teams,
   onDelete,
   onUpdateDiscord,
+  onRenew,
 }: DashboardMyTeamsProps) {
   const [editingTeamId, setEditingTeamId] = useState<string | null>(null)
   const [discordInputValue, setDiscordInputValue] = useState("")
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [renewingTeamId, setRenewingTeamId] = useState<string | null>(null)
 
   const handleOpenChange = (open: boolean, team: TeamData) => {
     if (open) {
@@ -189,6 +192,24 @@ export function DashboardMyTeams({
               </CardContent>
 
               <CardFooter className="flex flex-col gap-2">
+                {onRenew && (
+                  <Button
+                    variant="outline"
+                    className="w-full gap-2 rounded-xl border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
+                    onClick={async () => {
+                      setRenewingTeamId(team.id)
+                      try {
+                        await onRenew(team.id)
+                      } finally {
+                        setRenewingTeamId(null)
+                      }
+                    }}
+                    disabled={renewingTeamId === team.id}
+                  >
+                    <RotateCw className={`size-4 ${renewingTeamId === team.id ? "animate-spin" : ""}`} />
+                    {renewingTeamId === team.id ? "Renewing…" : "Renew"}
+                  </Button>
+                )}
                 <Dialog
                   open={editingTeamId === team.id}
                   onOpenChange={(open) => handleOpenChange(open, team)}

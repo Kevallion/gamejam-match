@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { UserAvatar } from "@/components/user-avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
@@ -20,45 +20,23 @@ import {
   Globe,
   Hand,
   PenLine,
+  RotateCcw,
   Save,
   Trash2,
   X,
 } from "lucide-react"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
+import { AVATAR_GALLERY } from "@/lib/avatar-gallery"
 import { toast } from "sonner"
 
-// ---------------------------------------------------------------------------
-// Options
-// ---------------------------------------------------------------------------
-const ROLE_OPTIONS = [
-  { value: "developer", label: "Developer" },
-  { value: "2d-artist", label: "2D Artist" },
-  { value: "3d-artist", label: "3D Artist" },
-  { value: "audio", label: "Audio / Music" },
-  { value: "writer", label: "Writer / Narrative" },
-  { value: "game-design", label: "Game Designer" },
-  { value: "ui-ux", label: "UI / UX" },
-  { value: "qa", label: "QA / Playtester" },
-]
-
-const LEVEL_OPTIONS = [
-  { value: "beginner", label: "Beginner", emoji: "🌱" },
-  { value: "hobbyist", label: "Hobbyist", emoji: "🛠️" },
-  { value: "confirmed", label: "Confirmed", emoji: "🚀" },
-  { value: "veteran", label: "Veteran", emoji: "⭐" },
-  { value: "expert", label: "Expert", emoji: "👑" },
-]
-
-const ENGINE_OPTIONS = [
-  { value: "any", label: "Any / No Preference" },
-  { value: "godot", label: "Godot" },
-  { value: "unity", label: "Unity" },
-  { value: "unreal", label: "Unreal Engine" },
-  { value: "gamemaker", label: "GameMaker" },
-  { value: "pico8", label: "PICO-8" },
-  { value: "custom", label: "Custom / Other" },
-]
+import {
+  ENGINE_OPTIONS_WITH_ANY,
+  EXPERIENCE_OPTIONS,
+  EXPERIENCE_STYLES,
+  ROLE_OPTIONS,
+  ROLE_STYLES,
+} from "@/lib/constants"
 
 const LANGUAGE_OPTIONS = [
   { value: "english", label: "English" },
@@ -71,30 +49,8 @@ const LANGUAGE_OPTIONS = [
   { value: "chinese", label: "Chinese" },
 ]
 
-// ---------------------------------------------------------------------------
-// Styles par valeur (pour re-dériver les badges après une mise à jour)
-// ---------------------------------------------------------------------------
-const ROLE_STYLES: Record<string, { label: string; emoji: string; color: string }> = {
-  developer: { label: "Developer", emoji: "💻", color: "bg-teal/15 text-teal" },
-  "2d-artist": { label: "2D Artist", emoji: "🎨", color: "bg-pink/15 text-pink" },
-  "3d-artist": { label: "3D Artist", emoji: "🗿", color: "bg-peach/15 text-peach" },
-  audio: { label: "Audio", emoji: "🎵", color: "bg-lavender/15 text-lavender" },
-  writer: { label: "Writer", emoji: "✍️", color: "bg-pink/15 text-pink" },
-  "game-design": { label: "Game Designer", emoji: "🎯", color: "bg-peach/15 text-peach" },
-  "ui-ux": { label: "UI / UX", emoji: "✨", color: "bg-mint/15 text-mint" },
-  qa: { label: "QA / Playtester", emoji: "🐛", color: "bg-peach/15 text-peach" },
-}
-
-const LEVEL_STYLES: Record<string, { label: string; emoji: string; color: string }> = {
-  beginner: { label: "Beginner", emoji: "🌱", color: "bg-mint/15 text-mint" },
-  hobbyist: { label: "Hobbyist", emoji: "🛠️", color: "bg-peach/15 text-peach" },
-  confirmed: { label: "Confirmed", emoji: "🚀", color: "bg-teal/15 text-teal" },
-  veteran: { label: "Veteran", emoji: "⭐", color: "bg-lavender/15 text-lavender" },
-  expert: { label: "Expert", emoji: "👑", color: "bg-lavender/15 text-lavender" },
-}
-
 const FALLBACK_ROLE = { label: "Other", emoji: "❓", color: "bg-muted text-muted-foreground" }
-const FALLBACK_LEVEL = LEVEL_STYLES["beginner"]
+const FALLBACK_LEVEL = EXPERIENCE_STYLES["beginner"]
 
 // ---------------------------------------------------------------------------
 // Types
@@ -102,6 +58,7 @@ const FALLBACK_LEVEL = LEVEL_STYLES["beginner"]
 export type ProfileData = {
   id: string
   username: string
+  avatar_url?: string | null
   avatarUrl: string
   role: { label: string; emoji: string; color: string }
   level: { label: string; emoji: string; color: string }
@@ -119,9 +76,11 @@ export type ProfileData = {
 interface ProfileCardProps {
   profile: ProfileData
   onDelete: (id: string) => void
+  onAvatarUpdate?: (id: string, avatarUrl: string | null) => void
+  discordAvatarUrl?: string | null
 }
 
-function ProfileCard({ profile, onDelete }: ProfileCardProps) {
+function ProfileCard({ profile, onDelete, onAvatarUpdate, discordAvatarUrl }: ProfileCardProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [saving, setSaving] = useState(false)
 
@@ -140,7 +99,7 @@ function ProfileCard({ profile, onDelete }: ProfileCardProps) {
   const [editPortfolioLink, setEditPortfolioLink] = useState(profile.portfolio_link ?? "")
 
   const displayRole = ROLE_STYLES[rawRole] ?? { ...FALLBACK_ROLE, label: rawRole }
-  const displayLevel = LEVEL_STYLES[rawLevel] ?? FALLBACK_LEVEL
+  const displayLevel = EXPERIENCE_STYLES[rawLevel] ?? FALLBACK_LEVEL
 
   const handleEdit = () => {
     setEditRole(rawRole)
@@ -153,6 +112,32 @@ function ProfileCard({ profile, onDelete }: ProfileCardProps) {
 
   const handleCancel = () => {
     setIsEditing(false)
+  }
+
+  const handleAvatarSelect = async (url: string) => {
+    const { error } = await supabase
+      .from("profiles")
+      .update({ avatar_url: url })
+      .eq("id", profile.id)
+    if (error) {
+      toast.error("Error updating avatar.", { description: error.message })
+      return
+    }
+    toast.success("Avatar updated.")
+    onAvatarUpdate?.(profile.id, url)
+  }
+
+  const handleAvatarReset = async () => {
+    const { error } = await supabase
+      .from("profiles")
+      .update({ avatar_url: null })
+      .eq("id", profile.id)
+    if (error) {
+      toast.error("Error during reset.", { description: error.message })
+      return
+    }
+    toast.success("Avatar reset (Discord by default).")
+    onAvatarUpdate?.(profile.id, null)
   }
 
   const handleSave = async () => {
@@ -187,17 +172,13 @@ function ProfileCard({ profile, onDelete }: ProfileCardProps) {
       <CardContent className="flex flex-1 flex-col gap-4 pt-6">
         {/* Avatar + Username */}
         <div className="flex items-center gap-3.5">
-          <Avatar className="size-12 ring-2 ring-border/60">
-            <AvatarImage src={profile.avatarUrl} alt={profile.username} />
-            <AvatarFallback className="bg-secondary text-sm font-bold text-secondary-foreground">
-              {profile.username
-                .split(/[\s_]+/)
-                .map((w) => w[0])
-                .join("")
-                .slice(0, 2)
-                .toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
+          <UserAvatar
+            profileAvatarUrl={profile.avatar_url}
+            discordAvatarUrl={discordAvatarUrl}
+            fallbackImageUrl={`https://api.dicebear.com/9.x/adventurer/svg?seed=${profile.username}&backgroundColor=d1d4f9`}
+            username={profile.username}
+            size="md"
+          />
           <div className="min-w-0 flex-1">
             <h3 className="truncate text-lg font-bold text-foreground">
               {profile.username}
@@ -227,6 +208,53 @@ function ProfileCard({ profile, onDelete }: ProfileCardProps) {
           </div>
         </div>
 
+        {/* Section Apparence (galerie) — en mode édition */}
+        {isEditing && (
+          <div className="flex flex-col gap-3 rounded-xl border border-border/50 bg-secondary/20 p-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-semibold text-foreground">Appearance</span>
+              {(profile.avatar_url ?? null) && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleAvatarReset}
+                  className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+                >
+                  <RotateCcw className="size-3.5" />
+                  Reset
+                </Button>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Choose an avatar from the gallery. Otherwise, your Discord avatar will be displayed.
+            </p>
+            <div className="grid grid-cols-6 gap-2 sm:grid-cols-9">
+              {AVATAR_GALLERY.map((item) => {
+                const isSelected = profile.avatar_url === item.url
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => handleAvatarSelect(item.url)}
+                    className={`relative flex size-12 items-center justify-center overflow-hidden rounded-xl border-2 transition-all hover:scale-105 ${
+                      isSelected
+                        ? "border-lavender ring-2 ring-lavender/30"
+                        : "border-border/60 hover:border-lavender/50"
+                    }`}
+                  >
+                    <img
+                      src={item.url}
+                      alt=""
+                      className="size-full object-cover"
+                    />
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Role & Level */}
         {isEditing ? (
           <div className="grid grid-cols-2 gap-3">
@@ -252,7 +280,7 @@ function ProfileCard({ profile, onDelete }: ProfileCardProps) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {LEVEL_OPTIONS.map((opt) => (
+                  {EXPERIENCE_OPTIONS.map((opt) => (
                     <SelectItem key={opt.value} value={opt.value}>
                       {opt.emoji} {opt.label}
                     </SelectItem>
@@ -288,7 +316,7 @@ function ProfileCard({ profile, onDelete }: ProfileCardProps) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {ENGINE_OPTIONS.map((opt) => (
+                  {ENGINE_OPTIONS_WITH_ANY.map((opt) => (
                     <SelectItem key={opt.value} value={opt.value}>
                       {opt.label}
                     </SelectItem>
@@ -389,11 +417,15 @@ function ProfileCard({ profile, onDelete }: ProfileCardProps) {
 interface DashboardMyAvailabilityProps {
   profiles: ProfileData[]
   onDelete: (id: string) => void
+  onAvatarUpdate?: (id: string, avatarUrl: string | null) => void
+  discordAvatarUrl?: string | null
 }
 
 export function DashboardMyAvailability({
   profiles,
   onDelete,
+  onAvatarUpdate,
+  discordAvatarUrl,
 }: DashboardMyAvailabilityProps) {
   return (
     <section>
@@ -432,7 +464,13 @@ export function DashboardMyAvailability({
       ) : (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {profiles.map((profile) => (
-            <ProfileCard key={profile.id} profile={profile} onDelete={onDelete} />
+            <ProfileCard
+              key={profile.id}
+              profile={profile}
+              onDelete={onDelete}
+              onAvatarUpdate={onAvatarUpdate}
+              discordAvatarUrl={discordAvatarUrl}
+            />
           ))}
         </div>
       )}

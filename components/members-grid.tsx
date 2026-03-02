@@ -5,6 +5,7 @@ import { JammerCard, type JammerCardData, type SquadOption } from "@/components/
 import { Loader2 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { toast } from "sonner"
+import { EXPERIENCE_STYLES, ROLE_STYLES } from "@/lib/constants"
 
 const PAGE_SIZE = 24
 
@@ -12,24 +13,6 @@ type JammerWithFilters = JammerCardData & {
   rawRole: string
   rawEngine: string
   rawLevel: string
-}
-
-const ROLE_STYLES: Record<string, any> = {
-  developer: { label: "Developer", emoji: "💻", color: "bg-teal/15 text-teal" },
-  "2d-artist": { label: "2D Artist", emoji: "🎨", color: "bg-pink/15 text-pink" },
-  "3d-artist": { label: "3D Artist", emoji: "🗿", color: "bg-peach/15 text-peach" },
-  audio: { label: "Audio", emoji: "🎵", color: "bg-lavender/15 text-lavender" },
-  writer: { label: "Writer", emoji: "✍️", color: "bg-pink/15 text-pink" },
-  "game-design": { label: "Game Designer", emoji: "🎯", color: "bg-peach/15 text-peach" },
-  "ui-ux": { label: "UI / UX", emoji: "✨", color: "bg-mint/15 text-mint" },
-  qa: { label: "QA / Playtester", emoji: "🐛", color: "bg-peach/15 text-peach" },
-}
-
-const LEVEL_STYLES: Record<string, any> = {
-  beginner: { label: "Beginner", emoji: "🌱", color: "bg-mint/15 text-mint" },
-  hobbyist: { label: "Hobbyist", emoji: "🛠️", color: "bg-peach/15 text-peach" },
-  confirmed: { label: "Confirmed", emoji: "🚀", color: "bg-teal/15 text-teal" },
-  expert: { label: "Expert", emoji: "👑", color: "bg-lavender/15 text-lavender" },
 }
 
 interface MembersGridProps {
@@ -40,15 +23,16 @@ interface MembersGridProps {
 }
 
 function formatMember(m: any): JammerWithFilters {
+  const fallbackUrl = `https://api.dicebear.com/9.x/adventurer/svg?seed=${m.username}&backgroundColor=d1d4f9`
   return {
     id: m.id as string,
     username: m.username,
-    avatarUrl: `https://api.dicebear.com/9.x/adventurer/svg?seed=${m.username}&backgroundColor=d1d4f9`,
+    avatarUrl: m.avatar_url?.trim() || fallbackUrl,
     rawRole: m.role || "",
     rawLevel: m.experience || "",
     rawEngine: m.engine || "",
     role: ROLE_STYLES[m.role] || { label: m.role, emoji: "❓", color: "bg-gray-500/10 text-gray-500" },
-    level: LEVEL_STYLES[m.experience] || { label: m.experience, emoji: "⭐", color: "bg-gray-500/10 text-gray-500" },
+    level: EXPERIENCE_STYLES[m.experience] || { label: m.experience, emoji: "⭐", color: "bg-gray-500/10 text-gray-500" },
     engine: m.engine,
     language: m.language,
     bio: m.bio,
@@ -138,7 +122,13 @@ export function MembersGrid({
       !debouncedSearch || m.username.toLowerCase().includes(debouncedSearch.toLowerCase())
     const matchRole = roleFilter === "all" || m.rawRole.toLowerCase() === roleFilter.toLowerCase()
     const matchEngine = engineFilter === "all" || m.rawEngine.toLowerCase() === engineFilter.toLowerCase()
-    const matchLevel = levelFilter === "all" || m.rawLevel.toLowerCase() === levelFilter.toLowerCase()
+    const rawLevel = m.rawLevel?.toLowerCase() || ""
+    const filterLevel = levelFilter.toLowerCase()
+    const matchLevel =
+      levelFilter === "all" ||
+      rawLevel === filterLevel ||
+      (filterLevel === "expert" && rawLevel === "veteran") ||
+      (filterLevel === "veteran" && rawLevel === "expert")
 
     return matchSearch && matchRole && matchEngine && matchLevel
   })

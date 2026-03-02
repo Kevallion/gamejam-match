@@ -16,39 +16,13 @@ import {
 } from "@/components/ui/select"
 import { Plus, X, Rocket, Sparkles } from "lucide-react"
 import { toast } from "sonner"
+import { ENGINE_OPTIONS, EXPERIENCE_OPTIONS, ROLE_OPTIONS } from "@/lib/constants"
 
 type RoleEntry = {
   id: number
   role: string
   level: string
 }
-
-const ROLE_OPTIONS = [
-  { value: "developer", label: "Developer" },
-  { value: "2d-artist", label: "2D Artist" },
-  { value: "3d-artist", label: "3D Artist" },
-  { value: "audio", label: "Audio / Music" },
-  { value: "writer", label: "Writer / Narrative" },
-  { value: "game-design", label: "Game Designer" },
-  { value: "ui-ux", label: "UI / UX" },
-  { value: "qa", label: "QA / Playtester" },
-]
-
-const LEVEL_OPTIONS = [
-  { value: "beginner", label: "Beginner", emoji: "🌱" },
-  { value: "hobbyist", label: "Hobbyist", emoji: "🛠️" },
-  { value: "confirmed", label: "Confirmed", emoji: "🚀" },
-  { value: "veteran", label: "Veteran", emoji: "⭐" },
-]
-
-const ENGINE_OPTIONS = [
-  { value: "godot", label: "Godot" },
-  { value: "unity", label: "Unity" },
-  { value: "unreal", label: "Unreal Engine" },
-  { value: "gamemaker", label: "GameMaker" },
-  { value: "pico8", label: "PICO-8" },
-  { value: "custom", label: "Custom / Other" },
-]
 
 const LANGUAGE_OPTIONS = [
   { value: "english", label: "English" },
@@ -253,10 +227,10 @@ export function CreateTeamForm() {
 
                         <Select value={entry.level} onValueChange={(v) => updateRole(entry.id, "level", v)}>
                           <SelectTrigger className="h-11 flex-1 rounded-xl border-border/50 bg-card text-foreground">
-                            <SelectValue placeholder="Experience level" />
+                            <SelectValue placeholder="Experience" />
                           </SelectTrigger>
                           <SelectContent className="rounded-xl">
-                            {LEVEL_OPTIONS.map((opt) => (
+                            {EXPERIENCE_OPTIONS.map((opt) => (
                               <SelectItem key={opt.value} value={opt.value}>{opt.emoji} {opt.label}</SelectItem>
                             ))}
                           </SelectContent>
@@ -315,6 +289,10 @@ export function CreateTeamForm() {
                   className="rounded-xl border-border/60 bg-secondary/50 text-foreground"
                 />
               </div>
+
+              <p className="text-sm text-muted-foreground">
+                Your listing will be visible for 30 days.
+              </p>
 
               {/* Submit */}
               <Button type="submit" disabled={loading} className="w-full rounded-2xl bg-primary py-7 font-extrabold text-primary-foreground">

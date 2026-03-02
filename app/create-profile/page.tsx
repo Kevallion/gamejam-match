@@ -1,6 +1,7 @@
 import { Navbar } from "@/components/navbar"
 import { AvailabilityForm } from "@/components/availability-form"
-import { Gamepad2, Heart, UserCheck } from "lucide-react"
+import { Footer } from "@/components/footer"
+import { UserCheck } from "lucide-react"
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
@@ -49,22 +50,7 @@ export default function AvailabilityPage() {
         </section>
       </main>
 
-      <footer className="border-t border-border/50 bg-card/50">
-        <div className="mx-auto flex max-w-6xl flex-col items-center gap-2 px-4 py-8 text-center lg:px-6">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span>Made with</span>
-            <Heart className="size-4 text-pink" />
-            <span>by</span>
-            <span className="inline-flex items-center gap-1.5 font-bold text-foreground">
-              <Gamepad2 className="size-4 text-primary" />
-              GameJamCrew
-            </span>
-          </div>
-          <p className="text-xs text-muted-foreground/70">
-            {"Connect, create, and ship games together."}
-          </p>
-        </div>
-      </footer>
+      <Footer tagline="Connect, create, and ship games together." />
     </div>
   )
 }

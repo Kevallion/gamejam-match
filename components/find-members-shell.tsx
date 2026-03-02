@@ -4,8 +4,9 @@ import { useState } from "react"
 import { Navbar } from "@/components/navbar"
 import { MemberFilters } from "@/components/member-filters"
 import { MembersGrid } from "@/components/members-grid"
-import { Gamepad2, Heart, Search, UserSearch } from "lucide-react"
+import { Search, UserSearch } from "lucide-react"
 import { Input } from "@/components/ui/input"
+import { Footer } from "@/components/footer"
 
 export function FindMembersShell() {
   const [searchQuery, setSearchQuery] = useState("")
@@ -67,16 +68,7 @@ export function FindMembersShell() {
         />
       </main>
 
-      <footer className="border-t border-border/50 bg-card/50">
-        <div className="mx-auto flex max-w-6xl flex-col items-center gap-2 px-4 py-8 text-center lg:px-6">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span>Made with</span><Heart className="size-4 text-pink" /><span>by</span>
-            <span className="inline-flex items-center gap-1.5 font-bold text-foreground">
-              <Gamepad2 className="size-4 text-primary" />GameJamCrew
-            </span>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }

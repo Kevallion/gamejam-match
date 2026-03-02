@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react"
 import { Navbar } from "@/components/navbar"
+import { Footer } from "@/components/footer"
 import { DashboardMyTeams, type TeamData } from "@/components/dashboard-my-teams"
 import { DashboardMyAvailability, type ProfileData } from "@/components/dashboard-my-availability"
 import { DashboardIncomingApplications, type ApplicationData } from "@/components/dashboard-incoming-applications"
 import { DashboardSquadInvitations, type InvitationData } from "@/components/dashboard-squad-invitations"
-import { Gamepad2, Heart, LayoutDashboard, Loader2, MessageCircle, Send, Users, Bell, UserCircle } from "lucide-react"
+import { Gamepad2, LayoutDashboard, Loader2, MessageCircle, Send, Users, Bell, UserCircle } from "lucide-react"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Card, CardContent } from "@/components/ui/card"
 import { supabase } from "@/lib/supabase"
@@ -111,6 +112,7 @@ function SentApplicationsSection({ sentApplications }: { sentApplications: SentA
 }
 
 export function DashboardClient() {
+  const [session, setSession] = useState<{ user: { user_metadata?: { avatar_url?: string } } } | null>(null)
   const [teams, setTeams] = useState<TeamData[]>([])
   const [profiles, setProfiles] = useState<ProfileData[]>([])
   const [applications, setApplications] = useState<ApplicationData[]>([])
@@ -140,13 +142,19 @@ export function DashboardClient() {
     }
   }
 
-  const mapProfileRow = (m: any): ProfileData => {
+  const mapProfileRow = (m: any, discordAvatarUrl?: string | null): ProfileData => {
     const rawLevel = (m.experience || "beginner").toLowerCase()
     const rawRole = (m.role || "developer").toLowerCase()
+    const fallbackUrl = `https://api.dicebear.com/9.x/adventurer/svg?seed=${m.username}&backgroundColor=d1d4f9`
+    const avatarUrl =
+      m.avatar_url?.trim() ||
+      discordAvatarUrl?.trim() ||
+      fallbackUrl
     return {
       id: m.id,
       username: m.username || "Anonymous",
-      avatarUrl: `https://api.dicebear.com/9.x/adventurer/svg?seed=${m.username}&backgroundColor=d1d4f9`,
+      avatar_url: m.avatar_url ?? null,
+      avatarUrl,
       role: ROLE_STYLES[rawRole] ?? { ...FALLBACK_ROLE, label: m.role },
       level: LEVEL_STYLES[rawLevel] ?? FALLBACK_LEVEL,
       engine: m.engine || "",
@@ -183,41 +191,52 @@ export function DashboardClient() {
 
   const loadData = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session?.user) { setLoading(false); return }
+      const { data: { session: authSession } } = await supabase.auth.getSession()
+      if (!authSession?.user) { setLoading(false); return }
+      setSession(authSession)
 
       const { data: teamsData } = await supabase
       .from("teams")
       .select("*, team_members(count)")
-      .eq("user_id", session.user.id)
+      .eq("user_id", authSession.user.id)
 
     const { data: profilesData } = await supabase
       .from("profiles")
       .select("*")
-      .eq("id", session.user.id)
+      .eq("id", authSession.user.id)
 
     const { data: appsData } = await supabase
       .from("join_requests")
       .select("*, target_role, teams!inner(team_name, user_id)")
-      .eq("teams.user_id", session.user.id)
+      .eq("teams.user_id", authSession.user.id)
       .eq("status", "pending")
       .eq("type", "application")
 
     const { data: rawInvitesData } = await supabase
       .from("join_requests")
       .select("id, team_id, status, target_role, teams(team_name, game_name, discord_link)")
-      .eq("sender_id", session.user.id)
+      .eq("sender_id", authSession.user.id)
       .eq("status", "pending")
       .eq("type", "invitation")
 
     const { data: sentAppsData } = await supabase
       .from("join_requests")
       .select("id, status, target_role, teams(team_name, discord_link)")
-      .eq("sender_id", session.user.id)
+      .eq("sender_id", authSession.user.id)
       .eq("type", "application")
 
+    const discordAvatarUrl = authSession.user.user_metadata?.avatar_url ?? null
+
+    // Sync l'avatar Discord vers profiles pour les profils sans galerie (visible sur Find Members)
+    if (profilesData?.length && discordAvatarUrl) {
+      const toSync = profilesData.filter((m: any) => !m.avatar_url?.trim())
+      for (const p of toSync) {
+        await supabase.from("profiles").update({ avatar_url: discordAvatarUrl }).eq("id", p.id)
+      }
+    }
+
     if (teamsData) setTeams(teamsData.map(mapTeamRow))
-    if (profilesData) setProfiles(profilesData.map(mapProfileRow))
+    if (profilesData) setProfiles(profilesData.map((m) => mapProfileRow(m, discordAvatarUrl)))
     if (appsData) setApplications(appsData.map(mapApplicationRow))
     if (rawInvitesData) setInvitations(rawInvitesData.map(mapInvitationRow))
     if (sentAppsData) {
@@ -263,6 +282,34 @@ export function DashboardClient() {
       prev.map((t) => (t.id === id ? { ...t, discord_link: discordLink } : t))
     )
     toast.success("Discord link updated.", { description: "The team has been updated." })
+  }
+
+  const handleRenewTeam = async (id: string) => {
+    const { error } = await supabase
+      .from("teams")
+      .update({ expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() })
+      .eq("id", id)
+
+    if (error) throw new Error(error.message)
+    loadData()
+    toast.success("Listing renewed.", { description: "Your listing is now visible for another 30 days." })
+  }
+
+  const handleAvatarUpdate = (id: string, avatarUrl: string | null) => {
+    setProfiles((prev) =>
+      prev.map((p) =>
+        p.id === id
+          ? {
+              ...p,
+              avatar_url: avatarUrl,
+              avatarUrl:
+                avatarUrl?.trim() ||
+                (session?.user?.user_metadata?.avatar_url ?? null) ||
+                `https://api.dicebear.com/9.x/adventurer/svg?seed=${p.username}&backgroundColor=d1d4f9`,
+            }
+          : p
+      )
+    )
   }
 
   const handleDeleteProfile = async (id: string) => {
@@ -459,6 +506,7 @@ export function DashboardClient() {
                   teams={teams}
                   onDelete={handleDeleteTeam}
                   onUpdateDiscord={handleUpdateDiscord}
+                  onRenew={handleRenewTeam}
                 />
               </TabsContent>
               <TabsContent value="requests" className="mt-0 flex flex-col gap-8">
@@ -475,28 +523,18 @@ export function DashboardClient() {
                 <SentApplicationsSection sentApplications={sentApplications} />
               </TabsContent>
               <TabsContent value="availability" className="mt-0">
-                <DashboardMyAvailability profiles={profiles} onDelete={handleDeleteProfile} />
+                <DashboardMyAvailability
+                  profiles={profiles}
+                  onDelete={handleDeleteProfile}
+                  onAvatarUpdate={handleAvatarUpdate}
+                  discordAvatarUrl={session?.user?.user_metadata?.avatar_url ?? null}
+                />
               </TabsContent>
             </Tabs>
           </div>
         </section>
       </main>
-      <footer className="border-t border-border/50 bg-card/50">
-        <div className="mx-auto flex max-w-6xl flex-col items-center gap-2 px-4 py-8 text-center lg:px-6">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span>Made with</span>
-            <Heart className="size-4 text-pink" />
-            <span>by</span>
-            <span className="inline-flex items-center gap-1.5 font-bold text-foreground">
-              <Gamepad2 className="size-4 text-primary" />
-              GameJamCrew
-            </span>
-          </div>
-          <p className="text-xs text-muted-foreground/70">
-            {"Connect, create, and ship games together."}
-          </p>
-        </div>
-      </footer>
+      <Footer tagline="Connect, create, and ship games together." />
     </div>
   )
 }

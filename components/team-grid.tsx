@@ -5,26 +5,9 @@ import { TeamCard, type TeamCardData } from "@/components/team-card"
 import { supabase } from "@/lib/supabase"
 import { Loader2 } from "lucide-react"
 import { toast } from "sonner"
+import { EXPERIENCE_STYLES, ROLE_STYLES } from "@/lib/constants"
 
 const PAGE_SIZE = 24
-
-const ROLE_STYLES: Record<string, { label: string; emoji: string; color: string }> = {
-  developer: { label: "Developer", emoji: "💻", color: "bg-teal/15 text-teal" },
-  "2d-artist": { label: "2D Artist", emoji: "🎨", color: "bg-pink/15 text-pink" },
-  "3d-artist": { label: "3D Artist", emoji: "🗿", color: "bg-peach/15 text-peach" },
-  audio: { label: "Audio", emoji: "🎵", color: "bg-lavender/15 text-lavender" },
-  writer: { label: "Writer", emoji: "✍️", color: "bg-pink/15 text-pink" },
-  "game-design": { label: "Game Designer", emoji: "🎯", color: "bg-peach/15 text-peach" },
-  "ui-ux": { label: "UI / UX", emoji: "✨", color: "bg-mint/15 text-mint" },
-  qa: { label: "QA / Playtester", emoji: "🐛", color: "bg-peach/15 text-peach" },
-}
-
-const LEVEL_STYLES: Record<string, { label: string; emoji: string; color: string }> = {
-  beginner: { label: "Beginner", emoji: "🌱", color: "bg-mint/15 text-mint" },
-  hobbyist: { label: "Hobbyist", emoji: "🛠️", color: "bg-peach/15 text-peach" },
-  confirmed: { label: "Confirmed", emoji: "🚀", color: "bg-teal/15 text-teal" },
-  veteran: { label: "Veteran", emoji: "⭐", color: "bg-lavender/15 text-lavender" },
-}
 
 interface TeamGridProps {
   searchQuery: string
@@ -41,7 +24,7 @@ function formatTeam(t: any) {
     key: r.role,
   }))
   const mainLevel = parsedRoles.length > 0 ? parsedRoles[0].level : "beginner"
-  const levelBadge = LEVEL_STYLES[mainLevel] || LEVEL_STYLES["beginner"]
+  const levelBadge = EXPERIENCE_STYLES[mainLevel] || EXPERIENCE_STYLES["beginner"]
   const acceptedRoleKeys: string[] = (t.join_requests ?? [])
     .filter((jr: any) => jr.status === "accepted" && jr.type === "application" && jr.target_role)
     .map((jr: any) => jr.target_role as string)
@@ -87,6 +70,7 @@ export function TeamGrid({
     const { data, error } = await supabase
       .from("teams")
       .select("*, team_members(id, role, user_id), join_requests(target_role, status, type)")
+      .gt("expires_at", new Date().toISOString())
       .order("created_at", { ascending: false })
       .range(from, from + PAGE_SIZE - 1)
 
@@ -128,7 +112,12 @@ export function TeamGrid({
     const matchRole =
       roleFilter === "all" || t.rawRoles.some((r: any) => r.role.toLowerCase() === roleFilter.toLowerCase())
     const matchLevel =
-      levelFilter === "all" || t.rawRoles.some((r: any) => r.level.toLowerCase() === levelFilter.toLowerCase())
+      levelFilter === "all" ||
+      t.rawRoles.some((r: any) => {
+        const raw = r.level?.toLowerCase() || ""
+        const filter = levelFilter.toLowerCase()
+        return raw === filter || (filter === "expert" && raw === "veteran") || (filter === "veteran" && raw === "expert")
+      })
 
     return matchSearch && matchEngine && matchLanguage && matchRole && matchLevel
   })

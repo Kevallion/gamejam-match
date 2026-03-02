@@ -107,14 +107,14 @@ export function Navbar() {
                 variant="ghost"
                 size="icon"
                 className="md:hidden rounded-xl"
-                aria-label="Ouvrir le menu"
+                aria-label="Open menu"
               >
                 <Menu className="size-5" />
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="flex flex-col w-[min(100vw-2rem,320px)] sm:max-w-sm bg-background border-border">
               <SheetHeader className="sr-only">
-                <SheetTitle>GameJamCrew - Menu de navigation</SheetTitle>
+                <SheetTitle>GameJamCrew - Navigation menu</SheetTitle>
               </SheetHeader>
               <div className="flex flex-1 flex-col pt-4">
                 <div className="flex items-center gap-2.5 pb-6 border-b border-border">
@@ -146,7 +146,7 @@ export function Navbar() {
                     className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
                   >
                     <PenLine className="size-4" />
-                    Créer une équipe
+                    Post a Team
                   </Link>
                   <Link
                     href="/create-profile"
@@ -186,7 +186,7 @@ export function Navbar() {
                       className="gap-2 rounded-xl bg-[#5865F2] text-white hover:bg-[#4752C4] w-full justify-center"
                     >
                       <LogIn className="size-4" />
-                      Connexion (Discord)
+                      Sign in (Discord)
                     </Button>
                   )}
                 </div>
@@ -203,21 +203,21 @@ export function Navbar() {
                     <Sun className="size-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
                     <Moon className="absolute inset-0 size-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
                   </span>
-                  <span className="sr-only">Changer le thème</span>
+                  <span className="sr-only">Change theme</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => setTheme("light")}>
                   <Sun className="mr-2 size-4" />
-                  Clair
+                  Light
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setTheme("dark")}>
                   <Moon className="mr-2 size-4" />
-                  Sombre
+                  Dark
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setTheme("system")}>
                   <Monitor className="mr-2 size-4" />
-                  Système
+                  System
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -226,7 +226,7 @@ export function Navbar() {
               <span className="relative flex size-4">
                 <Sun className="size-4" />
               </span>
-              <span className="sr-only">Changer le thème</span>
+              <span className="sr-only">Change theme</span>
             </Button>
           )}
 
@@ -276,14 +276,14 @@ export function Navbar() {
                           <span className="text-sm font-medium leading-snug text-foreground">
                             {notif.kind === "application" ? (
                               <>
-                                <span className="text-primary">{notif.senderName || "Quelqu'un"}</span>
-                                {" a candidaté pour "}
+                                <span className="text-primary">{notif.senderName || "Someone"}</span>
+                                {" applied to "}
                                 <span className="font-bold">{notif.teamName}</span>
                               </>
                             ) : (
                               <>
                                 <span className="font-bold">{notif.teamName}</span>
-                                {" t'a invité(e)"}
+                                {" invited you"}
                               </>
                             )}
                           </span>
@@ -305,7 +305,7 @@ export function Navbar() {
                     className="flex cursor-pointer items-center justify-center gap-1.5 rounded-xl py-2 text-xs font-semibold text-primary"
                   >
                     <LayoutDashboard className="size-3.5" />
-                    Voir tout dans le Dashboard
+                    View all in Dashboard
                   </Link>
                 </DropdownMenuItem>
               </DropdownMenuContent>

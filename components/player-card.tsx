@@ -137,7 +137,7 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
       setSentSquadIds((prev) => new Set(prev).add(selectedSquad.id))
       setStatusMsg({ type: "success", text: `Invite sent for the role of ${selectedRole.label}!` })
 
-      toast.success(`Invitation envoyée à ${player.username} !`, {
+      toast.success(`Invitation sent to ${player.username}!`, {
         description: `Proposed role: ${selectedRole.label} in ${selectedSquad.team_name}.`,
       })
 
@@ -221,13 +221,13 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
                 <div className="w-full rounded-xl border border-dashed border-border/60 px-3 py-2.5 text-center">
                   <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
                     <Users className="size-3.5" />
-                    <span>Crée une équipe pour inviter ce jammer</span>
+                    <span>Create a team to invite this jammer</span>
                   </div>
                 </div>
               ) : (
                 <div className="w-full flex items-center justify-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-4 py-2.5 text-sm font-semibold text-primary">
                   <ArrowRight className="size-4" />
-                  Voir les détails
+                  View details
                 </div>
               )}
             </CardFooter>
@@ -288,7 +288,7 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
               {/* Bio complète */}
               <div>
                 <h4 className="mb-2 text-sm font-semibold text-foreground">
-                  À propos
+                  About
                 </h4>
                 <p className="whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">
                   {player.bio}
@@ -304,7 +304,7 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
                   className="inline-flex items-center gap-2 rounded-xl border border-border/60 px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
                 >
                   <ExternalLink className="size-4" />
-                  Voir le portfolio
+                  View portfolio
                 </a>
               )}
             </div>
@@ -315,7 +315,7 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
             {mySquads.length === 0 ? (
               <div className="flex items-center justify-center gap-2 rounded-xl border border-dashed border-border/60 px-4 py-3 text-sm text-muted-foreground">
                 <Users className="size-4" />
-                Crée une équipe pour inviter ce jammer
+                Create a team to invite this jammer
               </div>
             ) : (
               <div className="flex flex-col gap-2">
@@ -326,13 +326,13 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
                       className="w-full gap-2 rounded-xl bg-primary text-primary-foreground transition-all hover:bg-primary/85"
                     >
                       <Mail className="size-4" />
-                      {allSent ? "Toutes les invitations envoyées ✓" : "Inviter dans mon équipe"}
+                      {allSent ? "All invitations sent ✓" : "Invite to my team"}
                       {!allSent && <ChevronDown className="size-3.5 ml-auto" />}
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-52">
                     <DropdownMenuLabel className="text-xs text-muted-foreground">
-                      Choisir une équipe
+                      Choose a team
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     {mySquads.map((squad) => {
@@ -347,7 +347,7 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
                           {sent && <span className="mr-2">✓</span>}
                           {squad.team_name}
                           {sent && (
-                            <span className="ml-auto text-xs text-muted-foreground">Envoyé</span>
+                            <span className="ml-auto text-xs text-muted-foreground">Sent</span>
                           )}
                         </DropdownMenuItem>
                       )

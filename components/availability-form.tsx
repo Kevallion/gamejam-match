@@ -25,35 +25,7 @@ import {
 import { Sparkles, Hand, CalendarDays } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
-
-// Options
-const ROLE_OPTIONS = [
-  { value: "developer", label: "Developer" },
-  { value: "2d-artist", label: "2D Artist" },
-  { value: "3d-artist", label: "3D Artist" },
-  { value: "audio", label: "Audio / Music" },
-  { value: "writer", label: "Writer / Narrative" },
-  { value: "game-design", label: "Game Designer" },
-  { value: "ui-ux", label: "UI / UX" },
-  { value: "qa", label: "QA / Playtester" },
-]
-
-const LEVEL_OPTIONS = [
-  { value: "beginner", label: "Beginner", emoji: "🌱" },
-  { value: "hobbyist", label: "Hobbyist", emoji: "🛠️" },
-  { value: "confirmed", label: "Confirmed", emoji: "🚀" },
-  { value: "expert", label: "Expert", emoji: "👑" },
-]
-
-const ENGINE_OPTIONS = [
-  { value: "any", label: "Any / No Preference" },
-  { value: "godot", label: "Godot" },
-  { value: "unity", label: "Unity" },
-  { value: "unreal", label: "Unreal Engine" },
-  { value: "gamemaker", label: "GameMaker" },
-  { value: "pico8", label: "PICO-8" },
-  { value: "custom", label: "Custom / Other" },
-]
+import { ENGINE_OPTIONS_WITH_ANY, EXPERIENCE_OPTIONS, ROLE_OPTIONS } from "@/lib/constants"
 
 const LANGUAGE_OPTIONS = [
   { value: "english", label: "English" },
@@ -104,6 +76,13 @@ export function AvailabilityForm() {
         : format(dateRange.from, "yyyy-MM-dd")
     }
 
+    // Récupérer l'avatar existant pour ne pas écraser un choix galerie
+    const { data: existingProfile } = await supabase
+      .from('profiles')
+      .select('avatar_url')
+      .eq('id', user.id)
+      .single()
+
     const profileData = {
       id: user.id,
       username: formData.get('username'),
@@ -114,6 +93,8 @@ export function AvailabilityForm() {
       bio: formData.get('about'),
       availability: dateString,
       portfolio_link: portfolioLink.trim() || null,
+      // Conserver la galerie si définie, sinon sync l'avatar Discord pour Find Members
+      avatar_url: existingProfile?.avatar_url ?? user.user_metadata?.avatar_url ?? null,
     }
 
     try {
@@ -195,7 +176,7 @@ export function AvailabilityForm() {
                       <SelectValue placeholder="How experienced?" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl">
-                      {LEVEL_OPTIONS.map((opt) => (
+                      {EXPERIENCE_OPTIONS.map((opt) => (
                         <SelectItem key={opt.value} value={opt.value}>{opt.emoji} {opt.label}</SelectItem>
                       ))}
                     </SelectContent>
@@ -212,7 +193,7 @@ export function AvailabilityForm() {
                       <SelectValue placeholder="Pick an engine" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl">
-                      {ENGINE_OPTIONS.map((opt) => (
+                      {ENGINE_OPTIONS_WITH_ANY.map((opt) => (
                         <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
                       ))}
                     </SelectContent>

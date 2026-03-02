@@ -127,7 +127,7 @@ export function TeamCard({ team }: { team: TeamCardData }) {
             ) : (
               <div className="w-full flex items-center justify-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-4 py-2.5 text-sm font-semibold text-primary">
                 <ArrowRight className="size-4" />
-                Voir les détails
+                View details
               </div>
             )}
           </CardFooter>
@@ -180,7 +180,7 @@ export function TeamCard({ team }: { team: TeamCardData }) {
             {/* Liste des rôles recherchés */}
             <div>
               <h4 className="mb-2 text-sm font-semibold text-foreground">
-                Rôles recherchés
+                Roles sought
               </h4>
               <ul className="space-y-2">
                 {availableRoles.map((role, index) => (
@@ -203,7 +203,7 @@ export function TeamCard({ team }: { team: TeamCardData }) {
                     </span>
                     {role.filled && (
                       <span className="ml-auto text-xs text-muted-foreground">
-                        Rempli
+                        Filled
                       </span>
                     )}
                   </li>
@@ -211,19 +211,19 @@ export function TeamCard({ team }: { team: TeamCardData }) {
               </ul>
               {availableRoles.length === 0 && (
                 <p className="text-sm text-muted-foreground italic">
-                  Aucun rôle spécifié
+                  No role specified
                 </p>
               )}
             </div>
           </div>
         </ScrollArea>
 
-        {/* Pied de page avec bouton Postuler */}
+        {/* Footer with Apply button */}
         <div className="border-t border-border/60 px-6 py-4 bg-muted/20">
           {isSquadFull ? (
             <div className="flex items-center justify-center gap-2 rounded-xl border border-border/60 bg-muted/50 px-4 py-3 text-sm font-bold text-muted-foreground">
               <ShieldCheck className="size-4 text-primary" />
-              Équipe complète
+              Team full
             </div>
           ) : (
             <JoinTeamModal
@@ -232,7 +232,7 @@ export function TeamCard({ team }: { team: TeamCardData }) {
               availableRoles={availableRoles}
             >
               <Button className="w-full gap-2 rounded-xl bg-primary text-primary-foreground transition-all hover:bg-primary/85 hover:gap-3">
-                Postuler
+                Apply
                 <ArrowRight className="size-4" />
               </Button>
             </JoinTeamModal>
