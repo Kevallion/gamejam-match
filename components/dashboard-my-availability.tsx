@@ -22,12 +22,13 @@ import {
   PenLine,
   RotateCcw,
   Save,
+  Shuffle,
   Trash2,
   X,
 } from "lucide-react"
 import Link from "next/link"
 import { supabase } from "@/lib/supabase"
-import { AVATAR_GALLERY } from "@/lib/avatar-gallery"
+import { AVATAR_GALLERY, getRandomAvatarGallery } from "@/lib/avatar-gallery"
 import { toast } from "sonner"
 
 import {
@@ -83,6 +84,7 @@ interface ProfileCardProps {
 function ProfileCard({ profile, onDelete, onAvatarUpdate, discordAvatarUrl }: ProfileCardProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [displayedAvatars, setDisplayedAvatars] = useState(() => [...AVATAR_GALLERY])
 
   // États d'affichage (mis à jour après sauvegarde)
   const [rawRole, setRawRole] = useState(profile.rawRole)
@@ -107,6 +109,7 @@ function ProfileCard({ profile, onDelete, onAvatarUpdate, discordAvatarUrl }: Pr
     setEditEngine(engine)
     setEditLanguage(language)
     setEditPortfolioLink(portfolioLink)
+    setDisplayedAvatars([...AVATAR_GALLERY])
     setIsEditing(true)
   }
 
@@ -213,24 +216,36 @@ function ProfileCard({ profile, onDelete, onAvatarUpdate, discordAvatarUrl }: Pr
           <div className="flex flex-col gap-3 rounded-xl border border-border/50 bg-secondary/20 p-4">
             <div className="flex items-center justify-between">
               <span className="text-sm font-semibold text-foreground">Appearance</span>
-              {(profile.avatar_url ?? null) && (
+              <div className="flex items-center gap-1.5">
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
-                  onClick={handleAvatarReset}
+                  onClick={() => setDisplayedAvatars(getRandomAvatarGallery())}
                   className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground"
                 >
-                  <RotateCcw className="size-3.5" />
-                  Reset
+                  <Shuffle className="size-3.5" />
+                  Randomiser
                 </Button>
-              )}
+                {(profile.avatar_url ?? null) && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleAvatarReset}
+                    className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+                  >
+                    <RotateCcw className="size-3.5" />
+                    Reset
+                  </Button>
+                )}
+              </div>
             </div>
             <p className="text-xs text-muted-foreground">
               Choose an avatar from the gallery. Otherwise, your Discord avatar will be displayed.
             </p>
             <div className="grid grid-cols-6 gap-2 sm:grid-cols-9">
-              {AVATAR_GALLERY.map((item) => {
+              {displayedAvatars.map((item) => {
                 const isSelected = profile.avatar_url === item.url
                 return (
                   <button

@@ -1,3 +1,19 @@
+const BG = "d1d4f9"
+const STYLES = ["adventurer", "lorelei", "avataaars"] as const
+const API = "https://api.dicebear.com/9.x"
+
+/** Génère des avatars aléatoires (pour le bouton Randomiser) */
+export function getRandomAvatarGallery(count = 20): { id: string; url: string }[] {
+  const result: { id: string; url: string }[] = []
+  for (let i = 0; i < count; i++) {
+    const style = STYLES[i % STYLES.length]
+    const seed = crypto.randomUUID?.() ?? `rand-${Date.now()}-${i}-${Math.random().toString(36).slice(2)}`
+    const id = `rand-${i}-${seed.slice(0, 8)}`
+    result.push({ id, url: `${API}/${style}/svg?seed=${encodeURIComponent(seed)}&backgroundColor=${BG}` })
+  }
+  return result
+}
+
 /**
  * Galerie d'avatars prédéfinis (DiceBear, licence CC0)
  * Styles utilisés : adventurer, lorelei, avataaars
