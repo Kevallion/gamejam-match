@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Nunito, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
+import { AuthProvider } from '@/components/auth-provider'
 import { FeedbackButton } from '@/components/FeedbackButton'
 import { ThemeProvider } from '@/components/theme-provider'
 import { Toaster } from '@/components/ui/sonner'
@@ -75,10 +76,12 @@ export default function RootLayout({
         className={`${_nunito.variable} ${_geistMono.variable} font-sans antialiased`}
       >
         <ThemeProvider attribute="class" defaultTheme="dark">
-          {children}
-          <FeedbackButton />
-          <Toaster richColors position="bottom-right" />
-          <Analytics />
+          <AuthProvider>
+            {children}
+            <FeedbackButton />
+            <Toaster richColors position="bottom-right" />
+            <Analytics />
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>
