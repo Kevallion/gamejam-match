@@ -8,18 +8,23 @@ export async function GET(request: Request) {
   if (!next.startsWith('/')) next = '/'
 
   if (!code) {
-    return NextResponse.redirect(`${origin}/auth/auth-code-error`)
+    const reason = encodeURIComponent('no_code')
+    return NextResponse.redirect(`${origin}/auth/auth-code-error?reason=${reason}`)
   }
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  if (!supabaseUrl || !supabaseKey) {
+    const reason = encodeURIComponent('missing_env')
+    return NextResponse.redirect(`${origin}/auth/auth-code-error?reason=${reason}`)
+  }
 
+  const supabase = createClient(supabaseUrl, supabaseKey)
   const { error } = await supabase.auth.exchangeCodeForSession(code)
   if (error) {
     console.error('Auth callback error:', error)
-    return NextResponse.redirect(`${origin}/auth/auth-code-error`)
+    const reason = encodeURIComponent(error.message)
+    return NextResponse.redirect(`${origin}/auth/auth-code-error?reason=${reason}`)
   }
 
   const forwardedHost = request.headers.get('x-forwarded-host')
