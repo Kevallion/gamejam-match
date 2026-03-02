@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/sheet"
 import { useTheme } from "next-themes"
 import Link from "next/link"
+import { signInWithDiscord, subscribeToAuthComplete } from "@/lib/auth-utils"
 import { supabase } from "@/lib/supabase"
 import { useEffect, useState } from "react"
 import type { User } from "@supabase/supabase-js"
@@ -58,20 +59,25 @@ export function Navbar() {
       setUser(session?.user || null)
     })
 
+    // Rafraîchir la session quand l'auth OAuth se termine dans une popup (mobile)
+    const unsubscribe = subscribeToAuthComplete(() => {
+      getUser()
+    })
+
     return () => {
       authListener.subscription.unsubscribe()
+      unsubscribe()
     }
   }, [])
 
   const handleSignIn = async () => {
-    const redirectTo = typeof window !== 'undefined'
-      ? `${window.location.origin}/auth/callback`
-      : `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'discord',
-      options: { redirectTo },
-    })
-    if (error) toast.error("Connection error", { description: error.message })
+    try {
+      await signInWithDiscord()
+    } catch (error) {
+      toast.error("Erreur de connexion", {
+        description: error instanceof Error ? error.message : "Une erreur est survenue",
+      })
+    }
   }
 
   const handleSignOut = async () => {

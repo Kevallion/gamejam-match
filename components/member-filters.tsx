@@ -7,25 +7,30 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { SlidersHorizontal } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { SlidersHorizontal, RotateCcw } from "lucide-react"
 import { ENGINE_OPTIONS, EXPERIENCE_OPTIONS, ROLE_OPTIONS } from "@/lib/constants"
 
 interface MemberFiltersProps {
   role?: string
   engine?: string
   level?: string
+  hasActiveFilters?: boolean
   onRoleChange: (val: string) => void
   onEngineChange: (val: string) => void
   onLevelChange: (val: string) => void
+  onReset?: () => void
 }
 
 export function MemberFilters({
   role = "all",
   engine = "all",
   level = "all",
+  hasActiveFilters = false,
   onRoleChange,
   onEngineChange,
   onLevelChange,
+  onReset,
 }: MemberFiltersProps) {
   return (
     <section className="px-4 py-6 lg:px-6">
@@ -77,6 +82,13 @@ export function MemberFilters({
               ))}
             </SelectContent>
           </Select>
+
+          {hasActiveFilters && onReset && (
+            <Button variant="ghost" size="sm" onClick={onReset} className="gap-2 rounded-xl text-muted-foreground hover:text-foreground">
+              <RotateCcw className="size-4" />
+              Reset Filters
+            </Button>
+          )}
 
         </div>
       </div>

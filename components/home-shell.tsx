@@ -83,6 +83,24 @@ export function HomeShell() {
     updateUrl({ style: val })
   }
 
+  const hasActiveFilters =
+    searchQuery !== "" ||
+    engineFilter !== "all" ||
+    roleFilter !== "all" ||
+    levelFilter !== "all" ||
+    languageFilter !== "all" ||
+    styleFilter !== "all"
+
+  const handleResetFilters = () => {
+    setSearchQuery("")
+    setEngineFilter("all")
+    setRoleFilter("all")
+    setLevelFilter("all")
+    setLanguageFilter("all")
+    setStyleFilter("all")
+    window.history.replaceState(null, "", window.location.pathname)
+  }
+
   return (
     <div className="flex min-h-screen flex-col">
       <main className="flex-1">
@@ -105,11 +123,13 @@ export function HomeShell() {
               language={languageFilter}
               style={styleFilter}
               compact
+              hasActiveFilters={hasActiveFilters}
               onEngineChange={handleEngineChange}
               onRoleChange={handleRoleChange}
               onLevelChange={handleLevelChange}
               onLanguageChange={handleLanguageChange}
               onStyleChange={handleStyleChange}
+              onReset={handleResetFilters}
             />
           </div>
         </div>

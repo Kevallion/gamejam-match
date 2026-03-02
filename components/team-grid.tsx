@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react"
 import { TeamCard, type TeamCardData } from "@/components/team-card"
+import { Button } from "@/components/ui/button"
 import { supabase } from "@/lib/supabase"
 import { Loader2 } from "lucide-react"
 import { toast } from "sonner"
@@ -164,17 +165,21 @@ export function TeamGrid({
 
         {hasMore && (
           <div className="mt-10 flex justify-center">
-            <button
+            <Button
+              variant="outline"
               onClick={handleLoadMore}
               disabled={loadingMore}
-              className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-6 py-3 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-accent disabled:opacity-60"
+              className="gap-2 rounded-xl"
             >
               {loadingMore ? (
-                <><Loader2 className="size-4 animate-spin" /> Loading...</>
+                <>
+                  <Loader2 className="size-4 animate-spin" />
+                  Loading...
+                </>
               ) : (
                 "Load more teams"
               )}
-            </button>
+            </Button>
           </div>
         )}
       </div>

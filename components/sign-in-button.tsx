@@ -2,20 +2,18 @@
 
 import { Button } from "@/components/ui/button"
 import { LogIn } from "lucide-react"
-import { supabase } from "@/lib/supabase"
+import { signInWithDiscord } from "@/lib/auth-utils"
 import { toast } from "sonner"
 
 export function SignInButton({ className }: { className?: string }) {
   const handleSignIn = async () => {
-    const redirectTo =
-      typeof window !== "undefined"
-        ? `${window.location.origin}/auth/callback`
-        : `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/auth/callback`
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "discord",
-      options: { redirectTo },
-    })
-    if (error) toast.error("Connection error", { description: error.message })
+    try {
+      await signInWithDiscord()
+    } catch (error) {
+      toast.error("Erreur de connexion", {
+        description: error instanceof Error ? error.message : "Une erreur est survenue",
+      })
+    }
   }
 
   return (

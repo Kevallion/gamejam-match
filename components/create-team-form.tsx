@@ -16,7 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Plus, X, Rocket, Sparkles } from "lucide-react"
+import { Plus, X, Rocket, Sparkles, Loader2 } from "lucide-react"
 import { SignInButton } from "@/components/sign-in-button"
 import { toast } from "sonner"
 import { ENGINE_OPTIONS, EXPERIENCE_OPTIONS, JAM_STYLE_OPTIONS, ROLE_OPTIONS } from "@/lib/constants"
@@ -360,7 +360,12 @@ export function CreateTeamForm() {
 
               {/* Submit */}
               <Button type="submit" disabled={loading} className="w-full rounded-2xl bg-primary py-7 font-extrabold text-primary-foreground">
-                {loading ? "Publishing..." : (
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 size-5 animate-spin" />
+                    Publishing...
+                  </>
+                ) : (
                   <>
                     <Sparkles className="size-5 mr-2" />
                     Publish Announcement

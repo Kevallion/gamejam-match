@@ -91,12 +91,12 @@ function SentApplicationsSection({ sentApplications }: { sentApplications: SentA
                     </span>
                   )}
                   {app.status === "rejected" && (
-                    <span className="rounded bg-red-500/10 px-2.5 py-1 text-xs font-medium text-red-600">
+                    <span className="rounded bg-destructive/10 px-2.5 py-1 text-xs font-medium text-destructive">
                       Declined
                     </span>
                   )}
                   {app.status === "accepted" && (
-                    <span className="rounded bg-green-500/10 px-2.5 py-1 text-xs font-medium text-green-600">
+                    <span className="rounded bg-success/10 px-2.5 py-1 text-xs font-medium text-success">
                       Accepted
                     </span>
                   )}

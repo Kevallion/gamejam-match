@@ -24,7 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Sparkles, CalendarDays } from "lucide-react"
+import { Sparkles, CalendarDays, Loader2 } from "lucide-react"
 import { SignInButton } from "@/components/sign-in-button"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
@@ -371,7 +371,14 @@ export function AvailabilityForm() {
 
               {/* Submit */}
               <Button type="submit" disabled={loading} className="w-full rounded-2xl bg-lavender py-7 font-extrabold text-lavender-foreground">
-                {loading ? "Sending..." : "Post My Availability"}
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 size-5 animate-spin" />
+                    Sending...
+                  </>
+                ) : (
+                  "Post My Availability"
+                )}
               </Button>
             </form>
           </CardContent>

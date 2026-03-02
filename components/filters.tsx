@@ -3,7 +3,8 @@
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select"
-import { SlidersHorizontal } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { SlidersHorizontal, RotateCcw } from "lucide-react"
 import { ENGINE_OPTIONS, EXPERIENCE_OPTIONS, JAM_STYLE_OPTIONS, LANGUAGE_OPTIONS, ROLE_OPTIONS } from "@/lib/constants"
 
 interface FiltersProps {
@@ -13,11 +14,13 @@ interface FiltersProps {
   language?: string
   style?: string
   compact?: boolean
+  hasActiveFilters?: boolean
   onEngineChange: (val: string) => void
   onRoleChange: (val: string) => void
   onLevelChange: (val: string) => void
   onLanguageChange: (val: string) => void
   onStyleChange?: (val: string) => void
+  onReset?: () => void
 }
 
 export function Filters({
@@ -27,11 +30,13 @@ export function Filters({
   language = "all",
   style = "all",
   compact = false,
+  hasActiveFilters = false,
   onEngineChange,
   onRoleChange,
   onLevelChange,
   onLanguageChange,
   onStyleChange,
+  onReset,
 }: FiltersProps) {
   return (
     <section className={compact ? "py-0" : "px-4 py-6 lg:px-6"}>
@@ -112,6 +117,13 @@ export function Filters({
                 ))}
               </SelectContent>
             </Select>
+          )}
+
+          {hasActiveFilters && onReset && (
+            <Button variant="ghost" size="sm" onClick={onReset} className="gap-2 rounded-xl text-muted-foreground hover:text-foreground">
+              <RotateCcw className="size-4" />
+              Reset Filters
+            </Button>
           )}
 
         </div>

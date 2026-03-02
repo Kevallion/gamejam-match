@@ -14,6 +14,19 @@ export function FindMembersShell() {
   const [engineFilter, setEngineFilter] = useState("all")
   const [levelFilter, setLevelFilter] = useState("all")
 
+  const hasActiveFilters =
+    searchQuery !== "" ||
+    roleFilter !== "all" ||
+    engineFilter !== "all" ||
+    levelFilter !== "all"
+
+  const handleResetFilters = () => {
+    setSearchQuery("")
+    setRoleFilter("all")
+    setEngineFilter("all")
+    setLevelFilter("all")
+  }
+
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
@@ -58,9 +71,11 @@ export function FindMembersShell() {
           role={roleFilter}
           engine={engineFilter}
           level={levelFilter}
+          hasActiveFilters={hasActiveFilters}
           onRoleChange={setRoleFilter}
           onEngineChange={setEngineFilter}
           onLevelChange={setLevelFilter}
+          onReset={handleResetFilters}
         />
 
         <MembersGrid

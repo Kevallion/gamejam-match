@@ -43,7 +43,10 @@ export async function GET(request: Request) {
           ? `https://${forwardedHost}`
           : origin
 
-    return NextResponse.redirect(`${baseUrl}${safeNext}`)
+    // Paramètre pour que le client puisse fermer la popup OAuth sur mobile
+    const separator = safeNext.includes("?") ? "&" : "?"
+    const redirectUrl = `${baseUrl}${safeNext}${separator}from_auth=1`
+    return NextResponse.redirect(redirectUrl)
   } catch (err) {
     console.error("Auth callback exception:", err)
     return NextResponse.redirect(`${errorUrl}?reason=${encodeURIComponent(AUTH_FAILED_REASON)}`)
