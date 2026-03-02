@@ -29,6 +29,9 @@ export const ENGINE_OPTIONS = [
   { value: "unreal", label: "Unreal Engine" },
   { value: "gamemaker", label: "GameMaker" },
   { value: "pico8", label: "PICO-8" },
+  { value: "defold", label: "Defold" },
+  { value: "construct", label: "Construct" },
+  { value: "gdevelop", label: "GDevelop" },
   { value: "custom", label: "Custom / Other" },
 ] as const
 
