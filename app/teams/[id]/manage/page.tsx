@@ -7,7 +7,7 @@ import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { OptimizedAvatar } from "@/components/optimized-avatar"
 import {
   Dialog,
   DialogContent,
@@ -521,17 +521,17 @@ export default function TeamManagePage() {
                           className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-border/50 bg-card/50 px-4 py-3"
                         >
                           <div className="flex items-center gap-3">
-                            <Avatar className="size-10 shrink-0">
-                              <AvatarImage src={avatarUrl} alt={member.username} />
-                              <AvatarFallback className="bg-secondary text-sm font-bold">
-                                {member.username
-                                  .split(/[\s_]+/)
-                                  .map((w) => w[0])
-                                  .join("")
-                                  .slice(0, 2)
-                                  .toUpperCase()}
-                              </AvatarFallback>
-                            </Avatar>
+                            <OptimizedAvatar
+                              src={avatarUrl}
+                              alt={member.username}
+                              size="xs"
+                              fallback={member.username
+                                .split(/[\s_]+/)
+                                .map((w) => w[0])
+                                .join("")
+                                .slice(0, 2)
+                                .toUpperCase()}
+                            />
                             <div>
                               <p className="font-semibold text-foreground">{member.username}</p>
                               {roleStyle && (

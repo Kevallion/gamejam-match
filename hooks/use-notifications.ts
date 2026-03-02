@@ -45,7 +45,7 @@ export function useNotifications(userId: string | null) {
     const [{ data: apps }, { data: invites }] = await Promise.all([
         supabase
           .from("join_requests")
-          .select("id, sender_name, target_role, created_at, teams!inner(team_name, user_id)")
+          .select("id, sender_id, sender_name, target_role, created_at, teams!inner(team_name, user_id)")
           .eq("teams.user_id", userId)
           .eq("type", "application")
           .eq("status", "pending")
@@ -61,15 +61,29 @@ export function useNotifications(userId: string | null) {
           .limit(5),
       ])
 
+      // Fetch sender profiles for application notifications
+      const senderIds = [...new Set((apps || []).map((a: any) => a.sender_id).filter(Boolean))]
+      const profileMap: Record<string, string> = {}
+      if (senderIds.length > 0) {
+        const { data: profilesData } = await supabase
+          .from("profiles")
+          .select("id, username")
+          .in("id", senderIds)
+        for (const p of profilesData || []) {
+          if (p.username?.trim()) profileMap[p.id] = p.username.trim()
+        }
+      }
+
       const combined: NotificationItem[] = []
 
       if (apps) {
         for (const a of apps) {
+          const profileUsername = a.sender_id ? profileMap[a.sender_id] : null
           combined.push({
             id: a.id,
             kind: "application",
             teamName: (a.teams as any)?.team_name ?? "Unknown Team",
-            senderName: a.sender_name,
+            senderName: profileUsername || a.sender_name || "Someone",
             targetRole: a.target_role,
             createdAt: a.created_at,
           })

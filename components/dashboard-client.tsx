@@ -173,6 +173,7 @@ export function DashboardClient() {
       teamName: r.teams?.team_name || "Unknown Team",
       role: targetRole,
       motivation: r.message || "No motivation provided.",
+      createdAt: r.created_at,
     }
   }
 
@@ -350,7 +351,7 @@ export function DashboardClient() {
     try {
       const { data: request, error: fetchError } = await supabase
         .from("join_requests")
-        .select("*")
+        .select("id, team_id, sender_id, sender_name, target_role")
         .eq("id", id)
         .single()
 
@@ -545,7 +546,7 @@ export function DashboardClient() {
         <section className="px-4 pb-16 pt-4 lg:px-6 lg:pb-24">
           <div className="mx-auto max-w-6xl">
             {/* Stat Cards */}
-            <div className="mb-8 grid gap-4 sm:grid-cols-3">
+            <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-3">
               <Card>
                 <CardContent className="flex items-center gap-4 pt-6">
                   <div className="flex size-12 items-center justify-center rounded-xl bg-teal/15">
@@ -568,7 +569,7 @@ export function DashboardClient() {
                   </div>
                 </CardContent>
               </Card>
-              <Card>
+              <Card className="col-span-2 sm:col-span-1">
                 <CardContent className="flex items-center gap-4 pt-6">
                   <div className="flex size-12 items-center justify-center rounded-xl bg-lavender/15">
                     <UserCircle className="size-6 text-lavender" />

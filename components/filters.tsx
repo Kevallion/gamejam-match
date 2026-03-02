@@ -41,7 +41,7 @@ export function Filters({
   return (
     <section className={compact ? "py-0" : "px-4 py-6 lg:px-6"}>
       <div className="mx-auto max-w-6xl">
-        <div className="flex items-center gap-3 mb-4">
+        <div className="mb-3 flex items-center gap-3 sm:mb-4">
           <SlidersHorizontal className="size-4 text-muted-foreground" />
           <span className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
             Filter teams
@@ -50,7 +50,7 @@ export function Filters({
         <div className="flex flex-wrap items-center gap-3">
           
           <Select onValueChange={onEngineChange} value={engine}>
-            <SelectTrigger className="w-[160px] rounded-xl border-border/60 bg-card">
+            <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-card sm:w-[160px]">
               <SelectValue placeholder="Engine" />
             </SelectTrigger>
             <SelectContent className="rounded-xl">
@@ -62,7 +62,7 @@ export function Filters({
           </Select>
 
           <Select onValueChange={onRoleChange} value={role}>
-            <SelectTrigger className="w-[180px] rounded-xl border-border/60 bg-card">
+            <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-card sm:w-[180px]">
               <SelectValue placeholder="Role Needed" />
             </SelectTrigger>
             <SelectContent className="rounded-xl">
@@ -74,7 +74,7 @@ export function Filters({
           </Select>
 
           <Select onValueChange={onLevelChange} value={level}>
-            <SelectTrigger className="w-[180px] rounded-xl border-border/60 bg-card">
+            <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-card sm:w-[180px]">
               <SelectValue placeholder="Experience" />
             </SelectTrigger>
             <SelectContent className="rounded-xl">
@@ -90,7 +90,7 @@ export function Filters({
           </Select>
 
           <Select onValueChange={onLanguageChange} value={language}>
-            <SelectTrigger className="w-[160px] rounded-xl border-border/60 bg-card">
+            <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-card sm:w-[160px]">
               <SelectValue placeholder="Language" />
             </SelectTrigger>
             <SelectContent className="rounded-xl">
@@ -103,7 +103,7 @@ export function Filters({
 
           {onStyleChange && (
             <Select onValueChange={onStyleChange} value={style}>
-              <SelectTrigger className="w-[180px] rounded-xl border-border/60 bg-card">
+              <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-card sm:w-[180px]">
                 <SelectValue placeholder="Jam Style" />
               </SelectTrigger>
               <SelectContent className="rounded-xl">

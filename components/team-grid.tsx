@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { TeamCard, type TeamCardData } from "@/components/team-card"
 import { Button } from "@/components/ui/button"
 import { supabase } from "@/lib/supabase"
@@ -104,38 +104,40 @@ export function TeamGrid({
     setLoadingMore(false)
   }
 
-  const displayedTeams = teams.filter((t) => {
-    // Hide full teams
-    if (t.members >= t.maxMembers) return false
+  const displayedTeams = useMemo(() => {
+    return teams.filter((t) => {
+      // Hide full teams
+      if (t.members >= t.maxMembers) return false
 
-    const searchLower = debouncedSearch.toLowerCase()
-    const matchSearch =
-      !searchLower ||
-      t.name.toLowerCase().includes(searchLower) ||
-      t.jam.toLowerCase().includes(searchLower) ||
-      t.description.toLowerCase().includes(searchLower)
+      const searchLower = debouncedSearch.toLowerCase()
+      const matchSearch =
+        !searchLower ||
+        t.name.toLowerCase().includes(searchLower) ||
+        t.jam.toLowerCase().includes(searchLower) ||
+        t.description.toLowerCase().includes(searchLower)
 
-    const matchEngine =
-      engineFilter === "all" || String(t.engine).toLowerCase() === engineFilter.toLowerCase()
-    const matchLanguage =
-      languageFilter === "all" || String(t.language).toLowerCase() === languageFilter.toLowerCase()
-    const matchRole =
-      roleFilter === "all" || t.rawRoles.some((r: any) => r.role.toLowerCase() === roleFilter.toLowerCase())
-    const legacyMap: Record<string, string> = { hobbyist: "junior", confirmed: "regular", expert: "senior" }
-    const matchLevel =
-      levelFilter === "all" ||
-      t.rawRoles.some((r: any) => {
-        const raw = (r.level?.toLowerCase() || "")
-        const normalized = legacyMap[raw] ?? raw
-        const filter = levelFilter.toLowerCase()
-        return normalized === filter
-      })
-    const matchStyle =
-      styleFilter === "all" ||
-      (t.rawTeamVibe && String(t.rawTeamVibe).toLowerCase() === styleFilter.toLowerCase())
+      const matchEngine =
+        engineFilter === "all" || String(t.engine).toLowerCase() === engineFilter.toLowerCase()
+      const matchLanguage =
+        languageFilter === "all" || String(t.language).toLowerCase() === languageFilter.toLowerCase()
+      const matchRole =
+        roleFilter === "all" || t.rawRoles.some((r: any) => r.role.toLowerCase() === roleFilter.toLowerCase())
+      const legacyMap: Record<string, string> = { hobbyist: "junior", confirmed: "regular", expert: "senior" }
+      const matchLevel =
+        levelFilter === "all" ||
+        t.rawRoles.some((r: any) => {
+          const raw = (r.level?.toLowerCase() || "")
+          const normalized = legacyMap[raw] ?? raw
+          const filter = levelFilter.toLowerCase()
+          return normalized === filter
+        })
+      const matchStyle =
+        styleFilter === "all" ||
+        (t.rawTeamVibe && String(t.rawTeamVibe).toLowerCase() === styleFilter.toLowerCase())
 
-    return matchSearch && matchEngine && matchLanguage && matchRole && matchLevel && matchStyle
-  })
+      return matchSearch && matchEngine && matchLanguage && matchRole && matchLevel && matchStyle
+    })
+  }, [teams, debouncedSearch, engineFilter, roleFilter, levelFilter, languageFilter, styleFilter])
 
   if (loading)
     return <div className="text-center py-20 text-muted-foreground">Loading teams...</div>

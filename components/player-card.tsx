@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { OptimizedAvatar } from "@/components/optimized-avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
@@ -202,17 +202,17 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
             <CardContent className="flex flex-1 flex-col gap-4 pt-6">
               {/* Avatar + Username */}
               <div className="flex items-center gap-3.5">
-                <Avatar className="size-12 ring-2 ring-border/60">
-                  <AvatarImage src={player.avatarUrl} alt={player.username} />
-                  <AvatarFallback className="bg-secondary text-sm font-bold text-secondary-foreground">
-                    {player.username
-                      .split(/[\s_]+/)
-                      .map((w) => w[0])
-                      .join("")
-                      .slice(0, 2)
-                      .toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
+                <OptimizedAvatar
+                  src={player.avatarUrl}
+                  alt={player.username}
+                  size="md"
+                  fallback={player.username
+                    .split(/[\s_]+/)
+                    .map((w) => w[0])
+                    .join("")
+                    .slice(0, 2)
+                    .toUpperCase()}
+                />
                 <div className="min-w-0 flex-1">
                   <h3 className="truncate text-lg font-bold text-foreground">
                     {player.username}
@@ -296,17 +296,17 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
         <DialogContent className="max-w-lg rounded-2xl border-border/60 bg-card p-0 shadow-2xl shadow-lavender/10 overflow-hidden">
           <DialogHeader className="px-6 pt-6 pb-4 space-y-1 text-left border-b border-border/60">
             <div className="flex items-center gap-4">
-              <Avatar className="size-14 ring-2 ring-border/60">
-                <AvatarImage src={player.avatarUrl} alt={player.username} />
-                <AvatarFallback className="bg-secondary text-base font-bold text-secondary-foreground">
-                  {player.username
-                    .split(/[\s_]+/)
-                    .map((w) => w[0])
-                    .join("")
-                    .slice(0, 2)
-                    .toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
+              <OptimizedAvatar
+                src={player.avatarUrl}
+                alt={player.username}
+                size="lg"
+                fallback={player.username
+                  .split(/[\s_]+/)
+                  .map((w) => w[0])
+                  .join("")
+                  .slice(0, 2)
+                  .toUpperCase()}
+              />
               <div>
                 <DialogTitle className="text-xl font-bold text-foreground">
                   {player.username}

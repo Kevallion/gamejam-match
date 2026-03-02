@@ -109,7 +109,7 @@ export function HomeShell() {
 
         {/* Sticky bar: search + filters */}
         <div className="sticky top-16 z-40 -mb-px border-b border-border/50 bg-background/95 backdrop-blur-md">
-          <div className="mx-auto max-w-6xl flex flex-col gap-6 px-4 py-6 lg:px-6 lg:py-6">
+          <div className="mx-auto max-w-6xl flex flex-col gap-4 px-4 py-4 sm:gap-6 sm:py-6 lg:px-6 lg:py-6">
             <div className="w-full max-w-xl">
               <Search
                 value={searchQuery}

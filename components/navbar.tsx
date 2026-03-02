@@ -284,16 +284,16 @@ export function Navbar() {
                           onClick={() => dismissNotification(notif.id)}
                           className="flex cursor-pointer flex-col gap-0.5 rounded-xl px-3 py-2.5 focus:bg-accent"
                         >
-                          <span className="text-sm font-medium leading-snug text-foreground">
+                          <span className="block min-w-0 truncate text-sm font-medium leading-snug text-foreground">
                             {notif.kind === "application" ? (
                               <>
-                                <span className="text-primary">{notif.senderName || "Someone"}</span>
+                                <span className="truncate text-primary">{notif.senderName || "Someone"}</span>
                                 {" applied to "}
-                                <span className="font-bold">{notif.teamName}</span>
+                                <span className="truncate font-bold">{notif.teamName}</span>
                               </>
                             ) : (
                               <>
-                                <span className="font-bold">{notif.teamName}</span>
+                                <span className="truncate font-bold">{notif.teamName}</span>
                                 {" invited you"}
                               </>
                             )}

@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import Script from 'next/script'
-import { Nunito, Geist_Mono } from 'next/font/google'
+import { Nunito } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { AuthCallbackHandler } from '@/components/auth-callback-handler'
 import { AuthProvider } from '@/components/auth-provider'
@@ -14,11 +14,6 @@ const _nunito = Nunito({
   variable: '--font-nunito',
   weight: ['400', '500', '600', '700', '800'],
 })
-const _geistMono = Geist_Mono({
-  subsets: ['latin'],
-  variable: '--font-geist-mono',
-})
-
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://gamejamcrew.com'
 
 export const metadata: Metadata = {
@@ -85,7 +80,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         />
       </head>
       <body
-        className={`${_nunito.variable} ${_geistMono.variable} font-sans antialiased`}
+        className={`${_nunito.variable} font-sans antialiased`}
       >
         {/* Google Tag Manager (noscript) */}
         <noscript>

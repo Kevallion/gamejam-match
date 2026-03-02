@@ -1,6 +1,7 @@
 "use client"
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { useState, useEffect } from "react"
+import { OptimizedAvatar } from "@/components/optimized-avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -13,6 +14,7 @@ import {
   Clock,
   Sparkles,
 } from "lucide-react"
+import { formatDistanceToNow } from "date-fns"
 
 export type ApplicationData = {
   id: string
@@ -21,6 +23,30 @@ export type ApplicationData = {
   teamName: string
   role: { label: string; emoji: string; color: string }
   motivation: string
+  createdAt?: string
+}
+
+function RelativeTime({ date }: { date: string }) {
+  const getLabel = () => {
+    try {
+      const d = new Date(date)
+      if (isNaN(d.getTime())) return "Just now"
+      const diffMs = Date.now() - d.getTime()
+      if (diffMs < 60_000) return "Just now"
+      return formatDistanceToNow(d, { addSuffix: true })
+    } catch {
+      return "Just now"
+    }
+  }
+  const [label, setLabel] = useState(getLabel)
+
+  useEffect(() => {
+    const update = () => setLabel(getLabel())
+    const interval = setInterval(update, 60_000)
+    return () => clearInterval(interval)
+  }, [date])
+
+  return <>{label}</>
 }
 
 interface DashboardIncomingApplicationsProps {
@@ -88,17 +114,18 @@ export function DashboardIncomingApplications({
                 {/* Top row: avatar + user info */}
                 <div className="flex items-start gap-4">
                   <div className="relative">
-                    <Avatar className="size-12 shrink-0 ring-2 ring-mint/20 transition-all duration-300 group-hover:ring-mint/40">
-                      <AvatarImage src={app.avatarUrl} alt={app.username} />
-                      <AvatarFallback className="bg-secondary text-sm font-bold text-secondary-foreground">
-                        {app.username
-                          .split(/[\s_]+/)
-                          .map((w) => w[0])
-                          .join("")
-                          .slice(0, 2)
-                          .toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
+                    <OptimizedAvatar
+                      src={app.avatarUrl}
+                      alt={app.username}
+                      size="md"
+                      className="shrink-0 ring-2 ring-mint/20 transition-all duration-300 group-hover:ring-mint/40"
+                      fallback={app.username
+                        .split(/[\s_]+/)
+                        .map((w) => w[0])
+                        .join("")
+                        .slice(0, 2)
+                        .toUpperCase()}
+                    />
                     {/* Online-style dot */}
                     <span className="absolute -bottom-0.5 -right-0.5 size-3.5 rounded-full border-2 border-card bg-mint" />
                   </div>
@@ -129,7 +156,11 @@ export function DashboardIncomingApplications({
                       </span>
                       <span className="inline-flex items-center gap-1 text-xs text-muted-foreground/70">
                         <Clock className="size-3" />
-                        Just now
+                        {app.createdAt ? (
+                          <RelativeTime date={app.createdAt} />
+                        ) : (
+                          "Just now"
+                        )}
                       </span>
                     </div>
                   </div>

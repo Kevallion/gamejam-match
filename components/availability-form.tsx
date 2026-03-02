@@ -72,7 +72,11 @@ export function AvailabilityForm() {
   useEffect(() => {
     if (!user || hasLoadedProfile) return
     async function loadProfile() {
-      const { data } = await supabase.from("profiles").select("*").eq("id", user!.id).single()
+      const { data } = await supabase
+        .from("profiles")
+        .select("username, role, experience, experience_level, jam_style, engine, language, bio, portfolio_link")
+        .eq("id", user!.id)
+        .single()
       if (data) {
         setUsername(data.username || "")
         setRole(data.role || "")

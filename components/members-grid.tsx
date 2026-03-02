@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { JammerCard, type JammerCardData, type SquadOption } from "@/components/player-card"
 import { Button } from "@/components/ui/button"
 import { Loader2 } from "lucide-react"
@@ -134,22 +134,24 @@ export function MembersGrid({
     setLoadingMore(false)
   }
 
-  const displayedMembers = members.filter((m) => {
-    // Hide profiles with availability disabled (removed from list)
-    if (m.availability == null || m.availability === "") return false
+  const displayedMembers = useMemo(() => {
+    return members.filter((m) => {
+      // Hide profiles with availability disabled (removed from list)
+      if (m.availability == null || m.availability === "") return false
 
-    const matchSearch =
-      !debouncedSearch || m.username.toLowerCase().includes(debouncedSearch.toLowerCase())
-    const matchRole = roleFilter === "all" || m.rawRole.toLowerCase() === roleFilter.toLowerCase()
-    const matchEngine = engineFilter === "all" || m.rawEngine.toLowerCase() === engineFilter.toLowerCase()
-    const rawLevel = m.rawLevel?.toLowerCase() || ""
-    const filterLevel = levelFilter.toLowerCase()
-    const legacyMap: Record<string, string> = { hobbyist: "junior", confirmed: "regular", expert: "senior" }
-    const normalizedRaw = legacyMap[rawLevel] ?? rawLevel
-    const matchLevel = levelFilter === "all" || normalizedRaw === filterLevel
+      const matchSearch =
+        !debouncedSearch || m.username.toLowerCase().includes(debouncedSearch.toLowerCase())
+      const matchRole = roleFilter === "all" || m.rawRole.toLowerCase() === roleFilter.toLowerCase()
+      const matchEngine = engineFilter === "all" || m.rawEngine.toLowerCase() === engineFilter.toLowerCase()
+      const rawLevel = m.rawLevel?.toLowerCase() || ""
+      const filterLevel = levelFilter.toLowerCase()
+      const legacyMap: Record<string, string> = { hobbyist: "junior", confirmed: "regular", expert: "senior" }
+      const normalizedRaw = legacyMap[rawLevel] ?? rawLevel
+      const matchLevel = levelFilter === "all" || normalizedRaw === filterLevel
 
-    return matchSearch && matchRole && matchEngine && matchLevel
-  })
+      return matchSearch && matchRole && matchEngine && matchLevel
+    })
+  }, [members, debouncedSearch, roleFilter, engineFilter, levelFilter])
 
   if (loading) return <div className="text-center py-20 text-muted-foreground">Loading jammers...</div>
 

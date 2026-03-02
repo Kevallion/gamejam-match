@@ -91,7 +91,7 @@ export function TeamCard({ team }: { team: TeamCardData }) {
                     </span>
                   )}
                 </div>
-                <p className="mt-0.5 text-sm font-medium text-primary">
+                <p className="mt-0.5 truncate text-sm font-medium text-primary">
                   {team.jam}
                 </p>
               </div>

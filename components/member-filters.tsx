@@ -44,7 +44,7 @@ export function MemberFilters({
         <div className="flex flex-wrap items-center gap-3">
           
           <Select onValueChange={onRoleChange} value={role}>
-            <SelectTrigger className="w-[170px] rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40">
+            <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40 sm:w-[170px]">
               <SelectValue placeholder="Role" />
             </SelectTrigger>
             <SelectContent className="rounded-xl">
@@ -56,7 +56,7 @@ export function MemberFilters({
           </Select>
 
           <Select onValueChange={onEngineChange} value={engine}>
-            <SelectTrigger className="w-[170px] rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40">
+            <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40 sm:w-[170px]">
               <SelectValue placeholder="Engine" />
             </SelectTrigger>
             <SelectContent className="rounded-xl">
@@ -68,7 +68,7 @@ export function MemberFilters({
           </Select>
 
           <Select onValueChange={onLevelChange} value={level}>
-            <SelectTrigger className="w-[190px] rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40">
+            <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40 sm:w-[190px]">
               <SelectValue placeholder="Experience" />
             </SelectTrigger>
             <SelectContent className="rounded-xl">

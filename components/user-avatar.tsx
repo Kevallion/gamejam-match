@@ -1,6 +1,6 @@
 "use client"
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { OptimizedAvatar } from "@/components/optimized-avatar"
 import { cn } from "@/lib/utils"
 
 export interface UserAvatarProps {
@@ -16,17 +16,11 @@ export interface UserAvatarProps {
   size?: "sm" | "md" | "lg"
 }
 
-const sizeClasses = {
-  sm: "size-8",
-  md: "size-12",
-  lg: "size-14",
-}
-
 /**
  * Priority order:
  * 1. profiles.avatar_url (internal gallery)
  * 2. user.user_metadata.avatar_url (Discord)
- * 3. fallbackImageUrl (e.g. DiceBear) or AvatarFallback with initials
+ * 3. fallbackImageUrl (e.g. DiceBear) or initials fallback
  */
 export function UserAvatar({
   profileAvatarUrl,
@@ -42,19 +36,37 @@ export function UserAvatar({
     fallbackImageUrl?.trim() ||
     null
 
-  const initials = username
-    .split(/[\s_]+/)
-    .map((w) => w[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase() || "?"
+  const initials =
+    username
+      .split(/[\s_]+/)
+      .map((w) => w[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase() || "?"
+
+  if (!avatarUrl) {
+    return (
+      <div
+        className={cn(
+          "flex shrink-0 items-center justify-center rounded-full bg-secondary text-sm font-bold text-secondary-foreground ring-2 ring-border/60",
+          size === "sm" && "size-8",
+          size === "md" && "size-12",
+          size === "lg" && "size-14",
+          className
+        )}
+      >
+        {initials}
+      </div>
+    )
+  }
 
   return (
-    <Avatar className={cn(sizeClasses[size], "ring-2 ring-border/60", className)}>
-      {avatarUrl && <AvatarImage src={avatarUrl} alt={username} />}
-      <AvatarFallback className="bg-secondary text-sm font-bold text-secondary-foreground">
-        {initials}
-      </AvatarFallback>
-    </Avatar>
+    <OptimizedAvatar
+      src={avatarUrl}
+      alt={username}
+      size={size}
+      className={className}
+      fallback={initials}
+    />
   )
 }
