@@ -71,6 +71,24 @@ export async function signInWithDiscord(options?: { next?: string }): Promise<vo
   if (error) throw error
 }
 
+export async function signInWithGoogle(options?: { next?: string }): Promise<void> {
+  const next = options?.next ?? "/dashboard"
+
+  const redirectTo =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/auth/callback`
+      : `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/auth/callback`
+
+  const redirectWithNext = next.startsWith("/") ? `${redirectTo}?next=${encodeURIComponent(next)}` : redirectTo
+
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: { redirectTo: redirectWithNext },
+  })
+
+  if (error) throw error
+}
+
 export function subscribeToAuthComplete(callback: () => void): () => void {
   const channel = new BroadcastChannel(AUTH_BROADCAST_CHANNEL)
   channel.onmessage = callback

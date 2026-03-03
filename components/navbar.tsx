@@ -20,13 +20,12 @@ import {
 } from "@/components/ui/sheet"
 import { useTheme } from "next-themes"
 import Link from "next/link"
-import { signInWithDiscord, subscribeToAuthComplete } from "@/lib/auth-utils"
+import { subscribeToAuthComplete } from "@/lib/auth-utils"
+import { AuthModal } from "@/components/auth-modal"
 import { supabase } from "@/lib/supabase"
 import { useEffect, useState } from "react"
 import type { User } from "@supabase/supabase-js"
 import { useNotifications } from "@/hooks/use-notifications"
-import { toast } from "sonner"
-
 const ROLE_LABELS: Record<string, string> = {
   developer: "Developer",
   "2d-artist": "2D Artist",
@@ -43,6 +42,7 @@ export function Navbar() {
   const [loading, setLoading] = useState(true)
   const [mounted, setMounted] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [authModalOpen, setAuthModalOpen] = useState(false)
   const { setTheme } = useTheme()
   const { notifications, unreadCount, loading: notifLoading, refetch: refetchNotifications, dismissNotification } = useNotifications(user?.id ?? null)
 
@@ -70,16 +70,6 @@ export function Navbar() {
       unsubscribe()
     }
   }, [])
-
-  const handleSignIn = async () => {
-    try {
-      await signInWithDiscord()
-    } catch (error) {
-      toast.error("Erreur de connexion", {
-        description: error instanceof Error ? error.message : "Une erreur est survenue",
-      })
-    }
-  }
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
@@ -193,11 +183,11 @@ export function Navbar() {
                     </>
                   ) : (
                     <Button
-                      onClick={() => { handleSignIn(); setMobileMenuOpen(false); }}
-                      className="gap-2 rounded-xl bg-[#5865F2] text-white hover:bg-[#4752C4] w-full justify-center"
+                      onClick={() => { setAuthModalOpen(true); setMobileMenuOpen(false); }}
+                      className="gap-2 rounded-xl w-full justify-center"
                     >
                       <LogIn className="size-4" />
-                      Sign in (Discord)
+                      Sign In
                     </Button>
                   )}
                 </div>
@@ -340,8 +330,12 @@ export function Navbar() {
               <Loader2 className="size-5 animate-spin text-muted-foreground" />
             ) : user ? (
               <>
-                <span className="text-sm font-medium text-muted-foreground">
-                  Hello, <span className="text-foreground">{user.user_metadata.full_name || 'Jammer'}</span> !
+                <span className="max-w-[160px] truncate text-sm font-medium text-muted-foreground">
+                  Hello,{" "}
+                  <span className="truncate text-foreground align-middle">
+                    {user.user_metadata.full_name || "Jammer"}
+                  </span>{" "}
+                  !
                 </span>
 
                 <Button asChild variant="outline" className="gap-2 rounded-xl border-primary/30 text-primary hover:bg-primary/10">
@@ -357,14 +351,15 @@ export function Navbar() {
                 </Button>
               </>
             ) : (
-              <Button onClick={handleSignIn} className="gap-2 rounded-xl bg-[#5865F2] text-white hover:bg-[#4752C4]">
+              <Button onClick={() => setAuthModalOpen(true)} className="gap-2 rounded-xl">
                 <LogIn className="size-4" />
-                Sign in with Discord
+                Sign In
               </Button>
             )}
           </div>
         </div>
       </nav>
+      <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
     </header>
   )
 }

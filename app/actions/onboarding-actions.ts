@@ -18,10 +18,14 @@ export async function completeOnboarding(): Promise<{ success: boolean; error?: 
     return { success: false, error: "User not authenticated" }
   }
 
+  // S'assure qu'une ligne de profil existe pour cet utilisateur,
+  // et marque l'onboarding comme complété (idempotent).
   const { error } = await supabase
     .from("profiles")
-    .update({ has_completed_onboarding: true })
-    .eq("id", user.id)
+    .upsert(
+      { id: user.id, has_completed_onboarding: true },
+      { onConflict: "id" }
+    )
 
   if (error) {
     return { success: false, error: error.message }
