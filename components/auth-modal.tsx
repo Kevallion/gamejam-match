@@ -55,8 +55,8 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
     try {
       await signInWithDiscord()
     } catch (error) {
-      toast.error("Erreur de connexion", {
-        description: error instanceof Error ? error.message : "Une erreur est survenue",
+      toast.error("Sign-in error", {
+        description: error instanceof Error ? error.message : "Something went wrong. Please try again.",
       })
       setIsLoading(false)
     }
@@ -68,8 +68,8 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
     try {
       await signInWithGoogle()
     } catch (error) {
-      toast.error("Erreur de connexion", {
-        description: error instanceof Error ? error.message : "Une erreur est survenue",
+      toast.error("Sign-in error", {
+        description: error instanceof Error ? error.message : "Something went wrong. Please try again.",
       })
       setIsLoading(false)
     }
@@ -81,15 +81,23 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
     setIsMagicLoading(true)
     setMagicSent(false)
     try {
+      const baseUrl =
+        typeof window !== "undefined"
+          ? window.location.origin
+          : process.env.NEXT_PUBLIC_SITE_URL || "https://gamejamcrew.com"
+
+      const redirectTo = `${baseUrl}/auth/callback?next=${encodeURIComponent("/dashboard")}`
+
       const { error } = await supabase.auth.signInWithOtp({
         email: email.trim(),
         options: {
-          emailRedirectTo: "https://gamejamcrew.com",
+          // En production, cela donnera https://gamejamcrew.com/auth/callback?next=/dashboard
+          emailRedirectTo: redirectTo,
         },
       })
 
       if (error) {
-        toast.error("Impossible d'envoyer le lien magique", {
+        toast.error("Unable to send magic link", {
           description: error.message,
         })
         setIsMagicLoading(false)
@@ -97,12 +105,12 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
       }
 
       setMagicSent(true)
-      toast.success("Lien magique envoyé ✉️", {
-        description: "Vérifie ta boîte mail (et tes spams) pour te connecter.",
+      toast.success("Magic link sent ✉️", {
+        description: "Check your inbox (and spam folder) to sign in.",
       })
     } catch (error) {
-      toast.error("Une erreur est survenue", {
-        description: error instanceof Error ? error.message : "Veuillez réessayer.",
+      toast.error("Something went wrong", {
+        description: error instanceof Error ? error.message : "Please try again.",
       })
       setIsMagicLoading(false)
     }
@@ -184,13 +192,13 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
               {isMagicLoading ? (
                 <Loader2 className="size-4 animate-spin" />
               ) : null}
-              Se connecter avec un lien magique
+              Sign in with a magic link
             </Button>
           </form>
 
           {magicSent && (
             <p className="mt-1 text-xs text-center text-emerald-500">
-              Lien magique envoyé. Vérifie ta boîte mail (et éventuellement tes spams).
+              Magic link sent. Please check your inbox (and possibly your spam folder).
             </p>
           )}
         </div>
