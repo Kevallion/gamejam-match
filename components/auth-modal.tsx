@@ -118,9 +118,9 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-sm rounded-2xl border-border/60 bg-card p-0 shadow-xl sm:max-w-sm">
-        <DialogHeader className="space-y-1.5 px-6 pt-6 pb-4 text-center">
-          <DialogTitle className="text-xl font-bold tracking-tight text-foreground">
+      <DialogContent className="w-[calc(100%-2rem)] max-w-sm max-h-[80vh] rounded-2xl border-border/60 bg-card p-0 shadow-xl overflow-y-auto sm:max-w-sm sm:max-h-[90vh]">
+        <DialogHeader className="space-y-1.5 px-5 pt-5 pb-3 text-center">
+          <DialogTitle className="text-lg font-bold tracking-tight text-foreground sm:text-xl">
             Welcome to GameJamCrew 🎮
           </DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground">
@@ -128,7 +128,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col gap-3 px-6 pb-6">
+        <div className="flex flex-col gap-2.5 px-5 pb-5">
           <Button
             onClick={handleSignInDiscord}
             disabled={isLoading}
