@@ -27,7 +27,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let cancelled = false
 
     async function init() {
-      await supabase.auth.getSession()
+      try {
+        await supabase.auth.getSession()
+      } catch (err: unknown) {
+        const isRefreshTokenError =
+          err && typeof err === "object" && "code" in err && (err as { code?: string }).code === "refresh_token_not_found"
+        if (isRefreshTokenError) {
+          await supabase.auth.signOut()
+        }
+      }
       if (!cancelled) {
         setIsInitializing(false)
       }

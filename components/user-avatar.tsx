@@ -3,37 +3,45 @@
 import { OptimizedAvatar } from "@/components/optimized-avatar"
 import { cn } from "@/lib/utils"
 
-export interface UserAvatarProps {
-  /** Avatar URL from gallery (profiles.avatar_url) - priority 1 */
-  profileAvatarUrl?: string | null
-  /** Discord avatar URL (user_metadata.avatar_url) - priority 2 */
-  discordAvatarUrl?: string | null
-  /** Fallback URL (e.g. DiceBear) when no gallery or Discord - priority 3 */
-  fallbackImageUrl?: string | null
-  /** Display name for initials */
+/** Modèle utilisateur standard (aligné sur profiles Supabase) */
+export interface UserDisplay {
   username: string
-  className?: string
-  size?: "sm" | "md" | "lg"
+  avatar_url?: string | null
 }
 
+export interface UserAvatarProps {
+  /** Utilisateur à afficher (username + avatar_url depuis profiles) */
+  user: UserDisplay
+  /** Avatar Discord (user_metadata) — pour le contexte "utilisateur connecté" uniquement */
+  discordAvatarUrl?: string | null
+  className?: string
+  size?: "xs" | "sm" | "md" | "lg"
+}
+
+const DICEBEAR_BASE = "https://api.dicebear.com/9.x/adventurer/svg"
+const FALLBACK_BG = "d1d4f9"
+
 /**
- * Priority order:
- * 1. profiles.avatar_url (internal gallery)
- * 2. user.user_metadata.avatar_url (Discord)
- * 3. fallbackImageUrl (e.g. DiceBear) or initials fallback
+ * Composant universel pour afficher l'avatar d'un utilisateur.
+ * Source de vérité : profiles.avatar_url (ou Discord pour l'utilisateur connecté).
+ *
+ * Priorité d'affichage :
+ * 1. user.avatar_url (profiles ou custom)
+ * 2. discordAvatarUrl (Discord, contexte "moi")
+ * 3. DiceBear généré à partir du username
+ * 4. Initiales du username
  */
 export function UserAvatar({
-  profileAvatarUrl,
+  user,
   discordAvatarUrl,
-  fallbackImageUrl,
-  username,
   className,
   size = "md",
 }: UserAvatarProps) {
+  const username = user.username || "?"
   const avatarUrl =
-    profileAvatarUrl?.trim() ||
+    user.avatar_url?.trim() ||
     discordAvatarUrl?.trim() ||
-    fallbackImageUrl?.trim() ||
+    `${DICEBEAR_BASE}?seed=${encodeURIComponent(username)}&backgroundColor=${FALLBACK_BG}` ||
     null
 
   const initials =
@@ -49,6 +57,7 @@ export function UserAvatar({
       <div
         className={cn(
           "flex shrink-0 items-center justify-center rounded-full bg-secondary text-sm font-bold text-secondary-foreground ring-2 ring-border/60",
+          size === "xs" && "size-10",
           size === "sm" && "size-8",
           size === "md" && "size-12",
           size === "lg" && "size-14",

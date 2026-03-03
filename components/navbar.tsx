@@ -1,6 +1,7 @@
 "use client"
 
 import { Bell, Gamepad2, Hand, LayoutDashboard, Loader2, LogIn, LogOut, Menu, Monitor, Moon, PenLine, Sun, UserSearch, Users } from "lucide-react"
+import { UserAvatar } from "@/components/user-avatar"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -282,27 +283,37 @@ export function Navbar() {
                         <Link
                           href="/dashboard"
                           onClick={() => dismissNotification(notif.id)}
-                          className="flex cursor-pointer flex-col gap-0.5 rounded-xl px-3 py-2.5 focus:bg-accent"
+                          className="flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 focus:bg-accent"
                         >
-                          <span className="block min-w-0 truncate text-sm font-medium leading-snug text-foreground">
-                            {notif.kind === "application" ? (
-                              <>
-                                <span className="truncate text-primary">{notif.senderName || "Someone"}</span>
-                                {" applied to "}
-                                <span className="truncate font-bold">{notif.teamName}</span>
-                              </>
-                            ) : (
-                              <>
-                                <span className="truncate font-bold">{notif.teamName}</span>
-                                {" invited you"}
-                              </>
-                            )}
-                          </span>
-                          {notif.targetRole && (
-                            <span className="text-xs text-muted-foreground">
-                              Role: {ROLE_LABELS[notif.targetRole] ?? notif.targetRole}
+                          <UserAvatar
+                            user={{
+                              username: notif.senderName || "Someone",
+                              avatar_url: notif.kind === "application" ? notif.senderAvatarUrl : null,
+                            }}
+                            size="sm"
+                            className="shrink-0"
+                          />
+                          <div className="min-w-0 flex-1 flex flex-col gap-0.5">
+                            <span className="block min-w-0 truncate text-sm font-medium leading-snug text-foreground">
+                              {notif.kind === "application" ? (
+                                <>
+                                  <span className="truncate text-primary">{notif.senderName || "Someone"}</span>
+                                  {" applied to "}
+                                  <span className="truncate font-bold">{notif.teamName}</span>
+                                </>
+                              ) : (
+                                <>
+                                  <span className="truncate font-bold">{notif.teamName}</span>
+                                  {" invited you"}
+                                </>
+                              )}
                             </span>
-                          )}
+                            {notif.targetRole && (
+                              <span className="text-xs text-muted-foreground">
+                                Role: {ROLE_LABELS[notif.targetRole] ?? notif.targetRole}
+                              </span>
+                            )}
+                          </div>
                         </Link>
                       </DropdownMenuItem>
                     ))}

@@ -51,6 +51,7 @@ export function CreateTeamForm() {
   // Nouveau state pour le lien Discord
   const [discordLink, setDiscordLink] = useState("")
   const [discordLinkError, setDiscordLinkError] = useState("")
+  const [rolesError, setRolesError] = useState("")
 
   const [user, setUser] = useState<User | null>(null)
   const [checkingAuth, setCheckingAuth] = useState(true)
@@ -65,14 +66,17 @@ export function CreateTeamForm() {
   }, [])
 
   function addRole() {
+    setRolesError("")
     setRoles((prev) => [...prev, { id: roleIdCounter++, role: "", level: "" }])
   }
 
   function removeRole(id: number) {
+    setRolesError("")
     setRoles((prev) => prev.filter((r) => r.id !== id))
   }
 
   function updateRole(id: number, field: "role" | "level", value: string) {
+    setRolesError("")
     setRoles((prev) =>
       prev.map((r) => (r.id === id ? { ...r, [field]: value } : r))
     )
@@ -83,7 +87,15 @@ export function CreateTeamForm() {
     if (!user) return
 
     setLoading(true)
-    setDiscordLinkError("") // Reset error before check
+    setDiscordLinkError("")
+    setRolesError("")
+
+    const cleanRoles = roles.filter(r => r.role !== "" && r.level !== "")
+    if (cleanRoles.length < 1) {
+      setLoading(false)
+      setRolesError("Please select at least one role you are looking for.")
+      return
+    }
 
     const discordLinkValue = discordLink.trim()
     if (
@@ -97,7 +109,6 @@ export function CreateTeamForm() {
 
     const form = event.currentTarget
     const formData = new FormData(form)
-    const cleanRoles = roles.filter(r => r.role !== "" && r.level !== "")
 
     const teamData = {
       user_id: user.id,
@@ -314,6 +325,9 @@ export function CreateTeamForm() {
                   <Plus className="size-4" />
                   Add another role
                 </Button>
+                {rolesError && (
+                  <span className="text-sm text-destructive">{rolesError}</span>
+                )}
               </div>
 
               {/* Discord Invitation Link */}

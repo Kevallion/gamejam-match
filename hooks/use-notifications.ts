@@ -27,6 +27,7 @@ export type NotificationItem = {
   kind: "application" | "invitation"
   teamName: string
   senderName?: string | null
+  senderAvatarUrl?: string | null
   targetRole?: string | null
   createdAt: string
 }
@@ -61,16 +62,16 @@ export function useNotifications(userId: string | null) {
           .limit(5),
       ])
 
-      // Fetch sender profiles for application notifications
+      // Fetch sender profiles (username + avatar_url) — source de vérité : profiles
       const senderIds = [...new Set((apps || []).map((a: any) => a.sender_id).filter(Boolean))]
-      const profileMap: Record<string, string> = {}
+      const profileMap: Record<string, { username?: string; avatar_url?: string | null }> = {}
       if (senderIds.length > 0) {
         const { data: profilesData } = await supabase
           .from("profiles")
-          .select("id, username")
+          .select("id, username, avatar_url")
           .in("id", senderIds)
         for (const p of profilesData || []) {
-          if (p.username?.trim()) profileMap[p.id] = p.username.trim()
+          if (p.id) profileMap[p.id] = { username: p.username?.trim() ?? undefined, avatar_url: p.avatar_url ?? null }
         }
       }
 
@@ -78,12 +79,13 @@ export function useNotifications(userId: string | null) {
 
       if (apps) {
         for (const a of apps) {
-          const profileUsername = a.sender_id ? profileMap[a.sender_id] : null
+          const profile = a.sender_id ? profileMap[a.sender_id] : null
           combined.push({
             id: a.id,
             kind: "application",
             teamName: (a.teams as any)?.team_name ?? "Unknown Team",
-            senderName: profileUsername || a.sender_name || "Someone",
+            senderName: profile?.username || a.sender_name || "Someone",
+            senderAvatarUrl: profile?.avatar_url ?? null,
             targetRole: a.target_role,
             createdAt: a.created_at,
           })

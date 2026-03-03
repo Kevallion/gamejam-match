@@ -15,7 +15,7 @@ function isMobile(): boolean {
 }
 
 export async function signInWithDiscord(options?: { next?: string }): Promise<void> {
-  const next = options?.next ?? "/"
+  const next = options?.next ?? "/dashboard"
 
   const redirectTo =
     typeof window !== "undefined"

@@ -34,7 +34,12 @@ export async function updateSession(request: NextRequest) {
   )
 
   // IMPORTANT: Ne pas exécuter de code entre createServerClient et getSession/getUser
-  await supabase.auth.getUser()
+  try {
+    await supabase.auth.getUser()
+  } catch {
+    // refresh_token_not_found : session invalide, on signe out pour nettoyer les cookies
+    await supabase.auth.signOut()
+  }
 
   return supabaseResponse
 }

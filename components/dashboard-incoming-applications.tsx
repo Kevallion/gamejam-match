@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { OptimizedAvatar } from "@/components/optimized-avatar"
+import { UserAvatar } from "@/components/user-avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -114,17 +114,10 @@ export function DashboardIncomingApplications({
                 {/* Top row: avatar + user info */}
                 <div className="flex items-start gap-4">
                   <div className="relative">
-                    <OptimizedAvatar
-                      src={app.avatarUrl}
-                      alt={app.username}
+                    <UserAvatar
+                      user={{ username: app.username, avatar_url: app.avatarUrl || null }}
                       size="md"
                       className="shrink-0 ring-2 ring-mint/20 transition-all duration-300 group-hover:ring-mint/40"
-                      fallback={app.username
-                        .split(/[\s_]+/)
-                        .map((w) => w[0])
-                        .join("")
-                        .slice(0, 2)
-                        .toUpperCase()}
                     />
                     {/* Online-style dot */}
                     <span className="absolute -bottom-0.5 -right-0.5 size-3.5 rounded-full border-2 border-card bg-mint" />

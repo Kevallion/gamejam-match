@@ -26,6 +26,7 @@ export interface ProfileRow {
   availability?: string | null
   portfolio_link?: string | null
   avatar_url?: string | null
+  has_completed_onboarding?: boolean | null
 }
 
 export interface TeamRow {

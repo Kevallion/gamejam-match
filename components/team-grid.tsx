@@ -106,8 +106,8 @@ export function TeamGrid({
 
   const displayedTeams = useMemo(() => {
     return teams.filter((t) => {
-      // Hide full teams
-      if (t.members >= t.maxMembers) return false
+      // Hide full teams (only when they have roles — teams with 0 roles stay visible for legacy/edge cases)
+      if (t.rawRoles.length > 0 && t.members >= t.maxMembers) return false
 
       const searchLower = debouncedSearch.toLowerCase()
       const matchSearch =

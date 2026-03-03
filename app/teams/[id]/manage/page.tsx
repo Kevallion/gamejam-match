@@ -7,7 +7,7 @@ import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { OptimizedAvatar } from "@/components/optimized-avatar"
+import { UserAvatar } from "@/components/user-avatar"
 import {
   Dialog,
   DialogContent,
@@ -124,13 +124,14 @@ export default function TeamManagePage() {
       const memberUserIds = (membersData ?? []).map((m: { user_id: string }) => m.user_id)
 
       let roleByUserId: Record<string, string> = {}
+      let senderNameByUserId: Record<string, string> = {}
       let profilesByUserId: Record<string, { username: string; avatar_url: string | null }> = {}
 
       if (memberUserIds.length > 0) {
         const [joinRes, profilesRes] = await Promise.all([
           supabase
             .from("join_requests")
-            .select("sender_id, target_role")
+            .select("sender_id, sender_name, target_role")
             .eq("team_id", teamId)
             .eq("status", "accepted")
             .eq("type", "application")
@@ -139,14 +140,15 @@ export default function TeamManagePage() {
         ])
 
         for (const jr of joinRes.data ?? []) {
-          if (jr.sender_id && jr.target_role) {
-            roleByUserId[jr.sender_id] = jr.target_role
+          if (jr.sender_id) {
+            if (jr.target_role) roleByUserId[jr.sender_id] = jr.target_role
+            if (jr.sender_name?.trim()) senderNameByUserId[jr.sender_id] = jr.sender_name.trim()
           }
         }
         for (const p of profilesRes.data ?? []) {
           if (p.id) {
             profilesByUserId[p.id] = {
-              username: p.username ?? "Unknown",
+              username: p.username?.trim() || "Unknown",
               avatar_url: p.avatar_url ?? null,
             }
           }
@@ -155,9 +157,13 @@ export default function TeamManagePage() {
 
       const members: MemberRow[] = (membersData ?? []).map((m: { user_id: string }) => {
         const profile = profilesByUserId[m.user_id]
+        const displayName =
+          profile?.username ||
+          senderNameByUserId[m.user_id] ||
+          "Unknown"
         return {
           user_id: m.user_id,
-          username: profile?.username ?? "Unknown",
+          username: displayName,
           avatar_url: profile?.avatar_url ?? null,
           target_role: roleByUserId[m.user_id] ?? null,
         }
@@ -512,25 +518,15 @@ export default function TeamManagePage() {
                             color: "bg-muted text-muted-foreground",
                           }
                         : null
-                      const avatarUrl =
-                        member.avatar_url?.trim() ||
-                        `https://api.dicebear.com/9.x/adventurer/svg?seed=${member.username}`
                       return (
                         <div
                           key={member.user_id}
                           className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-border/50 bg-card/50 px-4 py-3"
                         >
                           <div className="flex items-center gap-3">
-                            <OptimizedAvatar
-                              src={avatarUrl}
-                              alt={member.username}
+                            <UserAvatar
+                              user={{ username: member.username, avatar_url: member.avatar_url }}
                               size="xs"
-                              fallback={member.username
-                                .split(/[\s_]+/)
-                                .map((w) => w[0])
-                                .join("")
-                                .slice(0, 2)
-                                .toUpperCase()}
                             />
                             <div>
                               <p className="font-semibold text-foreground">{member.username}</p>

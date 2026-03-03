@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { supabase } from "@/lib/supabase"
 import { notifyCandidateAccepted, notifyApplicantDeclined } from "@/app/actions/team-actions"
+import { OnboardingModal } from "@/components/onboarding-modal"
 import type { Session } from "@supabase/supabase-js"
 import { toast } from "sonner"
 import { EXPERIENCE_STYLES, ROLE_STYLES } from "@/lib/constants"
@@ -135,6 +136,7 @@ export function DashboardClient() {
   const [hasShownAvailabilityPrompt, setHasShownAvailabilityPrompt] = useState(false)
   const [teamIdToDelete, setTeamIdToDelete] = useState<string | null>(null)
   const [availabilityPostIdToDelete, setAvailabilityPostIdToDelete] = useState<string | null>(null)
+  const [showOnboardingModal, setShowOnboardingModal] = useState(false)
 
   const mapTeamRow = (t: any): TeamData => {
     let parsed: any[] = []
@@ -231,9 +233,18 @@ export function DashboardClient() {
       .eq("sender_id", authSession.user.id)
       .eq("type", "application")
 
+    const { data: profileData } = await supabase
+      .from("profiles")
+      .select("has_completed_onboarding")
+      .eq("id", authSession.user.id)
+      .maybeSingle()
+
     const discordAvatarUrl = authSession.user.user_metadata?.avatar_url ?? null
 
     if (teamsData) setTeams(teamsData.map(mapTeamRow))
+
+    // Afficher l'onboarding si has_completed_onboarding est false ou null (anciens utilisateurs)
+    setShowOnboardingModal(profileData?.has_completed_onboarding !== true)
 
     const { data: postsData } = await supabase
       .from("availability_posts")
@@ -642,6 +653,11 @@ export function DashboardClient() {
         </section>
       </main>
       <Footer tagline="Connect, create, and ship games together." />
+
+      <OnboardingModal
+        open={showOnboardingModal}
+        onOpenChange={setShowOnboardingModal}
+      />
 
       <AlertDialog open={showAvailabilityModal} onOpenChange={(open) => !open && handleAvailabilityModalCancel()}>
         <AlertDialogContent className="rounded-2xl border-border/60">
