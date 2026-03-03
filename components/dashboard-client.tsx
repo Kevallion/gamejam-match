@@ -21,7 +21,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { supabase } from "@/lib/supabase"
-import { notifyCandidateAccepted } from "@/app/actions/team-actions"
+import { notifyCandidateAccepted, notifyApplicantDeclined } from "@/app/actions/team-actions"
 import type { Session } from "@supabase/supabase-js"
 import { toast } from "sonner"
 import { EXPERIENCE_STYLES, ROLE_STYLES } from "@/lib/constants"
@@ -420,11 +420,23 @@ export function DashboardClient() {
 
   const handleDeclineApplication = async (id: string) => {
     try {
+      const { data: request } = await supabase
+        .from("join_requests")
+        .select("sender_id")
+        .eq("id", id)
+        .single()
+
       const { error } = await supabase.from("join_requests").update({ status: 'rejected' }).eq("id", id)
       if (error) {
         toast.error("Could not decline the application.", { description: error.message })
         return
       }
+
+      // Email notification to the declined applicant (async, non-blocking)
+      if (request?.sender_id) {
+        void notifyApplicantDeclined(request.sender_id)
+      }
+
       setApplications((prev) => prev.filter((a) => a.id !== id))
       toast.success("Application declined.", { icon: "👎" })
     } catch (err) {

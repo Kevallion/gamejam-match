@@ -7,9 +7,9 @@ const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://gamejamcrew.com"
 const DASHBOARD_URL = `${BASE_URL}/dashboard`
 
 /**
- * Envoie une notification e-mail au propriétaire de l'équipe lorsqu'un nouveau candidat postule.
- * Appelé après l'insertion réussie dans join_requests (côté client).
- * Les erreurs sont gérées silencieusement pour ne pas impacter l'UX.
+ * Sends an email notification to the team owner when a new applicant applies.
+ * Called after successful insert into join_requests (client-side).
+ * Errors are handled silently so they don't impact the UX.
  */
 export async function notifyOwnerNewApplication(
   ownerUserId: string,
@@ -20,24 +20,72 @@ export async function notifyOwnerNewApplication(
     const email = await getUserEmail(ownerUserId)
     if (!email) return
 
-    const subject = "Nouveau candidat !"
+    const subject = "New application for your team! 🚀 | GameJamCrew"
     const html = `
-      <p>Bonjour,</p>
-      <p><strong>${escapeHtml(candidateName)}</strong> souhaite rejoindre <strong>${escapeHtml(teamName)}</strong>.</p>
-      <p>Connectez-vous sur <a href="${DASHBOARD_URL}">GameJamCrew</a> pour voir son profil.</p>
-      <p>— L'équipe GameJamCrew</p>
+      <p>Good news! Someone just applied to join your team.</p>
+      <p>Log in to <a href="${DASHBOARD_URL}">GameJamCrew</a> to check out their profile and accept or decline their application.</p>
+      <p>— The GameJamCrew team</p>
     `
 
     void sendEmailNotification(email, subject, html)
   } catch {
-    // Erreur silencieuse : ne pas faire crasher l'action principale
+    // Silent error: don't crash the main action
   }
 }
 
 /**
- * Envoie une notification e-mail au candidat lorsqu'il est accepté dans une équipe.
- * Appelé après l'acceptation réussie (côté client).
- * Les erreurs sont gérées silencieusement pour ne pas impacter l'UX.
+ * Sends an email notification to a player when they are invited to join a team.
+ * Called after successful insert of invitation into join_requests (client-side).
+ * Errors are handled silently so they don't impact the UX.
+ */
+export async function notifyInviteeInvitation(inviteeUserId: string): Promise<void> {
+  try {
+    const email = await getUserEmail(inviteeUserId)
+    if (!email) return
+
+    const subject = "You've been invited to join a team! 🎮 | GameJamCrew"
+    const html = `
+      <p>Hi there! A team leader just invited you to join their squad for an upcoming Game Jam.</p>
+      <p>Log in to <a href="${DASHBOARD_URL}">GameJamCrew</a> to check out their team details and accept or decline the invitation.</p>
+      <p>Happy jamming!</p>
+      <p>— The GameJamCrew team</p>
+    `
+
+    void sendEmailNotification(email, subject, html)
+  } catch {
+    // Silent error: don't crash the main action
+  }
+}
+
+/**
+ * Sends an email notification to the candidate when their application is declined.
+ * Called after successful status update to rejected (client-side).
+ * Errors are handled silently so they don't impact the UX.
+ */
+export async function notifyApplicantDeclined(candidateUserId: string): Promise<void> {
+  try {
+    const email = await getUserEmail(candidateUserId)
+    if (!email) return
+
+    const subject = "Update on your application 📢 | GameJamCrew"
+    const html = `
+      <p>Hi there. Thank you for applying!</p>
+      <p>Unfortunately, the team leader has decided to move forward with another candidate or the team is now full.</p>
+      <p>Don't give up! There are plenty of other great teams looking for your skills right now. Log in to <a href="${DASHBOARD_URL}">GameJamCrew</a> to find your perfect squad.</p>
+      <p>Keep jamming!</p>
+      <p>— The GameJamCrew team</p>
+    `
+
+    void sendEmailNotification(email, subject, html)
+  } catch {
+    // Silent error: don't crash the main action
+  }
+}
+
+/**
+ * Sends an email notification to the candidate when they are accepted into a team.
+ * Called after successful acceptance (client-side).
+ * Errors are handled silently so they don't impact the UX.
  */
 export async function notifyCandidateAccepted(
   candidateUserId: string,
@@ -47,17 +95,16 @@ export async function notifyCandidateAccepted(
     const email = await getUserEmail(candidateUserId)
     if (!email) return
 
-    const subject = "Bonne nouvelle ! Vous avez été accepté"
+    const subject = "You've been accepted! 🎉 | GameJamCrew"
     const html = `
-      <p>Bonjour,</p>
-      <p>Bonne nouvelle ! Vous avez été accepté dans l'équipe <strong>${escapeHtml(teamName)}</strong>.</p>
-      <p>Rejoignez-les vite sur <a href="${DASHBOARD_URL}">GameJamCrew</a> !</p>
-      <p>— L'équipe GameJamCrew</p>
+      <p>Congratulations! Your application to join the team has been accepted.</p>
+      <p>Jump into <a href="${DASHBOARD_URL}">GameJamCrew</a> to connect with your new teammates and start jamming!</p>
+      <p>— The GameJamCrew team</p>
     `
 
     void sendEmailNotification(email, subject, html)
   } catch {
-    // Erreur silencieuse : ne pas faire crasher l'action principale
+    // Silent error: don't crash the main action
   }
 }
 

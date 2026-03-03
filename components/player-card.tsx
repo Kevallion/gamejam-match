@@ -45,6 +45,7 @@ import {
 } from "lucide-react"
 import { format, parseISO, isPast, addDays, isBefore } from "date-fns"
 import { toast } from "sonner"
+import { notifyInviteeInvitation } from "@/app/actions/team-actions"
 
 export type JammerCardData = {
   id: string
@@ -167,6 +168,9 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
       })
 
       if (error) throw error
+
+      // Email notification to the invited player (async, non-blocking)
+      void notifyInviteeInvitation(player.id)
 
       setSentSquadIds((prev) => new Set(prev).add(selectedSquad.id))
       setStatusMsg({ type: "success", text: `Invite sent for the role of ${selectedRole.label}!` })

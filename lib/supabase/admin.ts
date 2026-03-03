@@ -1,9 +1,9 @@
 import { createClient } from "@supabase/supabase-js"
 
 /**
- * Client Supabase Admin (Service Role) pour les opérations serveur nécessitant
- * un accès à auth.users (ex: récupérer l'e-mail d'un utilisateur).
- * À utiliser uniquement côté serveur (Server Actions, API routes).
+ * Supabase Admin client (Service Role) for server-side operations requiring
+ * access to auth.users (e.g. fetching a user's email).
+ * Use only on the server (Server Actions, API routes).
  */
 export function createAdminClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -11,7 +11,7 @@ export function createAdminClient() {
 
   if (!url || !serviceRoleKey) {
     throw new Error(
-      "SUPABASE_SERVICE_ROLE_KEY et NEXT_PUBLIC_SUPABASE_URL doivent être définis."
+      "SUPABASE_SERVICE_ROLE_KEY and NEXT_PUBLIC_SUPABASE_URL must be set."
     )
   }
 
@@ -25,9 +25,9 @@ export function createAdminClient() {
 }
 
 /**
- * Récupère l'e-mail d'un utilisateur depuis auth.users.
- * Retourne null si l'utilisateur n'existe pas ou n'a pas d'e-mail (ex: login Discord sans scope email).
- * Ne lève jamais d'exception (retourne null en cas d'erreur).
+ * Fetches a user's email from auth.users.
+ * Returns null if the user doesn't exist or has no email (e.g. Discord login without email scope).
+ * Never throws (returns null on error).
  */
 export async function getUserEmail(userId: string): Promise<string | null> {
   try {

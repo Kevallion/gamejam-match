@@ -6,8 +6,8 @@ const FROM_EMAIL =
   process.env.RESEND_FROM_EMAIL || "GameJamCrew <onboarding@resend.dev>"
 
 /**
- * Envoie une notification e-mail transactionnelle via Resend.
- * Les erreurs sont loguées mais ne sont pas propagées pour ne pas bloquer l'action principale.
+ * Sends a transactional email notification via Resend.
+ * Errors are logged but not propagated so they don't block the main action.
  */
 export async function sendEmailNotification(
   to: string,
@@ -15,7 +15,7 @@ export async function sendEmailNotification(
   html: string
 ): Promise<void> {
   if (!process.env.RESEND_API_KEY) {
-    console.warn("[mail] RESEND_API_KEY non configuré, e-mail non envoyé.")
+    console.warn("[mail] RESEND_API_KEY not configured, email not sent.")
     return
   }
 
@@ -28,9 +28,9 @@ export async function sendEmailNotification(
     })
 
     if (error) {
-      console.error("[mail] Erreur Resend:", error)
+      console.error("[mail] Resend error:", error)
     }
   } catch (err) {
-    console.error("[mail] Erreur lors de l'envoi:", err)
+    console.error("[mail] Send error:", err)
   }
 }
