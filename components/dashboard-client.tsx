@@ -21,6 +21,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { supabase } from "@/lib/supabase"
+import { notifyCandidateAccepted } from "@/app/actions/team-actions"
 import type { Session } from "@supabase/supabase-js"
 import { toast } from "sonner"
 import { EXPERIENCE_STYLES, ROLE_STYLES } from "@/lib/constants"
@@ -351,7 +352,7 @@ export function DashboardClient() {
     try {
       const { data: request, error: fetchError } = await supabase
         .from("join_requests")
-        .select("id, team_id, sender_id, sender_name, target_role")
+        .select("id, team_id, sender_id, sender_name, target_role, teams(team_name)")
         .eq("id", id)
         .single()
 
@@ -403,6 +404,13 @@ export function DashboardClient() {
         toast.error("Could not accept the application.", { description: updateError.message })
         return
       }
+
+      // Notification e-mail au candidat (asynchrone, non bloquant)
+      const teamName = (request as { teams?: { team_name?: string } }).teams?.team_name
+      if (request.sender_id && teamName) {
+        void notifyCandidateAccepted(request.sender_id, teamName)
+      }
+
       setApplications((prev) => prev.filter((a) => a.id !== id))
       toast.success("Application accepted!", { description: `${request.sender_name || "The jammer"} joined your team.` })
     } catch (err) {

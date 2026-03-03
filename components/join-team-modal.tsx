@@ -26,6 +26,7 @@ import {
   Lock,
 } from "lucide-react"
 import { toast } from "sonner"
+import { notifyOwnerNewApplication } from "@/app/actions/team-actions"
 
 type RoleOption = {
   key: string
@@ -132,6 +133,11 @@ export function JoinTeamModal({ teamId, teamName, availableRoles, ownerUserId, c
       })
 
       if (error) throw error
+
+      // Notification e-mail au propriétaire de l'équipe (asynchrone, non bloquant)
+      if (ownerUserId) {
+        void notifyOwnerNewApplication(ownerUserId, senderName, teamName)
+      }
 
       setStatusMsg({
         type: "success",
