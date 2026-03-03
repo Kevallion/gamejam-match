@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation"
+import { createClient } from "@/lib/supabase/server"
 import { Navbar } from "@/components/navbar"
 import { AvailabilityForm } from "@/components/availability-form"
 import { Footer } from "@/components/footer"
@@ -9,7 +11,11 @@ export const metadata: Metadata = {
   description: "Set up your solo profile and let teams know you're ready to jam. Share your skills and get discovered.",
 }
 
-export default function AvailabilityPage() {
+export default async function AvailabilityPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect("/")
+
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />

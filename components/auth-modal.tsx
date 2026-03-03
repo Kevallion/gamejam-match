@@ -105,6 +105,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
       }
 
       setMagicSent(true)
+      setIsMagicLoading(false)
       toast.success("Magic link sent ✉️", {
         description: "Check your inbox (and spam folder) to sign in.",
       })
@@ -185,14 +186,14 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
             />
             <Button
               type="submit"
-              disabled={isMagicLoading}
+              disabled={isMagicLoading || magicSent}
               className="w-full gap-2 rounded-xl"
               variant="secondary"
             >
               {isMagicLoading ? (
                 <Loader2 className="size-4 animate-spin" />
               ) : null}
-              Sign in with a magic link
+              {magicSent ? "Link sent — check your email" : "Sign in with a magic link"}
             </Button>
           </form>
 

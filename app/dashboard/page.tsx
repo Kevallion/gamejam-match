@@ -1,4 +1,6 @@
 import type { Metadata } from "next"
+import { redirect } from "next/navigation"
+import { createClient } from "@/lib/supabase/server"
 import { DashboardClient } from "@/components/dashboard-client"
 
 export const metadata: Metadata = {
@@ -6,6 +8,11 @@ export const metadata: Metadata = {
   description: "Manage your game jam teams, track incoming applications, and keep your jammer profile up to date.",
 }
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    redirect("/")
+  }
   return <DashboardClient />
 }
