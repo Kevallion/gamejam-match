@@ -29,6 +29,7 @@ import { SignInButton } from "@/components/sign-in-button"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 import { ENGINE_OPTIONS_WITH_ANY, EXPERIENCE_OPTIONS, JAM_STYLE_OPTIONS, ROLE_OPTIONS } from "@/lib/constants"
+import { JamSearchSelector } from "@/components/jam-search-selector"
 
 const LANGUAGE_OPTIONS = [
   { value: "english", label: "English" },
@@ -54,6 +55,7 @@ export function AvailabilityForm() {
   const [portfolioLink, setPortfolioLink] = useState("")
   const [username, setUsername] = useState("")
   const [bio, setBio] = useState("")
+  const [jamId, setJamId] = useState<string | null>(null)
   const [roleError, setRoleError] = useState("")
   const [levelError, setLevelError] = useState("")
   const [engineError, setEngineError] = useState("")
@@ -80,7 +82,7 @@ export function AvailabilityForm() {
     async function loadProfile() {
       const { data } = await supabase
         .from("profiles")
-        .select("username, role, experience, experience_level, jam_style, engine, language, bio, portfolio_link")
+        .select("username, role, experience, experience_level, jam_style, engine, language, bio, portfolio_link, jam_id")
         .eq("id", user!.id)
         .single()
       if (data) {
@@ -92,6 +94,7 @@ export function AvailabilityForm() {
         setLanguage(data.language || "")
         setBio(data.bio || "")
         setPortfolioLink(data.portfolio_link || "")
+        setJamId((data as { jam_id?: string | null }).jam_id ?? null)
         setHasLoadedProfile(true)
       }
     }
@@ -214,6 +217,7 @@ export function AvailabilityForm() {
           bio: bioValue,
           portfolio_link: portfolioLink.trim() || null,
           avatar_url: avatarUrl,
+          jam_id: jamId || null,
         }], { onConflict: "id" })
       }
 
@@ -416,6 +420,18 @@ export function AvailabilityForm() {
                     <span className="text-xs text-destructive">{languageError}</span>
                   )}
                 </div>
+              </div>
+
+              {/* Jam Itch.io (optional) */}
+              <div className="flex flex-col gap-2.5">
+                <Label className="text-sm font-bold text-foreground">Link to an Itch.io Jam (optional)</Label>
+                <JamSearchSelector
+                  value={jamId}
+                  onValueChange={setJamId}
+                  placeholder="Choose an Itch.io jam…"
+                  syncOnOpen={true}
+                  activeOnly={true}
+                />
               </div>
 
               {/* Dates */}

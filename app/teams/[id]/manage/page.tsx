@@ -43,6 +43,7 @@ import {
   JAM_STYLE_OPTIONS,
   ROLE_STYLES,
 } from "@/lib/constants"
+import { JamSearchSelector } from "@/components/jam-search-selector"
 
 type MemberRow = {
   user_id: string
@@ -61,6 +62,7 @@ type TeamManageData = {
   experience_required: string | null
   engine: string
   language: string
+  jam_id: string | null
   members: MemberRow[]
 }
 
@@ -81,6 +83,7 @@ export default function TeamManagePage() {
     description: "",
     team_vibe: "",
     experience_required: "",
+    jam_id: null as string | null,
   })
 
   const loadTeam = async () => {
@@ -97,7 +100,7 @@ export default function TeamManagePage() {
 
       const { data: teamData, error: teamError } = await supabase
         .from("teams")
-        .select("id, user_id, team_name, game_name, description, team_vibe, experience_required, engine, language")
+        .select("id, user_id, team_name, game_name, description, team_vibe, experience_required, engine, language, jam_id")
         .eq("id", teamId)
         .single()
 
@@ -179,6 +182,7 @@ export default function TeamManagePage() {
         description: teamData.description ?? "",
         team_vibe: teamData.team_vibe ?? "",
         experience_required: teamData.experience_required ?? "",
+        jam_id: (teamData as { jam_id?: string | null }).jam_id ?? null,
       })
     } catch (err) {
       toast.error("Error loading team.", {
@@ -258,6 +262,7 @@ export default function TeamManagePage() {
             editForm.experience_required && editForm.experience_required !== "any"
               ? editForm.experience_required
               : null,
+          jam_id: editForm.jam_id || null,
         })
         .eq("id", teamId)
 
@@ -278,6 +283,7 @@ export default function TeamManagePage() {
                 editForm.experience_required && editForm.experience_required !== "any"
                   ? editForm.experience_required
                   : null,
+              jam_id: editForm.jam_id || null,
             }
           : null
       )
@@ -403,6 +409,18 @@ export default function TeamManagePage() {
                         placeholder="e.g. Ludum Dare 57"
                         className="rounded-xl"
                         required
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Itch.io Jam (optional)</Label>
+                      <JamSearchSelector
+                        value={editForm.jam_id}
+                        onValueChange={(jamId) =>
+                          setEditForm((prev) => ({ ...prev, jam_id: jamId }))
+                        }
+                        placeholder="Choose an Itch.io jam…"
+                        syncOnOpen={true}
+                        activeOnly={true}
                       />
                     </div>
                     <div className="space-y-2">

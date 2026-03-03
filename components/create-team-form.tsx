@@ -20,6 +20,7 @@ import { Plus, X, Rocket, Sparkles, Loader2 } from "lucide-react"
 import { SignInButton } from "@/components/sign-in-button"
 import { toast } from "sonner"
 import { ENGINE_OPTIONS, EXPERIENCE_OPTIONS, JAM_STYLE_OPTIONS, ROLE_OPTIONS } from "@/lib/constants"
+import { JamSearchSelector } from "@/components/jam-search-selector"
 
 type RoleEntry = {
   id: number
@@ -52,6 +53,7 @@ export function CreateTeamForm() {
   const [discordLink, setDiscordLink] = useState("")
   const [discordLinkError, setDiscordLinkError] = useState("")
   const [rolesError, setRolesError] = useState("")
+  const [jamId, setJamId] = useState<string | null>(null)
 
   const [user, setUser] = useState<User | null>(null)
   const [checkingAuth, setCheckingAuth] = useState(true)
@@ -121,6 +123,7 @@ export function CreateTeamForm() {
       discord_link: discordLinkValue,
       team_vibe: teamVibe || null,
       experience_required: experienceRequired && experienceRequired !== "any" ? experienceRequired : null,
+      jam_id: jamId || null,
     }
 
     try {
@@ -135,6 +138,7 @@ export function CreateTeamForm() {
         setTeamVibe("")
         setExperienceRequired("")
         setDiscordLink("")
+        setJamId(null)
         setDiscordLinkError("")
         setRoles([{ id: roleIdCounter++, role: "", level: "" }])
         router.push(data?.id ? `/teams/${data.id}/manage` : "/dashboard")
@@ -190,6 +194,20 @@ export function CreateTeamForm() {
                   required
                   placeholder="e.g. Ludum Dare 57, GMTK 2026..."
                   className="h-12 rounded-xl border-border/60 bg-secondary/50 text-foreground"
+                />
+              </div>
+
+              {/* Jam Itch.io (optional link) */}
+              <div className="flex flex-col gap-2.5">
+                <Label className="text-sm font-bold text-foreground">
+                  Link to an Itch.io Jam (optional)
+                </Label>
+                <JamSearchSelector
+                  value={jamId}
+                  onValueChange={setJamId}
+                  placeholder="Choose an Itch.io jam…"
+                  syncOnOpen={true}
+                  activeOnly={true}
                 />
               </div>
 
