@@ -9,9 +9,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { Loader2, LogIn } from "lucide-react"
 import { signInWithDiscord, signInWithGoogle } from "@/lib/auth-utils"
 import { toast } from "sonner"
+import { supabase } from "@/lib/supabase"
 
 function GoogleIcon({ className }: { className?: string }) {
   return (
@@ -43,6 +45,9 @@ export interface AuthModalProps {
 
 export function AuthModal({ open, onOpenChange }: AuthModalProps) {
   const [isLoading, setIsLoading] = useState(false)
+  const [email, setEmail] = useState("")
+  const [isMagicLoading, setIsMagicLoading] = useState(false)
+  const [magicSent, setMagicSent] = useState(false)
 
   const handleSignInDiscord = async () => {
     if (isLoading) return
@@ -67,6 +72,39 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
         description: error instanceof Error ? error.message : "Une erreur est survenue",
       })
       setIsLoading(false)
+    }
+  }
+
+  const handleMagicLink = async (event?: React.FormEvent) => {
+    event?.preventDefault()
+    if (isMagicLoading || !email.trim()) return
+    setIsMagicLoading(true)
+    setMagicSent(false)
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email: email.trim(),
+        options: {
+          emailRedirectTo: "https://gamejamcrew.com",
+        },
+      })
+
+      if (error) {
+        toast.error("Impossible d'envoyer le lien magique", {
+          description: error.message,
+        })
+        setIsMagicLoading(false)
+        return
+      }
+
+      setMagicSent(true)
+      toast.success("Lien magique envoyé ✉️", {
+        description: "Vérifie ta boîte mail (et tes spams) pour te connecter.",
+      })
+    } catch (error) {
+      toast.error("Une erreur est survenue", {
+        description: error instanceof Error ? error.message : "Veuillez réessayer.",
+      })
+      setIsMagicLoading(false)
     }
   }
 
@@ -118,6 +156,43 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
             )}
             Continue with Google
           </Button>
+
+          <div className="relative my-3">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-card px-2 text-muted-foreground">Or use your email</span>
+            </div>
+          </div>
+
+          <form onSubmit={handleMagicLink} className="flex flex-col gap-2">
+            <Input
+              type="email"
+              required
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="h-10 rounded-xl border-border/60 bg-background text-foreground"
+            />
+            <Button
+              type="submit"
+              disabled={isMagicLoading}
+              className="w-full gap-2 rounded-xl"
+              variant="secondary"
+            >
+              {isMagicLoading ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : null}
+              Se connecter avec un lien magique
+            </Button>
+          </form>
+
+          {magicSent && (
+            <p className="mt-1 text-xs text-center text-emerald-500">
+              Lien magique envoyé. Vérifie ta boîte mail (et éventuellement tes spams).
+            </p>
+          )}
         </div>
       </DialogContent>
     </Dialog>
