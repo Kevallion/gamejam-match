@@ -162,7 +162,7 @@ export function DashboardMyAvailability({
         <Button
           asChild
           disabled={!canAddMore}
-          className="gap-2 rounded-xl bg-lavender text-lavender-foreground hover:bg-lavender/85 disabled:opacity-60"
+          className="gap-2 rounded-xl bg-primary text-primary-foreground hover:bg-primary/85 disabled:opacity-60"
         >
           <Link href="/create-profile">
             <Hand className="size-4" />

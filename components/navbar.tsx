@@ -113,52 +113,18 @@ export function Navbar() {
                 <Menu className="size-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="flex flex-col w-[min(100vw-2rem,320px)] sm:max-w-sm bg-background border-border">
+            <SheetContent side="right" className="flex flex-col w-[min(100vw-2rem,320px)] sm:max-w-sm bg-background border-border px-0">
               <SheetHeader className="sr-only">
                 <SheetTitle>GameJamCrew - Navigation menu</SheetTitle>
               </SheetHeader>
-              <div className="flex flex-1 flex-col pt-4">
-                <div className="flex items-center gap-2.5 pb-6 border-b border-border">
+              <div className="flex flex-1 flex-col pt-4 px-4">
+                <div className="flex items-center gap-2.5 pb-4 border-b border-border/60">
                   <div className="flex size-9 items-center justify-center rounded-xl bg-primary/15">
                     <Gamepad2 className="size-5 text-primary" />
                   </div>
                   <span className="text-lg font-extrabold tracking-tight text-foreground">GameJamCrew</span>
                 </div>
-                <nav className="flex flex-col gap-4 mt-8">
-                  <Link
-                    href="/"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-                  >
-                    <Users className="size-4" />
-                    Find Teams
-                  </Link>
-                  <Link
-                    href="/find-members"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-                  >
-                    <UserSearch className="size-4" />
-                    Find Members
-                  </Link>
-                  <Link
-                    href="/create-team"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-                  >
-                    <PenLine className="size-4" />
-                    Post a Team
-                  </Link>
-                  <Link
-                    href="/create-profile"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-                  >
-                    <Hand className="size-4" />
-                    I{"'"}m Available
-                  </Link>
-                </nav>
-                <div className="mt-auto pt-8 flex flex-col gap-3 border-t border-border">
+                <div className="mt-4 flex flex-col gap-3">
                   {!mounted || loading ? (
                     <Loader2 className="size-5 animate-spin text-muted-foreground self-center" />
                   ) : user ? (
@@ -191,6 +157,40 @@ export function Navbar() {
                     </Button>
                   )}
                 </div>
+                <nav className="mt-6 flex flex-col gap-3 border-t border-border/60 pt-5">
+                  <Link
+                    href="/"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-muted-foreground transition-colors hover:bg-accent/80 hover:text-foreground"
+                  >
+                    <Users className="size-4" />
+                    Find Teams
+                  </Link>
+                  <Link
+                    href="/find-members"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                  >
+                    <UserSearch className="size-4" />
+                    Find Members
+                  </Link>
+                  <Link
+                    href="/create-team"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                  >
+                    <PenLine className="size-4" />
+                    Post a Team
+                  </Link>
+                  <Link
+                    href="/create-profile"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                  >
+                    <Hand className="size-4" />
+                    I{"'"}m Available
+                  </Link>
+                </nav>
               </div>
             </SheetContent>
           </Sheet>

@@ -7,6 +7,7 @@ import { MembersGrid } from "@/components/members-grid"
 import { Search, UserSearch } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Footer } from "@/components/footer"
+import { ENGINE_OPTIONS, EXPERIENCE_OPTIONS, ROLE_OPTIONS } from "@/lib/constants"
 
 export function FindMembersShell() {
   const [searchQuery, setSearchQuery] = useState("")
@@ -27,6 +28,20 @@ export function FindMembersShell() {
     setLevelFilter("all")
   }
 
+  const activeFilterLabels: string[] = []
+  if (roleFilter !== "all") {
+    const roleLabel = ROLE_OPTIONS.find((r) => r.value === roleFilter)?.label ?? roleFilter
+    activeFilterLabels.push(`Role: ${roleLabel}`)
+  }
+  if (engineFilter !== "all") {
+    const engineLabel = ENGINE_OPTIONS.find((e) => e.value === engineFilter)?.label ?? engineFilter
+    activeFilterLabels.push(`Engine: ${engineLabel}`)
+  }
+  if (levelFilter !== "all") {
+    const levelLabel = EXPERIENCE_OPTIONS.find((l) => l.value === levelFilter)?.label ?? levelFilter
+    activeFilterLabels.push(`Experience: ${levelLabel}`)
+  }
+
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
@@ -38,7 +53,7 @@ export function FindMembersShell() {
           </div>
 
           <div className="relative mx-auto max-w-2xl text-center">
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-lavender/20 bg-lavender/10 px-4 py-1.5 text-sm font-medium text-lavender">
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-lavender/30 bg-lavender px-4 py-1.5 text-sm font-medium text-lavender-foreground">
               <UserSearch className="size-4" />
               Browse available jammers
             </div>
@@ -77,6 +92,17 @@ export function FindMembersShell() {
           onLevelChange={setLevelFilter}
           onReset={handleResetFilters}
         />
+
+        {activeFilterLabels.length > 0 && (
+          <section className="px-4 pt-1 lg:px-6">
+            <div className="mx-auto max-w-6xl">
+              <p className="text-xs text-muted-foreground">
+                <span className="font-semibold text-foreground">Active filters:</span>{" "}
+                {activeFilterLabels.join(" • ")}
+              </p>
+            </div>
+          </section>
+        )}
 
         <MembersGrid
           searchQuery={searchQuery}

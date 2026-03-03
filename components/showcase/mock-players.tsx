@@ -6,7 +6,7 @@ const MOCK_PLAYERS = [
   {
     name: "SynthWave_Alex",
     initials: "SA",
-    role: { label: "Developer", emoji: "\uD83D\uDCBB", color: "bg-teal/15 text-teal" },
+    role: { label: "Developer", emoji: "\uD83D\uDCBB", color: "bg-teal text-teal-foreground" },
     level: { label: "Regular Jammer", emoji: "🎮", color: "bg-blue-500/15 text-blue-400" },
     engine: "Godot",
     language: "English",
@@ -16,7 +16,7 @@ const MOCK_PLAYERS = [
   {
     name: "ArtistKira",
     initials: "AK",
-    role: { label: "2D Artist", emoji: "\uD83C\uDFA8", color: "bg-pink/15 text-pink" },
+    role: { label: "2D Artist", emoji: "\uD83C\uDFA8", color: "bg-pink text-pink-foreground" },
     level: { label: "Junior / Student", emoji: "📚", color: "bg-emerald-500/15 text-emerald-400" },
     engine: "Any",
     language: "French",
@@ -26,7 +26,7 @@ const MOCK_PLAYERS = [
   {
     name: "BeatMaker99",
     initials: "BM",
-    role: { label: "Audio", emoji: "\uD83C\uDFB5", color: "bg-lavender/15 text-lavender" },
+    role: { label: "Audio", emoji: "\uD83C\uDFB5", color: "bg-lavender text-lavender-foreground" },
     level: { label: "Industry Veteran", emoji: "👑", color: "bg-amber-500/15 text-amber-400" },
     engine: "Unity",
     language: "English",
@@ -36,7 +36,7 @@ const MOCK_PLAYERS = [
   {
     name: "NarrativeNina",
     initials: "NN",
-    role: { label: "Writer", emoji: "\u270D\uFE0F", color: "bg-pink/15 text-pink" },
+    role: { label: "Writer", emoji: "\u270D\uFE0F", color: "bg-pink text-pink-foreground" },
     level: { label: "Beginner / Learner", emoji: "🌱", color: "bg-sky-400/15 text-sky-400" },
     engine: "Any",
     language: "Spanish",
@@ -54,7 +54,7 @@ export function MockPlayers() {
           <div className="absolute left-1/2 top-0 size-[200px] -translate-x-1/2 -translate-y-1/3 rounded-full bg-lavender/20 blur-[80px]" />
         </div>
         <div className="relative">
-          <div className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-lavender/20 bg-lavender/10 px-2.5 py-0.5 text-[9px] font-medium text-lavender">
+          <div className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-lavender/30 bg-lavender px-2.5 py-0.5 text-[9px] font-medium text-lavender-foreground">
             <UserSearch className="size-3" />
             Find your next teammate
           </div>

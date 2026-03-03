@@ -31,7 +31,7 @@ const SHOWCASE_SECTIONS = [
     id: "teams",
     badge: "Browse Teams",
     badgeIcon: Users,
-    badgeColor: "border-teal/20 bg-teal/10 text-teal",
+    badgeColor: "border-teal/30 bg-teal text-teal-foreground",
     title: "Interactive Team Cards",
     description:
       "Each team card displays the jam name, engine, open roles with color-coded badges, and member count at a glance. Hover to highlight, click to expand full details and apply instantly.",
@@ -45,7 +45,7 @@ const SHOWCASE_SECTIONS = [
     id: "create",
     badge: "Post a Team",
     badgeIcon: PenLine,
-    badgeColor: "border-pink/20 bg-pink/10 text-pink",
+    badgeColor: "border-pink/30 bg-pink text-pink-foreground",
     title: "Create Your Squad in Seconds",
     description:
       "A clean, guided form lets you post your team with engine selection, role requirements, experience preferences, and an optional Discord link. The dropdown is open and ready for selection.",
@@ -59,7 +59,7 @@ const SHOWCASE_SECTIONS = [
     id: "members",
     badge: "Find Members",
     badgeIcon: UserSearch,
-    badgeColor: "border-lavender/20 bg-lavender/10 text-lavender",
+    badgeColor: "border-lavender/30 bg-lavender text-lavender-foreground",
     title: "Scout Available Jammers",
     description:
       "Browse player profiles with role badges, experience levels, preferred engines, and short bios. Each card is a gateway to invite talented members directly to your squad.",
@@ -101,7 +101,7 @@ const SHOWCASE_SECTIONS = [
     id: "invite",
     badge: "Invite Flow",
     badgeIcon: Mail,
-    badgeColor: "border-lavender/20 bg-lavender/10 text-lavender",
+    badgeColor: "border-lavender/30 bg-lavender text-lavender-foreground",
     title: "Seamless Invitation System",
     description:
       "Invite jammers with a polished modal: pick the role, write a personalized message, and send. The recipient sees the invitation in their dashboard and can accept or decline with one click.",

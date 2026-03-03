@@ -56,14 +56,14 @@ export const ENGINE_OPTIONS_WITH_ANY = [
 ] as const
 
 export const ROLE_STYLES: Record<string, { label: string; emoji: string; color: string }> = {
-  developer: { label: "Developer", emoji: "💻", color: "bg-teal/15 text-teal" },
-  "2d-artist": { label: "2D Artist", emoji: "🎨", color: "bg-pink/15 text-pink" },
-  "3d-artist": { label: "3D Artist", emoji: "🗿", color: "bg-peach/15 text-peach" },
-  audio: { label: "Audio", emoji: "🎵", color: "bg-lavender/15 text-lavender" },
-  writer: { label: "Writer", emoji: "✍️", color: "bg-pink/15 text-pink" },
-  "game-design": { label: "Game Designer", emoji: "🎯", color: "bg-peach/15 text-peach" },
-  "ui-ux": { label: "UI / UX", emoji: "✨", color: "bg-mint/15 text-mint" },
-  qa: { label: "QA / Playtester", emoji: "🐛", color: "bg-peach/15 text-peach" },
+  developer: { label: "Developer", emoji: "💻", color: "bg-teal text-teal-foreground" },
+  "2d-artist": { label: "2D Artist", emoji: "🎨", color: "bg-pink text-pink-foreground" },
+  "3d-artist": { label: "3D Artist", emoji: "🗿", color: "bg-peach text-peach-foreground" },
+  audio: { label: "Audio", emoji: "🎵", color: "bg-lavender text-lavender-foreground" },
+  writer: { label: "Writer", emoji: "✍️", color: "bg-pink text-pink-foreground" },
+  "game-design": { label: "Game Designer", emoji: "🎯", color: "bg-peach text-peach-foreground" },
+  "ui-ux": { label: "UI / UX", emoji: "✨", color: "bg-mint text-mint-foreground" },
+  qa: { label: "QA / Playtester", emoji: "🐛", color: "bg-peach text-peach-foreground" },
 }
 
 export const EXPERIENCE_STYLES: Record<string, { label: string; emoji: string; color: string }> = {

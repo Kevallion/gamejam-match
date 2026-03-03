@@ -79,7 +79,7 @@ export function DashboardIncomingApplications({
         </div>
         <Badge
           variant="secondary"
-          className="rounded-full bg-mint/15 px-3.5 py-1.5 text-sm font-bold text-mint"
+          className="rounded-full bg-mint px-3.5 py-1.5 text-sm font-bold text-mint-foreground"
         >
           <Sparkles className="mr-1.5 size-3.5" />
           {applications.length} pending

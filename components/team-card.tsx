@@ -169,12 +169,12 @@ export function TeamCard({ team }: { team: TeamCardData }) {
         </DialogHeader>
 
         <ScrollArea className="max-h-[60vh] px-6 py-4">
-          <div className="flex flex-col gap-4 pr-4">
+            <div className="flex flex-col gap-4 pr-4">
             {/* Badges Engine, Language, Level, Jam Style */}
             <div className="flex flex-wrap items-center gap-2">
               <Badge
                 variant="outline"
-                className="inline-flex items-center gap-1.5 rounded-full border-border/60 bg-lavender/10 px-3 py-1 text-xs font-semibold text-lavender"
+                className="inline-flex items-center gap-1.5 rounded-full border-border/60 bg-lavender px-3 py-1 text-xs font-semibold text-lavender-foreground"
               >
                 <Cpu className="size-3.5" />
                 {team.engine}

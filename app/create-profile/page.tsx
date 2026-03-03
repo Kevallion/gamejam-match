@@ -26,7 +26,7 @@ export default function AvailabilityPage() {
           </div>
 
           <div className="relative mx-auto max-w-2xl text-center">
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-lavender/20 bg-lavender/10 px-4 py-1.5 text-sm font-medium text-lavender">
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-lavender/30 bg-lavender px-4 py-1.5 text-sm font-medium text-lavender-foreground">
               <UserCheck className="size-4" />
               Solo profile
             </div>

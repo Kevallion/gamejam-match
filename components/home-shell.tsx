@@ -7,6 +7,7 @@ import { Search } from "@/components/search"
 import { Filters } from "@/components/filters"
 import { TeamGrid } from "@/components/team-grid"
 import { Footer } from "@/components/footer"
+import { ENGINE_OPTIONS, EXPERIENCE_OPTIONS, JAM_STYLE_OPTIONS, LANGUAGE_OPTIONS, ROLE_OPTIONS } from "@/lib/constants"
 
 export function HomeShell() {
   const searchParams = useSearchParams()
@@ -101,6 +102,28 @@ export function HomeShell() {
     window.history.replaceState(null, "", window.location.pathname)
   }
 
+  const activeFilterLabels: string[] = []
+  if (engineFilter !== "all") {
+    const engineLabel = ENGINE_OPTIONS.find((e) => e.value === engineFilter)?.label ?? engineFilter
+    activeFilterLabels.push(`Engine: ${engineLabel}`)
+  }
+  if (roleFilter !== "all") {
+    const roleLabel = ROLE_OPTIONS.find((r) => r.value === roleFilter)?.label ?? roleFilter
+    activeFilterLabels.push(`Role: ${roleLabel}`)
+  }
+  if (levelFilter !== "all") {
+    const levelLabel = EXPERIENCE_OPTIONS.find((l) => l.value === levelFilter)?.label ?? levelFilter
+    activeFilterLabels.push(`Experience: ${levelLabel}`)
+  }
+  if (languageFilter !== "all") {
+    const languageLabel = LANGUAGE_OPTIONS.find((l) => l.value === languageFilter)?.label ?? languageFilter
+    activeFilterLabels.push(`Language: ${languageLabel}`)
+  }
+  if (styleFilter !== "all") {
+    const styleLabel = JAM_STYLE_OPTIONS.find((s) => s.value === styleFilter)?.label ?? styleFilter
+    activeFilterLabels.push(`Jam style: ${styleLabel}`)
+  }
+
   return (
     <div className="flex min-h-screen flex-col">
       <main className="flex-1">
@@ -131,6 +154,12 @@ export function HomeShell() {
               onStyleChange={handleStyleChange}
               onReset={handleResetFilters}
             />
+            {activeFilterLabels.length > 0 && (
+              <p className="text-xs text-muted-foreground">
+                <span className="font-semibold text-foreground">Active filters:</span>{" "}
+                {activeFilterLabels.join(" • ")}
+              </p>
+            )}
           </div>
         </div>
 

@@ -333,7 +333,7 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
                 )}
                 <Badge
                   variant="outline"
-                  className="inline-flex items-center gap-1.5 rounded-full border-border/60 bg-lavender/10 px-3 py-1 text-xs font-semibold text-lavender"
+                  className="inline-flex items-center gap-1.5 rounded-full border-border/60 bg-lavender px-3 py-1 text-xs font-semibold text-lavender-foreground"
                 >
                   <Cpu className="size-3.5" />
                   {player.engine}

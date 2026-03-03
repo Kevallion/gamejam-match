@@ -54,6 +54,12 @@ export function AvailabilityForm() {
   const [portfolioLink, setPortfolioLink] = useState("")
   const [username, setUsername] = useState("")
   const [bio, setBio] = useState("")
+  const [roleError, setRoleError] = useState("")
+  const [levelError, setLevelError] = useState("")
+  const [engineError, setEngineError] = useState("")
+  const [languageError, setLanguageError] = useState("")
+  const [usernameError, setUsernameError] = useState("")
+  const [bioError, setBioError] = useState("")
 
   // Check if user is signed in
   const [user, setUser] = useState<User | null>(null)
@@ -96,18 +102,50 @@ export function AvailabilityForm() {
     event.preventDefault()
     if (!user) return
 
+    // Reset previous field errors
+    setRoleError("")
+    setLevelError("")
+    setEngineError("")
+    setLanguageError("")
+    setUsernameError("")
+    setBioError("")
+
     // Client-side validation (backup if HTML required is bypassed)
-    if (!role || !level || !engine || !language) {
-      toast.error("Please fill all required fields.", { description: "Role, Experience Level, Engine, and Language are required." })
-      return
+    let hasError = false
+    if (!role) {
+      setRoleError("Required")
+      hasError = true
+    }
+    if (!level) {
+      setLevelError("Required")
+      hasError = true
+    }
+    if (!engine) {
+      setEngineError("Required")
+      hasError = true
+    }
+    if (!language) {
+      setLanguageError("Required")
+      hasError = true
     }
 
     const form = event.currentTarget
     const formData = new FormData(form)
     const usernameValue = String(formData.get("username") ?? username ?? "").trim()
     const bioValue = String(formData.get("about") ?? bio ?? "").trim()
-    if (!usernameValue || !bioValue) {
-      toast.error("Please fill all required fields.", { description: "Username and About Me are required." })
+    if (!usernameValue) {
+      setUsernameError("Username is required")
+      hasError = true
+    }
+    if (!bioValue) {
+      setBioError("About Me is required")
+      hasError = true
+    }
+
+    if (hasError) {
+      toast.error("Please fill all required fields.", {
+        description: "Check the highlighted fields and try again.",
+      })
       return
     }
 
@@ -224,18 +262,35 @@ export function AvailabilityForm() {
                   name="username"
                   required
                   value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  onChange={(e) => {
+                    setUsername(e.target.value)
+                    if (usernameError) setUsernameError("")
+                  }}
                   placeholder="e.g. PixelWizard42"
-                  className="h-12 rounded-xl border-border/60 bg-secondary/50 text-foreground"
+                  className={`h-12 rounded-xl border-border/60 bg-secondary/50 text-foreground${usernameError ? " border-destructive" : ""}`}
+                  aria-invalid={!!usernameError}
                 />
+                {usernameError && (
+                  <span className="text-xs text-destructive">{usernameError}</span>
+                )}
               </div>
 
               {/* Role & Level row */}
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                 <div className="flex flex-col gap-2.5">
                   <Label className="text-sm font-bold text-foreground">Main Role</Label>
-                  <Select value={role} onValueChange={setRole} required>
-                    <SelectTrigger className="h-12 rounded-xl border-border/60 bg-secondary/50">
+                  <Select
+                    value={role}
+                    onValueChange={(value) => {
+                      setRole(value)
+                      if (roleError) setRoleError("")
+                    }}
+                    required
+                  >
+                    <SelectTrigger
+                      className={`h-12 rounded-xl border-border/60 bg-secondary/50${roleError ? " border-destructive" : ""}`}
+                      aria-invalid={!!roleError}
+                    >
                       <SelectValue placeholder="What do you do?" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl">
@@ -244,12 +299,25 @@ export function AvailabilityForm() {
                       ))}
                     </SelectContent>
                   </Select>
+                  {roleError && (
+                    <span className="text-xs text-destructive">{roleError}</span>
+                  )}
                 </div>
 
                 <div className="flex flex-col gap-2.5">
                   <Label className="text-sm font-bold text-foreground">Experience Level</Label>
-                  <Select value={level} onValueChange={setLevel} required>
-                    <SelectTrigger className="h-12 rounded-xl border-border/60 bg-secondary/50">
+                  <Select
+                    value={level}
+                    onValueChange={(value) => {
+                      setLevel(value)
+                      if (levelError) setLevelError("")
+                    }}
+                    required
+                  >
+                    <SelectTrigger
+                      className={`h-12 rounded-xl border-border/60 bg-secondary/50${levelError ? " border-destructive" : ""}`}
+                      aria-invalid={!!levelError}
+                    >
                       <SelectValue placeholder="How experienced?" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl">
@@ -262,6 +330,9 @@ export function AvailabilityForm() {
                       ))}
                     </SelectContent>
                   </Select>
+                  {levelError && (
+                    <span className="text-xs text-destructive">{levelError}</span>
+                  )}
                 </div>
               </div>
 
@@ -294,8 +365,18 @@ export function AvailabilityForm() {
               <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                 <div className="flex flex-col gap-2.5">
                   <Label className="text-sm font-bold text-foreground">Preferred Engine</Label>
-                  <Select value={engine} onValueChange={setEngine} required>
-                    <SelectTrigger className="h-12 rounded-xl border-border/60 bg-secondary/50">
+                  <Select
+                    value={engine}
+                    onValueChange={(value) => {
+                      setEngine(value)
+                      if (engineError) setEngineError("")
+                    }}
+                    required
+                  >
+                    <SelectTrigger
+                      className={`h-12 rounded-xl border-border/60 bg-secondary/50${engineError ? " border-destructive" : ""}`}
+                      aria-invalid={!!engineError}
+                    >
                       <SelectValue placeholder="Pick an engine" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl">
@@ -304,12 +385,25 @@ export function AvailabilityForm() {
                       ))}
                     </SelectContent>
                   </Select>
+                  {engineError && (
+                    <span className="text-xs text-destructive">{engineError}</span>
+                  )}
                 </div>
 
                 <div className="flex flex-col gap-2.5">
                   <Label className="text-sm font-bold text-foreground">Spoken Language</Label>
-                  <Select value={language} onValueChange={setLanguage} required>
-                    <SelectTrigger className="h-12 rounded-xl border-border/60 bg-secondary/50">
+                  <Select
+                    value={language}
+                    onValueChange={(value) => {
+                      setLanguage(value)
+                      if (languageError) setLanguageError("")
+                    }}
+                    required
+                  >
+                    <SelectTrigger
+                      className={`h-12 rounded-xl border-border/60 bg-secondary/50${languageError ? " border-destructive" : ""}`}
+                      aria-invalid={!!languageError}
+                    >
                       <SelectValue placeholder="Pick a language" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl">
@@ -318,6 +412,9 @@ export function AvailabilityForm() {
                       ))}
                     </SelectContent>
                   </Select>
+                  {languageError && (
+                    <span className="text-xs text-destructive">{languageError}</span>
+                  )}
                 </div>
               </div>
 
@@ -368,13 +465,20 @@ export function AvailabilityForm() {
                   required
                   rows={4}
                   value={bio}
-                  onChange={(e) => setBio(e.target.value)}
-                  className="rounded-xl border-border/60 bg-secondary/50"
+                  onChange={(e) => {
+                    setBio(e.target.value)
+                    if (bioError) setBioError("")
+                  }}
+                  className={`rounded-xl border-border/60 bg-secondary/50${bioError ? " border-destructive" : ""}`}
+                  aria-invalid={!!bioError}
                 />
+                {bioError && (
+                  <span className="text-xs text-destructive">{bioError}</span>
+                )}
               </div>
 
               {/* Submit */}
-              <Button type="submit" disabled={loading} className="w-full rounded-2xl bg-lavender py-7 font-extrabold text-lavender-foreground">
+              <Button type="submit" disabled={loading} className="w-full rounded-2xl bg-primary py-7 font-extrabold text-primary-foreground">
                 {loading ? (
                   <>
                     <Loader2 className="mr-2 size-5 animate-spin" />
