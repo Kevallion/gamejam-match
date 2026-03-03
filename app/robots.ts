@@ -1,5 +1,7 @@
 import type { MetadataRoute } from 'next'
 
+const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://gamejamcrew.com'
+
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
@@ -9,5 +11,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: '/dashboard',
       },
     ],
+    sitemap: `${baseUrl}/sitemap.xml`,
   }
 }

@@ -19,23 +19,23 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://gamejamcrew.com'
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: 'GameJamCrew - Find Your Game Jam Squad',
     template: '%s | GameJamCrew',
+    default: 'GameJamCrew | Find your perfect Game Jam Team',
   },
   description:
-    'GameJamCrew is the team builder for Game Jams. Connect indie developers, artists, programmers and designers to create games together. Find your squad, post your team, or join the next jam.',
-  keywords: ['Game Jam', 'team builder', 'indie developers', 'artists', 'programmers', 'create games', 'game development', 'squad finder'],
+    'Looking for a game jam team? GameJamCrew helps you find the perfect teammates, filter by experience, and build your dream squad for your next game jam.',
+  keywords: ['game jam team', 'find team for game jam', 'game jam recruitment', 'gamedev team builder', 'indie game team'],
   openGraph: {
     type: 'website',
     siteName: 'GameJamCrew',
-    title: 'GameJamCrew - Find Your Game Jam Squad',
-    description: 'The team builder for Game Jams. Connect indie developers, artists and programmers to create games together.',
+    title: 'GameJamCrew | Find your perfect Game Jam Team',
+    description: 'Looking for a game jam team? GameJamCrew helps you find the perfect teammates, filter by experience, and build your dream squad for your next game jam.',
     images: ['/og-image.png'],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'GameJamCrew - Find Your Game Jam Squad',
-    description: 'The team builder for Game Jams. Connect indie developers, artists and programmers to create games together.',
+    title: 'GameJamCrew | Find your perfect Game Jam Team',
+    description: 'Looking for a game jam team? GameJamCrew helps you find the perfect teammates, filter by experience, and build your dream squad for your next game jam.',
     images: ['/og-image.png'],
   },
   generator: 'v0.app',
