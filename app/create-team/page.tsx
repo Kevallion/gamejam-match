@@ -1,5 +1,3 @@
-import { redirect } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
 import { Navbar } from "@/components/navbar"
 import { CreateTeamForm } from "@/components/create-team-form"
 import { Footer } from "@/components/footer"
@@ -11,11 +9,7 @@ export const metadata: Metadata = {
   description: "Create a new team listing for your game jam. Describe your project, pick the roles you need, and find the perfect teammates.",
 }
 
-export default async function CreateTeamPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect("/")
-
+export default function CreateTeamPage() {
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
