@@ -11,6 +11,7 @@ import {
   Globe,
   Hand,
   PenLine,
+  Target,
   Trash2,
 } from "lucide-react"
 import Link from "next/link"
@@ -35,6 +36,7 @@ export type AvailabilityPostData = {
   bio?: string | null
   portfolio_link?: string | null
   avatar_url?: string | null
+  jam?: { id: string; title: string | null; url: string | null } | null
 }
 
 // ---------------------------------------------------------------------------
@@ -94,6 +96,25 @@ function AnnouncementCard({ post, onDelete, discordAvatarUrl }: AnnouncementCard
           <CalendarDays className="size-4 shrink-0 text-lavender" />
           <span className="text-sm font-medium text-foreground">{post.availability}</span>
         </div>
+
+        {/* Linked game jam */}
+        {post.jam?.title && (
+          <div className="flex items-center gap-2 rounded-xl border border-border/50 bg-secondary/20 px-3 py-2">
+            <Target className="size-4 shrink-0 text-lavender" />
+            {post.jam.url ? (
+              <a
+                href={post.jam.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm font-medium text-lavender hover:underline"
+              >
+                {post.jam.title}
+              </a>
+            ) : (
+              <span className="text-sm font-medium text-foreground">{post.jam.title}</span>
+            )}
+          </div>
+        )}
 
         {/* Game engine */}
         <div className="flex items-center gap-1.5 text-sm text-muted-foreground">

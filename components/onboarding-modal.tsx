@@ -60,14 +60,14 @@ export function OnboardingModal({ open, onOpenChange }: OnboardingModalProps) {
     try {
       const result = await completeOnboarding()
       if (!result.success) {
-        toast.error("Erreur", { description: result.error ?? "Veuillez réessayer." })
+        toast.error("Error", { description: result.error ?? "Please try again." })
         setLoadingChoice(null)
         return
       }
       onOpenChange?.(false)
       router.push(choice.href)
     } catch {
-      toast.error("Une erreur est survenue.", { description: "Veuillez réessayer." })
+      toast.error("An error occurred.", { description: "Please try again." })
       setLoadingChoice(null)
     }
   }

@@ -12,7 +12,7 @@ export interface UserDisplay {
 export interface UserAvatarProps {
   /** Utilisateur à afficher (username + avatar_url depuis profiles) */
   user: UserDisplay
-  /** Avatar Discord (user_metadata) — pour le contexte "utilisateur connecté" uniquement */
+  /** Discord avatar (user_metadata) — for "logged-in user" context only */
   discordAvatarUrl?: string | null
   className?: string
   size?: "xs" | "sm" | "md" | "lg"

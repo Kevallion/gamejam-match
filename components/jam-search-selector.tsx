@@ -99,18 +99,26 @@ export function JamSearchSelector({
           </span>
           <div className="flex items-center gap-1 shrink-0">
             {value && (
-              <button
-                type="button"
-                className="rounded p-0.5 hover:bg-muted"
+              <span
+                role="button"
+                tabIndex={0}
+                className="rounded p-0.5 hover:bg-muted inline-flex items-center justify-center"
                 onClick={(e) => {
                   e.preventDefault()
                   e.stopPropagation()
                   onValueChange(null)
                 }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    onValueChange(null)
+                  }
+                }}
                 aria-label="Clear selection"
               >
                 <X className="size-4" />
-              </button>
+              </span>
             )}
             <ChevronsUpDown className="size-4 opacity-50" />
           </div>

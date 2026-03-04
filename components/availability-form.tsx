@@ -24,7 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Sparkles, CalendarDays, Loader2 } from "lucide-react"
+import { CalendarDays, Loader2 } from "lucide-react"
 import { SignInButton } from "@/components/sign-in-button"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
@@ -55,6 +55,7 @@ export function AvailabilityForm() {
   const [portfolioLink, setPortfolioLink] = useState("")
   const [username, setUsername] = useState("")
   const [bio, setBio] = useState("")
+  const [discordUsername, setDiscordUsername] = useState("")
   const [jamId, setJamId] = useState<string | null>(null)
   const [roleError, setRoleError] = useState("")
   const [levelError, setLevelError] = useState("")
@@ -82,7 +83,7 @@ export function AvailabilityForm() {
     async function loadProfile() {
       const { data } = await supabase
         .from("profiles")
-        .select("username, role, experience, experience_level, jam_style, engine, language, bio, portfolio_link, jam_id")
+        .select("username, role, experience, experience_level, jam_style, engine, language, bio, portfolio_link, jam_id, discord_username")
         .eq("id", user!.id)
         .single()
       if (data) {
@@ -94,6 +95,7 @@ export function AvailabilityForm() {
         setLanguage(data.language || "")
         setBio(data.bio || "")
         setPortfolioLink(data.portfolio_link || "")
+        setDiscordUsername((data as { discord_username?: string | null }).discord_username || "")
         setJamId((data as { jam_id?: string | null }).jam_id ?? null)
         setHasLoadedProfile(true)
       }
@@ -218,6 +220,7 @@ export function AvailabilityForm() {
           portfolio_link: portfolioLink.trim() || null,
           avatar_url: avatarUrl,
           jam_id: jamId || null,
+          discord_username: discordUsername.trim() || null,
         }], { onConflict: "id" })
       }
 
@@ -469,6 +472,25 @@ export function AvailabilityForm() {
                 />
                 <p className="text-xs text-muted-foreground">
                   Show off your best projects and games!
+                </p>
+              </div>
+
+              {/* Discord username */}
+              <div className="flex flex-col gap-2.5">
+                <Label htmlFor="discord_username" className="text-sm font-bold text-foreground">
+                  Discord Username{" "}
+                  <span className="text-xs font-normal text-muted-foreground">(optional)</span>
+                </Label>
+                <Input
+                  id="discord_username"
+                  name="discord_username"
+                  placeholder="ex: gamer123"
+                  value={discordUsername}
+                  onChange={(e) => setDiscordUsername(e.target.value)}
+                  className="h-12 rounded-xl border-border/60 bg-secondary/50 text-foreground"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Ce pseudo sera partagé uniquement avec les jammers que vous acceptez en contact direct.
                 </p>
               </div>
 

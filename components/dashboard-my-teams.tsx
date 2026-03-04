@@ -9,25 +9,8 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Globe, Cpu, Users, Trash2, PenLine, Rocket, Link2, RotateCw, Settings } from "lucide-react"
+import { Globe, Cpu, Users, Trash2, PenLine, Rocket, Link2, RotateCw, Settings, MessageCircle, UserMinus, Loader2 } from "lucide-react"
 import Link from "next/link"
-
-const DISCORD_LINK_REGEX = /^https:\/\/(discord\.gg\/|discord\.com\/invite\/)/i
-
-function isValidDiscordLink(url: string): boolean {
-  if (!url.trim()) return false
-  return DISCORD_LINK_REGEX.test(url.trim())
-}
 
 export type TeamData = {
   id: string
@@ -41,60 +24,24 @@ export type TeamData = {
   roles: { label: string; emoji: string; color: string }[]
   level: { label: string; emoji: string; color: string }
   discord_link?: string | null
+  isOwner: boolean
 }
 
 interface DashboardMyTeamsProps {
   teams: TeamData[]
   onDelete: (id: string) => void
-  onUpdateDiscord: (id: string, discordLink: string) => Promise<void>
   onRenew?: (id: string) => Promise<void>
+  onLeave?: (id: string) => Promise<void> | void
 }
 
 export function DashboardMyTeams({
   teams,
   onDelete,
-  onUpdateDiscord,
   onRenew,
+  onLeave,
 }: DashboardMyTeamsProps) {
-  const [editingTeamId, setEditingTeamId] = useState<string | null>(null)
-  const [discordInputValue, setDiscordInputValue] = useState("")
-  const [submitError, setSubmitError] = useState<string | null>(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
   const [renewingTeamId, setRenewingTeamId] = useState<string | null>(null)
-
-  const handleOpenChange = (open: boolean, team: TeamData) => {
-    if (open) {
-      setEditingTeamId(team.id)
-      setDiscordInputValue(team.discord_link || "")
-      setSubmitError(null)
-    } else {
-      setEditingTeamId(null)
-      setSubmitError(null)
-    }
-  }
-
-  const handleSubmitDiscord = async (e: React.FormEvent, teamId: string) => {
-    e.preventDefault()
-    setSubmitError(null)
-    const trimmed = discordInputValue.trim()
-    if (!isValidDiscordLink(trimmed)) {
-      setSubmitError(
-        "The link must start with https://discord.gg/ or https://discord.com/invite/"
-      )
-      return
-    }
-    setIsSubmitting(true)
-    try {
-      await onUpdateDiscord(teamId, trimmed)
-      setEditingTeamId(null)
-    } catch (err) {
-      setSubmitError(
-        err instanceof Error ? err.message : "Error updating"
-      )
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
+  const [leavingTeamId, setLeavingTeamId] = useState<string | null>(null)
   return (
     <section>
       <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
@@ -148,13 +95,25 @@ export function DashboardMyTeams({
                       {team.jam}
                     </p>
                   </div>
-                  <Badge
-                    variant="outline"
-                    className="shrink-0 rounded-full border-border/60 text-xs text-muted-foreground"
-                  >
-                    <Users className="mr-1 size-3" />
-                    {team.members}/{team.maxMembers}
-                  </Badge>
+                  <div className="flex flex-col items-end gap-1">
+                    <Badge
+                      variant="outline"
+                      className={`shrink-0 rounded-full border-border/60 text-[10px] font-semibold ${
+                        team.isOwner
+                          ? "border-primary/30 bg-primary/10 text-primary"
+                          : "bg-muted text-muted-foreground"
+                      }`}
+                    >
+                      {team.isOwner ? "Leader" : "Member"}
+                    </Badge>
+                    <Badge
+                      variant="outline"
+                      className="shrink-0 rounded-full border-border/60 text-xs text-muted-foreground"
+                    >
+                      <Users className="mr-1 size-3" />
+                      {team.members}/{team.maxMembers}
+                    </Badge>
+                  </div>
                 </div>
               </CardHeader>
 
@@ -192,90 +151,112 @@ export function DashboardMyTeams({
               </CardContent>
 
               <CardFooter className="flex flex-col gap-2">
-                <Button
-                  asChild
-                  variant="outline"
-                  className="w-full gap-2 rounded-xl border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
-                >
-                  <Link href={`/teams/${team.id}/manage`}>
-                    <Settings className="size-4" />
-                    Manage Team
-                  </Link>
-                </Button>
-                {onRenew && (
-                  <Button
-                    variant="outline"
-                    className="w-full gap-2 rounded-xl border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
-                    onClick={async () => {
-                      setRenewingTeamId(team.id)
-                      try {
-                        await onRenew(team.id)
-                      } finally {
-                        setRenewingTeamId(null)
-                      }
-                    }}
-                    disabled={renewingTeamId === team.id}
-                  >
-                    <RotateCw className={`size-4 ${renewingTeamId === team.id ? "animate-spin" : ""}`} />
-                    {renewingTeamId === team.id ? "Renewing…" : "Renew"}
-                  </Button>
-                )}
-                <Dialog
-                  open={editingTeamId === team.id}
-                  onOpenChange={(open) => handleOpenChange(open, team)}
-                >
-                  <DialogTrigger asChild>
+                {team.isOwner ? (
+                  <>
                     <Button
+                      asChild
                       variant="outline"
                       className="w-full gap-2 rounded-xl border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
                     >
-                      <Link2 className="size-4" />
-                      Edit Discord
+                      <Link href={`/teams/${team.id}`}>
+                        <MessageCircle className="size-4" />
+                        Open Squad Space
+                      </Link>
                     </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-md">
-                    <DialogHeader>
-                      <DialogTitle>Edit Discord Link</DialogTitle>
-                    </DialogHeader>
-                    <form
-                      onSubmit={(e) => handleSubmitDiscord(e, team.id)}
-                      className="flex flex-col gap-4"
+                    <Button
+                      asChild
+                      variant="outline"
+                      className="w-full gap-2 rounded-xl border-border/60 text-foreground hover:bg-muted"
                     >
-                      <div className="space-y-2">
-                        <Label htmlFor="discord-link">Discord invite link</Label>
-                        <Input
-                          id="discord-link"
-                          type="url"
-                          placeholder="https://discord.gg/..."
-                          value={discordInputValue}
-                          onChange={(e) => setDiscordInputValue(e.target.value)}
-                          disabled={isSubmitting}
-                          aria-invalid={!!submitError}
-                        />
-                        {submitError && (
-                          <p className="text-sm text-destructive">{submitError}</p>
-                        )}
-                      </div>
-                      <DialogFooter>
-                        <Button
-                          type="submit"
-                          disabled={isSubmitting}
-                          className="gap-2 rounded-xl"
+                      <Link href={`/teams/${team.id}/manage`}>
+                        <Settings className="size-4" />
+                        Manage Team
+                      </Link>
+                    </Button>
+                    {onRenew && (
+                      <Button
+                        variant="outline"
+                        className="w-full gap-2 rounded-xl border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
+                        onClick={async () => {
+                          setRenewingTeamId(team.id)
+                          try {
+                            await onRenew(team.id)
+                          } finally {
+                            setRenewingTeamId(null)
+                          }
+                        }}
+                        disabled={renewingTeamId === team.id}
+                      >
+                        <RotateCw className={`size-4 ${renewingTeamId === team.id ? "animate-spin" : ""}`} />
+                        {renewingTeamId === team.id ? "Renewing…" : "Renew"}
+                      </Button>
+                    )}
+                    <Button
+                      variant="outline"
+                      onClick={() => onDelete(team.id)}
+                      className="w-full gap-2 rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    >
+                      <Trash2 className="size-4" />
+                      Delete Team
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button
+                      asChild
+                      variant="outline"
+                      className="w-full gap-2 rounded-xl border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
+                    >
+                      <Link href={`/teams/${team.id}`}>
+                        <MessageCircle className="size-4" />
+                        Open Squad Space
+                      </Link>
+                    </Button>
+                    {team.discord_link ? (
+                      <Button
+                        asChild
+                        variant="outline"
+                        className="w-full gap-2 rounded-xl border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
+                      >
+                        <a
+                          href={team.discord_link}
+                          target="_blank"
+                          rel="noopener noreferrer"
                         >
-                          {isSubmitting ? "Saving…" : "Save"}
-                        </Button>
-                      </DialogFooter>
-                    </form>
-                  </DialogContent>
-                </Dialog>
-                <Button
-                  variant="outline"
-                  onClick={() => onDelete(team.id)}
-                  className="w-full gap-2 rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                >
-                  <Trash2 className="size-4" />
-                  Delete Team
-                </Button>
+                          <Link2 className="size-4" />
+                          Team Discord
+                        </a>
+                      </Button>
+                    ) : (
+                      <p className="w-full text-center text-xs italic text-muted-foreground">
+                        No Discord link provided yet.
+                      </p>
+                    )}
+                    {onLeave && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full gap-2 rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                        onClick={async () => {
+                          setLeavingTeamId(team.id)
+                          try {
+                            await onLeave(team.id)
+                          } finally {
+                            setLeavingTeamId(null)
+                          }
+                        }}
+                        disabled={leavingTeamId === team.id}
+                      >
+                        {leavingTeamId === team.id ? (
+                          <Loader2 className="size-4 animate-spin" />
+                        ) : (
+                          <UserMinus className="size-4" />
+                        )}
+                        Leave Squad
+                      </Button>
+                    )}
+                  </>
+                )}
               </CardFooter>
             </Card>
           ))}

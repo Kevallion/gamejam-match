@@ -58,7 +58,7 @@ export async function signInWithDiscord(options?: { next?: string }): Promise<vo
         return
       }
     } catch (err) {
-      console.error("Impossible de récupérer l'URL Discord, fallback vers l'API Supabase standard", err)
+      console.error("Could not retrieve Discord URL, falling back to standard Supabase API", err)
     }
   }
 

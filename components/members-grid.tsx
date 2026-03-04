@@ -17,6 +17,26 @@ type JammerWithFilters = JammerCardData & {
   availabilityPostId?: string // Unique per announcement for React key
 }
 
+type AvailabilityPostRowDb = {
+  id: string
+  user_id: string
+  availability: string | null
+  username: string | null
+  avatar_url: string | null
+  role: string | null
+  experience: string | null
+  jam_style: string | null
+  engine: string | null
+  language: string | null
+  bio: string | null
+  portfolio_link: string | null
+}
+
+type ProfileRow = {
+  id: string
+  jam_id?: string | null
+}
+
 interface MembersGridProps {
   searchQuery: string
   roleFilter: string
@@ -24,7 +44,9 @@ interface MembersGridProps {
   levelFilter: string
 }
 
-function formatMember(m: any): JammerWithFilters {
+type MemberRow = AvailabilityPostRowDb & { id: string }
+
+function formatMember(m: MemberRow): JammerWithFilters {
   const fallbackUrl = `https://api.dicebear.com/9.x/adventurer/svg?seed=${m.username}&backgroundColor=d1d4f9`
   const jamStyle = m.jam_style ? JAM_STYLE_STYLES[m.jam_style] : undefined
   return {
@@ -53,7 +75,6 @@ export function MembersGrid({
 }: MembersGridProps) {
   const [members, setMembers] = useState<JammerWithFilters[]>([])
   const [mySquads, setMySquads] = useState<SquadOption[]>([])
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
   const [hasMore, setHasMore] = useState(true)
@@ -84,9 +105,33 @@ export function MembersGrid({
       return
     }
 
-    const formatted = (postsData as any[]).map((row) => {
+    const userIds = [...new Set((postsData as AvailabilityPostRowDb[]).map((r) => r.user_id).filter(Boolean))]
+    const { data: profilesData } = await supabase
+      .from("profiles")
+      .select("id, jam_id")
+      .in("id", userIds)
+    const jamIds = [...new Set(((profilesData ?? []) as ProfileRow[]).map((p) => p.jam_id).filter(Boolean))] as string[]
+    const jamMap: Record<string, { title: string | null; url: string | null }> = {}
+    if (jamIds.length > 0) {
+      const { data: jamsData } = await supabase
+        .from("external_jams")
+        .select("id, title, url")
+        .in("id", jamIds)
+      for (const j of jamsData ?? []) {
+        jamMap[j.id] = { title: j.title ?? null, url: j.url ?? null }
+      }
+    }
+    const profileJamMap: Record<string, { title: string | null; url: string | null } | null> = {}
+    for (const p of (profilesData ?? []) as ProfileRow[]) {
+      const jamId = p.jam_id
+      profileJamMap[p.id] = jamId && jamMap[jamId] ? jamMap[jamId] : null
+    }
+
+    const formatted = (postsData as AvailabilityPostRowDb[]).map((row) => {
       const member = formatMember({ ...row, id: row.user_id }) as JammerWithFilters
       member.availabilityPostId = row.id
+      const jam = profileJamMap[row.user_id]
+      if (jam?.title) member.jam = { title: jam.title, url: jam.url ?? undefined }
       return member
     }).filter(Boolean) as JammerWithFilters[]
 
@@ -99,7 +144,6 @@ export function MembersGrid({
     const init = async () => {
       const { data: { session } } = await supabase.auth.getSession()
       const userId = session?.user?.id ?? null
-      setCurrentUserId(userId)
 
       await fetchPage(0, false)
 
@@ -110,13 +154,32 @@ export function MembersGrid({
           .eq("user_id", userId)
 
         if (!teamsError && teamsData) {
-          const squads: SquadOption[] = (teamsData as any[]).map((t) => {
-            const parsedRoles: any[] = Array.isArray(t.looking_for) ? t.looking_for : []
-            const needed_roles = parsedRoles.map((r: any) => ({
-              key: r.role,
-              ...(ROLE_STYLES[r.role] ?? { label: r.role, emoji: "❓", color: "bg-gray-500/10 text-gray-500" }),
+          type TeamMiniRow = {
+            id: string
+            team_name: string | null
+            game_name: string | null
+            looking_for: unknown
+          }
+          type LookingForRole = { role?: string | null }
+
+          const squads: SquadOption[] = (teamsData as TeamMiniRow[]).map((t) => {
+            const parsedRoles: LookingForRole[] = Array.isArray(t.looking_for)
+              ? (t.looking_for as LookingForRole[])
+              : []
+            const needed_roles = parsedRoles.map((r) => ({
+              key: r.role ?? "",
+              ...(ROLE_STYLES[r.role ?? ""] ?? {
+                label: r.role ?? "Other",
+                emoji: "❓",
+                color: "bg-gray-500/10 text-gray-500",
+              }),
             }))
-            return { id: t.id, team_name: t.team_name, game_name: t.game_name ?? undefined, needed_roles }
+            return {
+              id: t.id,
+              team_name: t.team_name ?? "Untitled team",
+              game_name: t.game_name ?? undefined,
+              needed_roles,
+            }
           })
           setMySquads(squads)
         }
@@ -139,8 +202,10 @@ export function MembersGrid({
       // Hide profiles with availability disabled (removed from list)
       if (m.availability == null || m.availability === "") return false
 
-      const matchSearch =
-        !debouncedSearch || m.username.toLowerCase().includes(debouncedSearch.toLowerCase())
+      const term = debouncedSearch.toLowerCase()
+      const inUsername = m.username.toLowerCase().includes(term)
+      const inJamTitle = m.jam?.title ? m.jam.title.toLowerCase().includes(term) : false
+      const matchSearch = !term || inUsername || inJamTitle
       const matchRole = roleFilter === "all" || m.rawRole.toLowerCase() === roleFilter.toLowerCase()
       const matchEngine = engineFilter === "all" || m.rawEngine.toLowerCase() === engineFilter.toLowerCase()
       const rawLevel = m.rawLevel?.toLowerCase() || ""
@@ -171,7 +236,11 @@ export function MembersGrid({
         ) : (
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {displayedMembers.map((jammer) => (
-              <JammerCard key={jammer.availabilityPostId ?? jammer.id} player={jammer} mySquads={mySquads} />
+              <JammerCard
+                key={jammer.availabilityPostId ?? jammer.id}
+                player={jammer}
+                mySquads={mySquads}
+              />
             ))}
           </div>
         )}

@@ -1,11 +1,11 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
-import { Card, CardContent, CardHeader, CardFooter } from "@/components/ui/card"
+import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { UserAvatar } from "@/components/user-avatar"
 import {
@@ -35,15 +35,15 @@ import {
   Pencil,
   Users,
   ShieldAlert,
+  MessageCircle,
+  Link2,
 } from "lucide-react"
 import { toast } from "sonner"
-import {
-  ENGINE_OPTIONS,
-  EXPERIENCE_OPTIONS,
-  JAM_STYLE_OPTIONS,
-  ROLE_STYLES,
-} from "@/lib/constants"
 import { JamSearchSelector } from "@/components/jam-search-selector"
+import { notifyMemberDiscordLink } from "@/app/actions/team-actions"
+import { EXPERIENCE_OPTIONS, JAM_STYLE_OPTIONS, ROLE_STYLES } from "@/lib/constants"
+
+const DISCORD_LINK_REGEX = /^https:\/\/(discord\.gg\/|discord\.com\/invite\/)/i
 
 type MemberRow = {
   user_id: string
@@ -63,6 +63,7 @@ type TeamManageData = {
   engine: string
   language: string
   jam_id: string | null
+  discord_link: string | null
   members: MemberRow[]
 }
 
@@ -75,6 +76,7 @@ export default function TeamManagePage() {
   const [team, setTeam] = useState<TeamManageData | null>(null)
   const [isOwner, setIsOwner] = useState(false)
   const [removingUserId, setRemovingUserId] = useState<string | null>(null)
+  const [sendingDiscordToUserId, setSendingDiscordToUserId] = useState<string | null>(null)
   const [editOpen, setEditOpen] = useState(false)
   const [editSaving, setEditSaving] = useState(false)
   const [editForm, setEditForm] = useState({
@@ -85,8 +87,11 @@ export default function TeamManagePage() {
     experience_required: "",
     jam_id: null as string | null,
   })
+  const [discordInput, setDiscordInput] = useState("")
+  const [discordSaving, setDiscordSaving] = useState(false)
+  const [discordError, setDiscordError] = useState<string | null>(null)
 
-  const loadTeam = async () => {
+  const loadTeam = useCallback(async () => {
     if (!teamId) return
     setLoading(true)
     try {
@@ -100,7 +105,9 @@ export default function TeamManagePage() {
 
       const { data: teamData, error: teamError } = await supabase
         .from("teams")
-        .select("id, user_id, team_name, game_name, description, team_vibe, experience_required, engine, language, jam_id")
+        .select(
+          "id, user_id, team_name, game_name, description, team_vibe, experience_required, engine, language, jam_id, discord_link",
+        )
         .eq("id", teamId)
         .single()
 
@@ -126,9 +133,9 @@ export default function TeamManagePage() {
 
       const memberUserIds = (membersData ?? []).map((m: { user_id: string }) => m.user_id)
 
-      let roleByUserId: Record<string, string> = {}
-      let senderNameByUserId: Record<string, string> = {}
-      let profilesByUserId: Record<string, { username: string; avatar_url: string | null }> = {}
+      const roleByUserId: Record<string, string> = {}
+      const senderNameByUserId: Record<string, string> = {}
+      const profilesByUserId: Record<string, { username: string; avatar_url: string | null }> = {}
 
       if (memberUserIds.length > 0) {
         const [joinRes, profilesRes] = await Promise.all([
@@ -184,6 +191,8 @@ export default function TeamManagePage() {
         experience_required: teamData.experience_required ?? "",
         jam_id: (teamData as { jam_id?: string | null }).jam_id ?? null,
       })
+      setDiscordInput(teamData.discord_link ?? "")
+      setDiscordError(null)
     } catch (err) {
       toast.error("Error loading team.", {
         description: err instanceof Error ? err.message : "Please try again.",
@@ -192,11 +201,11 @@ export default function TeamManagePage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [teamId, router])
 
   useEffect(() => {
-    loadTeam()
-  }, [teamId])
+    void loadTeam()
+  }, [loadTeam])
 
   const handleRemoveMember = async (userId: string) => {
     if (
@@ -244,6 +253,29 @@ export default function TeamManagePage() {
       })
     } finally {
       setRemovingUserId(null)
+    }
+  }
+
+  const handleSendDiscordLink = async (userId: string) => {
+    if (!team?.discord_link) {
+      toast.error("No Discord link configured for this team.", {
+        description: "You can set one on this Manage Team page.",
+      })
+      return
+    }
+
+    setSendingDiscordToUserId(userId)
+    try {
+      await notifyMemberDiscordLink(userId, team.team_name, team.discord_link)
+      toast.success("Discord link sent.", {
+        description: "The member has received the Discord invite by email.",
+      })
+    } catch (err) {
+      toast.error("Could not send Discord link.", {
+        description: err instanceof Error ? err.message : "Please try again.",
+      })
+    } finally {
+      setSendingDiscordToUserId(null)
     }
   }
 
@@ -295,6 +327,53 @@ export default function TeamManagePage() {
       })
     } finally {
       setEditSaving(false)
+    }
+  }
+
+  const handleDiscordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setDiscordError(null)
+    const trimmed = discordInput.trim()
+
+    if (trimmed && !DISCORD_LINK_REGEX.test(trimmed)) {
+      setDiscordError(
+        "The link must start with https://discord.gg/ or https://discord.com/invite/",
+      )
+      return
+    }
+
+    setDiscordSaving(true)
+    try {
+      const { error } = await supabase
+        .from("teams")
+        .update({ discord_link: trimmed || null })
+        .eq("id", teamId)
+
+      if (error) {
+        toast.error("Could not update Discord link.", { description: error.message })
+        return
+      }
+
+      setTeam((prev) =>
+        prev
+          ? {
+              ...prev,
+              discord_link: trimmed || null,
+            }
+          : prev,
+      )
+
+      toast.success("Discord link updated.", {
+        description: trimmed
+          ? "Members can now join your squad's Discord."
+          : "Discord link removed from this team.",
+      })
+    } catch (err) {
+      toast.error("An error occurred.", {
+        description: err instanceof Error ? err.message : "Please try again.",
+      })
+    } finally {
+      setDiscordSaving(false)
     }
   }
 
@@ -557,25 +636,93 @@ export default function TeamManagePage() {
                               )}
                             </div>
                           </div>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="gap-2 rounded-xl border-destructive/50 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                            onClick={() => handleRemoveMember(member.user_id)}
-                            disabled={removingUserId === member.user_id}
-                          >
-                            {removingUserId === member.user_id ? (
-                              <Loader2 className="size-4 animate-spin" />
-                            ) : (
-                              <UserMinus className="size-4" />
+                          <div className="flex items-center gap-2">
+                            {team.discord_link && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="gap-2 rounded-xl border-primary/50 text-primary hover:bg-primary/10 hover:text-primary"
+                                onClick={() => handleSendDiscordLink(member.user_id)}
+                                disabled={sendingDiscordToUserId === member.user_id}
+                              >
+                                {sendingDiscordToUserId === member.user_id ? (
+                                  <Loader2 className="size-4 animate-spin" />
+                                ) : (
+                                  <MessageCircle className="size-4" />
+                                )}
+                                Send Discord link
+                              </Button>
                             )}
-                            Remove Member
-                          </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="gap-2 rounded-xl border-destructive/50 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                              onClick={() => handleRemoveMember(member.user_id)}
+                              disabled={removingUserId === member.user_id}
+                            >
+                              {removingUserId === member.user_id ? (
+                                <Loader2 className="size-4 animate-spin" />
+                              ) : (
+                                <UserMinus className="size-4" />
+                              )}
+                              Remove Member
+                            </Button>
+                          </div>
                         </div>
                       )
                     })}
                   </div>
                 )}
+              </CardContent>
+            </Card>
+
+            <Card className="rounded-2xl border-border/50">
+              <CardHeader>
+                <h3 className="flex items-center gap-2 text-lg font-bold text-foreground">
+                  <Link2 className="size-5" />
+                  Discord Link
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Configure the Discord invite link that members can use to join your squad.
+                </p>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleDiscordSubmit} className="flex flex-col gap-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="discord-link-manage">Discord invite link</Label>
+                    <Input
+                      id="discord-link-manage"
+                      type="url"
+                      placeholder="https://discord.gg/..."
+                      value={discordInput}
+                      onChange={(e) => setDiscordInput(e.target.value)}
+                      aria-invalid={!!discordError}
+                      className="rounded-xl"
+                    />
+                    {discordError && (
+                      <p className="text-sm text-destructive">{discordError}</p>
+                    )}
+                    <p className="text-xs text-muted-foreground">
+                      Leave empty to remove the Discord link from this team.
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      type="submit"
+                      disabled={discordSaving}
+                      className="gap-2 rounded-xl"
+                    >
+                      {discordSaving ? (
+                        <>
+                          <Loader2 className="size-4 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        "Save Discord link"
+                      )}
+                    </Button>
+                  </div>
+                </form>
               </CardContent>
             </Card>
           </div>

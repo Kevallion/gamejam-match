@@ -11,6 +11,7 @@ import { MockPlayers } from "@/components/showcase/mock-players"
 import { MockNotifications } from "@/components/showcase/mock-notifications"
 import { MockInviteModal } from "@/components/showcase/mock-invite-modal"
 import { Gamepad2, Sparkles, Users, PenLine, LayoutDashboard, Bell, Mail, UserSearch } from "lucide-react"
+import Link from "next/link"
 
 const SHOWCASE_SECTIONS = [
   {
@@ -212,20 +213,20 @@ export function ShowcaseShell() {
               Join hundreds of indie developers, artists, and designers already building games together on GameJamCrew.
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-              <a
+              <Link
                 href="/create-team"
                 className="inline-flex items-center gap-2 rounded-xl bg-primary px-8 py-3 text-base font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-all hover:bg-primary/90"
               >
                 <Users className="size-5" />
                 Create a Squad
-              </a>
-              <a
+              </Link>
+              <Link
                 href="/"
                 className="inline-flex items-center gap-2 rounded-xl border border-border/60 bg-card px-8 py-3 text-base font-semibold text-foreground transition-all hover:border-primary/40 hover:text-primary"
               >
                 <Sparkles className="size-5" />
                 Browse Teams
-              </a>
+              </Link>
             </div>
           </div>
         </section>

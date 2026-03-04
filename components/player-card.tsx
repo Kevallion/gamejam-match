@@ -71,6 +71,8 @@ export type JammerCardData = {
   language: string
   portfolio_link?: string
   availability?: string
+  /** Linked game jam (from profile) */
+  jam?: { title: string; url?: string }
 }
 
 export type SquadOption = {
@@ -169,8 +171,8 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
 
       if (error) throw error
 
-      // Email notification to the invited player (async, non-blocking)
-      void notifyInviteeInvitation(player.id)
+      // Email + in-app notification to the invited player (async, non-blocking)
+      void notifyInviteeInvitation(player.id, selectedSquad.team_name)
 
       setSentSquadIds((prev) => new Set(prev).add(selectedSquad.id))
       setStatusMsg({ type: "success", text: `Invite sent for the role of ${selectedRole.label}!` })
@@ -265,6 +267,20 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
                 </div>
               )}
 
+              {/* Linked game jam */}
+              {player.jam?.title && (
+                <div className="inline-flex items-center gap-1.5 rounded-lg border border-border/60 bg-muted/30 px-2.5 py-1 text-xs font-medium text-muted-foreground">
+                  <Target className="size-3.5 shrink-0 text-lavender" />
+                  {player.jam.url ? (
+                    <a href={player.jam.url} target="_blank" rel="noopener noreferrer" className="text-lavender hover:underline truncate">
+                      {player.jam.title}
+                    </a>
+                  ) : (
+                    <span className="truncate">{player.jam.title}</span>
+                  )}
+                </div>
+              )}
+
               {/* Bio */}
               <p className="flex-1 text-sm leading-relaxed text-muted-foreground line-clamp-3">
                 {player.bio}
@@ -352,6 +368,20 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
                 >
                   <Calendar className="size-3.5 shrink-0" />
                   <span>Available: {availabilityInfo.label}</span>
+                </div>
+              )}
+
+              {/* Linked game jam */}
+              {player.jam?.title && (
+                <div className="flex items-center gap-2 rounded-xl border border-border/60 bg-muted/30 px-3 py-2 text-sm">
+                  <Target className="size-4 shrink-0 text-lavender" />
+                  {player.jam.url ? (
+                    <a href={player.jam.url} target="_blank" rel="noopener noreferrer" className="font-medium text-lavender hover:underline">
+                      {player.jam.title}
+                    </a>
+                  ) : (
+                    <span className="font-medium text-foreground">{player.jam.title}</span>
+                  )}
                 </div>
               )}
 

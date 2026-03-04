@@ -1,5 +1,7 @@
 "use client"
 
+/* eslint-disable react-hooks/set-state-in-effect */
+
 import { useCallback, useEffect, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import { Hero } from "@/components/hero"

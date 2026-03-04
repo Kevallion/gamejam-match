@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { DashboardMyTeams, type TeamData } from "@/components/dashboard-my-teams"
@@ -33,6 +33,49 @@ const FALLBACK_LEVEL = EXPERIENCE_STYLES["beginner"]
 
 type SentApp = { id: string; status: string; target_role?: string; teams?: { team_name?: string; discord_link?: string } }
 
+type TeamRow = {
+  id: string
+  user_id: string
+  team_name: string | null
+  game_name: string | null
+  engine: string | null
+  language: string | null
+  description: string | null
+  looking_for: unknown
+  discord_link?: string | null
+  team_members?: { count?: number | null }[]
+}
+
+type ApplicationRow = {
+  id: string
+  sender_id: string | null
+  sender_name: string | null
+  target_role: string | null
+  message: string | null
+  created_at: string
+  teams?: { team_name?: string | null; user_id?: string | null }
+}
+
+type InvitationRow = {
+  id: string
+  team_id: string
+  target_role?: string | null
+  teams?: { team_name?: string | null; game_name?: string | null; discord_link?: string | null }
+}
+
+type MembershipRow = {
+  team_id: string | null
+}
+
+type SentApplicationRow = {
+  id: string
+  status: string
+  target_role?: string | null
+  teams: { team_name?: string | null; discord_link?: string | null } | { team_name?: string | null; discord_link?: string | null }[] | null
+}
+
+export type JamInfo = { id: string; title: string | null; url: string | null }
+
 export type AvailabilityPostRow = {
   id: string
   user_id: string
@@ -46,6 +89,7 @@ export type AvailabilityPostRow = {
   bio?: string | null
   portfolio_link?: string | null
   avatar_url?: string | null
+  jam?: JamInfo | null
 }
 
 function SentApplicationsSection({ sentApplications }: { sentApplications: SentApp[] }) {
@@ -138,12 +182,15 @@ export function DashboardClient() {
   const [availabilityPostIdToDelete, setAvailabilityPostIdToDelete] = useState<string | null>(null)
   const [showOnboardingModal, setShowOnboardingModal] = useState(false)
 
-  const mapTeamRow = (t: any): TeamData => {
-    let parsed: any[] = []
+  const mapTeamRow = (t: TeamRow, authUserId: string): TeamData => {
+    type LookingForEntry = { level?: string | null; role?: string | null }
+    let parsed: LookingForEntry[] = []
     try {
       const raw = t.looking_for
-      parsed = Array.isArray(raw) ? raw : JSON.parse(raw || "[]")
-    } catch { parsed = [] }
+      parsed = Array.isArray(raw) ? (raw as LookingForEntry[]) : (JSON.parse(raw || "[]") as LookingForEntry[])
+    } catch {
+      parsed = []
+    }
     const rawLevel = (parsed[0]?.level || "beginner").toLowerCase()
     return {
       id: t.id,
@@ -154,13 +201,14 @@ export function DashboardClient() {
       description: t.description || "",
       members: (t.team_members?.[0]?.count ?? 0) + 1,
       maxMembers: 1 + parsed.length,
-      roles: parsed.map((r: any) => ROLE_STYLES[r.role?.toLowerCase()] ?? { ...FALLBACK_ROLE, label: r.role }),
+      roles: parsed.map((r) => ROLE_STYLES[r.role?.toLowerCase() ?? ""] ?? { ...FALLBACK_ROLE, label: r.role ?? "Other" }),
       level: LEVEL_STYLES[rawLevel] ?? FALLBACK_LEVEL,
       discord_link: t.discord_link ?? null,
+      isOwner: t.user_id === authUserId,
     }
   }
 
-  const mapApplicationRow = (r: any, profileMap: Record<string, { username?: string; avatar_url?: string }>): ApplicationData => {
+  const mapApplicationRow = (r: ApplicationRow, profileMap: Record<string, { username?: string; avatar_url?: string }>): ApplicationData => {
     const targetRole = r.target_role
       ? (ROLE_STYLES[r.target_role] ?? { label: r.target_role, emoji: "🎭", color: "bg-muted text-muted-foreground" })
       : { label: "Applicant", emoji: "👋", color: "bg-teal/15 text-teal" }
@@ -180,7 +228,7 @@ export function DashboardClient() {
     }
   }
 
-  const mapInvitationRow = (r: any): InvitationData => ({
+  const mapInvitationRow = (r: InvitationRow): InvitationData => ({
     id: r.id,
     team_id: r.team_id,
     squadName: r.teams?.team_name || "Unknown Squad",
@@ -189,16 +237,33 @@ export function DashboardClient() {
     targetRole: r.target_role ?? null,
   })
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       const { data: { session: authSession } } = await supabase.auth.getSession()
       if (!authSession?.user) { setLoading(false); return }
       setSession(authSession)
 
       const { data: teamsData } = await supabase
-      .from("teams")
-      .select("*, team_members(count)")
-      .eq("user_id", authSession.user.id)
+        .from("teams")
+        .select("*, team_members(count)")
+        .eq("user_id", authSession.user.id)
+
+      const { data: membershipRows } = await supabase
+        .from("team_members")
+        .select("team_id")
+        .eq("user_id", authSession.user.id)
+
+      let memberTeamsData: TeamRow[] | null = null
+      if (membershipRows && membershipRows.length > 0) {
+        const memberTeamIds = [...new Set((membershipRows as MembershipRow[]).map((m) => m.team_id).filter(Boolean))] as string[]
+        if (memberTeamIds.length > 0) {
+          const { data } = await supabase
+            .from("teams")
+            .select("*, team_members(count)")
+            .in("id", memberTeamIds)
+          memberTeamsData = (data ?? null) as TeamRow[] | null
+        }
+      }
 
     const { data: appsData } = await supabase
       .from("join_requests")
@@ -208,7 +273,7 @@ export function DashboardClient() {
       .eq("type", "application")
 
     // Fetch sender profiles for username and avatar
-    const senderIds = [...new Set((appsData || []).map((a: any) => a.sender_id).filter(Boolean))]
+    const senderIds = [...new Set(((appsData || []) as ApplicationRow[]).map((a) => a.sender_id).filter(Boolean))]
     const profileMap: Record<string, { username?: string; avatar_url?: string }> = {}
     if (senderIds.length > 0) {
       const { data: profilesData } = await supabase
@@ -235,13 +300,21 @@ export function DashboardClient() {
 
     const { data: profileData } = await supabase
       .from("profiles")
-      .select("has_completed_onboarding")
+      .select("has_completed_onboarding, jam_id")
       .eq("id", authSession.user.id)
       .maybeSingle()
 
-    const discordAvatarUrl = authSession.user.user_metadata?.avatar_url ?? null
-
-    if (teamsData) setTeams(teamsData.map(mapTeamRow))
+    if (teamsData || memberTeamsData) {
+      const ownedTeams = ((teamsData ?? []) as TeamRow[]).map((t) => mapTeamRow(t, authSession.user.id))
+      const memberTeams = (memberTeamsData ?? []).map((t) => mapTeamRow(t, authSession.user.id))
+      const merged = new Map<string, TeamData>()
+      for (const team of [...ownedTeams, ...memberTeams]) {
+        merged.set(team.id, team)
+      }
+      setTeams(Array.from(merged.values()))
+    } else {
+      setTeams([])
+    }
 
     // Afficher l'onboarding si has_completed_onboarding est false ou null (anciens utilisateurs)
     setShowOnboardingModal(profileData?.has_completed_onboarding !== true)
@@ -251,14 +324,32 @@ export function DashboardClient() {
       .select("id, user_id, availability, username, role, experience, jam_style, engine, language, bio, portfolio_link, avatar_url")
       .eq("user_id", authSession.user.id)
       .order("updated_at", { ascending: false })
-    if (postsData) setAvailabilityPosts(postsData as AvailabilityPostRow[])
-    if (appsData) setApplications(appsData.map((r: any) => mapApplicationRow(r, profileMap)))
-    if (rawInvitesData) setInvitations(rawInvitesData.map(mapInvitationRow))
+
+    let postsWithJam: AvailabilityPostRow[] = (postsData as AvailabilityPostRow[]) ?? []
+    const jamId = (profileData as { jam_id?: string | null } | null)?.jam_id ?? null
+    if (jamId) {
+      const { data: jamData } = await supabase
+        .from("external_jams")
+        .select("id, title, url")
+        .eq("id", jamId)
+        .maybeSingle()
+      if (jamData) {
+        const jam: JamInfo = { id: jamData.id, title: jamData.title ?? null, url: jamData.url ?? null }
+        postsWithJam = postsWithJam.map((p) => ({ ...p, jam }))
+      }
+    }
+    setAvailabilityPosts(postsWithJam)
+    if (appsData) setApplications((appsData as ApplicationRow[]).map((r) => mapApplicationRow(r, profileMap)))
+    if (rawInvitesData) setInvitations((rawInvitesData as InvitationRow[]).map(mapInvitationRow))
     if (sentAppsData) {
-      setSentApplications(sentAppsData.map((a: any) => ({
-        ...a,
-        teams: Array.isArray(a.teams) ? a.teams[0] : a.teams,
-      })))
+      setSentApplications(
+        (sentAppsData as SentApplicationRow[]).map((a) => ({
+          id: a.id,
+          status: a.status,
+          target_role: a.target_role ?? undefined,
+          teams: Array.isArray(a.teams) ? a.teams[0] ?? undefined : a.teams ?? undefined,
+        })),
+      )
     }
     } catch (err) {
       toast.error("Error loading the dashboard.", {
@@ -267,9 +358,11 @@ export function DashboardClient() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
-  useEffect(() => { loadData() }, [])
+  useEffect(() => {
+    void loadData()
+  }, [loadData])
 
   // Offer to disable availability when user has joined a team (application accepted)
   // Persist in localStorage so the prompt is not shown again after the user has responded (e.g. on refresh)
@@ -316,19 +409,6 @@ export function DashboardClient() {
     setTeamIdToDelete(id)
   }
 
-  const handleUpdateDiscord = async (id: string, discordLink: string) => {
-    const { error } = await supabase
-      .from("teams")
-      .update({ discord_link: discordLink })
-      .eq("id", id)
-
-    if (error) throw new Error(error.message)
-    setTeams((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, discord_link: discordLink } : t))
-    )
-    toast.success("Discord link updated.", { description: "The team has been updated." })
-  }
-
   const handleRenewTeam = async (id: string) => {
     const { error } = await supabase
       .from("teams")
@@ -338,6 +418,44 @@ export function DashboardClient() {
     if (error) throw new Error(error.message)
     loadData()
     toast.success("Listing renewed.", { description: "Your listing is now visible for another 30 days." })
+  }
+
+  const handleLeaveTeam = async (id: string) => {
+    if (!session?.user) {
+      toast.error("You must be logged in to leave a squad.")
+      return
+    }
+
+    try {
+      const { error } = await supabase
+        .from("team_members")
+        .delete()
+        .eq("team_id", id)
+        .eq("user_id", session.user.id)
+
+      if (error) {
+        toast.error("Could not leave the squad.", { description: error.message })
+        return
+      }
+
+      // Also remove the accepted join request so the role slot becomes available again
+      await supabase
+        .from("join_requests")
+        .delete()
+        .eq("team_id", id)
+        .eq("sender_id", session.user.id)
+        .eq("type", "application")
+        .eq("status", "accepted")
+
+      setTeams((prev) => prev.filter((t) => t.id !== id))
+      toast.success("You left this squad.", {
+        description: "You can join or create new squads from your dashboard.",
+      })
+    } catch (err) {
+      toast.error("An error occurred.", {
+        description: err instanceof Error ? err.message : "Please try again.",
+      })
+    }
   }
 
   const handleDeleteAvailabilityPost = async (postId: string) => {
@@ -387,23 +505,25 @@ export function DashboardClient() {
         return
       }
 
-      const { data: existingAccepted } = await supabase
-        .from("join_requests")
+      // Count currently filled slots based on team_members, not just accepted requests,
+      // so that when someone leaves the squad the slot becomes available again.
+      const { data: existingMembers } = await supabase
+        .from("team_members")
         .select("id")
         .eq("team_id", request.team_id)
-        .eq("status", "accepted")
-        .eq("type", "application")
-        .eq("target_role", targetRole)
+        .eq("role", targetRole)
 
-      const acceptedForRole = existingAccepted?.length ?? 0
-      if (acceptedForRole >= slotsForRole) {
-        toast.error("Role already filled.", { description: "Someone else was accepted for this role. Please refresh." })
+      const usedSlotsForRole = existingMembers?.length ?? 0
+      if (usedSlotsForRole >= slotsForRole) {
+        toast.error("Role already filled.", {
+          description: "Someone else was accepted for this role. Please refresh.",
+        })
         return
       }
 
       const { error: insertError } = await supabase
         .from("team_members")
-        .insert({ team_id: request.team_id, user_id: request.sender_id, role: 'member' })
+        .insert({ team_id: request.team_id, user_id: request.sender_id, role: targetRole || 'member' })
 
       if (insertError && insertError.code !== '23505') {
         toast.error("Could not add the member.", { description: insertError.message })
@@ -465,7 +585,7 @@ export function DashboardClient() {
 
       const { error: insertError } = await supabase
         .from("team_members")
-        .insert({ team_id: invitation.team_id, user_id: session.user.id, role: "member" })
+        .insert({ team_id: invitation.team_id, user_id: session.user.id, role: invitation.targetRole ?? "member" })
 
       if (insertError && insertError.code !== "23505") {
         toast.error("Could not join the team.", { description: insertError.message })
@@ -536,7 +656,7 @@ export function DashboardClient() {
       toast.success("Invitation declined.", { icon: "👋" })
     } catch (err) {
       toast.error("An error occurred.", { description: err instanceof Error ? err.message : "Please try again." })
-    }
+      }
   }
 
   if (loading) {
@@ -596,7 +716,9 @@ export function DashboardClient() {
                   </div>
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Pending Requests</p>
-                    <p className="text-2xl font-bold">{applications.length + invitations.length + sentApplications.length}</p>
+                    <p className="text-2xl font-bold">
+                      {applications.length + invitations.length + sentApplications.length}
+                    </p>
                   </div>
                 </CardContent>
               </Card>
@@ -624,8 +746,8 @@ export function DashboardClient() {
                 <DashboardMyTeams
                   teams={teams}
                   onDelete={handleDeleteTeamClick}
-                  onUpdateDiscord={handleUpdateDiscord}
                   onRenew={handleRenewTeam}
+                  onLeave={handleLeaveTeam}
                 />
               </TabsContent>
               <TabsContent value="requests" className="mt-0 flex flex-col gap-8">

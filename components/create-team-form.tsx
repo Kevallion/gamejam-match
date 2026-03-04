@@ -263,7 +263,7 @@ export function CreateTeamForm() {
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground">
-                  Attracts jammers who match your team's energy.
+                  Attracts jammers who match your team&apos;s energy.
                 </p>
               </div>
 
@@ -300,7 +300,7 @@ export function CreateTeamForm() {
                 </div>
 
                 <div className="flex flex-col gap-3">
-                  {roles.map((entry, index) => (
+                  {roles.map((entry) => (
                     <div key={entry.id} className="group flex flex-col gap-3 rounded-2xl border border-border/40 bg-secondary/30 p-4 sm:flex-row sm:items-center">
                       <div className="flex flex-1 flex-col gap-3 sm:flex-row">
                         <Select value={entry.role} onValueChange={(v) => updateRole(entry.id, "role", v)}>

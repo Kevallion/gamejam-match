@@ -218,7 +218,7 @@ export function JoinTeamModal({ teamId, teamName, availableRoles, ownerUserId, c
               </div>
 
               {availableRoles.length === 0 ? (
-                <p className="text-xs text-muted-foreground">This team hasn't listed any roles.</p>
+                <p className="text-xs text-muted-foreground">This team hasn&apos;t listed any roles.</p>
               ) : (
                 <div className="flex flex-wrap gap-2">
                   {availableRoles.map((role, idx) => {

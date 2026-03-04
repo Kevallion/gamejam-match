@@ -19,17 +19,37 @@ interface TeamGridProps {
   styleFilter?: string
 }
 
-function formatTeam(t: any) {
-  const parsedRoles: any[] = Array.isArray(t.looking_for) ? t.looking_for : []
-  const roleBadges = parsedRoles.map((r: any) => ({
-    ...(ROLE_STYLES[r.role] ?? { label: r.role, emoji: "❓", color: "bg-gray-500/10 text-gray-500" }),
-    key: r.role,
+type RawRoleEntry = { role?: string | null; level?: string | null }
+
+type TeamRowDb = {
+  id: string
+  user_id: string
+  team_name: string | null
+  game_name: string | null
+  engine: string | null
+  language: string | null
+  description: string | null
+  team_vibe: string | null
+  looking_for: unknown
+  team_members: { id: string; role?: string | null }[] | null
+}
+
+type TeamWithMeta = TeamCardData & {
+  rawRoles: RawRoleEntry[]
+  rawTeamVibe: string | null
+}
+
+function formatTeam(t: TeamRowDb): TeamWithMeta {
+  const parsedRoles: RawRoleEntry[] = Array.isArray(t.looking_for) ? (t.looking_for as RawRoleEntry[]) : []
+  const roleBadges = parsedRoles.map((r) => ({
+    ...(ROLE_STYLES[r.role ?? ""] ?? { label: r.role ?? "Other", emoji: "❓", color: "bg-gray-500/10 text-gray-500" }),
+    key: r.role ?? undefined,
   }))
   const mainLevel = parsedRoles.length > 0 ? parsedRoles[0].level : "beginner"
   const levelBadge = EXPERIENCE_STYLES[mainLevel] || EXPERIENCE_STYLES["beginner"]
-  const acceptedRoleKeys: string[] = (t.join_requests ?? [])
-    .filter((jr: any) => jr.status === "accepted" && jr.type === "application" && jr.target_role)
-    .map((jr: any) => jr.target_role as string)
+  const acceptedRoleKeys: string[] = (t.team_members ?? [])
+    .map((m) => m.role ?? null)
+    .filter((r): r is string => !!r)
   const acceptedMembersCount = t.team_members ? t.team_members.length : 0
   const teamVibe = t.team_vibe ? JAM_STYLE_STYLES[t.team_vibe] : undefined
 
@@ -60,7 +80,7 @@ export function TeamGrid({
   languageFilter = "all",
   styleFilter = "all",
 }: TeamGridProps) {
-  const [teams, setTeams] = useState<any[]>([])
+  const [teams, setTeams] = useState<TeamWithMeta[]>([])
   const [loading, setLoading] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
   const [hasMore, setHasMore] = useState(true)
@@ -76,7 +96,7 @@ export function TeamGrid({
   const fetchPage = useCallback(async (from: number, append: boolean) => {
     const { data, error } = await supabase
       .from("teams")
-      .select("*, team_members(id, role, user_id), join_requests(target_role, status, type)")
+      .select("*, team_members(id, role, user_id)")
       .gt("expires_at", new Date().toISOString())
       .order("created_at", { ascending: false })
       .range(from, from + PAGE_SIZE - 1)
@@ -92,6 +112,7 @@ export function TeamGrid({
     }
   }, [])
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
     setLoading(true)
     offsetRef.current = 0
@@ -121,11 +142,12 @@ export function TeamGrid({
       const matchLanguage =
         languageFilter === "all" || String(t.language).toLowerCase() === languageFilter.toLowerCase()
       const matchRole =
-        roleFilter === "all" || t.rawRoles.some((r: any) => r.role.toLowerCase() === roleFilter.toLowerCase())
+        roleFilter === "all" ||
+        t.rawRoles.some((r) => r.role?.toLowerCase() === roleFilter.toLowerCase())
       const legacyMap: Record<string, string> = { hobbyist: "junior", confirmed: "regular", expert: "senior" }
       const matchLevel =
         levelFilter === "all" ||
-        t.rawRoles.some((r: any) => {
+        t.rawRoles.some((r) => {
           const raw = (r.level?.toLowerCase() || "")
           const normalized = legacyMap[raw] ?? raw
           const filter = levelFilter.toLowerCase()

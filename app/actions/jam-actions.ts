@@ -167,10 +167,12 @@ export async function getExternalJams(options?: {
     let query = supabase
       .from("external_jams")
       .select("id, itch_id, title, url, thumbnail_url, ends_at")
-      .order("ends_at", { ascending: false, nullsFirst: false })
+      .order("ends_at", { ascending: true, nullsFirst: false })
 
     if (options?.activeOnly) {
-      query = query.or("ends_at.is.null,ends_at.gte." + new Date().toISOString())
+      const nowIso = new Date().toISOString()
+      // Ne garder que les jams qui n'ont pas encore fini (et dont la date de fin est connue)
+      query = query.gte("ends_at", nowIso)
     }
 
     const { data, error } = await query
