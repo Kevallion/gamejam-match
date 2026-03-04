@@ -270,7 +270,7 @@ export function Navbar() {
                     {notifications.map((notif) => (
                       <DropdownMenuItem key={notif.id} asChild>
                         <Link
-                          href={notif.link || "/dashboard"}
+                          href={notif.link || "/dashboard?tab=teams"}
                           onClick={() => dismissNotification(notif.id)}
                           className="flex cursor-pointer items-start gap-3 rounded-xl px-3 py-2.5 text-left focus:bg-accent"
                         >
@@ -300,7 +300,7 @@ export function Navbar() {
                     Mark all as read
                   </button>
                   <Link
-                    href="/dashboard"
+                    href={unreadCount > 0 ? "/dashboard?tab=requests" : "/dashboard"}
                     className="flex cursor-pointer items-center gap-1.5 rounded-xl px-2 py-1 text-xs font-semibold text-primary hover:text-primary/90"
                   >
                     <LayoutDashboard className="size-3.5" />

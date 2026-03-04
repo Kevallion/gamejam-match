@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
+import { useSearchParams } from "next/navigation"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { DashboardMyTeams, type TeamData } from "@/components/dashboard-my-teams"
@@ -167,7 +168,19 @@ function SentApplicationsSection({ sentApplications }: { sentApplications: SentA
   )
 }
 
-export function DashboardClient() {
+type DashboardClientProps = {
+  defaultTab?: string | null
+}
+
+const VALID_TABS = ["teams", "requests", "availability"] as const
+
+export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientProps = {}) {
+  const searchParams = useSearchParams()
+  const tabFromUrl = searchParams.get("tab")
+  const initialTab = defaultTabProp ?? tabFromUrl ?? "teams"
+  const activeTab = VALID_TABS.includes(initialTab as (typeof VALID_TABS)[number])
+    ? initialTab
+    : "teams"
   const [session, setSession] = useState<Session | null>(null)
   const [teams, setTeams] = useState<TeamData[]>([])
   const [availabilityPosts, setAvailabilityPosts] = useState<AvailabilityPostRow[]>([])
@@ -724,7 +737,9 @@ export function DashboardClient() {
                   <div>
                     <p className="text-sm font-medium text-muted-foreground">Pending Requests</p>
                     <p className="text-2xl font-bold">
-                      {applications.length + invitations.length + sentApplications.length}
+                      {applications.length +
+                        invitations.length +
+                        sentApplications.filter((s) => s.status === "pending").length}
                     </p>
                   </div>
                 </CardContent>
@@ -743,7 +758,7 @@ export function DashboardClient() {
             </div>
 
             {/* Tabs */}
-            <Tabs defaultValue="teams" className="w-full">
+            <Tabs key={activeTab} defaultValue={activeTab} className="w-full">
               <TabsList className="mb-6">
                 <TabsTrigger value="teams">My Teams</TabsTrigger>
                 <TabsTrigger value="requests">Inbox / Requests</TabsTrigger>

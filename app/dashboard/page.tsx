@@ -8,11 +8,16 @@ export const metadata: Metadata = {
   description: "Manage your game jam teams, track incoming applications, and keep your jammer profile up to date.",
 }
 
-export default async function DashboardPage() {
+type DashboardPageProps = {
+  searchParams: Promise<{ tab?: string }>
+}
+
+export default async function DashboardPage({ searchParams }: DashboardPageProps) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) {
     redirect("/")
   }
-  return <DashboardClient />
+  const { tab } = await searchParams
+  return <DashboardClient defaultTab={tab} />
 }

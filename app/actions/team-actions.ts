@@ -145,7 +145,7 @@ export async function notifyCandidateAccepted(
       candidateUserId,
       "application_accepted",
       message,
-      "/dashboard?tab=requests",
+      "/dashboard?tab=teams",
     )
 
     if (!email) return

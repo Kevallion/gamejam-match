@@ -45,6 +45,37 @@ export function useNotifications(userId: string | null) {
     fetchNotifications()
   }, [fetchNotifications])
 
+  // Realtime: refetch when new notifications arrive
+  useEffect(() => {
+    if (!userId) return
+    const channel = supabase
+      .channel("notifications-realtime")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "notifications",
+          filter: `user_id=eq.${userId}`,
+        },
+        () => void fetchNotifications()
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "notifications",
+          filter: `user_id=eq.${userId}`,
+        },
+        () => void fetchNotifications()
+      )
+      .subscribe()
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [userId, fetchNotifications])
+
   const unreadCount = useMemo(
     () => notifications.filter((n) => !n.is_read).length,
     [notifications],
@@ -54,24 +85,30 @@ export function useNotifications(userId: string | null) {
     async (id: string) => {
       if (!userId) return
       setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)))
-      await supabase
+      const { error } = await supabase
         .from("notifications")
         .update({ is_read: true })
         .eq("id", id)
         .eq("user_id", userId)
+      if (!error) {
+        void fetchNotifications()
+      }
     },
-    [userId],
+    [userId, fetchNotifications],
   )
 
   const markAllAsRead = useCallback(async () => {
     if (!userId || unreadCount === 0) return
     setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })))
-    await supabase
+    const { error } = await supabase
       .from("notifications")
       .update({ is_read: true })
       .eq("user_id", userId)
       .eq("is_read", false)
-  }, [userId, unreadCount])
+    if (!error) {
+      void fetchNotifications()
+    }
+  }, [userId, unreadCount, fetchNotifications])
 
   return {
     notifications,
