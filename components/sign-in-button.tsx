@@ -12,7 +12,7 @@ export function SignInButton({ className }: { className?: string }) {
     <>
       <Button
         onClick={() => setModalOpen(true)}
-        className={`gap-2 rounded-xl bg-[#5865F2] text-white hover:bg-[#4752C4] ${className ?? ""}`}
+        className={`gap-2 rounded-xl ${className ?? ""}`}
       >
         <LogIn className="size-4" />
         Sign In

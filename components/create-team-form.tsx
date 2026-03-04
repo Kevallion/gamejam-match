@@ -157,7 +157,7 @@ export function CreateTeamForm() {
         <Card className="mb-8 rounded-3xl border-destructive/50 bg-destructive/10">
           <CardContent className="p-6 text-center">
             <h3 className="mb-2 text-lg font-bold text-destructive">You must be signed in!</h3>
-            <p className="mb-4 text-muted-foreground">Please sign in with Discord to post a team.</p>
+            <p className="mb-4 text-muted-foreground">Please sign in to post a team.</p>
             <SignInButton />
           </CardContent>
         </Card>
