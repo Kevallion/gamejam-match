@@ -25,6 +25,7 @@ type AvailabilityPostRowDb = {
   avatar_url: string | null
   role: string | null
   experience: string | null
+  experience_level?: string | null
   jam_style: string | null
   engine: string | null
   language: string | null
@@ -56,12 +57,16 @@ function formatMember(m: MemberRow): JammerWithFilters {
     rawRole: m.role || "",
     rawLevel: m.experience || m.experience_level || "",
     rawEngine: m.engine || "",
-    role: ROLE_STYLES[m.role] || { label: m.role, emoji: "❓", color: "bg-gray-500/10 text-gray-500" },
-    level: EXPERIENCE_STYLES[m.experience || m.experience_level] || { label: m.experience || m.experience_level, emoji: "⭐", color: "bg-gray-500/10 text-gray-500" },
+    role: ROLE_STYLES[m.role ?? ""] || { label: m.role ?? "", emoji: "❓", color: "bg-gray-500/10 text-gray-500" },
+    level: EXPERIENCE_STYLES[m.experience ?? m.experience_level ?? ""] || {
+      label: m.experience ?? m.experience_level ?? "",
+      emoji: "⭐",
+      color: "bg-gray-500/10 text-gray-500",
+    },
     jamStyle: jamStyle ?? undefined,
-    engine: m.engine,
-    language: m.language,
-    bio: m.bio,
+    engine: m.engine ?? "",
+    language: m.language ?? "",
+    bio: m.bio ?? "",
     portfolio_link: m.portfolio_link || "",
     availability: m.availability || undefined,
   }

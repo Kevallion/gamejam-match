@@ -45,7 +45,7 @@ function formatTeam(t: TeamRowDb): TeamWithMeta {
     ...(ROLE_STYLES[r.role ?? ""] ?? { label: r.role ?? "Other", emoji: "❓", color: "bg-gray-500/10 text-gray-500" }),
     key: r.role ?? undefined,
   }))
-  const mainLevel = parsedRoles.length > 0 ? parsedRoles[0].level : "beginner"
+  const mainLevel = (parsedRoles.length > 0 ? parsedRoles[0].level : "beginner") ?? "beginner"
   const levelBadge = EXPERIENCE_STYLES[mainLevel] || EXPERIENCE_STYLES["beginner"]
   const acceptedRoleKeys: string[] = (t.team_members ?? [])
     .map((m) => m.role ?? null)

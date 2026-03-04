@@ -187,7 +187,9 @@ export function DashboardClient() {
     let parsed: LookingForEntry[] = []
     try {
       const raw = t.looking_for
-      parsed = Array.isArray(raw) ? (raw as LookingForEntry[]) : (JSON.parse(raw || "[]") as LookingForEntry[])
+      parsed = Array.isArray(raw)
+        ? (raw as LookingForEntry[])
+        : (JSON.parse(typeof raw === "string" ? raw : "[]") as LookingForEntry[])
     } catch {
       parsed = []
     }
@@ -343,12 +345,17 @@ export function DashboardClient() {
     if (rawInvitesData) setInvitations((rawInvitesData as InvitationRow[]).map(mapInvitationRow))
     if (sentAppsData) {
       setSentApplications(
-        (sentAppsData as SentApplicationRow[]).map((a) => ({
-          id: a.id,
-          status: a.status,
-          target_role: a.target_role ?? undefined,
-          teams: Array.isArray(a.teams) ? a.teams[0] ?? undefined : a.teams ?? undefined,
-        })),
+        (sentAppsData as SentApplicationRow[]).map((a) => {
+          const t = Array.isArray(a.teams) ? a.teams[0] ?? undefined : a.teams ?? undefined
+          return {
+            id: a.id,
+            status: a.status,
+            target_role: a.target_role ?? undefined,
+            teams: t
+              ? { team_name: t.team_name ?? undefined, discord_link: t.discord_link ?? undefined }
+              : undefined,
+          }
+        }),
       )
     }
     } catch (err) {
