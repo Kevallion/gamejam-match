@@ -22,7 +22,12 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { supabase } from "@/lib/supabase"
-import { notifyCandidateAccepted, notifyApplicantDeclined } from "@/app/actions/team-actions"
+import {
+  notifyCandidateAccepted,
+  notifyApplicantDeclined,
+  notifyOwnerInvitationDeclined,
+  notifyOwnerPlayerJoined,
+} from "@/app/actions/team-actions"
 import { OnboardingModal } from "@/components/onboarding-modal"
 import type { Session } from "@supabase/supabase-js"
 import { toast } from "sonner"
@@ -562,6 +567,11 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
         void notifyCandidateAccepted(request.sender_id, teamName)
       }
 
+      // Notification in-app pour le propriétaire : un joueur a rejoint l'équipe
+      if (request.team_id && request.sender_name) {
+        void notifyOwnerPlayerJoined(request.team_id, request.sender_name)
+      }
+
       setApplications((prev) => prev.filter((a) => a.id !== id))
       toast.success("Application accepted!", { description: `${request.sender_name || "The jammer"} joined your team.` })
     } catch (err) {
@@ -617,6 +627,17 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
         toast.error("Could not accept the invitation.", { description: updateError.message })
         return
       }
+      // Notification in-app pour le propriétaire : un joueur a rejoint l'équipe via une invitation
+      const currentUserName =
+        session.user.user_metadata?.username ??
+        session.user.user_metadata?.user_name ??
+        session.user.user_metadata?.full_name ??
+        session.user.user_metadata?.name ??
+        (session.user.email ? session.user.email.split("@")[0] : null)
+
+      if (invitation.team_id && currentUserName) {
+        void notifyOwnerPlayerJoined(invitation.team_id, currentUserName)
+      }
       setInvitations((prev) => prev.filter((i) => i.id !== invitation.id))
       loadData() // Refresh sent applications
       toast.success(`You joined ${invitation.squadName}!`, {
@@ -667,11 +688,30 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
 
   const handleDeclineInvitation = async (id: string) => {
     try {
+      const { data: request } = await supabase
+        .from("join_requests")
+        .select("id, team_id")
+        .eq("id", id)
+        .single()
+
       const { error } = await supabase.from("join_requests").update({ status: "rejected" }).eq("id", id)
       if (error) {
         toast.error("Could not decline the invitation.", { description: error.message })
         return
       }
+
+      // Notification in-app pour le propriétaire : invitation déclinée
+      const currentUserName =
+        session?.user?.user_metadata?.username ??
+        session?.user?.user_metadata?.user_name ??
+        session?.user?.user_metadata?.full_name ??
+        session?.user?.user_metadata?.name ??
+        (session?.user?.email ? session.user.email.split("@")[0] : null)
+
+      if (request?.team_id && currentUserName) {
+        void notifyOwnerInvitationDeclined(request.team_id, currentUserName)
+      }
+
       setInvitations((prev) => prev.filter((i) => i.id !== id))
       toast.success("Invitation declined.", { icon: "👋" })
     } catch (err) {

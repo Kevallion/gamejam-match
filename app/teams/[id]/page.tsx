@@ -77,7 +77,7 @@ export default function SquadMemberPage() {
 
         const { data: membersData, error: membersError } = await supabase
           .from("team_members")
-          .select("user_id")
+          .select("user_id, role")
           .eq("team_id", teamId)
 
         let allowed = teamData.user_id === session.user.id
@@ -99,7 +99,6 @@ export default function SquadMemberPage() {
           .select("sender_id, sender_name, target_role, status, type")
           .eq("team_id", teamId)
           .eq("status", "accepted")
-          .eq("type", "application")
           .in("sender_id", memberUserIds)
 
         const roleByUserId: Record<string, string | null> = {}
@@ -116,7 +115,10 @@ export default function SquadMemberPage() {
 
         const allUserIds = Array.from(new Set([teamData.user_id, ...memberUserIds]))
 
-        let profileMap: Record<string, { username: string; avatar_url: string | null; discord_username: string | null }> = {}
+        const profileMap: Record<
+          string,
+          { username: string; avatar_url: string | null; discord_username: string | null }
+        > = {}
         if (allUserIds.length > 0) {
           const { data: profilesData } = await supabase
             .from("profiles")
@@ -125,8 +127,9 @@ export default function SquadMemberPage() {
 
           for (const p of profilesData ?? []) {
             if (!p.id) continue
+            const rawUsername = (p.username ?? "").trim()
             profileMap[p.id] = {
-              username: (p.username ?? "").trim() || "Unknown",
+              username: rawUsername,
               avatar_url: p.avatar_url ?? null,
               discord_username: (p as { discord_username?: string | null }).discord_username ?? null,
             }
@@ -159,7 +162,9 @@ export default function SquadMemberPage() {
             avatar_url: null,
             discord_username: null,
           }
-          const key = roleByUserId[row.user_id] ?? null
+
+          const membershipRole = ((row as { role?: string | null }).role ?? "").trim() || null
+          const key = membershipRole ?? roleByUserId[row.user_id] ?? null
           const style = key ? ROLE_STYLES[key] : undefined
           const roleLabel = style?.label ?? (key ? key : "Member")
           const displayName =

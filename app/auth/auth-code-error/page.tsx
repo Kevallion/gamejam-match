@@ -3,11 +3,15 @@ import { Button } from '@/components/ui/button'
 import { AuthCodeErrorClient } from './auth-code-error-client'
 
 const REASON_MESSAGES: Record<string, string> = {
-  no_code: 'Discord n\'a pas renvoyé de code d\'autorisation. Vérifiez que l\'URL de redirection est bien configurée dans Supabase (Redirect URLs) et dans le portail développeur Discord.',
-  auth_failed: 'La session n\'a pas pu être créée (cookies bloqués ou erreur serveur). Essayez d\'ouvrir le lien dans un navigateur externe plutôt que dans l\'application.',
-  missing_env: 'Variables d\'environnement manquantes (NEXT_PUBLIC_SUPABASE_URL ou NEXT_PUBLIC_SUPABASE_ANON_KEY). Vérifiez votre fichier .env.local.',
-  'PKCE flow failed': 'URL de redirection incorrecte. Ajoutez exactement http://localhost:3000/auth/callback (ou votre domaine) dans Supabase → Authentication → URL Configuration → Redirect URLs.',
-  'Invalid grant': 'Code expiré ou déjà utilisé. Réessayez la connexion.',
+  no_code:
+    "Discord did not return an authorization code. Make sure the redirect URL is correctly configured in Supabase (Redirect URLs) and in your Discord developer portal.",
+  auth_failed:
+    "The session could not be created (cookies blocked or server error). Try opening the link in an external browser instead of an in-app browser.",
+  missing_env:
+    "Missing environment variables (NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY). Check your .env.local file.",
+  "PKCE flow failed":
+    "Incorrect redirect URL. Add exactly http://localhost:3000/auth/callback (or your domain) in Supabase → Authentication → URL Configuration → Redirect URLs.",
+  "Invalid grant": "Code expired or already used. Try signing in again.",
 }
 
 export default async function AuthCodeErrorPage({
@@ -25,11 +29,12 @@ export default async function AuthCodeErrorPage({
       decoded = reason
     }
   }
-  const helpMessage = decoded && REASON_MESSAGES[decoded]
-    ? REASON_MESSAGES[decoded]
-    : decoded
-      ? `Erreur Supabase : ${decoded}`
-      : 'Une erreur est survenue lors de la connexion. Réessayez.'
+  const helpMessage =
+    decoded && REASON_MESSAGES[decoded]
+      ? REASON_MESSAGES[decoded]
+      : decoded
+        ? `Supabase error: ${decoded}`
+        : "An error occurred while signing you in. Please try again."
 
   return (
     <AuthCodeErrorClient hasErrorInUrl={!!reason}>

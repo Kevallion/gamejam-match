@@ -1,5 +1,7 @@
 "use client"
 
+/* eslint-disable react-hooks/set-state-in-effect */
+
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { TeamCard, type TeamCardData } from "@/components/team-card"
 import { Button } from "@/components/ui/button"
@@ -83,7 +85,6 @@ export function TeamGrid({
   onResultsCountChange,
 }: TeamGridProps) {
   const [teams, setTeams] = useState<TeamWithMeta[]>([])
-  const [loading, setLoading] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
   const [hasMore, setHasMore] = useState(true)
   const offsetRef = useRef(0)
@@ -110,15 +111,15 @@ export function TeamGrid({
       offsetRef.current = from + data.length
     } else if (error) {
       setTeams([])
+      setHasMore(false)
+      offsetRef.current = 0
       toast.error("Error loading teams.", { description: error.message })
     }
   }, [])
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
-    setLoading(true)
     offsetRef.current = 0
-    fetchPage(0, false).finally(() => setLoading(false))
+    void fetchPage(0, false)
   }, [fetchPage])
 
   const handleLoadMore = async () => {
@@ -167,7 +168,7 @@ export function TeamGrid({
     onResultsCountChange?.(displayedTeams.length)
   }, [displayedTeams.length, onResultsCountChange])
 
-  if (loading)
+  if (!teams.length && hasMore)
     return <div className="text-center py-20 text-muted-foreground">Loading teams...</div>
 
   return (

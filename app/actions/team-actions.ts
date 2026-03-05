@@ -305,3 +305,161 @@ export async function notifyTeamChatNewMessage(
   }
 }
 
+/**
+ * Notifie le propriétaire lorsqu'un joueur décline une invitation à rejoindre son équipe.
+ * Notification in-app uniquement (pas d'e-mail).
+ */
+export async function notifyOwnerInvitationDeclined(
+  teamId: string,
+  playerName: string,
+): Promise<void> {
+  try {
+    const admin = createAdminClient()
+    const { data: teamRow, error } = await admin
+      .from("teams")
+      .select("id, user_id")
+      .eq("id", teamId)
+      .single()
+
+    if (error || !teamRow?.user_id) return
+
+    const message = `Player ${playerName} declined your invitation to join the team.`
+    void insertNotification(
+      teamRow.user_id as string,
+      "invitation_declined",
+      message,
+      "/dashboard?tab=requests",
+    )
+  } catch {
+    // Silent error
+  }
+}
+
+/**
+ * Notifie le propriétaire lorsqu'un joueur rejoint officiellement son équipe
+ * (acceptation d'invitation ou de candidature).
+ * Notification in-app uniquement (pas d'e-mail).
+ */
+export async function notifyOwnerPlayerJoined(
+  teamId: string,
+  playerName: string,
+): Promise<void> {
+  try {
+    const admin = createAdminClient()
+    const { data: teamRow, error } = await admin
+      .from("teams")
+      .select("id, user_id")
+      .eq("id", teamId)
+      .single()
+
+    if (error || !teamRow?.user_id) return
+
+    const message = `${playerName} has officially joined your team!`
+    void insertNotification(
+      teamRow.user_id as string,
+      "player_joined",
+      message,
+      "/dashboard?tab=teams",
+    )
+  } catch {
+    // Silent error
+  }
+}
+
+/**
+ * Notifie un joueur lorsqu'il est retiré d'une équipe (kick) et lui envoie un e-mail.
+ */
+export async function notifyPlayerKicked(
+  playerUserId: string,
+  teamName: string,
+): Promise<void> {
+  try {
+    const message = `You have been removed from the team "${teamName}".`
+    void insertNotification(playerUserId, "team_kicked", message, "/dashboard?tab=teams")
+
+    const email = await getUserEmail(playerUserId)
+    if (!email) return
+
+    const safeTeamName = escapeHtml(teamName)
+    const subject = "You have been removed from a team | GameJamCrew"
+    const html = `
+      <p>You have been removed from the team <strong>${safeTeamName}</strong>.</p>
+      <p>You can keep looking for new teams or create your own on <a href="${DASHBOARD_URL}">GameJamCrew</a>.</p>
+      <p>— The GameJamCrew team</p>
+    `
+
+    void sendEmailNotification(email, subject, html)
+  } catch {
+    // Silent error
+  }
+}
+
+/**
+ * Notifie tous les membres actuels (propriétaire inclus) lorsqu'un lien Discord est mis à jour
+ * et leur envoie un e-mail pour les inviter à rejoindre le serveur.
+ */
+export async function notifyTeamDiscordUpdated(
+  teamId: string,
+  teamName: string,
+): Promise<void> {
+  try {
+    const admin = createAdminClient()
+
+    const { data: teamRow, error: teamError } = await admin
+      .from("teams")
+      .select("id, user_id")
+      .eq("id", teamId)
+      .single()
+
+    if (teamError || !teamRow?.user_id) return
+
+    const { data: memberRows, error: membersError } = await admin
+      .from("team_members")
+      .select("user_id")
+      .eq("team_id", teamId)
+
+    if (membersError) return
+
+    const recipientIds = new Set<string>()
+    recipientIds.add(teamRow.user_id as string)
+    for (const row of memberRows ?? []) {
+      if (row.user_id) recipientIds.add(row.user_id as string)
+    }
+
+    if (recipientIds.size === 0) return
+
+    const allRecipientIds = Array.from(recipientIds)
+    const notifMessage = `The Discord link for your team "${teamName}" has been updated. Join the server!`
+
+    try {
+      await admin.from("notifications").insert(
+        allRecipientIds.map((id) => ({
+          user_id: id,
+          type: "discord_updated",
+          message: notifMessage,
+          link: `/teams/${teamId}`,
+        })),
+      )
+    } catch {
+      // Ignore notification insert errors
+    }
+
+    const safeTeamName = escapeHtml(teamName)
+    const subject = "Your team's Discord link was updated | GameJamCrew"
+    const html = `
+      <p>The Discord link for your team <strong>${safeTeamName}</strong> has been updated.</p>
+      <p>Log in to <a href="${DASHBOARD_URL}">GameJamCrew</a> to grab the new link and join your squad on Discord.</p>
+      <p>— The GameJamCrew team</p>
+    `
+
+    for (const id of allRecipientIds) {
+      const email = await getUserEmail(id)
+      if (!email) continue
+      void sendEmailNotification(email, subject, html)
+    }
+  } catch {
+    // Silent error
+  }
+}
+
+

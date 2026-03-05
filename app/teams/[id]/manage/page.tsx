@@ -40,7 +40,11 @@ import {
 } from "lucide-react"
 import { toast } from "sonner"
 import { JamSearchSelector } from "@/components/jam-search-selector"
-import { notifyMemberDiscordLink } from "@/app/actions/team-actions"
+import {
+  notifyMemberDiscordLink,
+  notifyPlayerKicked,
+  notifyTeamDiscordUpdated,
+} from "@/app/actions/team-actions"
 import { EXPERIENCE_OPTIONS, JAM_STYLE_OPTIONS, ROLE_STYLES } from "@/lib/constants"
 
 const DISCORD_LINK_REGEX = /^https:\/\/(discord\.gg\/|discord\.com\/invite\/)/i
@@ -128,23 +132,27 @@ export default function TeamManagePage() {
 
       const { data: membersData } = await supabase
         .from("team_members")
-        .select("user_id")
+        .select("user_id, role")
         .eq("team_id", teamId)
 
-      const memberUserIds = (membersData ?? []).map((m: { user_id: string }) => m.user_id)
+      const memberUserIds = (membersData ?? []).map(
+        (m: { user_id: string; role?: string | null }) => m.user_id,
+      )
 
       const roleByUserId: Record<string, string> = {}
       const senderNameByUserId: Record<string, string> = {}
-      const profilesByUserId: Record<string, { username: string; avatar_url: string | null }> = {}
+      const profilesByUserId: Record<
+        string,
+        { username: string | null; avatar_url: string | null }
+      > = {}
 
       if (memberUserIds.length > 0) {
         const [joinRes, profilesRes] = await Promise.all([
           supabase
             .from("join_requests")
-            .select("sender_id, sender_name, target_role")
+            .select("sender_id, sender_name, target_role, status, type")
             .eq("team_id", teamId)
             .eq("status", "accepted")
-            .eq("type", "application")
             .in("sender_id", memberUserIds),
           supabase.from("profiles").select("id, username, avatar_url").in("id", memberUserIds),
         ])
@@ -157,27 +165,34 @@ export default function TeamManagePage() {
         }
         for (const p of profilesRes.data ?? []) {
           if (p.id) {
+            const rawUsername = (p.username ?? "").trim()
             profilesByUserId[p.id] = {
-              username: p.username?.trim() || "Unknown",
+              username: rawUsername || null,
               avatar_url: p.avatar_url ?? null,
             }
           }
         }
       }
 
-      const members: MemberRow[] = (membersData ?? []).map((m: { user_id: string }) => {
-        const profile = profilesByUserId[m.user_id]
-        const displayName =
-          profile?.username ||
-          senderNameByUserId[m.user_id] ||
-          "Unknown"
-        return {
-          user_id: m.user_id,
-          username: displayName,
-          avatar_url: profile?.avatar_url ?? null,
-          target_role: roleByUserId[m.user_id] ?? null,
-        }
-      })
+      const members: MemberRow[] = (membersData ?? []).map(
+        (m: { user_id: string; role?: string | null }) => {
+          const profile = profilesByUserId[m.user_id]
+          const displayName =
+            (profile?.username && profile.username.trim()) ||
+            senderNameByUserId[m.user_id] ||
+            "Unknown"
+
+          const membershipRole = (m.role ?? "").trim() || null
+          const finalRole = membershipRole ?? roleByUserId[m.user_id] ?? null
+
+          return {
+            user_id: m.user_id,
+            username: displayName,
+            avatar_url: profile?.avatar_url ?? null,
+            target_role: finalRole,
+          }
+        },
+      )
 
       setTeam({
         ...teamData,
@@ -244,6 +259,11 @@ export default function TeamManagePage() {
       setTeam((prev) =>
         prev ? { ...prev, members: prev.members.filter((m) => m.user_id !== userId) } : null
       )
+
+      if (team?.team_name) {
+        void notifyPlayerKicked(userId, team.team_name)
+      }
+
       toast.success("Member removed.", {
         description: "The slot is now available for new applicants.",
       })
@@ -343,6 +363,7 @@ export default function TeamManagePage() {
     }
 
     setDiscordSaving(true)
+    const previousLink = team?.discord_link ?? null
     try {
       const { error } = await supabase
         .from("teams")
@@ -362,6 +383,11 @@ export default function TeamManagePage() {
             }
           : prev,
       )
+
+      // Notifier les membres uniquement lorsqu'un lien Discord valide est défini ou modifié
+      if (trimmed && trimmed !== previousLink && team?.team_name) {
+        void notifyTeamDiscordUpdated(teamId, team.team_name)
+      }
 
       toast.success("Discord link updated.", {
         description: trimmed

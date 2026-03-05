@@ -47,6 +47,7 @@ export function Filters({
   style = "all",
   compact = false,
   hasActiveFilters = false,
+  resultsCount,
   onEngineChange,
   onRoleChange,
   onLevelChange,

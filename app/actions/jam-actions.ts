@@ -171,8 +171,9 @@ export async function getExternalJams(options?: {
 
     if (options?.activeOnly) {
       const nowIso = new Date().toISOString()
-      // Ne garder que les jams qui n'ont pas encore fini (et dont la date de fin est connue)
-      query = query.gte("ends_at", nowIso)
+      // Ne garder que les jams qui n'ont pas encore fini
+      // ou dont la date de fin est inconnue (ends_at IS NULL)
+      query = query.or(`ends_at.is.null,ends_at.gte.${nowIso}`)
     }
 
     const { data, error } = await query

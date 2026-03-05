@@ -194,6 +194,7 @@ export function CreateTeamForm() {
       team_vibe: teamVibe || null,
       experience_required: experienceRequired && experienceRequired !== "any" ? experienceRequired : null,
       jam_id: jamId || null,
+      expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
     }
 
     try {
