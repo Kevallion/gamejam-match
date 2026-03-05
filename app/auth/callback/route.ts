@@ -1,7 +1,18 @@
 import { createClient } from "@/lib/supabase/server"
+import type { User } from "@supabase/supabase-js"
 import { NextResponse } from "next/server"
 
 const AUTH_FAILED_REASON = "auth_failed"
+
+/** Extrait l'URL d'avatar des métadonnées (Discord: avatar_url, Google: picture ou avatar_url) */
+function extractAvatarUrl(metadata: User["user_metadata"]): string | null {
+  if (!metadata || typeof metadata !== "object") return null
+  const avatar = (metadata.avatar_url ?? metadata.picture) as unknown
+  if (typeof avatar !== "string" || !avatar.trim()) return null
+  const trimmed = avatar.trim()
+  if (!trimmed.startsWith("http://") && !trimmed.startsWith("https://")) return null
+  return trimmed
+}
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url)
@@ -33,6 +44,23 @@ export async function GET(request: Request) {
       console.error("Auth callback error:", error)
       const reason = encodeURIComponent(error.message)
       return NextResponse.redirect(`${errorUrl}?reason=${reason}`)
+    }
+
+    // Sync avatar from provider (Discord/Google) to profiles — try/catch pour ne jamais bloquer la redirection
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        const avatarUrl = extractAvatarUrl(user.user_metadata)
+        if (avatarUrl) {
+          const { error } = await supabase
+            .from("profiles")
+            .update({ avatar_url: avatarUrl })
+            .eq("id", user.id)
+          if (error) console.error("[auth/callback] Avatar sync failed:", error.message)
+        }
+      }
+    } catch (err) {
+      console.error("[auth/callback] Avatar sync error:", err)
     }
 
     const forwardedHost = request.headers.get("x-forwarded-host")

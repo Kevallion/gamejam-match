@@ -19,7 +19,7 @@ import { formatDistanceToNow } from "date-fns"
 export type ApplicationData = {
   id: string
   username: string
-  avatarUrl: string
+  avatar_url: string | null
   teamName: string
   role: { label: string; emoji: string; color: string }
   motivation: string
@@ -115,7 +115,8 @@ export function DashboardIncomingApplications({
                 <div className="flex items-start gap-4">
                   <div className="relative">
                     <UserAvatar
-                      user={{ username: app.username, avatar_url: app.avatarUrl || null }}
+                      src={app.avatar_url}
+                      fallbackName={app.username}
                       size="md"
                       className="shrink-0 ring-2 ring-mint/20 transition-all duration-300 group-hover:ring-mint/40"
                     />

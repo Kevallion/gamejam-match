@@ -3,79 +3,84 @@
 import { OptimizedAvatar } from "@/components/optimized-avatar"
 import { cn } from "@/lib/utils"
 
-/** Modèle utilisateur standard (aligné sur profiles Supabase) */
-export interface UserDisplay {
-  username: string
-  avatar_url?: string | null
-}
+const DICEBEAR_BASE = "https://api.dicebear.com/9.x/adventurer/svg"
+const FALLBACK_BG = "d1d4f9"
 
 export interface UserAvatarProps {
-  /** Utilisateur à afficher (username + avatar_url depuis profiles) */
-  user: UserDisplay
-  /** Discord avatar (user_metadata) — for "logged-in user" context only */
-  discordAvatarUrl?: string | null
+  /** URL de l'avatar (profiles.avatar_url, Discord, etc.) — null si absent */
+  src: string | null
+  /** Nom pour fallback DiceBear ou initiales */
+  fallbackName: string
   className?: string
   size?: "xs" | "sm" | "md" | "lg"
 }
 
-const DICEBEAR_BASE = "https://api.dicebear.com/9.x/adventurer/svg"
-const FALLBACK_BG = "d1d4f9"
-
 /**
- * Composant universel pour afficher l'avatar d'un utilisateur.
- * Source de vérité : profiles.avatar_url (ou Discord pour l'utilisateur connecté).
+ * Composant unique pour l'affichage des avatars.
+ * SEULE source de vérité pour la logique de fallback.
  *
- * Priorité d'affichage :
- * 1. user.avatar_url (profiles ou custom)
- * 2. discordAvatarUrl (Discord, contexte "moi")
- * 3. DiceBear généré à partir du username
- * 4. Initiales du username
+ * Priorité :
+ * 1. src valide → affichage de l'image
+ * 2. fallbackName → génération DiceBear (style uniforme)
+ * 3. initiales ou icône anonyme
  */
 export function UserAvatar({
-  user,
-  discordAvatarUrl,
+  src,
+  fallbackName,
   className,
   size = "md",
 }: UserAvatarProps) {
-  const username = user.username || "?"
-  const avatarUrl =
-    user.avatar_url?.trim() ||
-    discordAvatarUrl?.trim() ||
-    `${DICEBEAR_BASE}?seed=${encodeURIComponent(username)}&backgroundColor=${FALLBACK_BG}` ||
-    null
+  const name = fallbackName?.trim() || "?"
+  const validSrc = src?.trim() || null
 
   const initials =
-    username
+    name
       .split(/[\s_]+/)
       .map((w) => w[0])
       .join("")
       .slice(0, 2)
       .toUpperCase() || "?"
 
-  if (!avatarUrl) {
+  // 1. src valide → image
+  if (validSrc) {
     return (
-      <div
-        className={cn(
-          "flex shrink-0 items-center justify-center rounded-full bg-secondary text-sm font-bold text-secondary-foreground ring-2 ring-border/60",
-          size === "xs" && "size-10",
-          size === "sm" && "size-8",
-          size === "md" && "size-12",
-          size === "lg" && "size-14",
-          className
-        )}
-      >
-        {initials}
-      </div>
+      <OptimizedAvatar
+        src={validSrc}
+        alt={name}
+        size={size}
+        className={className}
+        fallback={initials}
+      />
     )
   }
 
+  // 2. fallbackName → DiceBear (généré ici uniquement)
+  if (name && name !== "?") {
+    const diceBearUrl = `${DICEBEAR_BASE}?seed=${encodeURIComponent(name)}&backgroundColor=${FALLBACK_BG}`
+    return (
+      <OptimizedAvatar
+        src={diceBearUrl}
+        alt={name}
+        size={size}
+        className={className}
+        fallback={initials}
+      />
+    )
+  }
+
+  // 3. initiales / icône anonyme
   return (
-    <OptimizedAvatar
-      src={avatarUrl}
-      alt={username}
-      size={size}
-      className={className}
-      fallback={initials}
-    />
+    <div
+      className={cn(
+        "flex shrink-0 items-center justify-center rounded-full bg-secondary text-sm font-bold text-secondary-foreground ring-2 ring-border/60",
+        size === "xs" && "size-10",
+        size === "sm" && "size-8",
+        size === "md" && "size-12",
+        size === "lg" && "size-14",
+        className
+      )}
+    >
+      {initials}
+    </div>
   )
 }

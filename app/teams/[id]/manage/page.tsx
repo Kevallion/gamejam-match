@@ -648,7 +648,8 @@ export default function TeamManagePage() {
                         >
                           <div className="flex items-center gap-3">
                             <UserAvatar
-                              user={{ username: member.username, avatar_url: member.avatar_url }}
+                              src={member.avatar_url}
+                              fallbackName={member.username ?? "?"}
                               size="xs"
                             />
                             <div>

@@ -50,7 +50,7 @@ import { notifyInviteeInvitation } from "@/app/actions/team-actions"
 export type JammerCardData = {
   id: string
   username: string
-  avatarUrl: string
+  avatar_url: string | null
   role: {
     label: string
     emoji: string
@@ -209,7 +209,8 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
               {/* Avatar + Username */}
               <div className="flex items-center gap-3.5">
                 <UserAvatar
-                  user={{ username: player.username, avatar_url: player.avatarUrl || null }}
+                  src={player.avatar_url}
+                  fallbackName={player.username}
                   size="md"
                 />
                 <div className="min-w-0 flex-1">
@@ -310,7 +311,8 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
           <DialogHeader className="px-6 pt-6 pb-4 space-y-1 text-left border-b border-border/60">
             <div className="flex items-center gap-4">
               <UserAvatar
-                user={{ username: player.username, avatar_url: player.avatarUrl || null }}
+                src={player.avatar_url}
+                fallbackName={player.username}
                 size="lg"
               />
               <div>

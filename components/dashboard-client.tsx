@@ -234,13 +234,10 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
       : { label: "Applicant", emoji: "👋", color: "bg-teal/15 text-teal" }
     const profile = r.sender_id ? profileMap[r.sender_id] : null
     const username = profile?.username || r.sender_name || "A Jammer"
-    const avatarUrl =
-      profile?.avatar_url ||
-      `https://api.dicebear.com/9.x/adventurer/svg?seed=${encodeURIComponent(username)}`
     return {
       id: r.id,
       username,
-      avatarUrl,
+      avatar_url: profile?.avatar_url ?? null,
       teamName: r.teams?.team_name || "Unknown Team",
       role: targetRole,
       motivation: r.message || "No motivation provided.",
@@ -320,7 +317,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
 
     const { data: profileData } = await supabase
       .from("profiles")
-      .select("has_completed_onboarding, jam_id")
+      .select("has_completed_onboarding, jam_id, username, avatar_url")
       .eq("id", authSession.user.id)
       .maybeSingle()
 
@@ -341,11 +338,19 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
 
     const { data: postsData } = await supabase
       .from("availability_posts")
-      .select("id, user_id, availability, username, role, experience, jam_style, engine, language, bio, portfolio_link, avatar_url")
+      .select("id, user_id, availability, role, experience, jam_style, engine, language, bio, portfolio_link")
       .eq("user_id", authSession.user.id)
       .order("updated_at", { ascending: false })
 
-    let postsWithJam: AvailabilityPostRow[] = (postsData as AvailabilityPostRow[]) ?? []
+    const profile = profileData as { username?: string | null; avatar_url?: string | null } | null
+    const profileUsername = profile?.username?.trim() ?? null
+    const profileAvatarUrl = profile?.avatar_url?.trim() ?? null
+
+    let postsWithJam: AvailabilityPostRow[] = ((postsData ?? []) as Record<string, unknown>[]).map((p) => ({
+      ...p,
+      username: profileUsername,
+      avatar_url: profileAvatarUrl,
+    })) as AvailabilityPostRow[]
     const jamId = (profileData as { jam_id?: string | null } | null)?.jam_id ?? null
     if (jamId) {
       const { data: jamData } = await supabase

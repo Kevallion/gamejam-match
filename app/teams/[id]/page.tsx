@@ -327,7 +327,7 @@ export default function SquadMemberPage() {
                         <div className="flex flex-col gap-3">
                           {members.map((member) => {
                             const isCurrentUser = member.userId === currentUserId
-                            const discordAvatarUrl = isCurrentUser ? currentUserDiscordAvatarUrl : null
+                            const avatarSrc = member.avatarUrl ?? (isCurrentUser ? currentUserDiscordAvatarUrl : null)
                             const roleClasses = member.isLeader
                               ? "bg-primary/10 text-primary"
                               : member.roleKey && ROLE_STYLES[member.roleKey]
@@ -341,8 +341,8 @@ export default function SquadMemberPage() {
                               >
                                 <div className="flex flex-1 items-center gap-3 min-w-0">
                                   <UserAvatar
-                                    user={{ username: member.username, avatar_url: member.avatarUrl }}
-                                    discordAvatarUrl={discordAvatarUrl ?? undefined}
+                                    src={avatarSrc}
+                                    fallbackName={member.username}
                                     size="xs"
                                   />
                                   <div className="min-w-0">

@@ -244,10 +244,10 @@ export function AvailabilityForm() {
 
       const avatarUrl = existingProfile?.avatar_url ?? user.user_metadata?.avatar_url ?? null
 
+      // username et avatar_url viennent de profiles (jointure à la lecture), pas stockés dans availability_posts
       const { error: postError } = await supabase.from("availability_posts").insert({
         user_id: user.id,
         availability: dateString,
-        username: usernameValue,
         role: role,
         experience: level,
         jam_style: jamStyle || null,
@@ -255,7 +255,6 @@ export function AvailabilityForm() {
         language: language,
         bio: bioValue,
         portfolio_link: portfolioLink.trim() || null,
-        avatar_url: avatarUrl,
       })
 
       if (!postError) {

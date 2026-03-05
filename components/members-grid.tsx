@@ -21,8 +21,6 @@ type AvailabilityPostRowDb = {
   id: string
   user_id: string
   availability: string | null
-  username: string | null
-  avatar_url: string | null
   role: string | null
   experience: string | null
   experience_level?: string | null
@@ -33,9 +31,11 @@ type AvailabilityPostRowDb = {
   portfolio_link: string | null
 }
 
-type ProfileRow = {
+type ProfileWithUser = {
   id: string
-  jam_id?: string | null
+  username: string | null
+  avatar_url: string | null
+  jam_id: string | null
 }
 
 interface MembersGridProps {
@@ -48,13 +48,12 @@ interface MembersGridProps {
 
 type MemberRow = AvailabilityPostRowDb & { id: string }
 
-function formatMember(m: MemberRow): JammerWithFilters {
-  const fallbackUrl = `https://api.dicebear.com/9.x/adventurer/svg?seed=${m.username}&backgroundColor=d1d4f9`
+function formatMember(m: MemberRow, profile: ProfileWithUser | null): JammerWithFilters {
   const jamStyle = m.jam_style ? JAM_STYLE_STYLES[m.jam_style] : undefined
   return {
     id: m.id as string,
-    username: m.username || "Anonymous",
-    avatarUrl: m.avatar_url?.trim() || fallbackUrl,
+    username: profile?.username?.trim() || "Anonymous",
+    avatar_url: profile?.avatar_url?.trim() || null,
     rawRole: m.role || "",
     rawLevel: m.experience || m.experience_level || "",
     rawEngine: m.engine || "",
@@ -97,7 +96,7 @@ export function MembersGrid({
   const fetchPage = useCallback(async (from: number, append: boolean) => {
     const { data: postsData, error: postsError } = await supabase
       .from("availability_posts")
-      .select("id, user_id, availability, username, avatar_url, role, experience, jam_style, engine, language, bio, portfolio_link")
+      .select("id, user_id, availability, role, experience, jam_style, engine, language, bio, portfolio_link")
       .order("updated_at", { ascending: false })
       .range(from, from + PAGE_SIZE - 1)
 
@@ -115,9 +114,14 @@ export function MembersGrid({
     const userIds = [...new Set((postsData as AvailabilityPostRowDb[]).map((r) => r.user_id).filter(Boolean))]
     const { data: profilesData } = await supabase
       .from("profiles")
-      .select("id, jam_id")
+      .select("id, username, avatar_url, jam_id")
       .in("id", userIds)
-    const jamIds = [...new Set(((profilesData ?? []) as ProfileRow[]).map((p) => p.jam_id).filter(Boolean))] as string[]
+    const profilesByUserId = new Map<string, ProfileWithUser>()
+    for (const p of (profilesData ?? []) as ProfileWithUser[]) {
+      if (p.id) profilesByUserId.set(p.id, p)
+    }
+
+    const jamIds = [...new Set(((profilesData ?? []) as ProfileWithUser[]).map((p) => p.jam_id).filter(Boolean))] as string[]
     const jamMap: Record<string, { title: string | null; url: string | null }> = {}
     if (jamIds.length > 0) {
       const { data: jamsData } = await supabase
@@ -129,13 +133,14 @@ export function MembersGrid({
       }
     }
     const profileJamMap: Record<string, { title: string | null; url: string | null } | null> = {}
-    for (const p of (profilesData ?? []) as ProfileRow[]) {
+    for (const p of (profilesData ?? []) as ProfileWithUser[]) {
       const jamId = p.jam_id
       profileJamMap[p.id] = jamId && jamMap[jamId] ? jamMap[jamId] : null
     }
 
     const formatted = (postsData as AvailabilityPostRowDb[]).map((row) => {
-      const member = formatMember({ ...row, id: row.user_id }) as JammerWithFilters
+      const profile = profilesByUserId.get(row.user_id) ?? null
+      const member = formatMember({ ...row, id: row.user_id }, profile) as JammerWithFilters
       member.availabilityPostId = row.id
       const jam = profileJamMap[row.user_id]
       if (jam?.title) member.jam = { title: jam.title, url: jam.url ?? undefined }

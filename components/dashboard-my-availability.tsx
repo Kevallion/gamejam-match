@@ -61,8 +61,8 @@ function AnnouncementCard({ post, onDelete, discordAvatarUrl }: AnnouncementCard
         {/* Avatar + Username */}
         <div className="flex items-center gap-3.5">
           <UserAvatar
-            user={{ username, avatar_url: post.avatar_url }}
-            discordAvatarUrl={discordAvatarUrl}
+            src={post.avatar_url ?? discordAvatarUrl ?? null}
+            fallbackName={username}
             size="md"
           />
           <div className="min-w-0 flex-1">

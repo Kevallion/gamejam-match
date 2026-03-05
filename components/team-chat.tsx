@@ -303,10 +303,8 @@ export function TeamChat({ teamId, currentUserId }: TeamChatProps) {
                     >
                       {!isOwn && (
                         <UserAvatar
-                          user={{
-                            username: message.sender_username,
-                            avatar_url: message.sender_avatar_url,
-                          }}
+                          src={message.sender_avatar_url}
+                          fallbackName={message.sender_username}
                           size="xs"
                           className="mt-auto"
                         />
@@ -335,10 +333,8 @@ export function TeamChat({ teamId, currentUserId }: TeamChatProps) {
                       </div>
                       {isOwn && (
                         <UserAvatar
-                          user={{
-                            username: message.sender_username,
-                            avatar_url: message.sender_avatar_url,
-                          }}
+                          src={message.sender_avatar_url}
+                          fallbackName={message.sender_username}
                           size="xs"
                           className="mt-auto"
                         />
