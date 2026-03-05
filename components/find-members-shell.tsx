@@ -14,6 +14,7 @@ export function FindMembersShell() {
   const [roleFilter, setRoleFilter] = useState("all")
   const [engineFilter, setEngineFilter] = useState("all")
   const [levelFilter, setLevelFilter] = useState("all")
+  const [resultsCount, setResultsCount] = useState<number | null>(null)
 
   const hasActiveFilters =
     searchQuery !== "" ||
@@ -87,6 +88,7 @@ export function FindMembersShell() {
           engine={engineFilter}
           level={levelFilter}
           hasActiveFilters={hasActiveFilters}
+          resultsCount={resultsCount ?? undefined}
           onRoleChange={setRoleFilter}
           onEngineChange={setEngineFilter}
           onLevelChange={setLevelFilter}
@@ -109,6 +111,7 @@ export function FindMembersShell() {
           roleFilter={roleFilter}
           engineFilter={engineFilter}
           levelFilter={levelFilter}
+          onResultsCountChange={setResultsCount}
         />
       </main>
 

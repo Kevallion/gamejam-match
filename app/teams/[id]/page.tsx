@@ -34,6 +34,7 @@ type SquadMember = {
   roleKey: string | null
   roleLabel: string
   isLeader: boolean
+  discordUsername?: string | null
 }
 
 export default function SquadMemberPage() {
@@ -115,11 +116,11 @@ export default function SquadMemberPage() {
 
         const allUserIds = Array.from(new Set([teamData.user_id, ...memberUserIds]))
 
-        let profileMap: Record<string, { username: string; avatar_url: string | null }> = {}
+        let profileMap: Record<string, { username: string; avatar_url: string | null; discord_username: string | null }> = {}
         if (allUserIds.length > 0) {
           const { data: profilesData } = await supabase
             .from("profiles")
-            .select("id, username, avatar_url")
+            .select("id, username, avatar_url, discord_username")
             .in("id", allUserIds)
 
           for (const p of profilesData ?? []) {
@@ -127,6 +128,7 @@ export default function SquadMemberPage() {
             profileMap[p.id] = {
               username: (p.username ?? "").trim() || "Unknown",
               avatar_url: p.avatar_url ?? null,
+              discord_username: (p as { discord_username?: string | null }).discord_username ?? null,
             }
           }
         }
@@ -134,6 +136,7 @@ export default function SquadMemberPage() {
         const ownerProfile = profileMap[teamData.user_id] ?? {
           username: "Leader",
           avatar_url: null,
+          discord_username: null,
         }
 
         const squadMembers: SquadMember[] = []
@@ -146,6 +149,7 @@ export default function SquadMemberPage() {
           roleKey: null,
           roleLabel: "Leader",
           isLeader: true,
+          discordUsername: ownerProfile.discord_username,
         })
 
         // Then accepted members
@@ -153,6 +157,7 @@ export default function SquadMemberPage() {
           const profile = profileMap[row.user_id] ?? {
             username: "",
             avatar_url: null,
+            discord_username: null,
           }
           const key = roleByUserId[row.user_id] ?? null
           const style = key ? ROLE_STYLES[key] : undefined
@@ -169,6 +174,7 @@ export default function SquadMemberPage() {
             roleKey: key,
             roleLabel,
             isLeader: false,
+            discordUsername: profile.discord_username,
           })
         }
 
@@ -322,11 +328,16 @@ export default function SquadMemberPage() {
                                     user={{ username: member.username, avatar_url: member.avatarUrl }}
                                     size="xs"
                                   />
-                                  <div className="min-w-0">
-                                    <p className="truncate text-sm font-semibold text-foreground">
-                                      {member.username}
-                                    </p>
-                                  </div>
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-semibold text-foreground">
+                              {member.username}
+                            </p>
+                            {member.discordUsername && (
+                              <p className="truncate text-xs text-muted-foreground">
+                                Discord: {member.discordUsername}
+                              </p>
+                            )}
+                          </div>
                                 </div>
                                 <Badge
                                   variant="outline"

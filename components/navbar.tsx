@@ -28,8 +28,35 @@ import { useEffect, useState } from "react"
 import type { User } from "@supabase/supabase-js"
 import { useNotifications } from "@/hooks/use-notifications"
 
+type NavbarProfile = {
+  username?: string | null
+  avatar_url?: string | null
+}
+
+function getDisplayName(user: User | null, profile: NavbarProfile | null): string {
+  const fromProfile = profile?.username?.trim()
+  if (fromProfile) return fromProfile
+
+  const meta = user?.user_metadata as Record<string, string> | undefined
+  const fromMeta =
+    meta?.full_name?.trim() ||
+    meta?.name?.trim() ||
+    meta?.user_name?.trim() ||
+    meta?.username?.trim()
+
+  if (fromMeta) return fromMeta
+
+  if (user?.email) {
+    const [local] = user.email.split("@")
+    if (local) return local
+  }
+
+  return "Jammer"
+}
+
 export function Navbar() {
   const [user, setUser] = useState<User | null>(null)
+  const [profile, setProfile] = useState<NavbarProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const [mounted, setMounted] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -45,22 +72,41 @@ export function Navbar() {
   } = useNotifications(user?.id ?? null)
 
   useEffect(() => {
+    async function loadProfileForUser(authUser: User | null) {
+      if (!authUser) {
+        setProfile(null)
+        return
+      }
+
+      const { data } = await supabase
+        .from("profiles")
+        .select("username, avatar_url")
+        .eq("id", authUser.id)
+        .maybeSingle()
+
+      setProfile(data ?? null)
+    }
+
     setMounted(true)
 
-    async function getUser() {
+    async function getUserAndProfile() {
       const { data: { session } } = await supabase.auth.getSession()
-      setUser(session?.user || null)
+      const authUser = session?.user || null
+      setUser(authUser)
+      await loadProfileForUser(authUser)
       setLoading(false)
     }
-    getUser()
+    void getUserAndProfile()
 
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user || null)
+      const authUser = session?.user || null
+      setUser(authUser)
+      void loadProfileForUser(authUser)
     })
 
     // Refresh session when OAuth auth completes in popup (mobile)
     const unsubscribe = subscribeToAuthComplete(() => {
-      getUser()
+      void getUserAndProfile()
     })
 
     return () => {
@@ -72,6 +118,8 @@ export function Navbar() {
   const handleSignOut = async () => {
     await supabase.auth.signOut()
   }
+
+  const displayName = getDisplayName(user, profile)
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/80 backdrop-blur-xl">
@@ -129,7 +177,7 @@ export function Navbar() {
                     ) : user ? (
                       <>
                         <span className="text-sm font-medium text-muted-foreground px-3">
-                          Hello, <span className="text-foreground">{user.user_metadata.full_name || "Jammer"}</span> !
+                          Hello, <span className="text-foreground">{displayName}</span> !
                         </span>
                         <Button asChild variant="outline" className="gap-2 rounded-xl border-primary/30 text-primary hover:bg-primary/10 w-full justify-start">
                           <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}>
@@ -261,13 +309,15 @@ export function Navbar() {
                   <div className="flex items-center justify-center py-6">
                     <Loader2 className="size-4 animate-spin text-muted-foreground" />
                   </div>
-                ) : notifications.length === 0 ? (
+                ) : notifications.filter((n) => !n.is_read).length === 0 ? (
                   <p className="py-6 text-center text-sm text-muted-foreground">
                     No new notifications
                   </p>
                 ) : (
                   <div className="flex flex-col gap-0.5">
-                    {notifications.map((notif) => (
+                    {notifications
+                      .filter((n) => !n.is_read)
+                      .map((notif) => (
                       <DropdownMenuItem key={notif.id} asChild>
                         <Link
                           href={notif.link || "/dashboard?tab=teams"}
@@ -320,7 +370,7 @@ export function Navbar() {
                 <span className="max-w-[160px] truncate text-sm font-medium text-muted-foreground">
                   Hello,{" "}
                   <span className="truncate text-foreground align-middle">
-                    {user.user_metadata.full_name || "Jammer"}
+                    {displayName}
                   </span>{" "}
                   !
                 </span>

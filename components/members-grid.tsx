@@ -43,6 +43,7 @@ interface MembersGridProps {
   roleFilter: string
   engineFilter: string
   levelFilter: string
+  onResultsCountChange?: (count: number) => void
 }
 
 type MemberRow = AvailabilityPostRowDb & { id: string }
@@ -77,6 +78,7 @@ export function MembersGrid({
   roleFilter = "all",
   engineFilter = "all",
   levelFilter = "all",
+  onResultsCountChange,
 }: MembersGridProps) {
   const [members, setMembers] = useState<JammerWithFilters[]>([])
   const [mySquads, setMySquads] = useState<SquadOption[]>([])
@@ -222,6 +224,10 @@ export function MembersGrid({
       return matchSearch && matchRole && matchEngine && matchLevel
     })
   }, [members, debouncedSearch, roleFilter, engineFilter, levelFilter])
+
+  useEffect(() => {
+    onResultsCountChange?.(displayedMembers.length)
+  }, [displayedMembers.length, onResultsCountChange])
 
   if (loading) return <div className="text-center py-20 text-muted-foreground">Loading jammers...</div>
 

@@ -17,6 +17,7 @@ interface TeamGridProps {
   levelFilter: string
   languageFilter: string
   styleFilter?: string
+  onResultsCountChange?: (count: number) => void
 }
 
 type RawRoleEntry = { role?: string | null; level?: string | null }
@@ -79,6 +80,7 @@ export function TeamGrid({
   levelFilter = "all",
   languageFilter = "all",
   styleFilter = "all",
+  onResultsCountChange,
 }: TeamGridProps) {
   const [teams, setTeams] = useState<TeamWithMeta[]>([])
   const [loading, setLoading] = useState(true)
@@ -160,6 +162,10 @@ export function TeamGrid({
       return matchSearch && matchEngine && matchLanguage && matchRole && matchLevel && matchStyle
     })
   }, [teams, debouncedSearch, engineFilter, roleFilter, levelFilter, languageFilter, styleFilter])
+
+  useEffect(() => {
+    onResultsCountChange?.(displayedTeams.length)
+  }, [displayedTeams.length, onResultsCountChange])
 
   if (loading)
     return <div className="text-center py-20 text-muted-foreground">Loading teams...</div>

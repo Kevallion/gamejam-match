@@ -20,6 +20,7 @@ export function HomeShell() {
   const [levelFilter, setLevelFilter] = useState("all")
   const [languageFilter, setLanguageFilter] = useState("all")
   const [styleFilter, setStyleFilter] = useState("all")
+  const [resultsCount, setResultsCount] = useState<number | null>(null)
 
   // Sync URL to state on load and when URL changes
   useEffect(() => {
@@ -149,6 +150,7 @@ export function HomeShell() {
               style={styleFilter}
               compact
               hasActiveFilters={hasActiveFilters}
+              resultsCount={resultsCount ?? undefined}
               onEngineChange={handleEngineChange}
               onRoleChange={handleRoleChange}
               onLevelChange={handleLevelChange}
@@ -174,6 +176,7 @@ export function HomeShell() {
             levelFilter={levelFilter}
             languageFilter={languageFilter}
             styleFilter={styleFilter}
+            onResultsCountChange={setResultsCount}
           />
         </div>
       </main>
