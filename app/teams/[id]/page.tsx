@@ -46,6 +46,7 @@ export default function SquadMemberPage() {
   const [squad, setSquad] = useState<SquadViewData | null>(null)
   const [isMember, setIsMember] = useState(false)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+  const [currentUserDiscordAvatarUrl, setCurrentUserDiscordAvatarUrl] = useState<string | null>(null)
   const [members, setMembers] = useState<SquadMember[]>([])
 
   useEffect(() => {
@@ -62,6 +63,14 @@ export default function SquadMemberPage() {
         }
 
         setCurrentUserId(session.user.id)
+        const meta = (session.user.user_metadata ?? {}) as Record<string, unknown>
+        const discordAvatar =
+          typeof meta.avatar_url === "string"
+            ? meta.avatar_url
+            : typeof meta.picture === "string"
+              ? meta.picture
+              : null
+        setCurrentUserDiscordAvatarUrl(discordAvatar)
 
         const { data: teamData, error: teamError } = await supabase
           .from("teams")
@@ -317,6 +326,8 @@ export default function SquadMemberPage() {
                       ) : (
                         <div className="flex flex-col gap-3">
                           {members.map((member) => {
+                            const isCurrentUser = member.userId === currentUserId
+                            const discordAvatarUrl = isCurrentUser ? currentUserDiscordAvatarUrl : null
                             const roleClasses = member.isLeader
                               ? "bg-primary/10 text-primary"
                               : member.roleKey && ROLE_STYLES[member.roleKey]
@@ -328,21 +339,22 @@ export default function SquadMemberPage() {
                                 key={member.userId}
                                 className="flex items-center justify-between gap-3 rounded-xl border border-border/60 bg-card/60 px-3 py-2"
                               >
-                                <div className="flex items-center gap-3 min-w-0">
+                                <div className="flex flex-1 items-center gap-3 min-w-0">
                                   <UserAvatar
                                     user={{ username: member.username, avatar_url: member.avatarUrl }}
+                                    discordAvatarUrl={discordAvatarUrl ?? undefined}
                                     size="xs"
                                   />
-                          <div className="min-w-0">
-                            <p className="truncate text-sm font-semibold text-foreground">
-                              {member.username}
-                            </p>
-                            {member.discordUsername && (
-                              <p className="truncate text-xs text-muted-foreground">
-                                Discord: {member.discordUsername}
-                              </p>
-                            )}
-                          </div>
+                                  <div className="min-w-0">
+                                    <p className="truncate text-sm font-semibold text-foreground">
+                                      {member.username}
+                                    </p>
+                                    {member.discordUsername && (
+                                      <p className="truncate text-xs text-muted-foreground">
+                                        Discord: {member.discordUsername}
+                                      </p>
+                                    )}
+                                  </div>
                                 </div>
                                 <Badge
                                   variant="outline"
