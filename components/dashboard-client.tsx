@@ -29,6 +29,7 @@ import {
   notifyOwnerPlayerJoined,
 } from "@/app/actions/team-actions"
 import { OnboardingModal } from "@/components/onboarding-modal"
+import { PushNotificationManager } from "@/components/push-notification-manager"
 import type { Session } from "@supabase/supabase-js"
 import { toast } from "sonner"
 import { EXPERIENCE_STYLES, ROLE_STYLES } from "@/lib/constants"
@@ -830,7 +831,11 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
                 />
                 <SentApplicationsSection sentApplications={sentApplications} />
               </TabsContent>
-              <TabsContent value="availability" className="mt-0">
+              <TabsContent value="availability" className="mt-0 flex flex-col gap-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-medium text-muted-foreground">Push notifications</h3>
+                  <PushNotificationManager />
+                </div>
                 <DashboardMyAvailability
                   availabilityPosts={availabilityPosts}
                   onDeletePost={handleDeleteAvailabilityPostClick}

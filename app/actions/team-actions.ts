@@ -2,6 +2,7 @@
 
 import { createAdminClient, getUserEmail } from "@/lib/supabase/admin"
 import { sendEmailNotification } from "@/lib/mail"
+import { sendPushToUser } from "@/lib/push"
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://gamejamcrew.com"
 const DASHBOARD_URL = `${BASE_URL}/dashboard`
@@ -20,6 +21,7 @@ async function insertNotification(
       message,
       link: link ?? null,
     })
+    void sendPushToUser(userId, "GameJamCrew", message, link ?? null)
   } catch {
     // Silent error: notifications should never break the main UX
   }
@@ -251,15 +253,19 @@ export async function notifyTeamChatNewMessage(
 
     // In-app notifications for all recipients
     const notifMessage = `New message in the team chat "${teamRow.team_name}".`
+    const notifLink = `/teams/${teamId}`
     try {
       await admin.from("notifications").insert(
         allRecipientIds.map((id) => ({
           user_id: id,
           type: "team_chat",
           message: notifMessage,
-          link: `/teams/${teamId}`,
+          link: notifLink,
         })),
       )
+      for (const id of allRecipientIds) {
+        void sendPushToUser(id, "GameJamCrew", notifMessage, notifLink)
+      }
     } catch {
       // Ignore
     }
@@ -430,6 +436,7 @@ export async function notifyTeamDiscordUpdated(
 
     const allRecipientIds = Array.from(recipientIds)
     const notifMessage = `The Discord link for your team "${teamName}" has been updated. Join the server!`
+    const notifLink = `/teams/${teamId}`
 
     try {
       await admin.from("notifications").insert(
@@ -437,9 +444,12 @@ export async function notifyTeamDiscordUpdated(
           user_id: id,
           type: "discord_updated",
           message: notifMessage,
-          link: `/teams/${teamId}`,
+          link: notifLink,
         })),
       )
+      for (const id of allRecipientIds) {
+        void sendPushToUser(id, "GameJamCrew", notifMessage, notifLink)
+      }
     } catch {
       // Ignore notification insert errors
     }
