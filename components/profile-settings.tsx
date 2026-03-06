@@ -26,7 +26,7 @@ import {
 import { deleteUserAccount } from "@/app/actions/auth-actions"
 import { supabase } from "@/lib/supabase"
 import { ROLE_OPTIONS, ENGINE_OPTIONS_WITH_ANY, LANGUAGE_OPTIONS } from "@/lib/constants"
-import { Loader2, Trash2 } from "lucide-react"
+import { Loader2, Trash2, User, Settings, Bell, AlertTriangle, Link2 } from "lucide-react"
 import { toast } from "sonner"
 
 export type ProfileSettingsProfile = {
@@ -122,121 +122,183 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
     "Jammer"
 
   return (
-    <div className="flex flex-col space-y-8">
-      <form onSubmit={handleSaveProfile} className="flex flex-col space-y-8">
-          {/* Card 1: Public Profile */}
-        <Card className="rounded-xl border-border/60">
-        <CardHeader>
-          <CardTitle>Public Profile</CardTitle>
-          <CardDescription>This is how others will see you on the platform.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="flex flex-col items-center gap-4">
-            <div className="flex justify-center">
-              <UserAvatar
-                src={profile?.avatar_url ?? null}
-                fallbackName={displayName}
-                size="lg"
-                className="size-24 shrink-0 rounded-2xl ring-2 ring-border/60"
-              />
-            </div>
-            <p className="text-center text-sm font-medium text-foreground">{displayName}</p>
-          </div>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="profile-username">Username</Label>
-              <Input
-                id="profile-username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="e.g. PixelWizard42"
-                className="rounded-xl border-border/60"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="profile-discord">Discord Username</Label>
-              <Input
-                id="profile-discord"
-                value={discordUsername}
-                onChange={(e) => setDiscordUsername(e.target.value)}
-                placeholder="ex: gamer123"
-                className="rounded-xl border-border/60"
-              />
-              <p className="text-xs text-muted-foreground">
-                Visible to teammates in your squad. Used so they can invite you to group chats.
-              </p>
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="profile-portfolio-url">Portfolio URL</Label>
-            <Input
-              id="profile-portfolio-url"
-              type="url"
-              value={portfolioUrl}
-              onChange={(e) => setPortfolioUrl(e.target.value)}
-              placeholder="https://yourname.itch.io or https://yourportfolio.com"
-              className="rounded-xl border-border/60"
-            />
-          </div>
-        </CardContent>
-        </Card>
+    <div className="mx-auto w-full max-w-4xl space-y-10 px-4 py-8 md:px-6 lg:px-8">
+      {/* Page Header */}
+      <div className="space-y-1">
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Settings</h1>
+        <p className="text-sm text-muted-foreground">Manage your profile and preferences</p>
+      </div>
 
-        {/* Card 2: Default Preferences */}
-        <Card className="rounded-xl border-border/60">
-        <CardHeader>
-          <CardTitle>Default Preferences</CardTitle>
-          <CardDescription>These settings will automatically pre-fill your availability posts to save you time.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-            <div className="space-y-2">
-              <Label htmlFor="profile-default-role">Default Role</Label>
-              <Select value={defaultRole || "any"} onValueChange={(v) => setDefaultRole(v === "any" ? "" : v)}>
-                <SelectTrigger id="profile-default-role" className="rounded-xl border-border/60">
-                  <SelectValue placeholder="None / No default" />
-                </SelectTrigger>
-                <SelectContent className="rounded-xl">
-                  <SelectItem value="any">None / No default</SelectItem>
-                  {ROLE_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+      <form onSubmit={handleSaveProfile} className="space-y-8">
+        {/* Section: Public Profile */}
+        <section className="space-y-6">
+          <div className="flex items-center gap-3">
+            <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10">
+              <User className="size-4 text-primary" />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="profile-default-engine">Default Engine</Label>
-              <Select value={defaultEngine || "any"} onValueChange={(v) => setDefaultEngine(v === "any" ? "" : v)}>
-                <SelectTrigger id="profile-default-engine" className="rounded-xl border-border/60">
-                  <SelectValue placeholder="Any / No Preference" />
-                </SelectTrigger>
-                <SelectContent className="rounded-xl">
-                  {ENGINE_OPTIONS_WITH_ANY.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="profile-default-language">Default Language</Label>
-              <Select value={defaultLanguage || "any"} onValueChange={(v) => setDefaultLanguage(v === "any" ? "" : v)}>
-                <SelectTrigger id="profile-default-language" className="rounded-xl border-border/60">
-                  <SelectValue placeholder="None / No default" />
-                </SelectTrigger>
-                <SelectContent className="rounded-xl">
-                  <SelectItem value="any">None / No default</SelectItem>
-                  {LANGUAGE_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div>
+              <h2 className="text-base font-medium text-foreground">Public Profile</h2>
+              <p className="text-sm text-muted-foreground">This is how others will see you on the platform.</p>
             </div>
           </div>
-        </CardContent>
-        </Card>
 
-        {/* Single Save Button */}
-        <div className="flex justify-end">
-          <Button type="submit" disabled={saving} size="lg" className="min-w-[180px] gap-2 rounded-xl">
+          <Card className="border-border/50 bg-muted/30">
+            <CardContent className="p-6 md:p-8">
+              {/* Avatar Section */}
+              <div className="mb-8 flex items-center gap-5">
+                <UserAvatar
+                  src={profile?.avatar_url ?? null}
+                  fallbackName={displayName}
+                  size="lg"
+                  className="size-20 shrink-0 rounded-2xl ring-2 ring-border/40 transition-shadow hover:ring-primary/30"
+                />
+                <div className="space-y-1">
+                  <p className="text-lg font-medium text-foreground">{displayName}</p>
+                  <p className="text-sm text-muted-foreground">Your avatar is synced from your login provider</p>
+                </div>
+              </div>
+
+              {/* Form Fields */}
+              <div className="space-y-6">
+                <div className="grid gap-6 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="profile-username" className="text-sm font-medium">
+                      Username
+                    </Label>
+                    <Input
+                      id="profile-username"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      placeholder="e.g. PixelWizard42"
+                      className="h-11 rounded-lg border-border/50 bg-background transition-colors focus:border-primary/50"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Your unique display name across the platform
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="profile-discord" className="text-sm font-medium">
+                      Discord Username
+                    </Label>
+                    <Input
+                      id="profile-discord"
+                      value={discordUsername}
+                      onChange={(e) => setDiscordUsername(e.target.value)}
+                      placeholder="e.g. gamer123"
+                      className="h-11 rounded-lg border-border/50 bg-background transition-colors focus:border-primary/50"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Visible to teammates for group chat invites
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="profile-portfolio-url" className="flex items-center gap-2 text-sm font-medium">
+                    <Link2 className="size-3.5 text-muted-foreground" />
+                    Portfolio URL
+                  </Label>
+                  <Input
+                    id="profile-portfolio-url"
+                    type="url"
+                    value={portfolioUrl}
+                    onChange={(e) => setPortfolioUrl(e.target.value)}
+                    placeholder="https://yourname.itch.io or https://yourportfolio.com"
+                    className="h-11 rounded-lg border-border/50 bg-background transition-colors focus:border-primary/50"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Showcase your work to potential teammates
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+
+        {/* Section: Default Preferences */}
+        <section className="space-y-6">
+          <div className="flex items-center gap-3">
+            <div className="flex size-9 items-center justify-center rounded-lg bg-secondary">
+              <Settings className="size-4 text-secondary-foreground" />
+            </div>
+            <div>
+              <h2 className="text-base font-medium text-foreground">Default Preferences</h2>
+              <p className="text-sm text-muted-foreground">Pre-fill your availability posts automatically</p>
+            </div>
+          </div>
+
+          <Card className="border-border/50 bg-muted/30">
+            <CardContent className="p-6 md:p-8">
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="space-y-2">
+                  <Label htmlFor="profile-default-role" className="text-sm font-medium">
+                    Default Role
+                  </Label>
+                  <Select value={defaultRole || "any"} onValueChange={(v) => setDefaultRole(v === "any" ? "" : v)}>
+                    <SelectTrigger id="profile-default-role" className="h-11 rounded-lg border-border/50 bg-background">
+                      <SelectValue placeholder="None / No default" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-lg">
+                      <SelectItem value="any">None / No default</SelectItem>
+                      {ROLE_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Your primary contribution
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="profile-default-engine" className="text-sm font-medium">
+                    Default Engine
+                  </Label>
+                  <Select value={defaultEngine || "any"} onValueChange={(v) => setDefaultEngine(v === "any" ? "" : v)}>
+                    <SelectTrigger id="profile-default-engine" className="h-11 rounded-lg border-border/50 bg-background">
+                      <SelectValue placeholder="Any / No Preference" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-lg">
+                      {ENGINE_OPTIONS_WITH_ANY.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Preferred game engine
+                  </p>
+                </div>
+                <div className="space-y-2 sm:col-span-2 lg:col-span-1">
+                  <Label htmlFor="profile-default-language" className="text-sm font-medium">
+                    Default Language
+                  </Label>
+                  <Select value={defaultLanguage || "any"} onValueChange={(v) => setDefaultLanguage(v === "any" ? "" : v)}>
+                    <SelectTrigger id="profile-default-language" className="h-11 rounded-lg border-border/50 bg-background">
+                      <SelectValue placeholder="None / No default" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-lg">
+                      <SelectItem value="any">None / No default</SelectItem>
+                      {LANGUAGE_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Communication language
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+
+        {/* Save Button */}
+        <div className="flex justify-end pt-2">
+          <Button
+            type="submit"
+            disabled={saving}
+            size="lg"
+            className="min-w-[160px] gap-2 rounded-lg font-medium shadow-sm transition-all hover:shadow-md"
+          >
             {saving ? (
               <>
                 <Loader2 className="size-4 animate-spin" />
@@ -249,58 +311,91 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
         </div>
       </form>
 
-      {/* Card 3: Notifications */}
-      <Card className="rounded-xl border-border/60">
-        <CardHeader>
-          <CardTitle>Notifications</CardTitle>
-          <CardDescription>Enable Web Push to get notified when someone applies to your team or invites you.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <PushNotificationManager />
-        </CardContent>
-      </Card>
+      {/* Section: Notifications */}
+      <section className="space-y-6">
+        <div className="flex items-center gap-3">
+          <div className="flex size-9 items-center justify-center rounded-lg bg-accent">
+            <Bell className="size-4 text-accent-foreground" />
+          </div>
+          <div>
+            <h2 className="text-base font-medium text-foreground">Notifications</h2>
+            <p className="text-sm text-muted-foreground">Get notified about team applications and invites</p>
+          </div>
+        </div>
 
-      {/* Card 4: Danger Zone */}
-      <Card className="rounded-xl border-destructive/20 bg-destructive/5">
-        <CardHeader>
-          <CardTitle className="text-destructive">Danger Zone</CardTitle>
-          <CardDescription>Irreversible actions. Proceed with caution.</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col items-stretch gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-sm text-muted-foreground">
-            Permanently delete your account and all associated data.
-          </p>
-          <button
-            type="button"
-            onClick={() => setShowDeleteAccountDialog(true)}
-            className="flex shrink-0 items-center justify-center gap-2 self-end rounded-lg bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90 sm:self-auto"
-          >
-            <Trash2 className="size-4" />
-            Delete Account
-          </button>
-        </CardContent>
-      </Card>
+        <Card className="border-border/50 bg-muted/30">
+          <CardContent className="p-6 md:p-8">
+            <PushNotificationManager />
+          </CardContent>
+        </Card>
+      </section>
 
-      <AlertDialog open={showDeleteAccountDialog} onOpenChange={(open) => !deletingAccount && setShowDeleteAccountDialog(open)}>
-        <AlertDialogContent className="rounded-2xl border-border/60">
-          <AlertDialogHeader>
-            <div className="flex items-center gap-3">
-              <div className="flex size-10 items-center justify-center rounded-xl bg-destructive/15">
-                <Trash2 className="size-5 text-destructive" />
+      {/* Section: Danger Zone */}
+      <section className="space-y-6">
+        <div className="flex items-center gap-3">
+          <div className="flex size-9 items-center justify-center rounded-lg bg-destructive/10">
+            <AlertTriangle className="size-4 text-destructive" />
+          </div>
+          <div>
+            <h2 className="text-base font-medium text-destructive">Danger Zone</h2>
+            <p className="text-sm text-muted-foreground">Irreversible actions. Proceed with caution.</p>
+          </div>
+        </div>
+
+        <Card className="border-destructive/20 bg-destructive/5">
+          <CardContent className="p-6 md:p-8">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-foreground">Delete Account</p>
+                <p className="text-sm text-muted-foreground">
+                  Permanently delete your account and all associated data. This cannot be undone.
+                </p>
               </div>
-              <AlertDialogTitle className="text-left">Are you absolutely sure?</AlertDialogTitle>
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={() => setShowDeleteAccountDialog(true)}
+                className="shrink-0 gap-2 rounded-lg font-medium"
+              >
+                <Trash2 className="size-4" />
+                Delete Account
+              </Button>
             </div>
-            <AlertDialogDescription className="text-left">
-              This action cannot be undone. This will permanently delete your account, your profile, your availability posts, and remove you from any teams.
-            </AlertDialogDescription>
+          </CardContent>
+        </Card>
+      </section>
+
+      {/* Delete Account Dialog */}
+      <AlertDialog open={showDeleteAccountDialog} onOpenChange={(open) => !deletingAccount && setShowDeleteAccountDialog(open)}>
+        <AlertDialogContent className="rounded-2xl border-border/50">
+          <AlertDialogHeader>
+            <div className="flex items-center gap-4">
+              <div className="flex size-12 items-center justify-center rounded-xl bg-destructive/10">
+                <AlertTriangle className="size-6 text-destructive" />
+              </div>
+              <div className="space-y-1">
+                <AlertDialogTitle className="text-left">Delete your account?</AlertDialogTitle>
+                <AlertDialogDescription className="text-left text-sm">
+                  This action cannot be undone.
+                </AlertDialogDescription>
+              </div>
+            </div>
           </AlertDialogHeader>
-          <AlertDialogFooter className="flex-row gap-2 sm:justify-end">
-            <AlertDialogCancel disabled={deletingAccount}>Cancel</AlertDialogCancel>
-            <button
+          <div className="rounded-lg bg-muted/50 p-4">
+            <p className="text-sm text-muted-foreground">
+              This will permanently delete your account, your profile, your availability posts, and remove you from any teams.
+            </p>
+          </div>
+          <AlertDialogFooter className="gap-2 sm:gap-2">
+            <AlertDialogCancel disabled={deletingAccount} className="rounded-lg">
+              Cancel
+            </AlertDialogCancel>
+            <Button
               type="button"
+              variant="destructive"
               onClick={handleDeleteAccount}
               disabled={deletingAccount}
-              className="inline-flex items-center justify-center gap-2 rounded-md bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground transition-colors hover:bg-destructive/90 disabled:opacity-50"
+              className="gap-2 rounded-lg"
             >
               {deletingAccount ? (
                 <>
@@ -310,7 +405,7 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
               ) : (
                 "Yes, delete my account"
               )}
-            </button>
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
