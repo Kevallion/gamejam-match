@@ -8,7 +8,7 @@ import { DashboardMyTeams, type TeamData } from "@/components/dashboard-my-teams
 import { DashboardMyAvailability } from "@/components/dashboard-my-availability"
 import { DashboardIncomingApplications, type ApplicationData } from "@/components/dashboard-incoming-applications"
 import { DashboardSquadInvitations, type InvitationData } from "@/components/dashboard-squad-invitations"
-import { Gamepad2, LayoutDashboard, Loader2, MessageCircle, Send, Users, Bell, UserCircle, UserMinus, Trash2 } from "lucide-react"
+import { Gamepad2, LayoutDashboard, Loader2, MessageCircle, Send, Users, Bell, UserCircle, UserMinus, Trash2, Settings } from "lucide-react"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Card, CardContent } from "@/components/ui/card"
 import {
@@ -29,7 +29,9 @@ import {
   notifyOwnerPlayerJoined,
 } from "@/app/actions/team-actions"
 import { OnboardingModal } from "@/components/onboarding-modal"
+import { ProfileSettings } from "@/components/profile-settings"
 import { PushNotificationManager } from "@/components/push-notification-manager"
+import { PushNotificationBanner } from "@/components/push-notification-banner"
 import type { Session } from "@supabase/supabase-js"
 import { toast } from "sonner"
 import { EXPERIENCE_STYLES, ROLE_STYLES } from "@/lib/constants"
@@ -178,7 +180,7 @@ type DashboardClientProps = {
   defaultTab?: string | null
 }
 
-const VALID_TABS = ["teams", "requests", "availability"] as const
+const VALID_TABS = ["teams", "requests", "availability", "profile"] as const
 
 export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientProps = {}) {
   const searchParams = useSearchParams()
@@ -200,6 +202,16 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
   const [teamIdToDelete, setTeamIdToDelete] = useState<string | null>(null)
   const [availabilityPostIdToDelete, setAvailabilityPostIdToDelete] = useState<string | null>(null)
   const [showOnboardingModal, setShowOnboardingModal] = useState(false)
+  const [profile, setProfile] = useState<{
+    id: string
+    username?: string | null
+    discord_username?: string | null
+    avatar_url?: string | null
+    default_role?: string | null
+    default_engine?: string | null
+    default_language?: string | null
+    portfolio_url?: string | null
+  } | null>(null)
 
   const mapTeamRow = (t: TeamRow, authUserId: string): TeamData => {
     type LookingForEntry = { level?: string | null; role?: string | null }
@@ -318,7 +330,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
 
     const { data: profileData } = await supabase
       .from("profiles")
-      .select("has_completed_onboarding, jam_id, username, avatar_url")
+      .select("id, has_completed_onboarding, jam_id, username, avatar_url, discord_username, default_role, default_engine, default_language, portfolio_url")
       .eq("id", authSession.user.id)
       .maybeSingle()
 
@@ -334,8 +346,46 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
       setTeams([])
     }
 
-    // Afficher l'onboarding si has_completed_onboarding est false ou null (anciens utilisateurs)
-    setShowOnboardingModal(profileData?.has_completed_onboarding !== true)
+    // Afficher l'onboarding uniquement si le profil est chargé et has_completed_onboarding n'est pas true.
+    // Ne pas afficher si profileData est null (échec de chargement) pour éviter de réafficher à chaque retour.
+    if (profileData) {
+      setShowOnboardingModal(profileData.has_completed_onboarding !== true)
+    }
+
+    const meta = authSession.user.user_metadata as Record<string, string> | undefined
+    const sessionAvatarUrl =
+      profileData?.avatar_url?.trim() ||
+      meta?.avatar_url ||
+      meta?.picture ||
+      null
+
+    setProfile(
+      profileData
+        ? {
+            id: (profileData as { id: string }).id ?? authSession.user.id,
+            username: profileData.username,
+            discord_username: (profileData as { discord_username?: string | null }).discord_username,
+            avatar_url: sessionAvatarUrl || profileData.avatar_url,
+            default_role: (profileData as { default_role?: string | null }).default_role,
+            default_engine: (profileData as { default_engine?: string | null }).default_engine,
+            default_language: (profileData as { default_language?: string | null }).default_language,
+            portfolio_url: (profileData as { portfolio_url?: string | null }).portfolio_url,
+          }
+        : authSession.user
+          ? {
+              id: authSession.user.id,
+              username: null,
+              discord_username: null,
+              avatar_url: (authSession.user.user_metadata as Record<string, string> | undefined)?.avatar_url ??
+                (authSession.user.user_metadata as Record<string, string> | undefined)?.picture ??
+                null,
+              default_role: null,
+              default_engine: null,
+              default_language: null,
+              portfolio_url: null,
+            }
+          : null
+    )
 
     const { data: postsData } = await supabase
       .from("availability_posts")
@@ -345,7 +395,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
 
     const profile = profileData as { username?: string | null; avatar_url?: string | null } | null
     const profileUsername = profile?.username?.trim() ?? null
-    const profileAvatarUrl = profile?.avatar_url?.trim() ?? null
+    const profileAvatarUrl = sessionAvatarUrl ?? profile?.avatar_url?.trim() ?? null
 
     let postsWithJam: AvailabilityPostRow[] = ((postsData ?? []) as Record<string, unknown>[]).map((p) => ({
       ...p,
@@ -762,6 +812,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
 
         <section className="px-4 pb-16 pt-4 lg:px-6 lg:pb-24">
           <div className="mx-auto max-w-6xl">
+            <PushNotificationBanner />
             {/* Stat Cards */}
             <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-3">
               <Card>
@@ -808,7 +859,11 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
               <TabsList className="mb-6">
                 <TabsTrigger value="teams">My Teams</TabsTrigger>
                 <TabsTrigger value="requests">Inbox / Requests</TabsTrigger>
-                <TabsTrigger value="availability">Profile</TabsTrigger>
+                <TabsTrigger value="availability">Availability</TabsTrigger>
+                <TabsTrigger value="profile" className="gap-2">
+                  <Settings className="size-4" />
+                  Profile
+                </TabsTrigger>
               </TabsList>
               <TabsContent value="teams" className="mt-0">
                 <DashboardMyTeams
@@ -831,15 +886,29 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
                 />
                 <SentApplicationsSection sentApplications={sentApplications} />
               </TabsContent>
-              <TabsContent value="availability" className="mt-0 flex flex-col gap-6">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-medium text-muted-foreground">Push notifications</h3>
-                  <PushNotificationManager />
-                </div>
+              <TabsContent value="availability" className="mt-0">
                 <DashboardMyAvailability
                   availabilityPosts={availabilityPosts}
                   onDeletePost={handleDeleteAvailabilityPostClick}
-                  discordAvatarUrl={session?.user?.user_metadata?.avatar_url ?? null}
+                  profileAvatarUrl={profile?.avatar_url ?? null}
+                />
+              </TabsContent>
+              <TabsContent value="profile" className="mt-0">
+                <ProfileSettings
+                  profile={profile}
+                  onProfileUpdated={loadData}
+                  displayNameFallback={
+                    (() => {
+                      const meta = session?.user?.user_metadata as Record<string, string> | undefined
+                      return (
+                        meta?.username?.trim() ||
+                        meta?.user_name?.trim() ||
+                        meta?.full_name?.trim() ||
+                        meta?.name?.trim() ||
+                        (session?.user?.email ? session.user.email.split("@")[0] : null)
+                      )
+                    })()
+                  }
                 />
               </TabsContent>
             </Tabs>
@@ -931,6 +1000,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
     </div>
   )
 }

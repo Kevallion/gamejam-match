@@ -45,10 +45,10 @@ export type AvailabilityPostData = {
 interface AnnouncementCardProps {
   post: AvailabilityPostData
   onDelete: (postId: string) => void
-  discordAvatarUrl?: string | null
+  profileAvatarUrl?: string | null
 }
 
-function AnnouncementCard({ post, onDelete, discordAvatarUrl }: AnnouncementCardProps) {
+function AnnouncementCard({ post, onDelete, profileAvatarUrl }: AnnouncementCardProps) {
   const rawRole = (post.role || "developer").toLowerCase()
   const rawLevel = (post.experience || "beginner").toLowerCase()
   const displayRole = ROLE_STYLES[rawRole] ?? { ...FALLBACK_ROLE, label: post.role || "Other" }
@@ -61,7 +61,7 @@ function AnnouncementCard({ post, onDelete, discordAvatarUrl }: AnnouncementCard
         {/* Avatar + Username */}
         <div className="flex items-center gap-3.5">
           <UserAvatar
-            src={post.avatar_url ?? discordAvatarUrl ?? null}
+            src={post.avatar_url ?? profileAvatarUrl ?? null}
             fallbackName={username}
             size="md"
           />
@@ -161,13 +161,13 @@ function AnnouncementCard({ post, onDelete, discordAvatarUrl }: AnnouncementCard
 interface DashboardMyAvailabilityProps {
   availabilityPosts: AvailabilityPostData[]
   onDeletePost: (postId: string) => void
-  discordAvatarUrl?: string | null
+  profileAvatarUrl?: string | null
 }
 
 export function DashboardMyAvailability({
   availabilityPosts,
   onDeletePost,
-  discordAvatarUrl,
+  profileAvatarUrl,
 }: DashboardMyAvailabilityProps) {
   const canAddMore = availabilityPosts.length < 3
 
@@ -213,7 +213,7 @@ export function DashboardMyAvailability({
               key={post.id}
               post={post}
               onDelete={onDeletePost}
-              discordAvatarUrl={discordAvatarUrl}
+              profileAvatarUrl={profileAvatarUrl}
             />
           ))}
         </div>

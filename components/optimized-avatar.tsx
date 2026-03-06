@@ -70,10 +70,9 @@ export function OptimizedAvatar({
       <Image
         src={optimizedSrc}
         alt={alt}
-        width={px}
-        height={px}
-        sizes={`${px}px`}
-        className="object-cover"
+        fill
+        sizes="96px"
+        className="object-cover object-center"
         unoptimized={needsUnoptimized}
         onError={() => setError(true)}
       />

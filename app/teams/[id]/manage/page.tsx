@@ -27,6 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { supabase } from "@/lib/supabase"
+import { fetchProfilesMap } from "@/lib/profiles"
 import {
   ArrowLeft,
   Loader2,
@@ -141,36 +142,23 @@ export default function TeamManagePage() {
 
       const roleByUserId: Record<string, string> = {}
       const senderNameByUserId: Record<string, string> = {}
-      const profilesByUserId: Record<
-        string,
-        { username: string | null; avatar_url: string | null }
-      > = {}
 
-      if (memberUserIds.length > 0) {
-        const [joinRes, profilesRes] = await Promise.all([
-          supabase
-            .from("join_requests")
-            .select("sender_id, sender_name, target_role, status, type")
-            .eq("team_id", teamId)
-            .eq("status", "accepted")
-            .in("sender_id", memberUserIds),
-          supabase.from("profiles").select("id, username, avatar_url").in("id", memberUserIds),
-        ])
+      const [joinRes, profilesByUserId] = await Promise.all([
+        memberUserIds.length > 0
+          ? supabase
+              .from("join_requests")
+              .select("sender_id, sender_name, target_role, status, type")
+              .eq("team_id", teamId)
+              .eq("status", "accepted")
+              .in("sender_id", memberUserIds)
+          : Promise.resolve({ data: [] as { sender_id?: string; sender_name?: string; target_role?: string }[] }),
+        fetchProfilesMap(memberUserIds),
+      ])
 
-        for (const jr of joinRes.data ?? []) {
-          if (jr.sender_id) {
-            if (jr.target_role) roleByUserId[jr.sender_id] = jr.target_role
-            if (jr.sender_name?.trim()) senderNameByUserId[jr.sender_id] = jr.sender_name.trim()
-          }
-        }
-        for (const p of profilesRes.data ?? []) {
-          if (p.id) {
-            const rawUsername = (p.username ?? "").trim()
-            profilesByUserId[p.id] = {
-              username: rawUsername || null,
-              avatar_url: p.avatar_url ?? null,
-            }
-          }
+      for (const jr of joinRes.data ?? []) {
+        if (jr.sender_id) {
+          if (jr.target_role) roleByUserId[jr.sender_id] = jr.target_role
+          if (jr.sender_name?.trim()) senderNameByUserId[jr.sender_id] = jr.sender_name.trim()
         }
       }
 
@@ -178,7 +166,7 @@ export default function TeamManagePage() {
         (m: { user_id: string; role?: string | null }) => {
           const profile = profilesByUserId[m.user_id]
           const displayName =
-            (profile?.username && profile.username.trim()) ||
+            (profile?.username?.trim()) ||
             senderNameByUserId[m.user_id] ||
             "Unknown"
 

@@ -28,6 +28,10 @@ export interface ProfileRow {
   avatar_url?: string | null
   has_completed_onboarding?: boolean | null
   discord_username?: string | null
+  default_role?: string | null
+  default_engine?: string | null
+  default_language?: string | null
+  portfolio_url?: string | null
 }
 
 export interface TeamRow {

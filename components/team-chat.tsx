@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { UserAvatar } from "@/components/user-avatar"
 import { supabase } from "@/lib/supabase"
+import { fetchProfilesMap } from "@/lib/profiles"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { formatDistanceToNow } from "date-fns"
@@ -87,20 +88,11 @@ export function TeamChat({ teamId, currentUserId }: TeamChatProps) {
 
     if (missingIds.length === 0) return
 
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("id, username, avatar_url")
-      .in("id", missingIds)
-
-    if (error) {
-      // Non-blocking for the chat: we can still show messages with a generic username
-      return
-    }
-
-    for (const p of data ?? []) {
-      profilesCacheRef.current.set(p.id, {
-        username: p.username ?? "Unknown",
-        avatar_url: p.avatar_url ?? null,
+    const map = await fetchProfilesMap(missingIds)
+    for (const [id, p] of Object.entries(map)) {
+      profilesCacheRef.current.set(id, {
+        username: p.username || "Unknown",
+        avatar_url: p.avatar_url,
       })
     }
   }

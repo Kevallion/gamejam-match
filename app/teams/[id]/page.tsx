@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { TeamChat } from "@/components/team-chat"
 import { supabase } from "@/lib/supabase"
+import { fetchProfilesMap } from "@/lib/profiles"
 import { Loader2, ArrowLeft, ShieldAlert, Users, Cpu, Globe } from "lucide-react"
 import { toast } from "sonner"
 import { UserAvatar } from "@/components/user-avatar"
@@ -46,7 +47,6 @@ export default function SquadMemberPage() {
   const [squad, setSquad] = useState<SquadViewData | null>(null)
   const [isMember, setIsMember] = useState(false)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
-  const [currentUserDiscordAvatarUrl, setCurrentUserDiscordAvatarUrl] = useState<string | null>(null)
   const [members, setMembers] = useState<SquadMember[]>([])
 
   useEffect(() => {
@@ -63,14 +63,6 @@ export default function SquadMemberPage() {
         }
 
         setCurrentUserId(session.user.id)
-        const meta = (session.user.user_metadata ?? {}) as Record<string, unknown>
-        const discordAvatar =
-          typeof meta.avatar_url === "string"
-            ? meta.avatar_url
-            : typeof meta.picture === "string"
-              ? meta.picture
-              : null
-        setCurrentUserDiscordAvatarUrl(discordAvatar)
 
         const { data: teamData, error: teamError } = await supabase
           .from("teams")
@@ -102,45 +94,43 @@ export default function SquadMemberPage() {
         }
 
         const memberUserIds = (membersData ?? []).map((m: { user_id: string }) => m.user_id)
-
-        const { data: joinRows } = await supabase
-          .from("join_requests")
-          .select("sender_id, sender_name, target_role, status, type")
-          .eq("team_id", teamId)
-          .eq("status", "accepted")
-          .in("sender_id", memberUserIds)
+        const allUserIds = Array.from(new Set([teamData.user_id, ...memberUserIds]))
 
         const roleByUserId: Record<string, string | null> = {}
         const senderNameByUserId: Record<string, string> = {}
-        for (const jr of joinRows ?? []) {
-          if (!jr.sender_id) continue
-          const key = (jr.target_role as string | null) ?? null
-          if (key) roleByUserId[jr.sender_id] = key
-          const rawName = (jr.sender_name as string | null) ?? null
-          if (rawName && rawName.trim()) {
-            senderNameByUserId[jr.sender_id] = rawName.trim()
-          }
-        }
-
-        const allUserIds = Array.from(new Set([teamData.user_id, ...memberUserIds]))
-
         const profileMap: Record<
           string,
           { username: string; avatar_url: string | null; discord_username: string | null }
         > = {}
-        if (allUserIds.length > 0) {
-          const { data: profilesData } = await supabase
-            .from("profiles")
-            .select("id, username, avatar_url, discord_username")
-            .in("id", allUserIds)
 
-          for (const p of profilesData ?? []) {
-            if (!p.id) continue
-            const rawUsername = (p.username ?? "").trim()
-            profileMap[p.id] = {
-              username: rawUsername,
-              avatar_url: p.avatar_url ?? null,
-              discord_username: (p as { discord_username?: string | null }).discord_username ?? null,
+        if (allUserIds.length > 0) {
+          const [joinRes, profilesFromMap] = await Promise.all([
+            memberUserIds.length > 0
+              ? supabase
+                  .from("join_requests")
+                  .select("sender_id, sender_name, target_role, status, type")
+                  .eq("team_id", teamId)
+                  .eq("status", "accepted")
+                  .in("sender_id", memberUserIds)
+              : Promise.resolve({ data: [] as { sender_id?: string; sender_name?: string; target_role?: string }[] }),
+            fetchProfilesMap(allUserIds),
+          ])
+
+          for (const jr of joinRes.data ?? []) {
+            if (!jr.sender_id) continue
+            const key = (jr.target_role as string | null) ?? null
+            if (key) roleByUserId[jr.sender_id] = key
+            const rawName = (jr.sender_name as string | null) ?? null
+            if (rawName && rawName.trim()) {
+              senderNameByUserId[jr.sender_id] = rawName.trim()
+            }
+          }
+
+          for (const [id, p] of Object.entries(profilesFromMap)) {
+            profileMap[id] = {
+              username: p.username,
+              avatar_url: p.avatar_url,
+              discord_username: p.discord_username ?? null,
             }
           }
         }
@@ -327,7 +317,7 @@ export default function SquadMemberPage() {
                         <div className="flex flex-col gap-3">
                           {members.map((member) => {
                             const isCurrentUser = member.userId === currentUserId
-                            const avatarSrc = member.avatarUrl ?? (isCurrentUser ? currentUserDiscordAvatarUrl : null)
+                            const avatarSrc = member.avatarUrl
                             const roleClasses = member.isLeader
                               ? "bg-primary/10 text-primary"
                               : member.roleKey && ROLE_STYLES[member.roleKey]

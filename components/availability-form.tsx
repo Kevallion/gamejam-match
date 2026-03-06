@@ -72,7 +72,6 @@ export function AvailabilityForm() {
   const [portfolioLink, setPortfolioLink] = useState("")
   const [username, setUsername] = useState("")
   const [bio, setBio] = useState("")
-  const [discordUsername, setDiscordUsername] = useState("")
   const [jamId, setJamId] = useState<string | null>(null)
   const [errors, setErrors] = useState<Record<string, string>>({})
 
@@ -109,19 +108,24 @@ export function AvailabilityForm() {
     async function loadProfile() {
       const { data } = await supabase
         .from("profiles")
-        .select("username, role, experience, experience_level, jam_style, engine, language, bio, portfolio_link, jam_id, discord_username")
+        .select("username, role, experience, experience_level, jam_style, engine, language, bio, portfolio_link, jam_id, default_role, default_engine, default_language, portfolio_url")
         .eq("id", user!.id)
         .single()
       if (data) {
+        const d = data as {
+          default_role?: string | null
+          default_engine?: string | null
+          default_language?: string | null
+          portfolio_url?: string | null
+        }
         setUsername(data.username || "")
-        setRole(data.role || "")
+        setRole(d.default_role?.trim() || data.role || "")
         setLevel(data.experience || data.experience_level || "")
         setJamStyle(data.jam_style || "")
-        setEngine(data.engine || "")
-        setLanguage(data.language || "")
+        setEngine(d.default_engine?.trim() || data.engine || "")
+        setLanguage(d.default_language?.trim() || data.language || "")
         setBio(data.bio || "")
-        setPortfolioLink(data.portfolio_link || "")
-        setDiscordUsername((data as { discord_username?: string | null }).discord_username || "")
+        setPortfolioLink(d.portfolio_url?.trim() || data.portfolio_link || "")
         setJamId((data as { jam_id?: string | null }).jam_id ?? null)
         setHasLoadedProfile(true)
       }
@@ -271,7 +275,6 @@ export function AvailabilityForm() {
           portfolio_link: portfolioLink.trim() || null,
           avatar_url: avatarUrl,
           jam_id: jamId || null,
-          discord_username: discordUsername.trim() || null,
         }], { onConflict: "id" })
       }
 
@@ -642,25 +645,6 @@ export function AvailabilityForm() {
                       </p>
                     </div>
 
-                    {/* Discord username */}
-                    <div className="flex flex-col gap-2.5">
-                      <Label htmlFor="discord_username" className="text-sm font-bold text-foreground">
-                        Discord Username{" "}
-                        <span className="text-xs font-normal text-muted-foreground">(optional)</span>
-                      </Label>
-                      <Input
-                        id="discord_username"
-                        name="discord_username"
-                        placeholder="ex: gamer123"
-                        value={discordUsername}
-                        onChange={(e) => setDiscordUsername(e.target.value)}
-                        className="h-12 rounded-xl border-border/60 bg-secondary/50 text-foreground"
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        This handle is only visible to teammates inside your squad space and is used so they can invite you to group chats. Other jammers cannot contact you directly with it.
-                      </p>
-                    </div>
-
                     {/* About Me */}
                     <div className="flex flex-col gap-2.5">
                       <Label htmlFor="about" className="text-sm font-bold text-foreground">About Me</Label>
@@ -734,7 +718,7 @@ export function AvailabilityForm() {
                     <div className="hidden text-xs text-muted-foreground md:block">
                       {step === 1 && "Who you are — username & role."}
                       {step === 2 && "Your preferences — jam style, engine & language."}
-                      {step === 3 && "Your profile — links, Discord and bio."}
+                      {step === 3 && "Your profile — links and bio."}
                     </div>
                     <div className="flex flex-1 items-center justify-between gap-3">
                       <Button
