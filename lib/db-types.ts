@@ -27,6 +27,7 @@ export interface ProfileRow {
   portfolio_link?: string | null
   avatar_url?: string | null
   has_completed_onboarding?: boolean | null
+  onboarding_version?: number | null
   discord_username?: string | null
   default_role?: string | null
   default_engine?: string | null

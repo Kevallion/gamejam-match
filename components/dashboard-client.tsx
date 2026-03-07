@@ -29,6 +29,7 @@ import {
   notifyOwnerPlayerJoined,
 } from "@/app/actions/team-actions"
 import { OnboardingModal } from "@/components/onboarding-modal"
+import { CURRENT_ONBOARDING_VERSION } from "@/lib/onboarding"
 import { ProfileSettings } from "@/components/profile-settings"
 import { PushNotificationManager } from "@/components/push-notification-manager"
 import { PushNotificationBanner } from "@/components/push-notification-banner"
@@ -330,7 +331,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
 
     const { data: profileData } = await supabase
       .from("profiles")
-      .select("id, has_completed_onboarding, jam_id, username, avatar_url, discord_username, default_role, default_engine, default_language, portfolio_url")
+      .select("id, has_completed_onboarding, onboarding_version, jam_id, username, avatar_url, discord_username, default_role, default_engine, default_language, portfolio_url")
       .eq("id", authSession.user.id)
       .maybeSingle()
 
@@ -346,10 +347,13 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
       setTeams([])
     }
 
-    // Afficher l'onboarding uniquement si le profil est chargé et has_completed_onboarding n'est pas true.
-    // Ne pas afficher si profileData est null (échec de chargement) pour éviter de réafficher à chaque retour.
+    // Show onboarding when it was never completed, or when the user completed
+    // an older onboarding version and should see the latest flow.
     if (profileData) {
-      setShowOnboardingModal(profileData.has_completed_onboarding !== true)
+      const hasCompletedOnboarding = profileData.has_completed_onboarding === true
+      const onboardingVersion = (profileData as { onboarding_version?: number | null }).onboarding_version ?? 0
+
+      setShowOnboardingModal(!hasCompletedOnboarding || onboardingVersion < CURRENT_ONBOARDING_VERSION)
     }
 
     const meta = authSession.user.user_metadata as Record<string, string> | undefined
@@ -893,7 +897,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
                   profileAvatarUrl={profile?.avatar_url ?? null}
                 />
               </TabsContent>
-              <TabsContent value="profile" className="mt-0">
+              <TabsContent value="profile" className="mt-0 flex w-full flex-col">
                 <ProfileSettings
                   profile={profile}
                   onProfileUpdated={loadData}
@@ -920,6 +924,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
       <OnboardingModal
         open={showOnboardingModal}
         onOpenChange={setShowOnboardingModal}
+        profile={profile}
       />
 
       <AlertDialog open={showAvailabilityModal} onOpenChange={(open) => !open && handleAvailabilityModalCancel()}>

@@ -1,117 +1,413 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { Search, UserSearch, Flag, Hand } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Progress } from "@/components/ui/progress"
+import { Switch } from "@/components/ui/switch"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { completeOnboarding } from "@/app/actions/onboarding-actions"
+import { ENGINE_OPTIONS, LANGUAGE_OPTIONS, ROLE_OPTIONS } from "@/lib/constants"
+import { cn } from "@/lib/utils"
 import { toast } from "sonner"
-import { Loader2 } from "lucide-react"
+import {
+  ChevronLeft,
+  ChevronRight,
+  Flag,
+  Gamepad2,
+  Hand,
+  Languages,
+  Link2,
+  Loader2,
+  MessageSquareMore,
+  Search,
+  UserSearch,
+} from "lucide-react"
 
 interface OnboardingModalProps {
   open: boolean
   onOpenChange?: (open: boolean) => void
+  profile?: {
+    default_role?: string | null
+    default_engine?: string | null
+    default_language?: string | null
+    discord_username?: string | null
+    portfolio_url?: string | null
+  } | null
 }
 
-const CHOICES = [
+const TOTAL_STEPS = 3
+
+const CHOICE_OPTIONS = [
   {
-    id: "teams",
-    emoji: "🔍",
-    label: "I'm looking for a team",
+    id: "looking-for-team",
+    title: "I am looking for a team",
+    description: "Find an existing squad and join a project that matches your skills.",
     href: "/",
     icon: Search,
   },
   {
-    id: "jammers",
-    emoji: "🕵️‍♂️",
-    label: "I'm looking for a jammer",
+    id: "looking-for-jammers",
+    title: "I am looking for jammers",
+    description: "Browse available profiles and discover teammates for your next jam.",
     href: "/find-members",
     icon: UserSearch,
   },
   {
-    id: "build",
-    emoji: "🚩",
-    label: "I want to build a team",
+    id: "create-team",
+    title: "I want to create a team",
+    description: "Start a new squad and recruit the right people around your idea.",
     href: "/create-team",
     icon: Flag,
   },
   {
-    id: "available",
-    emoji: "🙋‍♂️",
-    label: "I'm available for a Game Jam",
+    id: "available-for-jam",
+    title: "I am available for a Game Jam",
+    description: "Publish your profile and let teams know you are ready to join.",
     href: "/create-profile",
     icon: Hand,
   },
 ] as const
 
-export function OnboardingModal({ open, onOpenChange }: OnboardingModalProps) {
+export function OnboardingModal({ open, onOpenChange, profile }: OnboardingModalProps) {
   const router = useRouter()
-  const [loadingChoice, setLoadingChoice] = useState<string | null>(null)
+  const [step, setStep] = useState(1)
+  const [selectedChoice, setSelectedChoice] = useState<(typeof CHOICE_OPTIONS)[number] | null>(null)
+  const [defaultRole, setDefaultRole] = useState("")
+  const [defaultEngine, setDefaultEngine] = useState("")
+  const [defaultLanguage, setDefaultLanguage] = useState("")
+  const [discordUsername, setDiscordUsername] = useState("")
+  const [portfolioUrl, setPortfolioUrl] = useState("")
+  const [publishImmediately, setPublishImmediately] = useState(true)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleChoice = async (choice: (typeof CHOICES)[number]) => {
-    setLoadingChoice(choice.id)
+  useEffect(() => {
+    if (!open) return
+
+    setStep(1)
+    setSelectedChoice(null)
+    setDefaultRole(profile?.default_role?.trim() ?? "")
+    setDefaultEngine(profile?.default_engine?.trim() ?? "")
+    setDefaultLanguage(profile?.default_language?.trim() ?? "")
+    setDiscordUsername(profile?.discord_username?.trim() ?? "")
+    setPortfolioUrl(profile?.portfolio_url?.trim() ?? "")
+    setPublishImmediately(true)
+    setIsSubmitting(false)
+  }, [open, profile?.default_engine, profile?.default_language, profile?.default_role, profile?.discord_username, profile?.portfolio_url])
+
+  const progressValue = (step / TOTAL_STEPS) * 100
+
+  const handleDialogOpenChange = (nextOpen: boolean) => {
+    if (isSubmitting) return
+    onOpenChange?.(nextOpen)
+  }
+
+  const handleNext = () => {
+    if (step === 2 && !selectedChoice) {
+      toast.error("Choose what you want to do first.", {
+        description: "Select one option before continuing.",
+      })
+      return
+    }
+
+    setStep((currentStep) => Math.min(currentStep + 1, TOTAL_STEPS))
+  }
+
+  const handleBack = () => {
+    setStep((currentStep) => Math.max(currentStep - 1, 1))
+  }
+
+  const handleFinish = async () => {
+    if (!selectedChoice) {
+      toast.error("Choose what you want to do first.", {
+        description: "Select one option before finishing onboarding.",
+      })
+      setStep(1)
+      return
+    }
+
+    setIsSubmitting(true)
     try {
-      const result = await completeOnboarding()
+      const result = await completeOnboarding({
+        defaultRole,
+        defaultEngine,
+        defaultLanguage,
+        discordUsername,
+        portfolioUrl,
+        publishImmediately,
+      })
+
       if (!result.success) {
         toast.error("Error", { description: result.error ?? "Please try again." })
-        setLoadingChoice(null)
         return
       }
+
+      toast.success("You're all set!", {
+        description: "Your onboarding preferences have been saved.",
+      })
+
+      if (result.warning) {
+        toast.error("Profile not published automatically.", {
+          description: result.warning,
+        })
+      }
+
       onOpenChange?.(false)
-      router.push(choice.href)
+      router.push(selectedChoice.href)
     } catch {
       toast.error("An error occurred.", { description: "Please try again." })
-      setLoadingChoice(null)
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
+  const stepContent = {
+    1: {
+      title: "Welcome to GameJam Crew! 👋",
+      description: "What brings you here today?",
+    },
+    2: {
+      title: "Set your Default Preferences",
+      description: "Set this up once, and applying to jams will be a 1-click action later.",
+    },
+    3: {
+      title: "Where can people find you?",
+      description: "Add the contact links that help future teammates reach out quickly.",
+    },
+  }[step]
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleDialogOpenChange}>
       <DialogContent
-        className="sm:max-w-md rounded-2xl border-border/60"
+        className="max-h-[90vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] rounded-3xl border-border/60 bg-background p-0 shadow-2xl sm:max-w-xl"
         showCloseButton={false}
         onPointerDownOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
-        <DialogHeader className="text-center sm:text-left">
-          <DialogTitle className="text-2xl font-bold tracking-tight">
-            Welcome to GameJamCrew! 🚀
-          </DialogTitle>
-          <DialogDescription className="text-base mt-1">
-            What are you looking to do today?
-          </DialogDescription>
-        </DialogHeader>
+        <div className="px-6 pt-6">
+          <DialogHeader className="space-y-2 text-center">
+            <DialogTitle className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+              {stepContent.title}
+            </DialogTitle>
+            <DialogDescription className="mx-auto max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base">
+              {stepContent.description}
+            </DialogDescription>
+          </DialogHeader>
+          <Progress value={progressValue} className="mt-4 h-1.5" />
+        </div>
 
-        <div className="grid gap-3 mt-6">
-          {CHOICES.map((choice) => {
-            const Icon = choice.icon
-            const isLoading = loadingChoice === choice.id
+        <div className="px-6 pt-6 pb-8 sm:pb-10">
+          {step === 1 && (
+            <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {CHOICE_OPTIONS.map((option) => {
+                const Icon = option.icon
+                const isActive = selectedChoice?.id === option.id
 
-            return (
+                return (
+                  <Button
+                    key={option.id}
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setSelectedChoice(option)
+                      setStep(2)
+                    }}
+                    className={cn(
+                      "h-auto min-h-[5rem] flex-col items-start justify-between whitespace-normal rounded-2xl border-border/60 p-4 py-4 text-left transition-all",
+                      "hover:border-lavender/60 hover:bg-lavender/5 hover:shadow-lg hover:shadow-lavender/10",
+                      isActive && "border-lavender bg-lavender/10 shadow-lg shadow-lavender/10"
+                    )}
+                  >
+                    <div className="flex size-12 items-center justify-center rounded-2xl bg-lavender/15 text-lavender">
+                      <Icon className="size-5" />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="text-lg font-semibold text-foreground">{option.title}</div>
+                      <p className="text-sm leading-relaxed text-muted-foreground">{option.description}</p>
+                    </div>
+                  </Button>
+                )
+              })}
+            </div>
+          )}
+
+          {step === 2 && (
+            <div className="space-y-4">
+              <div className="space-y-2 rounded-2xl border border-border/60 bg-muted/20 p-4">
+                <Label htmlFor="onboarding-default-role" className="flex items-center gap-2 text-sm font-medium">
+                  <Search className="size-4 text-lavender" />
+                  Default Role
+                </Label>
+                <Select value={defaultRole || "none"} onValueChange={(value) => setDefaultRole(value === "none" ? "" : value)}>
+                  <SelectTrigger id="onboarding-default-role" className="h-11 rounded-xl border-border/60 bg-background">
+                    <SelectValue placeholder="Choose a role" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl">
+                    <SelectItem value="none">None / No default</SelectItem>
+                    {ROLE_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">Your main contribution when joining a jam.</p>
+              </div>
+
+              <div className="space-y-2 rounded-2xl border border-border/60 bg-muted/20 p-4">
+                <Label htmlFor="onboarding-default-engine" className="flex items-center gap-2 text-sm font-medium">
+                  <Gamepad2 className="size-4 text-lavender" />
+                  Default Engine
+                </Label>
+                <Select value={defaultEngine || "none"} onValueChange={(value) => setDefaultEngine(value === "none" ? "" : value)}>
+                  <SelectTrigger id="onboarding-default-engine" className="h-11 rounded-xl border-border/60 bg-background">
+                    <SelectValue placeholder="Choose an engine" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl">
+                    <SelectItem value="none">None / No default</SelectItem>
+                    {ENGINE_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">Pre-fill the engine you use most often.</p>
+              </div>
+
+              <div className="space-y-2 rounded-2xl border border-border/60 bg-muted/20 p-4">
+                <Label htmlFor="onboarding-default-language" className="flex items-center gap-2 text-sm font-medium">
+                  <Languages className="size-4 text-lavender" />
+                  Default Language
+                </Label>
+                <Select value={defaultLanguage || "none"} onValueChange={(value) => setDefaultLanguage(value === "none" ? "" : value)}>
+                  <SelectTrigger id="onboarding-default-language" className="h-11 rounded-xl border-border/60 bg-background">
+                    <SelectValue placeholder="Choose a language" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl">
+                    <SelectItem value="none">None / No default</SelectItem>
+                    {LANGUAGE_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">Set your preferred communication language.</p>
+              </div>
+            </div>
+          )}
+
+          {step === 3 && (
+            <div className="space-y-5">
+              <div className="space-y-4">
+                <div className="space-y-2 rounded-2xl border border-border/60 bg-muted/20 p-4">
+                  <Label htmlFor="onboarding-discord" className="flex items-center gap-2 text-sm font-medium">
+                    <MessageSquareMore className="size-4 text-lavender" />
+                    Discord Username
+                  </Label>
+                  <Input
+                    id="onboarding-discord"
+                    value={discordUsername}
+                    onChange={(event) => setDiscordUsername(event.target.value)}
+                    placeholder="e.g. jammer_42"
+                    className="h-11 rounded-xl border-border/60 bg-background"
+                  />
+                  <p className="text-xs text-muted-foreground">This helps teammates message you quickly after matching.</p>
+                </div>
+
+                <div className="space-y-2 rounded-2xl border border-border/60 bg-muted/20 p-4">
+                  <Label htmlFor="onboarding-portfolio" className="flex items-center gap-2 text-sm font-medium">
+                    <Link2 className="size-4 text-lavender" />
+                    Portfolio URL
+                  </Label>
+                  <Input
+                    id="onboarding-portfolio"
+                    type="url"
+                    value={portfolioUrl}
+                    onChange={(event) => setPortfolioUrl(event.target.value)}
+                    placeholder="https://yourportfolio.com"
+                    className="h-11 rounded-xl border-border/60 bg-background"
+                  />
+                  <p className="text-xs text-muted-foreground">Share your itch.io page, website, or portfolio.</p>
+                </div>
+              </div>
+
+              <div className="flex items-start justify-between gap-4 rounded-2xl border border-lavender/20 bg-lavender/5 p-4">
+                <div className="space-y-1">
+                  <Label htmlFor="publish-immediately" className="cursor-pointer text-sm font-medium text-foreground">
+                    Publish my profile to the Find Members page immediately
+                  </Label>
+                  <p className="text-sm text-muted-foreground">
+                    Get discovered by teams looking for your skills right now.
+                  </p>
+                </div>
+                <Switch
+                  id="publish-immediately"
+                  checked={publishImmediately}
+                  onCheckedChange={setPublishImmediately}
+                  className="mt-1 data-[state=checked]:bg-lavender"
+                />
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="mt-8 border-t border-border/60 pt-5 sm:justify-between">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={handleBack}
+              disabled={step === 1 || isSubmitting}
+              className="gap-2 rounded-xl"
+            >
+              <ChevronLeft className="size-4" />
+              Back
+            </Button>
+
+            {step > 1 ? (
               <Button
-                key={choice.id}
-                variant="outline"
-                className="h-auto min-h-[52px] justify-start gap-3 px-4 py-3 text-left font-medium rounded-xl border-border/60 hover:bg-accent/50 hover:border-primary/30 transition-colors"
-                onClick={() => handleChoice(choice)}
-                disabled={loadingChoice !== null}
+                type="button"
+                onClick={step === TOTAL_STEPS ? handleFinish : handleNext}
+                disabled={isSubmitting}
+                className="gap-2 rounded-xl bg-lavender text-lavender-foreground shadow-lg shadow-lavender/20 hover:bg-lavender/90"
               >
-                {isLoading ? (
-                  <Loader2 className="size-5 shrink-0 animate-spin text-primary" />
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="size-4 animate-spin" />
+                    Finishing...
+                  </>
+                ) : step === TOTAL_STEPS ? (
+                  <>
+                    Finish
+                    <ChevronRight className="size-4" />
+                  </>
                 ) : (
-                  <span className="text-xl shrink-0">{choice.emoji}</span>
+                  <>
+                    Next
+                    <ChevronRight className="size-4" />
+                  </>
                 )}
-                <span className="flex-1">{choice.label}</span>
-                {!isLoading && <Icon className="size-4 shrink-0 text-muted-foreground" />}
               </Button>
-            )
-          })}
+            ) : (
+              <div />
+            )}
+          </DialogFooter>
         </div>
       </DialogContent>
     </Dialog>

@@ -122,7 +122,7 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
     "Jammer"
 
   return (
-    <div className="mx-auto w-full max-w-4xl space-y-10 px-4 py-8 md:px-6 lg:px-8">
+    <div className="flex w-full flex-col space-y-10 py-8">
       {/* Page Header */}
       <div className="space-y-1">
         <h1 className="text-2xl font-semibold tracking-tight text-foreground">Settings</h1>
