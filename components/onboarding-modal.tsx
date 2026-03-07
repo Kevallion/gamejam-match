@@ -195,6 +195,7 @@ export function OnboardingModal({ open, onOpenChange, profile }: OnboardingModal
   return (
     <Dialog open={open} onOpenChange={handleDialogOpenChange}>
       <DialogContent
+        data-onboarding-version="2"
         className="max-h-[90vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] rounded-3xl border-border/60 bg-background p-0 shadow-2xl sm:max-w-xl"
         showCloseButton={false}
         onPointerDownOutside={(e) => e.preventDefault()}
