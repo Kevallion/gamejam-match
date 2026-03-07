@@ -347,12 +347,13 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
       setTeams([])
     }
 
-    // Show onboarding when it was never completed, or when the user completed
-    // an older onboarding version and should see the latest flow.
-    if (profileData) {
+    // Show the new onboarding wizard: when no profile yet (new user), or when
+    // onboarding was never completed, or when they completed an older version.
+    if (!profileData) {
+      setShowOnboardingModal(true)
+    } else {
       const hasCompletedOnboarding = profileData.has_completed_onboarding === true
       const onboardingVersion = (profileData as { onboarding_version?: number | null }).onboarding_version ?? 0
-
       setShowOnboardingModal(!hasCompletedOnboarding || onboardingVersion < CURRENT_ONBOARDING_VERSION)
     }
 
