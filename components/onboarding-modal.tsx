@@ -177,7 +177,7 @@ export function OnboardingModal({ open, onOpenChange, profile }: OnboardingModal
     }
   }
 
-  const stepContent = {
+  const STEP_CONTENT = {
     1: {
       title: "Welcome to GameJam Crew! 👋",
       description: "What brings you here today?",
@@ -190,7 +190,8 @@ export function OnboardingModal({ open, onOpenChange, profile }: OnboardingModal
       title: "Where can people find you?",
       description: "Add the contact links that help future teammates reach out quickly.",
     },
-  }[step]
+  } as const
+  const stepContent = STEP_CONTENT[step as 1 | 2 | 3] ?? STEP_CONTENT[1]
 
   return (
     <Dialog open={open} onOpenChange={handleDialogOpenChange}>
