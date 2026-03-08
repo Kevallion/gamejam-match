@@ -1,13 +1,8 @@
-import { redirect } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
-
-export default async function TeamLayout({
+export default function TeamLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect("/")
+  // No auth redirect: /teams/[id] can show public announcement for shared links
   return <>{children}</>
 }

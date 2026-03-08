@@ -1,3 +1,5 @@
+"use client"
+
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
@@ -9,7 +11,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Globe, Cpu, Users, ArrowRight, ShieldCheck } from "lucide-react"
+import { Globe, Cpu, Users, ArrowRight, ShieldCheck, Share2 } from "lucide-react"
+import { toast } from "sonner"
 
 import { JoinTeamModal } from "@/components/join-team-modal"
 
@@ -45,6 +48,29 @@ export type TeamCardData = {
 
 export function TeamCard({ team }: { team: TeamCardData }) {
   const filledKeys = team.filledRoleKeys ?? []
+
+  async function handleShare(e: React.MouseEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    const title = team.name
+    const text = "Check out this team looking for members on GameJam Crew!"
+    const url = `${typeof window !== "undefined" ? window.location.origin : ""}/teams/${team.id}`
+    try {
+      if (typeof navigator !== "undefined" && navigator.share) {
+        await navigator.share({ title, text, url })
+        toast.success("Shared!")
+      } else {
+        throw new Error("Share not supported")
+      }
+    } catch {
+      try {
+        await navigator.clipboard.writeText(`${text} ${url}`)
+        toast.success("Link copied to clipboard!")
+      } catch {
+        toast.error("Could not copy link")
+      }
+    }
+  }
 
   // Count acceptances per role (e.g. 2 artists, 1 acceptance -> only first slot filled)
   const filledCountByKey: Record<string, number> = {}
@@ -95,13 +121,24 @@ export function TeamCard({ team }: { team: TeamCardData }) {
                   {team.jam}
                 </p>
               </div>
-              <Badge
-                variant="outline"
-                className="shrink-0 rounded-full border-border/60 text-xs text-muted-foreground"
-              >
-                <Users className="mr-1 size-3" />
-                {team.members}/{team.maxMembers}
-              </Badge>
+              <div className="flex shrink-0 items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-8 rounded-full"
+                  onClick={handleShare}
+                  aria-label="Share team"
+                >
+                  <Share2 className="size-4" />
+                </Button>
+                <Badge
+                  variant="outline"
+                  className="rounded-full border-border/60 text-xs text-muted-foreground"
+                >
+                  <Users className="mr-1 size-3" />
+                  {team.members}/{team.maxMembers}
+                </Badge>
+              </div>
             </div>
           </CardHeader>
 

@@ -42,6 +42,7 @@ import {
   Sparkles,
   MessageSquareText,
   Target,
+  Share2,
 } from "lucide-react"
 import { format, parseISO, isPast, addDays, isBefore } from "date-fns"
 import { toast } from "sonner"
@@ -122,6 +123,29 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
   const [statusMsg, setStatusMsg] = useState<{ type: "error" | "success"; text: string } | null>(null)
 
   const maxChars = 500
+
+  async function handleShare(e: React.MouseEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    const title = player.username
+    const text = `${player.username} is looking for a team as a ${player.role.label} using ${player.engine}! Recruit them on GameJam Crew:`
+    const url = `${typeof window !== "undefined" ? window.location.origin : ""}/find-members`
+    try {
+      if (typeof navigator !== "undefined" && navigator.share) {
+        await navigator.share({ title, text, url })
+        toast.success("Shared!")
+      } else {
+        throw new Error("Share not supported")
+      }
+    } catch {
+      try {
+        await navigator.clipboard.writeText(`${text} ${url}`)
+        toast.success("Link copied to clipboard!")
+      } catch {
+        toast.error("Could not copy link")
+      }
+    }
+  }
 
   const squadRoles = selectedSquad?.needed_roles ?? []
   const selectedRole = selectedRoleIdx !== null ? squadRoles[selectedRoleIdx] ?? null : null
@@ -206,7 +230,7 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
         <DialogTrigger asChild>
           <Card className="card-interactive group relative flex flex-col cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all">
             <CardContent className="flex flex-1 flex-col gap-4 pt-6">
-              {/* Avatar + Username */}
+              {/* Avatar + Username + Share */}
               <div className="flex items-center gap-3.5">
                 <UserAvatar
                   src={player.avatar_url}
@@ -222,6 +246,15 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
                     {player.language}
                   </div>
                 </div>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-8 shrink-0 rounded-full"
+                  onClick={handleShare}
+                  aria-label="Share profile"
+                >
+                  <Share2 className="size-4" />
+                </Button>
               </div>
 
               {/* Role + Level + Jam Style badges */}
