@@ -36,7 +36,7 @@ export async function sendEmailNotification(
       to: [to],
       subject,
       html,
-      reply_to: options?.replyTo || DEFAULT_REPLY_TO,
+      replyTo: options?.replyTo || DEFAULT_REPLY_TO,
     })
 
     if (error) {
