@@ -10,6 +10,7 @@ const ROLE_STYLES: Record<string, { label: string; emoji: string; color: string 
   "2d-artist": { label: "2D Artist", emoji: "🎨", color: "bg-pink/15 text-pink" },
   "3d-artist": { label: "3D Artist", emoji: "🗿", color: "bg-peach/15 text-peach" },
   audio: { label: "Audio", emoji: "🎵", color: "bg-lavender/15 text-lavender" },
+  voice_actor: { label: "Voice Actor", emoji: "🎙️", color: "bg-lavender/15 text-lavender" },
   writer: { label: "Writer", emoji: "✍️", color: "bg-pink/15 text-pink" },
   "game-design": { label: "Game Designer", emoji: "🎯", color: "bg-peach/15 text-peach" },
   "ui-ux": { label: "UI / UX", emoji: "✨", color: "bg-mint/15 text-mint" },
