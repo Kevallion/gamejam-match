@@ -167,7 +167,7 @@ export function HomeShell() {
           </div>
         </div>
 
-        {/* Results — team grid */}
+        {/* Results — team grid (includes personalized matches when logged in) */}
         <div className="pt-12 lg:pt-16">
           <TeamGrid
             searchQuery={searchQuery}

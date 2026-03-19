@@ -155,12 +155,16 @@ export async function getSuggestedPlayers(
 /**
  * Suggère jusqu’à 3 équipes qui recherchent un des rôles du joueur (strict sur le rôle)
  * et dont le moteur est compatible avec celui du joueur (souple).
+ *
+ * `playerRoleOrRoles` peut être un rôle unique (`default_role`) ou plusieurs clés de rôle.
  */
 export async function getRecommendedTeams(
-  playerRoles: string[],
+  playerRoleOrRoles: string | string[],
   playerEngine: string | null | undefined,
 ): Promise<{ teams: RecommendedTeam[]; error: string | null }> {
-  const roles = playerRoles.map((r) => r.trim().toLowerCase()).filter(Boolean)
+  const roles = (Array.isArray(playerRoleOrRoles) ? playerRoleOrRoles : [playerRoleOrRoles])
+    .map((r) => String(r).trim().toLowerCase())
+    .filter(Boolean)
   if (roles.length === 0) {
     return { teams: [], error: null }
   }
@@ -168,6 +172,7 @@ export async function getRecommendedTeams(
   const { data, error } = await supabase
     .from("teams")
     .select("id, team_name, game_name, engine, description, looking_for, created_at")
+    .gt("expires_at", new Date().toISOString())
     .order("created_at", { ascending: false })
     .limit(RECOMMENDED_TEAMS_FETCH_WINDOW)
 

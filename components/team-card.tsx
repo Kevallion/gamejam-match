@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
@@ -13,6 +14,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Globe, Cpu, Users, ArrowRight, ShieldCheck, Share2 } from "lucide-react"
 import { toast } from "sonner"
+import { cn } from "@/lib/utils"
 
 import { JoinTeamModal } from "@/components/join-team-modal"
 
@@ -46,7 +48,15 @@ export type TeamCardData = {
   filledRoleKeys?: string[]
 }
 
-export function TeamCard({ team }: { team: TeamCardData }) {
+export function TeamCard({
+  team,
+  isRecommended = false,
+}: {
+  team: TeamCardData
+  /** Mise en avant « Perfect Match » (liste recommandée) : halo, badge, Apply direct. */
+  isRecommended?: boolean
+}) {
+  const [detailsOpen, setDetailsOpen] = useState(false)
   const filledKeys = team.filledRoleKeys ?? []
 
   // Count acceptances per role (e.g. 2 artists, 1 acceptance -> only first slot filled)
@@ -98,219 +108,299 @@ export function TeamCard({ team }: { team: TeamCardData }) {
     }
   }
 
-  return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Card className="card-interactive group relative flex flex-col cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all">
-          <CardHeader className="gap-3 pb-0">
-            <div className="flex items-start justify-between gap-2">
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="truncate text-lg font-bold text-foreground">
-                    {team.name}
-                  </h3>
-                  {team.teamVibe && (
-                    <span
-                      className={`shrink-0 inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-bold ${team.teamVibe.badgeColor ?? team.teamVibe.color}`}
-                      title={team.teamVibe.label}
-                    >
-                      {team.teamVibe.emoji} {team.teamVibe.label}
-                    </span>
-                  )}
-                </div>
-                <p className="mt-0.5 truncate text-sm font-medium text-primary">
-                  {team.jam}
-                </p>
-              </div>
-              <div className="flex shrink-0 items-center gap-1">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="size-8 rounded-full"
-                  onClick={handleShare}
-                  aria-label="Share team"
-                >
-                  <Share2 className="size-4" />
-                </Button>
-                <Badge
-                  variant="outline"
-                  className="rounded-full border-border/60 text-xs text-muted-foreground"
-                >
-                  <Users className="mr-1 size-3" />
-                  {team.members}/{team.maxMembers}
-                </Badge>
-              </div>
-            </div>
-          </CardHeader>
+  const applyButton = (
+    <JoinTeamModal
+      teamId={team.id}
+      teamName={team.name}
+      availableRoles={availableRoles}
+      ownerUserId={team.user_id}
+    >
+      <Button className="w-full gap-2 rounded-xl bg-primary text-primary-foreground transition-all hover:bg-primary/85 hover:gap-3 sm:flex-1">
+        Apply
+        <ArrowRight className="size-4" />
+      </Button>
+    </JoinTeamModal>
+  )
 
-          <CardContent className="flex flex-col gap-4 pt-3 flex-1">
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
-              <span className="inline-flex items-center gap-1.5">
-                <Cpu className="size-3.5 text-lavender" />
-                {team.engine}
-              </span>
-              <span className="inline-flex items-center gap-1.5">
-                <Globe className="size-3.5 text-teal" />
-                {team.language}
-              </span>
-            </div>
+  const dialogBody = (
+    <>
+      <DialogHeader className="space-y-1 border-b border-border/60 px-6 pt-6 pb-4 text-left">
+        <DialogTitle className="text-xl font-bold text-foreground">
+          {team.name}
+        </DialogTitle>
+        <p className="text-sm font-medium text-primary">{team.jam}</p>
+      </DialogHeader>
 
-            <p className="text-sm leading-relaxed text-muted-foreground line-clamp-2">
+      <ScrollArea className="max-h-[60vh] px-6 py-4">
+        <div className="flex flex-col gap-4 pr-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge
+              variant="outline"
+              className="inline-flex items-center gap-1.5 rounded-full border-border/60 bg-lavender px-3 py-1 text-xs font-semibold text-lavender-foreground"
+            >
+              <Cpu className="size-3.5" />
+              {team.engine}
+            </Badge>
+            <Badge
+              variant="outline"
+              className="inline-flex items-center gap-1.5 rounded-full border-border/60 bg-teal/10 px-3 py-1 text-xs font-semibold text-teal"
+            >
+              <Globe className="size-3.5" />
+              {team.language}
+            </Badge>
+            <span
+              className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold ${team.level.color}`}
+            >
+              {team.level.emoji} {team.level.label}
+            </span>
+            {team.teamVibe && (
+              <span
+                className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold ${team.teamVibe.color}`}
+              >
+                {team.teamVibe.emoji} {team.teamVibe.label}
+              </span>
+            )}
+          </div>
+
+          <div>
+            <h4 className="mb-2 text-sm font-semibold text-foreground">
+              Description
+            </h4>
+            <p className="whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">
               {team.description}
             </p>
+          </div>
 
-            <div className="flex flex-wrap gap-1.5">
-              <span
-                className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${team.level.color}`}
-              >
-                {team.level.emoji} {team.level.label}
-              </span>
+          <div>
+            <h4 className="mb-2 text-sm font-semibold text-foreground">
+              Roles sought
+            </h4>
+            <ul className="space-y-2">
               {availableRoles.map((role, index) => (
-                <span
+                <li
                   key={`${role.key}-${index}`}
                   className={[
-                    "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold transition-opacity",
+                    "flex items-center gap-2 rounded-lg border border-border/40 px-3 py-2 text-sm transition-colors",
                     role.filled
-                      ? "opacity-40 line-through bg-muted text-muted-foreground"
-                      : role.color,
+                      ? "bg-muted/50 opacity-60"
+                      : "bg-secondary/30",
                   ].join(" ")}
-                  title={role.filled ? `${role.label} — Filled` : `${role.label} — Open`}
                 >
-                  {role.emoji} {role.label}
-                </span>
-              ))}
-            </div>
-          </CardContent>
-
-          <CardFooter>
-            {isSquadFull ? (
-              <div className="w-full flex items-center justify-center gap-2 rounded-xl border border-border/60 bg-muted/50 px-4 py-2.5 text-sm font-bold text-muted-foreground">
-                <ShieldCheck className="size-4 text-primary" />
-                SQUAD FULL
-              </div>
-            ) : (
-              <div className="w-full flex items-center justify-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-4 py-2.5 text-sm font-semibold text-primary">
-                <ArrowRight className="size-4" />
-                View details
-              </div>
-            )}
-          </CardFooter>
-        </Card>
-      </DialogTrigger>
-
-      <DialogContent className="max-w-lg rounded-2xl border-border/60 bg-card p-0 shadow-2xl shadow-teal/10 overflow-hidden">
-        <DialogHeader className="px-6 pt-6 pb-4 space-y-1 text-left border-b border-border/60">
-          <DialogTitle className="text-xl font-bold text-foreground">
-            {team.name}
-          </DialogTitle>
-          <p className="text-sm font-medium text-primary">{team.jam}</p>
-        </DialogHeader>
-
-        <ScrollArea className="max-h-[60vh] px-6 py-4">
-            <div className="flex flex-col gap-4 pr-4">
-            {/* Badges Engine, Language, Level, Jam Style */}
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge
-                variant="outline"
-                className="inline-flex items-center gap-1.5 rounded-full border-border/60 bg-lavender px-3 py-1 text-xs font-semibold text-lavender-foreground"
-              >
-                <Cpu className="size-3.5" />
-                {team.engine}
-              </Badge>
-              <Badge
-                variant="outline"
-                className="inline-flex items-center gap-1.5 rounded-full border-border/60 bg-teal/10 px-3 py-1 text-xs font-semibold text-teal"
-              >
-                <Globe className="size-3.5" />
-                {team.language}
-              </Badge>
-              <span
-                className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold ${team.level.color}`}
-              >
-                {team.level.emoji} {team.level.label}
-              </span>
-              {team.teamVibe && (
-                <span
-                  className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold ${team.teamVibe.color}`}
-                >
-                  {team.teamVibe.emoji} {team.teamVibe.label}
-                </span>
-              )}
-            </div>
-
-            {/* Full description */}
-            <div>
-              <h4 className="mb-2 text-sm font-semibold text-foreground">
-                Description
-              </h4>
-              <p className="whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">
-                {team.description}
-              </p>
-            </div>
-
-            {/* Roles sought */}
-            <div>
-              <h4 className="mb-2 text-sm font-semibold text-foreground">
-                Roles sought
-              </h4>
-              <ul className="space-y-2">
-                {availableRoles.map((role, index) => (
-                  <li
-                    key={`${role.key}-${index}`}
+                  <span
                     className={[
-                      "flex items-center gap-2 rounded-lg border border-border/40 px-3 py-2 text-sm transition-colors",
-                      role.filled
-                        ? "bg-muted/50 opacity-60"
-                        : "bg-secondary/30",
+                      "inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-semibold",
+                      role.filled ? "opacity-40" : role.color,
                     ].join(" ")}
                   >
-                    <span
-                      className={[
-                        "inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-semibold",
-                        role.filled ? "opacity-40" : role.color,
-                      ].join(" ")}
-                    >
-                      {role.emoji} {role.label}
+                    {role.emoji} {role.label}
+                  </span>
+                  {role.filled && (
+                    <span className="ml-auto text-xs text-muted-foreground">
+                      Filled
                     </span>
-                    {role.filled && (
-                      <span className="ml-auto text-xs text-muted-foreground">
-                        Filled
-                      </span>
-                    )}
-                  </li>
-                ))}
-              </ul>
-              {availableRoles.length === 0 && (
-                <p className="text-sm text-muted-foreground italic">
-                  No role specified
-                </p>
-              )}
-            </div>
+                  )}
+                </li>
+              ))}
+            </ul>
+            {availableRoles.length === 0 && (
+              <p className="text-sm text-muted-foreground italic">
+                No role specified
+              </p>
+            )}
           </div>
-        </ScrollArea>
+        </div>
+      </ScrollArea>
 
-        {/* Footer with Apply button */}
-        <div className="border-t border-border/60 px-6 py-4 bg-muted/20">
+      <div className="border-t border-border/60 bg-muted/20 px-6 py-4">
+        {isSquadFull ? (
+          <div className="flex items-center justify-center gap-2 rounded-xl border border-border/60 bg-muted/50 px-4 py-3 text-sm font-bold text-muted-foreground">
+            <ShieldCheck className="size-4 text-primary" />
+            Team full
+          </div>
+        ) : (
+          applyButton
+        )}
+      </div>
+    </>
+  )
+
+  const cardHeader = (
+    <CardHeader className="gap-3 pb-0">
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="truncate text-lg font-bold text-foreground">
+              {team.name}
+            </h3>
+            {team.teamVibe && (
+              <span
+                className={`shrink-0 inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-bold ${team.teamVibe.badgeColor ?? team.teamVibe.color}`}
+                title={team.teamVibe.label}
+              >
+                {team.teamVibe.emoji} {team.teamVibe.label}
+              </span>
+            )}
+          </div>
+          <p className="mt-0.5 truncate text-sm font-medium text-primary">
+            {team.jam}
+          </p>
+        </div>
+        <div className="flex shrink-0 items-center gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="size-8 rounded-full"
+            onClick={handleShare}
+            aria-label="Share team"
+          >
+            <Share2 className="size-4" />
+          </Button>
+          <Badge
+            variant="outline"
+            className="rounded-full border-border/60 text-xs text-muted-foreground"
+          >
+            <Users className="mr-1 size-3" />
+            {team.members}/{team.maxMembers}
+          </Badge>
+        </div>
+      </div>
+    </CardHeader>
+  )
+
+  const cardContent = (
+    <CardContent className="flex flex-1 flex-col gap-4 pt-3">
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
+        <span className="inline-flex items-center gap-1.5">
+          <Cpu className="size-3.5 text-lavender" />
+          {team.engine}
+        </span>
+        <span className="inline-flex items-center gap-1.5">
+          <Globe className="size-3.5 text-teal" />
+          {team.language}
+        </span>
+      </div>
+
+      <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+        {team.description}
+      </p>
+
+      <div className="flex flex-wrap gap-1.5">
+        <span
+          className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${team.level.color}`}
+        >
+          {team.level.emoji} {team.level.label}
+        </span>
+        {availableRoles.map((role, index) => (
+          <span
+            key={`${role.key}-${index}`}
+            className={[
+              "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold transition-opacity",
+              role.filled
+                ? "bg-muted text-muted-foreground line-through opacity-40"
+                : role.color,
+            ].join(" ")}
+            title={role.filled ? `${role.label} — Filled` : `${role.label} — Open`}
+          >
+            {role.emoji} {role.label}
+          </span>
+        ))}
+      </div>
+    </CardContent>
+  )
+
+  const defaultFooter = (
+    <CardFooter>
+      {isSquadFull ? (
+        <div className="flex w-full items-center justify-center gap-2 rounded-xl border border-border/60 bg-muted/50 px-4 py-2.5 text-sm font-bold text-muted-foreground">
+          <ShieldCheck className="size-4 text-primary" />
+          SQUAD FULL
+        </div>
+      ) : (
+        <div className="flex w-full items-center justify-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-4 py-2.5 text-sm font-semibold text-primary">
+          <ArrowRight className="size-4" />
+          View details
+        </div>
+      )}
+    </CardFooter>
+  )
+
+  const dialogContentClass =
+    "max-w-lg overflow-hidden rounded-2xl border-border/60 bg-card p-0 shadow-2xl shadow-teal/10"
+
+  if (!isRecommended) {
+    return (
+      <Dialog>
+        <DialogTrigger asChild>
+          <Card className="card-interactive group relative flex cursor-pointer flex-col transition-all hover:ring-2 hover:ring-primary/50">
+            {cardHeader}
+            {cardContent}
+            {defaultFooter}
+          </Card>
+        </DialogTrigger>
+
+        <DialogContent className={dialogContentClass}>{dialogBody}</DialogContent>
+      </Dialog>
+    )
+  }
+
+  return (
+    <>
+      <Card
+        className={cn(
+          "group relative flex flex-col overflow-hidden transition-all",
+          "ring-2 ring-teal-500 shadow-[0_0_20px_rgba(20,184,166,0.2)] border-teal-500/50",
+        )}
+      >
+        <span
+          className="absolute left-4 top-3 z-10 inline-flex items-center rounded-full bg-teal-500/15 px-2.5 py-0.5 text-xs font-semibold text-teal-600"
+          aria-label="Perfect match for your profile"
+        >
+          🔥 Perfect Match
+        </span>
+        <div
+          role="button"
+          tabIndex={0}
+          className="flex flex-1 cursor-pointer flex-col rounded-t-xl pt-8 text-left outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-card"
+          onClick={() => setDetailsOpen(true)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault()
+              setDetailsOpen(true)
+            }
+          }}
+        >
+          {cardHeader}
+          {cardContent}
+        </div>
+
+        <CardFooter
+          className="flex flex-col gap-2 sm:flex-row sm:items-stretch"
+          onClick={(e) => e.stopPropagation()}
+        >
           {isSquadFull ? (
-            <div className="flex items-center justify-center gap-2 rounded-xl border border-border/60 bg-muted/50 px-4 py-3 text-sm font-bold text-muted-foreground">
+            <div className="flex w-full items-center justify-center gap-2 rounded-xl border border-border/60 bg-muted/50 px-4 py-2.5 text-sm font-bold text-muted-foreground">
               <ShieldCheck className="size-4 text-primary" />
-              Team full
+              SQUAD FULL
             </div>
           ) : (
-            <JoinTeamModal
-              teamId={team.id}
-              teamName={team.name}
-              availableRoles={availableRoles}
-              ownerUserId={team.user_id}
-            >
-              <Button className="w-full gap-2 rounded-xl bg-primary text-primary-foreground transition-all hover:bg-primary/85 hover:gap-3">
-                Apply
-                <ArrowRight className="size-4" />
+            <>
+              {applyButton}
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full shrink-0 rounded-xl border-border/60 sm:w-auto sm:min-w-[8.5rem]"
+                onClick={() => setDetailsOpen(true)}
+              >
+                View details
               </Button>
-            </JoinTeamModal>
+            </>
           )}
-        </div>
-      </DialogContent>
-    </Dialog>
+        </CardFooter>
+      </Card>
+
+      <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
+        <DialogContent className={dialogContentClass}>{dialogBody}</DialogContent>
+      </Dialog>
+    </>
   )
 }

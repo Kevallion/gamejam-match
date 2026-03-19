@@ -5,6 +5,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { TeamCard, type TeamCardData } from "@/components/team-card"
 import { Button } from "@/components/ui/button"
+import { getRecommendedTeams } from "@/lib/matchmaking"
 import { supabase } from "@/lib/supabase"
 import { Loader2 } from "lucide-react"
 import { toast } from "sonner"
@@ -40,6 +41,16 @@ type TeamRowDb = {
 type TeamWithMeta = TeamCardData & {
   rawRoles: RawRoleEntry[]
   rawTeamVibe: string | null
+  isRecommended?: boolean
+}
+
+type GridFilterOpts = {
+  debouncedSearch: string
+  engineFilter: string
+  roleFilter: string
+  levelFilter: string
+  languageFilter: string
+  styleFilter: string
 }
 
 function formatTeam(t: TeamRowDb): TeamWithMeta {
@@ -75,6 +86,41 @@ function formatTeam(t: TeamRowDb): TeamWithMeta {
   }
 }
 
+function teamPassesGridFilters(t: TeamWithMeta, o: GridFilterOpts): boolean {
+  if (t.rawRoles.length > 0 && t.members >= t.maxMembers) return false
+
+  const searchLower = o.debouncedSearch.toLowerCase()
+  const matchSearch =
+    !searchLower ||
+    t.name.toLowerCase().includes(searchLower) ||
+    t.jam.toLowerCase().includes(searchLower) ||
+    t.description.toLowerCase().includes(searchLower)
+
+  const matchEngine =
+    o.engineFilter === "all" || String(t.engine).toLowerCase() === o.engineFilter.toLowerCase()
+  const matchLanguage =
+    o.languageFilter === "all" || String(t.language).toLowerCase() === o.languageFilter.toLowerCase()
+  const matchRole =
+    o.roleFilter === "all" ||
+    t.rawRoles.some((r) => r.role?.toLowerCase() === o.roleFilter.toLowerCase())
+  const legacyMap: Record<string, string> = { hobbyist: "junior", confirmed: "regular", expert: "senior" }
+  const matchLevel =
+    o.levelFilter === "all" ||
+    t.rawRoles.some((r) => {
+      const raw = (r.level?.toLowerCase() || "")
+      const normalized = legacyMap[raw] ?? raw
+      const filter = o.levelFilter.toLowerCase()
+      return normalized === filter
+    })
+  const matchStyle =
+    o.styleFilter === "all" ||
+    Boolean(
+      t.rawTeamVibe && String(t.rawTeamVibe).toLowerCase() === o.styleFilter.toLowerCase(),
+    )
+
+  return matchSearch && matchEngine && matchLanguage && matchRole && matchLevel && matchStyle
+}
+
 export function TeamGrid({
   searchQuery = "",
   engineFilter = "all",
@@ -85,6 +131,7 @@ export function TeamGrid({
   onResultsCountChange,
 }: TeamGridProps) {
   const [teams, setTeams] = useState<TeamWithMeta[]>([])
+  const [recommendedTeams, setRecommendedTeams] = useState<TeamWithMeta[]>([])
   const [loadingMore, setLoadingMore] = useState(false)
   const [hasMore, setHasMore] = useState(true)
   const offsetRef = useRef(0)
@@ -117,10 +164,69 @@ export function TeamGrid({
     }
   }, [])
 
+  const loadRecommended = useCallback(async () => {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+    if (!session?.user) {
+      setRecommendedTeams([])
+      return
+    }
+
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("default_role, default_engine")
+      .eq("id", session.user.id)
+      .maybeSingle()
+
+    if (profileError) {
+      setRecommendedTeams([])
+      return
+    }
+
+    const role = profile?.default_role?.trim()
+    if (!role) {
+      setRecommendedTeams([])
+      return
+    }
+
+    const engine = profile?.default_engine?.trim() ?? null
+    const { teams: rec, error } = await getRecommendedTeams(role, engine)
+    if (error || !rec.length) {
+      setRecommendedTeams([])
+      return
+    }
+
+    const ids = rec.map((t) => t.id)
+    const { data: rows, error: teamsError } = await supabase
+      .from("teams")
+      .select("*, team_members(id, role, user_id)")
+      .in("id", ids)
+      .gt("expires_at", new Date().toISOString())
+
+    if (teamsError || !rows?.length) {
+      setRecommendedTeams([])
+      return
+    }
+
+    const byId = new Map(rows.map((r) => [r.id, r as TeamRowDb]))
+    const ordered: TeamWithMeta[] = []
+    for (const item of rec) {
+      const row = byId.get(item.id)
+      if (!row) continue
+      const meta = formatTeam(row)
+      if (meta.rawRoles.length > 0 && meta.members >= meta.maxMembers) continue
+      ordered.push({ ...meta, isRecommended: true })
+      if (ordered.length >= 3) break
+    }
+    setRecommendedTeams(ordered)
+  }, [])
+
   useEffect(() => {
     offsetRef.current = 0
     void fetchPage(0, false)
-  }, [fetchPage])
+    void loadRecommended()
+  }, [fetchPage, loadRecommended])
 
   const handleLoadMore = async () => {
     setLoadingMore(true)
@@ -128,41 +234,25 @@ export function TeamGrid({
     setLoadingMore(false)
   }
 
+  const filterOpts: GridFilterOpts = useMemo(
+    () => ({
+      debouncedSearch,
+      engineFilter,
+      roleFilter,
+      levelFilter,
+      languageFilter,
+      styleFilter,
+    }),
+    [debouncedSearch, engineFilter, roleFilter, levelFilter, languageFilter, styleFilter],
+  )
+
   const displayedTeams = useMemo(() => {
-    return teams.filter((t) => {
-      // Hide full teams (only when they have roles — teams with 0 roles stay visible for legacy/edge cases)
-      if (t.rawRoles.length > 0 && t.members >= t.maxMembers) return false
-
-      const searchLower = debouncedSearch.toLowerCase()
-      const matchSearch =
-        !searchLower ||
-        t.name.toLowerCase().includes(searchLower) ||
-        t.jam.toLowerCase().includes(searchLower) ||
-        t.description.toLowerCase().includes(searchLower)
-
-      const matchEngine =
-        engineFilter === "all" || String(t.engine).toLowerCase() === engineFilter.toLowerCase()
-      const matchLanguage =
-        languageFilter === "all" || String(t.language).toLowerCase() === languageFilter.toLowerCase()
-      const matchRole =
-        roleFilter === "all" ||
-        t.rawRoles.some((r) => r.role?.toLowerCase() === roleFilter.toLowerCase())
-      const legacyMap: Record<string, string> = { hobbyist: "junior", confirmed: "regular", expert: "senior" }
-      const matchLevel =
-        levelFilter === "all" ||
-        t.rawRoles.some((r) => {
-          const raw = (r.level?.toLowerCase() || "")
-          const normalized = legacyMap[raw] ?? raw
-          const filter = levelFilter.toLowerCase()
-          return normalized === filter
-        })
-      const matchStyle =
-        styleFilter === "all" ||
-        (t.rawTeamVibe && String(t.rawTeamVibe).toLowerCase() === styleFilter.toLowerCase())
-
-      return matchSearch && matchEngine && matchLanguage && matchRole && matchLevel && matchStyle
-    })
-  }, [teams, debouncedSearch, engineFilter, roleFilter, levelFilter, languageFilter, styleFilter])
+    const passes = (t: TeamWithMeta) => teamPassesGridFilters(t, filterOpts)
+    const recFiltered = recommendedTeams.filter(passes)
+    const recommendedIds = new Set(recommendedTeams.map((t) => t.id))
+    const regularFiltered = teams.filter((t) => !recommendedIds.has(t.id)).filter(passes)
+    return [...recFiltered, ...regularFiltered]
+  }, [teams, recommendedTeams, filterOpts])
 
   useEffect(() => {
     onResultsCountChange?.(displayedTeams.length)
@@ -189,7 +279,7 @@ export function TeamGrid({
         ) : (
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {displayedTeams.map((team) => (
-              <TeamCard key={team.id} team={team} />
+              <TeamCard key={team.id} team={team} isRecommended={!!team.isRecommended} />
             ))}
           </div>
         )}
