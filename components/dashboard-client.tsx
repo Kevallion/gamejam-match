@@ -237,6 +237,9 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
       members: (t.team_members?.[0]?.count ?? 0) + 1,
       maxMembers: 1 + parsed.length,
       roles: parsed.map((r) => ROLE_STYLES[r.role?.toLowerCase() ?? ""] ?? { ...FALLBACK_ROLE, label: r.role ?? "Other" }),
+      lookingForRoleKeys: parsed
+        .map((r) => (r.role ?? "").trim().toLowerCase())
+        .filter(Boolean),
       level: LEVEL_STYLES[rawLevel] ?? FALLBACK_LEVEL,
       discord_link: t.discord_link ?? null,
       isOwner: t.user_id === authUserId,
