@@ -31,6 +31,7 @@ import {
 import { OnboardingModal } from "@/components/onboarding-modal"
 import { CURRENT_ONBOARDING_VERSION } from "@/lib/onboarding"
 import { ProfileSettings } from "@/components/profile-settings"
+import { DashboardEmptyState } from "@/components/dashboard-empty-state"
 import { PushNotificationManager } from "@/components/push-notification-manager"
 import { PushNotificationBanner } from "@/components/push-notification-banner"
 import type { Session } from "@supabase/supabase-js"
@@ -871,12 +872,16 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="teams" className="mt-0">
-                <DashboardMyTeams
-                  teams={teams}
-                  onDelete={handleDeleteTeamClick}
-                  onRenew={handleRenewTeam}
-                  onLeave={handleLeaveTeam}
-                />
+                {teams.length === 0 && availabilityPosts.length === 0 ? (
+                  <DashboardEmptyState />
+                ) : (
+                  <DashboardMyTeams
+                    teams={teams}
+                    onDelete={handleDeleteTeamClick}
+                    onRenew={handleRenewTeam}
+                    onLeave={handleLeaveTeam}
+                  />
+                )}
               </TabsContent>
               <TabsContent value="requests" className="mt-0 flex flex-col gap-8">
                 <DashboardIncomingApplications
