@@ -5,6 +5,7 @@
 import { useCallback, useEffect, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import { Hero } from "@/components/hero"
+import { CarouselHero } from "@/components/carousel-hero"
 import { Search } from "@/components/search"
 import { Filters } from "@/components/filters"
 import { TeamGrid } from "@/components/team-grid"
@@ -132,6 +133,9 @@ export function HomeShell() {
       <main className="flex-1">
         {/* Hero — top of page */}
         <Hero />
+
+        {/* Carousel — storytelling slides */}
+        <CarouselHero />
 
         {/* Sticky bar: search + filters */}
         <div className="sticky top-16 z-40 -mb-px border-b border-border/50 bg-background/95 backdrop-blur-md">
