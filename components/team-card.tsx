@@ -12,7 +12,17 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Globe, Cpu, Users, ArrowRight, ShieldCheck, Share2 } from "lucide-react"
+import {
+  Globe,
+  Cpu,
+  Users,
+  ArrowRight,
+  ShieldCheck,
+  Share2,
+  Sparkles,
+  Flame,
+  Zap,
+} from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
@@ -83,6 +93,8 @@ export function TeamCard({
 
   const isSquadFull =
     availableRoles.length > 0 && availableRoles.every((r) => r.filled)
+
+  const remainingSpots = team.maxMembers - team.members
 
   async function handleShare(e: React.MouseEvent) {
     e.preventDefault()
@@ -225,27 +237,37 @@ export function TeamCard({
   )
 
   const cardHeader = (
-    <CardHeader className="gap-3 pb-0">
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <h3 className="truncate text-lg font-bold text-foreground">
+    <CardHeader className="min-w-0 shrink-0 gap-3 pb-0">
+      <div className="flex w-full min-w-0 items-start justify-between gap-2">
+        <div className="min-w-0 flex-1 overflow-hidden">
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
+            <h3 className="min-w-0 max-w-full truncate text-lg font-bold text-foreground">
               {team.name}
             </h3>
             {team.teamVibe && (
               <span
-                className={`shrink-0 inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-bold ${team.teamVibe.badgeColor ?? team.teamVibe.color}`}
+                className={`max-w-full shrink-0 truncate inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-bold ${team.teamVibe.badgeColor ?? team.teamVibe.color}`}
                 title={team.teamVibe.label}
               >
                 {team.teamVibe.emoji} {team.teamVibe.label}
               </span>
             )}
           </div>
-          <p className="mt-0.5 truncate text-sm font-medium text-primary">
+          <p className="mt-0.5 min-w-0 max-w-full truncate text-sm font-medium text-primary">
             {team.jam}
           </p>
         </div>
-        <div className="flex shrink-0 items-center gap-1">
+        <div className="flex min-w-0 max-w-full shrink-0 flex-wrap items-center justify-end gap-1.5">
+          {isRecommended && (
+            <Badge
+              variant="outline"
+              aria-label="Perfect match for your profile"
+              className="gap-1 border-teal/20 bg-teal/10 text-xs font-semibold text-teal"
+            >
+              <Sparkles className="size-3" aria-hidden />
+              Perfect Match
+            </Badge>
+          )}
           <Button
             variant="ghost"
             size="icon"
@@ -268,25 +290,25 @@ export function TeamCard({
   )
 
   const cardContent = (
-    <CardContent className="flex flex-1 flex-col gap-4 pt-3">
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
-        <span className="inline-flex items-center gap-1.5">
-          <Cpu className="size-3.5 text-lavender" />
-          {team.engine}
+    <CardContent className="flex min-h-0 min-w-0 flex-1 flex-col gap-4 pt-3">
+      <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
+        <span className="inline-flex min-w-0 max-w-full items-center gap-1.5 break-words">
+          <Cpu className="size-3.5 shrink-0 text-lavender" />
+          <span className="min-w-0">{team.engine}</span>
         </span>
-        <span className="inline-flex items-center gap-1.5">
-          <Globe className="size-3.5 text-teal" />
-          {team.language}
+        <span className="inline-flex min-w-0 max-w-full items-center gap-1.5 break-words">
+          <Globe className="size-3.5 shrink-0 text-teal" />
+          <span className="min-w-0">{team.language}</span>
         </span>
       </div>
 
-      <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+      <p className="line-clamp-3 min-h-0 overflow-hidden text-ellipsis break-words text-sm leading-relaxed text-muted-foreground">
         {team.description}
       </p>
 
-      <div className="flex flex-wrap gap-1.5">
+      <div className="flex min-w-0 flex-wrap gap-1.5">
         <span
-          className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${team.level.color}`}
+          className={`inline-flex max-w-full min-w-0 items-center gap-1 break-words rounded-full px-2.5 py-1 text-xs font-semibold ${team.level.color}`}
         >
           {team.level.emoji} {team.level.label}
         </span>
@@ -294,22 +316,42 @@ export function TeamCard({
           <span
             key={`${role.key}-${index}`}
             className={[
-              "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold transition-opacity",
+              "inline-flex max-w-full min-w-0 items-center gap-1 break-words rounded-full px-2.5 py-1 text-xs font-semibold transition-opacity",
               role.filled
                 ? "bg-muted text-muted-foreground line-through opacity-40"
                 : role.color,
             ].join(" ")}
             title={role.filled ? `${role.label} — Filled` : `${role.label} — Open`}
           >
-            {role.emoji} {role.label}
+            <span className="min-w-0">
+              {role.emoji} {role.label}
+            </span>
           </span>
         ))}
       </div>
+
+      {!isSquadFull && remainingSpots === 1 ? (
+        <div
+          className="mt-auto flex min-w-0 max-w-full flex-wrap items-center gap-1.5 self-start rounded-md border border-orange-500/20 bg-orange-500/10 px-2 py-1 text-xs font-medium text-orange-500"
+          role="status"
+        >
+          <Flame className="size-3.5 shrink-0" aria-hidden />
+          <span className="min-w-0 break-words">Only 1 spot left!</span>
+        </div>
+      ) : !isSquadFull && team.members > 1 && remainingSpots > 1 ? (
+        <div
+          className="mt-auto flex min-w-0 max-w-full flex-wrap items-center gap-1.5 self-start rounded-md bg-muted/50 px-2 py-1 text-xs font-medium text-muted-foreground"
+          role="status"
+        >
+          <Zap className="size-3.5 shrink-0" aria-hidden />
+          <span className="min-w-0 break-words">Teams are filling fast</span>
+        </div>
+      ) : null}
     </CardContent>
   )
 
   const defaultFooter = (
-    <CardFooter>
+    <CardFooter className="mt-auto shrink-0">
       {isSquadFull ? (
         <div className="flex w-full items-center justify-center gap-2 rounded-xl border border-border/60 bg-muted/50 px-4 py-2.5 text-sm font-bold text-muted-foreground">
           <ShieldCheck className="size-4 text-primary" />
@@ -331,7 +373,7 @@ export function TeamCard({
     return (
       <Dialog>
         <DialogTrigger asChild>
-          <Card className="card-interactive group relative flex cursor-pointer flex-col transition-all hover:ring-2 hover:ring-primary/50">
+          <Card className="card-interactive group relative flex h-full min-h-0 min-w-0 cursor-pointer flex-col transition-all hover:ring-2 hover:ring-primary/50">
             {cardHeader}
             {cardContent}
             {defaultFooter}
@@ -347,20 +389,13 @@ export function TeamCard({
     <>
       <Card
         className={cn(
-          "group relative flex flex-col overflow-hidden transition-all",
-          "ring-2 ring-teal-500 shadow-[0_0_20px_rgba(20,184,166,0.2)] border-teal-500/50",
+          "group relative flex h-full min-h-0 min-w-0 flex-col overflow-hidden border-teal/50 bg-gradient-to-br from-card to-teal/5 shadow-[0_0_20px_-5px_rgba(20,184,166,0.15)] transition-all",
         )}
       >
-        <span
-          className="absolute left-4 top-3 z-10 inline-flex items-center rounded-full bg-teal-500/15 px-2.5 py-0.5 text-xs font-semibold text-teal-600"
-          aria-label="Perfect match for your profile"
-        >
-          🔥 Perfect Match
-        </span>
         <div
           role="button"
           tabIndex={0}
-          className="flex flex-1 cursor-pointer flex-col rounded-t-xl pt-8 text-left outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-card"
+          className="flex min-h-0 min-w-0 flex-1 cursor-pointer flex-col rounded-t-xl text-left outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-card"
           onClick={() => setDetailsOpen(true)}
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === " ") {
@@ -374,7 +409,7 @@ export function TeamCard({
         </div>
 
         <CardFooter
-          className="flex flex-col gap-2 sm:flex-row sm:items-stretch"
+          className="mt-auto shrink-0 flex flex-col gap-2 sm:flex-row sm:items-stretch"
           onClick={(e) => e.stopPropagation()}
         >
           {isSquadFull ? (

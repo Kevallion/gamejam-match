@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { supabase } from "@/lib/supabase"
 import {
   Dialog,
@@ -34,6 +34,32 @@ import { toast } from "sonner"
 import { notifyOwnerNewApplication } from "@/app/actions/team-actions"
 import { useIsMobile } from "@/hooks/use-mobile"
 
+const MOTIVATION_MAX_CHARS = 500
+
+function buildDefaultMotivation(role: string | null, engine: string | null): string {
+  const r = role?.trim() || null
+  const e = engine?.trim() || null
+  if (r && e) {
+    return `Hi! I'm a ${r} using ${e}. Your project looks awesome and I'd love to join the squad for this jam!`
+  }
+  if (r) {
+    return `Hi! I'm a ${r}. Your project looks awesome and I'd love to join the squad for this jam!`
+  }
+  if (e) {
+    return `Hi! I'm using ${e}. Your project looks awesome and I'd love to join the squad for this jam!`
+  }
+  return "Hi! I'm really interested in your project and I'd love to join the squad for this jam!"
+}
+
+function clampMotivation(text: string): string {
+  return text.length > MOTIVATION_MAX_CHARS ? text.slice(0, MOTIVATION_MAX_CHARS) : text
+}
+
+export type ApplicantProfileDefaults = {
+  default_role?: string | null
+  default_engine?: string | null
+}
+
 type RoleOption = {
   key: string
   label: string
@@ -47,10 +73,19 @@ interface JoinTeamModalProps {
   teamName: string
   availableRoles: RoleOption[]
   ownerUserId?: string
+  /** If set, used to pre-fill the motivation text without fetching `profiles`. Omit to load defaults when the modal opens. */
+  applicantProfile?: ApplicantProfileDefaults
   children: React.ReactNode
 }
 
-export function JoinTeamModal({ teamId, teamName, availableRoles, ownerUserId, children }: JoinTeamModalProps) {
+export function JoinTeamModal({
+  teamId,
+  teamName,
+  availableRoles,
+  ownerUserId,
+  applicantProfile,
+  children,
+}: JoinTeamModalProps) {
   const [selectedRoleIdx, setSelectedRoleIdx] = useState<number | null>(null)
   const selectedRole = selectedRoleIdx !== null ? availableRoles[selectedRoleIdx] ?? null : null
   const [message, setMessage] = useState("")
@@ -62,6 +97,7 @@ export function JoinTeamModal({ teamId, teamName, availableRoles, ownerUserId, c
     text: string
   } | null>(null)
   const isMobile = useIsMobile()
+  const userEditedMessageRef = useRef(false)
 
   useEffect(() => {
     if (open && ownerUserId) {
@@ -73,8 +109,59 @@ export function JoinTeamModal({ teamId, teamName, availableRoles, ownerUserId, c
     }
   }, [open, ownerUserId])
 
+  useEffect(() => {
+    if (!open) return
+
+    let cancelled = false
+
+    const applyFromValues = (role: string | null, engine: string | null) => {
+      if (cancelled) return
+      setMessage(clampMotivation(buildDefaultMotivation(role, engine)))
+    }
+
+    if (applicantProfile !== undefined) {
+      if (!userEditedMessageRef.current) {
+        applyFromValues(
+          applicantProfile.default_role?.trim() || null,
+          applicantProfile.default_engine?.trim() || null,
+        )
+      }
+      return () => {
+        cancelled = true
+      }
+    }
+
+    if (!userEditedMessageRef.current) {
+      applyFromValues(null, null)
+    }
+
+    ;(async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      if (cancelled || userEditedMessageRef.current) return
+      if (!session?.user) return
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("default_role, default_engine")
+        .eq("id", session.user.id)
+        .maybeSingle()
+
+      if (cancelled || userEditedMessageRef.current) return
+      applyFromValues(
+        profile?.default_role?.trim() || null,
+        profile?.default_engine?.trim() || null,
+      )
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [open, applicantProfile])
+
   const charCount = message.length
-  const maxChars = 500
+  const maxChars = MOTIVATION_MAX_CHARS
   const openRoles = availableRoles.filter((r) => !r.filled)
 
   const handleOpen = (isOpen: boolean) => {
@@ -83,6 +170,9 @@ export function JoinTeamModal({ teamId, teamName, availableRoles, ownerUserId, c
       setSelectedRoleIdx(null)
       setMessage("")
       setStatusMsg(null)
+      userEditedMessageRef.current = false
+    } else {
+      userEditedMessageRef.current = false
     }
   }
 
@@ -276,6 +366,7 @@ export function JoinTeamModal({ teamId, teamName, availableRoles, ownerUserId, c
                 placeholder="Hi! I'm a 3D artist and I'd love to help with environment design, props and lighting..."
                 value={message}
                 onChange={(e) => {
+                  userEditedMessageRef.current = true
                   if (e.target.value.length <= maxChars) setMessage(e.target.value)
                 }}
                 className="min-h-[120px] resize-none rounded-xl border-border/60 bg-secondary/50 text-sm leading-relaxed text-foreground placeholder:text-muted-foreground/60 transition-colors focus-visible:border-teal/40 focus-visible:ring-2 focus-visible:ring-teal/20 focus-visible:ring-offset-0"

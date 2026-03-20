@@ -279,7 +279,9 @@ export function TeamGrid({
         ) : (
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {displayedTeams.map((team) => (
-              <TeamCard key={team.id} team={team} isRecommended={!!team.isRecommended} />
+              <div key={team.id} className="min-h-0 h-full">
+                <TeamCard team={team} isRecommended={!!team.isRecommended} />
+              </div>
             ))}
           </div>
         )}
