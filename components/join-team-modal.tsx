@@ -31,6 +31,7 @@ import {
   Lock,
 } from "lucide-react"
 import { toast } from "sonner"
+import { track } from "@vercel/analytics"
 import { notifyOwnerNewApplication } from "@/app/actions/team-actions"
 import { useIsMobile } from "@/hooks/use-mobile"
 
@@ -75,6 +76,8 @@ interface JoinTeamModalProps {
   ownerUserId?: string
   /** If set, used to pre-fill the motivation text without fetching `profiles`. Omit to load defaults when the modal opens. */
   applicantProfile?: ApplicantProfileDefaults
+  /** True when opened from the smart-match / recommended section (TeamCard). */
+  isRecommended?: boolean
   children: React.ReactNode
 }
 
@@ -84,6 +87,7 @@ export function JoinTeamModal({
   availableRoles,
   ownerUserId,
   applicantProfile,
+  isRecommended = false,
   children,
 }: JoinTeamModalProps) {
   const [selectedRoleIdx, setSelectedRoleIdx] = useState<number | null>(null)
@@ -230,6 +234,11 @@ export function JoinTeamModal({
       })
 
       if (error) throw error
+
+      track("Applied to Team", {
+        smart_match: isRecommended ? "true" : "false",
+        prefilled_template: userEditedMessageRef.current ? "false" : "true",
+      })
 
       // Notification e-mail au propriétaire de l'équipe (asynchrone, non bloquant)
       if (ownerUserId) {

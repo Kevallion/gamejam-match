@@ -20,6 +20,7 @@ import {
 import { Plus, X, Rocket, Sparkles, Loader2, AlertCircle } from "lucide-react"
 import { SignInButton } from "@/components/sign-in-button"
 import { toast } from "sonner"
+import { track } from "@vercel/analytics"
 import { ENGINE_OPTIONS, EXPERIENCE_OPTIONS, JAM_STYLE_OPTIONS, ROLE_OPTIONS } from "@/lib/constants"
 import { JamSearchSelector } from "@/components/jam-search-selector"
 
@@ -40,6 +41,9 @@ const LANGUAGE_OPTIONS = [
   { value: "chinese", label: "Chinese" },
 ]
 
+const TEAM_FORM_ENGINE_VALUES = new Set<string>(ENGINE_OPTIONS.map((o) => o.value))
+const TEAM_FORM_LANGUAGE_VALUES = new Set<string>(LANGUAGE_OPTIONS.map((o) => o.value))
+
 let roleIdCounter = 1
 
 export function CreateTeamForm() {
@@ -53,6 +57,7 @@ export function CreateTeamForm() {
   const [language, setLanguage] = useState("")
   const [teamVibe, setTeamVibe] = useState("")
   const [experienceRequired, setExperienceRequired] = useState("")
+  /** Single empty row so the user can type the first needed role without clicking "Add another role". */
   const [roles, setRoles] = useState<RoleEntry[]>([{ id: 0, role: "", level: "" }])
   const [discordLink, setDiscordLink] = useState("")
   const [discordLinkError, setDiscordLinkError] = useState("")
@@ -66,11 +71,44 @@ export function CreateTeamForm() {
   const step1Ref = useRef<HTMLInputElement | null>(null)
   const step2Ref = useRef<HTMLButtonElement | null>(null)
   const step3Ref = useRef<HTMLTextAreaElement | null>(null)
+  const formRef = useRef<HTMLFormElement | null>(null)
+  /** Évite un second « clic » sur le bouton qui devient « Publish » au même endroit (surtout au tactile). */
+  const [publishTapGuard, setPublishTapGuard] = useState(false)
 
   useEffect(() => {
     async function checkUser() {
       const { data: { session } } = await supabase.auth.getSession()
-      setUser(session?.user || null)
+      const nextUser = session?.user ?? null
+      setUser(nextUser)
+
+      if (nextUser) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("default_engine, default_language, engine, language")
+          .eq("id", nextUser.id)
+          .maybeSingle()
+
+        if (profile) {
+          const p = profile as {
+            default_engine?: string | null
+            default_language?: string | null
+            engine?: string | null
+            language?: string | null
+          }
+          const enginePref =
+            p.default_engine?.trim() || p.engine?.trim() || ""
+          const languagePref =
+            p.default_language?.trim() || p.language?.trim() || ""
+
+          if (enginePref && enginePref !== "any" && TEAM_FORM_ENGINE_VALUES.has(enginePref)) {
+            setEngine(enginePref)
+          }
+          if (languagePref && languagePref !== "any" && TEAM_FORM_LANGUAGE_VALUES.has(languagePref)) {
+            setLanguage(languagePref)
+          }
+        }
+      }
+
       setCheckingAuth(false)
     }
     checkUser()
@@ -84,6 +122,16 @@ export function CreateTeamForm() {
     } else if (step === 3) {
       step3Ref.current?.focus()
     }
+  }, [step])
+
+  useEffect(() => {
+    if (step !== 3) {
+      setPublishTapGuard(false)
+      return
+    }
+    setPublishTapGuard(true)
+    const id = window.setTimeout(() => setPublishTapGuard(false), 450)
+    return () => clearTimeout(id)
   }, [step])
 
   function getCleanRoles() {
@@ -133,6 +181,15 @@ export function CreateTeamForm() {
 
   function goToPreviousStep() {
     setStep((prev) => Math.max(prev - 1, 1))
+  }
+
+  function handlePrimaryAction() {
+    if (step < totalSteps) {
+      goToNextStep()
+      return
+    }
+    if (publishTapGuard) return
+    formRef.current?.requestSubmit()
   }
 
   function addRole() {
@@ -202,6 +259,7 @@ export function CreateTeamForm() {
       if (error) {
         toast.error("Could not create the team.", { description: error.message })
       } else {
+        track("Created Team", { engine: teamData.engine })
         toast.success("Team created successfully!", { description: "Your listing is now live." })
         setTeamName("")
         setJamName("")
@@ -240,7 +298,7 @@ export function CreateTeamForm() {
       {user && (
         <Card className="rounded-3xl border-border/50 bg-card shadow-xl shadow-primary/5">
           <CardContent className="p-6 md:p-10">
-            <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+            <form ref={formRef} onSubmit={handleSubmit} className="flex flex-col gap-6">
               <div className="mb-2 flex flex-col gap-3">
                 <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   <span>Step {step} of {totalSteps}</span>
@@ -572,9 +630,9 @@ export function CreateTeamForm() {
                         Back
                       </Button>
                       <Button
-                        type={step === totalSteps ? "submit" : "button"}
-                        disabled={loading}
-                        onClick={step === totalSteps ? undefined : goToNextStep}
+                        type="button"
+                        disabled={loading || (step === totalSteps && publishTapGuard)}
+                        onClick={handlePrimaryAction}
                         className="ml-auto flex-1 justify-center gap-2 rounded-2xl bg-primary py-3 text-sm font-extrabold text-primary-foreground sm:flex-none sm:px-6"
                       >
                         {step === totalSteps ? (

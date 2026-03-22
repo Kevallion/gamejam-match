@@ -126,6 +126,7 @@ export function TeamCard({
       teamName={team.name}
       availableRoles={availableRoles}
       ownerUserId={team.user_id}
+      isRecommended={isRecommended}
     >
       <Button className="w-full gap-2 rounded-xl bg-primary text-primary-foreground transition-all hover:bg-primary/85 hover:gap-3 sm:flex-1">
         Apply
