@@ -28,6 +28,17 @@ import { supabase } from "@/lib/supabase"
 import { ROLE_OPTIONS, ENGINE_OPTIONS_WITH_ANY, LANGUAGE_OPTIONS } from "@/lib/constants"
 import { Loader2, Trash2, User, Settings, Bell, AlertTriangle, Link2 } from "lucide-react"
 import { toast } from "sonner"
+import { cn } from "@/lib/utils"
+
+function isUsernameUniqueViolation(error: {
+  code?: string
+  message?: string
+  details?: string | null
+}): boolean {
+  if (error.code !== "23505") return false
+  const combined = `${error.message ?? ""} ${error.details ?? ""}`.toLowerCase()
+  return combined.includes("username")
+}
 
 export type ProfileSettingsProfile = {
   id: string
@@ -54,15 +65,28 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
   const [defaultEngine, setDefaultEngine] = useState(profile?.default_engine?.trim() ?? "")
   const [defaultLanguage, setDefaultLanguage] = useState(profile?.default_language?.trim() ?? "")
   const [portfolioUrl, setPortfolioUrl] = useState(profile?.portfolio_url?.trim() ?? "")
+  const [usernameTouched, setUsernameTouched] = useState(false)
 
   useEffect(() => {
     setUsername(profile?.username?.trim() ?? "")
+    setUsernameTouched(false)
     setDiscordUsername(profile?.discord_username?.trim() ?? "")
     setDefaultRole(profile?.default_role?.trim() ?? "")
     setDefaultEngine(profile?.default_engine?.trim() ?? "")
     setDefaultLanguage(profile?.default_language?.trim() ?? "")
     setPortfolioUrl(profile?.portfolio_url?.trim() ?? "")
   }, [profile?.username, profile?.discord_username, profile?.default_role, profile?.default_engine, profile?.default_language, profile?.portfolio_url])
+
+  const trimmedUsername = username.trim()
+  const usernameEmpty = trimmedUsername.length === 0
+  const usernameTooShort = trimmedUsername.length > 0 && trimmedUsername.length < 3
+  const showUsernameError = usernameTooShort || (usernameTouched && usernameEmpty)
+  const usernameErrorMessage = usernameTooShort
+    ? "Username must be at least 3 characters long."
+    : usernameEmpty
+      ? "Username cannot be empty."
+      : null
+
   const [saving, setSaving] = useState(false)
   const [showDeleteAccountDialog, setShowDeleteAccountDialog] = useState(false)
   const [deletingAccount, setDeletingAccount] = useState(false)
@@ -70,12 +94,23 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!profile?.id) return
+
+    setUsernameTouched(true)
+    if (usernameEmpty || trimmedUsername.length < 3) {
+      toast.error("Invalid username", {
+        description: usernameEmpty
+          ? "Username cannot be empty."
+          : "Username must be at least 3 characters long.",
+      })
+      return
+    }
+
     setSaving(true)
     try {
       const { error } = await supabase
         .from("profiles")
         .update({
-          username: username.trim() || null,
+          username: trimmedUsername,
           discord_username: discordUsername.trim() || null,
           default_role: defaultRole.trim() || null,
           default_engine: defaultEngine.trim() || null,
@@ -85,6 +120,10 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
         .eq("id", profile.id)
 
       if (error) {
+        if (isUsernameUniqueViolation(error)) {
+          toast.error("This username is already taken. Please choose another one.")
+          return
+        }
         toast.error("Could not update profile.", { description: error.message })
         return
       }
@@ -169,12 +208,22 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
                       id="profile-username"
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
+                      onBlur={() => setUsernameTouched(true)}
                       placeholder="e.g. PixelWizard42"
-                      className="h-11 rounded-lg border-border/50 bg-background transition-colors focus:border-primary/50"
+                      autoComplete="username"
+                      aria-invalid={showUsernameError}
+                      aria-describedby="profile-username-hint"
+                      className={cn(
+                        "h-11 rounded-lg border-border/50 bg-background transition-colors focus:border-primary/50",
+                        showUsernameError && "border-destructive/60 focus-visible:ring-destructive/20"
+                      )}
                     />
-                    <p className="text-xs text-muted-foreground">
+                    <p id="profile-username-hint" className="text-xs text-muted-foreground">
                       Your unique display name across the platform
                     </p>
+                    {showUsernameError && usernameErrorMessage ? (
+                      <p className="text-xs font-medium text-destructive">{usernameErrorMessage}</p>
+                    ) : null}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="profile-discord" className="text-sm font-medium">

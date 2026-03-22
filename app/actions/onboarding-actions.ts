@@ -9,6 +9,7 @@ import { CURRENT_ONBOARDING_VERSION } from "@/lib/onboarding"
  * and marks the onboarding as completed.
  */
 export type CompleteOnboardingInput = {
+  username?: string | null
   defaultRole?: string | null
   defaultEngine?: string | null
   defaultLanguage?: string | null
@@ -31,30 +32,20 @@ export async function completeOnboarding(
     return { success: false, error: "User not authenticated" }
   }
 
+  const chosenUsername = input.username?.trim() ?? ""
+  if (!chosenUsername) {
+    return { success: false, error: "Username is required." }
+  }
+  if (chosenUsername.length < 3) {
+    return { success: false, error: "Username must be at least 3 characters." }
+  }
+
   const defaultRole = input.defaultRole?.trim() || null
   const defaultEngine = input.defaultEngine?.trim() || null
   const defaultLanguage = input.defaultLanguage?.trim() || null
   const discordUsername = input.discordUsername?.trim() || null
   const portfolioUrl = input.portfolioUrl?.trim() || null
   const publishImmediately = input.publishImmediately !== false
-  const metadata = user.user_metadata as Record<string, string> | undefined
-  const fallbackUsername =
-    metadata?.full_name?.trim() ||
-    metadata?.name?.trim() ||
-    metadata?.user_name?.trim() ||
-    metadata?.username?.trim() ||
-    (user.email ? user.email.split("@")[0]?.trim() : "") ||
-    null
-
-  const { data: existingProfile } = await supabase
-    .from("profiles")
-    .select("username")
-    .eq("id", user.id)
-    .maybeSingle()
-
-  const username =
-    (existingProfile as { username?: string | null } | null)?.username?.trim() ||
-    fallbackUsername
 
   // Ensure the profile row exists and keep onboarding data in sync
   // with both the default_* fields and the base profile fields.
@@ -63,7 +54,7 @@ export async function completeOnboarding(
     .upsert(
       {
         id: user.id,
-        username,
+        username: chosenUsername,
         default_role: defaultRole,
         default_engine: defaultEngine,
         default_language: defaultLanguage,
@@ -89,7 +80,7 @@ export async function completeOnboarding(
     if (to) {
       const displayName =
         discordUsername ||
-        username ||
+        chosenUsername ||
         (to ? to.split("@")[0]?.trim() : "") ||
         "there"
 

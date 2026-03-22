@@ -37,6 +37,7 @@ import {
   Loader2,
   MessageSquareMore,
   Search,
+  User,
   UserSearch,
 } from "lucide-react"
 
@@ -44,6 +45,7 @@ interface OnboardingModalProps {
   open: boolean
   onOpenChange?: (open: boolean) => void
   profile?: {
+    username?: string | null
     default_role?: string | null
     default_engine?: string | null
     default_language?: string | null
@@ -89,6 +91,8 @@ export function OnboardingModal({ open, onOpenChange, profile }: OnboardingModal
   const router = useRouter()
   const [step, setStep] = useState(1)
   const [selectedChoice, setSelectedChoice] = useState<(typeof CHOICE_OPTIONS)[number] | null>(null)
+  const [username, setUsername] = useState("")
+  const [usernameTouched, setUsernameTouched] = useState(false)
   const [defaultRole, setDefaultRole] = useState("")
   const [defaultEngine, setDefaultEngine] = useState("")
   const [defaultLanguage, setDefaultLanguage] = useState("")
@@ -102,6 +106,8 @@ export function OnboardingModal({ open, onOpenChange, profile }: OnboardingModal
 
     setStep(1)
     setSelectedChoice(null)
+    setUsername(profile?.username?.trim() ?? "")
+    setUsernameTouched(false)
     setDefaultRole(profile?.default_role?.trim() ?? "")
     setDefaultEngine(profile?.default_engine?.trim() ?? "")
     setDefaultLanguage(profile?.default_language?.trim() ?? "")
@@ -109,13 +115,44 @@ export function OnboardingModal({ open, onOpenChange, profile }: OnboardingModal
     setPortfolioUrl(profile?.portfolio_url?.trim() ?? "")
     setPublishImmediately(true)
     setIsSubmitting(false)
-  }, [open, profile?.default_engine, profile?.default_language, profile?.default_role, profile?.discord_username, profile?.portfolio_url])
+  }, [
+    open,
+    profile?.username,
+    profile?.default_engine,
+    profile?.default_language,
+    profile?.default_role,
+    profile?.discord_username,
+    profile?.portfolio_url,
+  ])
+
+  const trimmedUsername = username.trim()
+  const usernameInvalidEmpty = trimmedUsername.length === 0
+  const usernameInvalidShort = trimmedUsername.length > 0 && trimmedUsername.length < 3
+  const showUsernameError = usernameInvalidShort || (usernameTouched && usernameInvalidEmpty)
+  const usernameErrorMessage = usernameInvalidShort
+    ? "At least 3 characters."
+    : usernameInvalidEmpty
+      ? "Username is required."
+      : null
 
   const progressValue = (step / TOTAL_STEPS) * 100
 
   const handleDialogOpenChange = (nextOpen: boolean) => {
     if (isSubmitting) return
     onOpenChange?.(nextOpen)
+  }
+
+  const assertUsernameValid = (): boolean => {
+    setUsernameTouched(true)
+    if (!trimmedUsername) {
+      toast.error("Choose a username", { description: "Username is required." })
+      return false
+    }
+    if (trimmedUsername.length < 3) {
+      toast.error("Username too short", { description: "Use at least 3 characters." })
+      return false
+    }
+    return true
   }
 
   const handleNext = () => {
@@ -142,9 +179,15 @@ export function OnboardingModal({ open, onOpenChange, profile }: OnboardingModal
       return
     }
 
+    if (!assertUsernameValid()) {
+      setStep(1)
+      return
+    }
+
     setIsSubmitting(true)
     try {
       const result = await completeOnboarding({
+        username: trimmedUsername,
         defaultRole,
         defaultEngine,
         defaultLanguage,
@@ -216,7 +259,37 @@ export function OnboardingModal({ open, onOpenChange, profile }: OnboardingModal
 
         <div className="px-6 pt-6 pb-8 sm:pb-10">
           {step === 1 && (
-            <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="mt-6 space-y-5">
+              <div
+                className={cn(
+                  "space-y-2 rounded-2xl border bg-muted/20 p-4 transition-colors",
+                  showUsernameError ? "border-destructive/40" : "border-border/60"
+                )}
+              >
+                <Label htmlFor="onboarding-username" className="flex items-center gap-2 text-sm font-medium">
+                  <User className="size-4 text-lavender" />
+                  Username
+                </Label>
+                <Input
+                  id="onboarding-username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  onBlur={() => setUsernameTouched(true)}
+                  placeholder="Your jammer name"
+                  autoComplete="username"
+                  aria-invalid={showUsernameError}
+                  aria-describedby="onboarding-username-hint"
+                  className="h-11 rounded-xl border-border/60 bg-background"
+                />
+                <p id="onboarding-username-hint" className="text-xs leading-relaxed text-muted-foreground">
+                  This is how you will appear to other jammers.
+                </p>
+                {showUsernameError && usernameErrorMessage ? (
+                  <p className="text-xs font-medium text-destructive">{usernameErrorMessage}</p>
+                ) : null}
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {CHOICE_OPTIONS.map((option) => {
                 const Icon = option.icon
                 const isActive = selectedChoice?.id === option.id
@@ -227,6 +300,7 @@ export function OnboardingModal({ open, onOpenChange, profile }: OnboardingModal
                     type="button"
                     variant="outline"
                     onClick={() => {
+                      if (!assertUsernameValid()) return
                       setSelectedChoice(option)
                       setStep(2)
                     }}
@@ -246,6 +320,7 @@ export function OnboardingModal({ open, onOpenChange, profile }: OnboardingModal
                   </Button>
                 )
               })}
+              </div>
             </div>
           )}
 
