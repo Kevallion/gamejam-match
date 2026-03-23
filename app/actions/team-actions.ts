@@ -49,8 +49,8 @@ export async function notifyOwnerSquadRosterComplete(
   try {
     const message =
       reward && gamificationRewardHasToast(reward)
-        ? `Someone joined via invitation — squad complete! ${buildSquadCompleteRewardSummaryLine(reward)}`
-        : "Someone joined via invitation — your squad listing is now full (every role filled)."
+        ? `Your squad listing is complete! ${buildSquadCompleteRewardSummaryLine(reward)}`
+        : "Your squad listing is now full — every open role slot is filled."
     await insertNotification(
       ownerUserId,
       NOTIFICATION_TYPE_GAMIFICATION_SQUAD_COMPLETE,

@@ -641,7 +641,6 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
         dailyXpClaimRef.current = true
         void claimDailyLoginXp().then((res) => {
           if (!res.ok && res.error) {
-            console.warn("[gamification] DAILY_LOGIN:", res.error)
             return
           }
           if (res.ok && res.reward && gamificationRewardHasToast(res.reward)) {
@@ -1018,7 +1017,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
         <section className="px-4 pb-8 lg:px-6 lg:pb-12">
           <div className="mx-auto max-w-5xl">
             <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-              <TabsList className="glass mb-4 flex h-auto w-full items-center justify-start gap-1 overflow-x-auto rounded-xl p-1.5 md:mb-6 md:w-fit">
+              <TabsList className="glass mb-4 flex h-auto w-full touch-pan-x items-center justify-start gap-1 overflow-x-auto overscroll-x-contain rounded-xl p-1.5 [-webkit-overflow-scrolling:touch] md:mb-6 md:w-fit">
                 <DashboardTabTrigger
                   value="squads"
                   tooltipLabel="My Squads"

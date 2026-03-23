@@ -130,6 +130,9 @@ export async function acceptJoinApplication(joinRequestId: string): Promise<Memb
       if (captainRes?.ok && captainRes.reward) {
         ownerGamification = captainRes.reward
       }
+      if (captainRes?.ok) {
+        void notifyOwnerSquadRosterComplete(user.id, captainRes.reward ?? undefined)
+      }
     } catch (err) {
       console.error("[gamification] after accept application:", err)
     }

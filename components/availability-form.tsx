@@ -317,7 +317,6 @@ export function AvailabilityForm() {
         if (insertedPost?.id) {
           void claimAvailabilityPostXp(insertedPost.id).then((xpRes) => {
             if (!xpRes.ok && "error" in xpRes && xpRes.error && xpRes.error !== "Reward window expired.") {
-              console.warn("[gamification] POST_ANNOUNCEMENT:", xpRes.error)
               return
             }
             if (xpRes.ok && "reward" in xpRes && xpRes.reward && gamificationRewardHasToast(xpRes.reward)) {

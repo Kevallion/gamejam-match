@@ -34,12 +34,15 @@ export const TITLES_BY_LEVEL: Record<number, string> = {
 
 /** Titles unlocked immediately when the action fires. */
 export const TITLES_BY_ACTION: Record<string, string> = {
-  CREATE_TEAM: "Captain",
+  /** Listing published — distinct from badge `captain` (full roster) and title "Captain". */
+  CREATE_TEAM: "Squad Founder",
   JOIN_TEAM: "Squad Mate",
   INVITE_MEMBER: "Recruiter",
   POST_ANNOUNCEMENT: "Town Crier",
   COMPLETE_PROFILE: "Profile Pioneer",
   TEAM_COMPLETED: "Jam Champion",
+  /** Same moment as badge `captain` (see `tryAwardCaptainBadgeForFullRoster`). */
+  TEAM_ROSTER_COMPLETE: "Captain",
 }
 
 /**
