@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
+import { MobileBottomNav } from "@/components/mobile-bottom-nav"
 import { DashboardMyTeams, type TeamData } from "@/components/dashboard-my-teams"
 import { DashboardMyAvailability } from "@/components/dashboard-my-availability"
 import { DashboardIncomingApplications, type ApplicationData } from "@/components/dashboard-incoming-applications"
@@ -50,7 +51,6 @@ import { CURRENT_ONBOARDING_VERSION } from "@/lib/onboarding"
 import { ProfileSettings } from "@/components/profile-settings"
 import { ProfileGamification } from "@/components/profile-gamification"
 import {
-  GamificationDashboardCompact,
   GamificationDashboardFull,
 } from "@/components/gamification-dashboard"
 import { DashboardEmptyState } from "@/components/dashboard-empty-state"
@@ -60,9 +60,12 @@ import { showGamificationRewards } from "@/components/gamification-reward-toasts
 import { gamificationRewardHasToast } from "@/lib/gamification-reward-types"
 import { toast } from "sonner"
 import { EXPERIENCE_STYLES, ROLE_STYLES } from "@/lib/constants"
+import { UserAvatar } from "@/components/user-avatar"
+import { JammerTitleBadge, JammerLevelBadge } from "@/components/profile-card"
+import { levelFromTotalXp, gamificationLevelProgress } from "@/lib/gamification-level"
 
 const LEVEL_STYLES = EXPERIENCE_STYLES
-const FALLBACK_ROLE = { label: "Other", emoji: "❓", color: "bg-muted text-muted-foreground" }
+const FALLBACK_ROLE = { label: "Other", emoji: "?", color: "bg-muted text-muted-foreground" }
 const FALLBACK_LEVEL = EXPERIENCE_STYLES["beginner"]
 
 type SentApp = { id: string; status: string; target_role?: string; teams?: { team_name?: string; discord_link?: string } }
@@ -128,55 +131,53 @@ export type AvailabilityPostRow = {
 
 function SentApplicationsSection({ sentApplications }: { sentApplications: SentApp[] }) {
   return (
-    <div className="rounded-xl border border-border/50 bg-card/50 p-6 shadow-sm">
-      <div className="mb-6 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="flex size-10 items-center justify-center rounded-lg bg-teal/10">
-            <Send className="size-5 text-teal" />
-          </div>
-          <div>
-            <h2 className="text-xl font-semibold tracking-tight">My sent applications</h2>
-            <p className="text-sm text-muted-foreground">Track your applications to join a team.</p>
-          </div>
+    <div className="glass-card rounded-2xl p-4 md:p-6">
+      <div className="mb-4 flex items-center gap-3 md:mb-6">
+        <div className="flex size-10 items-center justify-center rounded-xl bg-teal/15">
+          <Send className="size-5 text-teal" />
+        </div>
+        <div>
+          <h2 className="text-lg font-semibold tracking-tight md:text-xl">My sent applications</h2>
+          <p className="text-sm text-muted-foreground">Track your applications to join a team.</p>
         </div>
       </div>
 
       {sentApplications.length === 0 ? (
-        <div className="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">
+        <div className="rounded-xl border border-dashed border-border/50 p-6 text-center text-sm text-muted-foreground md:p-8">
           You haven&apos;t sent any applications to join a team yet.
         </div>
       ) : (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-2 md:gap-3">
           {sentApplications.map(app => {
             const roleStyle = app.target_role
-              ? (ROLE_STYLES[app.target_role] ?? { label: app.target_role, emoji: "🎭", color: "bg-muted text-muted-foreground" })
+              ? (ROLE_STYLES[app.target_role] ?? { label: app.target_role, emoji: "?", color: "bg-muted text-muted-foreground" })
               : null
             return (
-              <div key={app.id} className="flex items-center justify-between rounded-lg border bg-background px-4 py-3 shadow-sm gap-2">
+              <div key={app.id} className="flex items-center justify-between rounded-xl border border-border/40 bg-background/50 px-3 py-2.5 gap-2 md:px-4 md:py-3">
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="font-medium text-foreground truncate">
                     {app.teams?.team_name || "Unknown team"}
                   </span>
                   {roleStyle && (
-                    <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold ${roleStyle.color}`}>
+                    <span className={cn("shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold", roleStyle.color)}>
                       {roleStyle.emoji} {roleStyle.label}
                     </span>
                   )}
                 </div>
 
-                <div className="flex shrink-0 items-center gap-3">
+                <div className="flex shrink-0 items-center gap-2 md:gap-3">
                   {app.status === "pending" && (
-                    <span className="rounded bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
+                    <span className="rounded-lg bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
                       Pending
                     </span>
                   )}
                   {app.status === "rejected" && (
-                    <span className="rounded bg-destructive/10 px-2.5 py-1 text-xs font-medium text-destructive">
+                    <span className="rounded-lg bg-destructive/10 px-2 py-1 text-xs font-medium text-destructive">
                       Declined
                     </span>
                   )}
                   {app.status === "accepted" && (
-                    <span className="rounded bg-success/10 px-2.5 py-1 text-xs font-medium text-success">
+                    <span className="rounded-lg bg-success/10 px-2 py-1 text-xs font-medium text-success">
                       Accepted
                     </span>
                   )}
@@ -185,7 +186,7 @@ function SentApplicationsSection({ sentApplications }: { sentApplications: SentA
                       href={app.teams.discord_link}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 rounded-md bg-[#5865F2]/90 px-3 py-1.5 text-xs font-medium text-white shadow-sm transition-colors hover:bg-[#5865F2]"
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-[#5865F2]/90 px-2.5 py-1.5 text-xs font-medium text-white shadow-sm transition-colors hover:bg-[#5865F2]"
                     >
                       <MessageCircle className="size-3.5" />
                       Join Discord
@@ -213,9 +214,6 @@ const LEGACY_TAB_TO_CURRENT: Record<string, (typeof VALID_TABS)[number]> = {
   teams: "squads",
   profile: "settings",
 }
-
-const SCROLLBAR_HIDE =
-  "[-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
 
 function DashboardTabTrigger({
   value,
@@ -257,36 +255,82 @@ function DashboardLoadingSkeleton() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <Navbar />
-      <main className="flex-1">
-        <section className="px-4 pb-6 pt-10 sm:pt-14 lg:px-6 lg:pt-20">
-          <div className="mx-auto max-w-6xl space-y-4">
-            <Skeleton className="h-[4px] w-full rounded-none rounded-t-2xl" />
-            <div className="flex gap-4 rounded-2xl border border-border/60 p-4">
-              <Skeleton className="size-14 shrink-0 rounded-2xl sm:size-16" />
-              <div className="flex flex-1 flex-col justify-center gap-2">
-                <Skeleton className="h-5 w-40" />
-                <Skeleton className="h-6 w-56 max-w-full" />
+      <main className="flex-1 pb-20 md:pb-0">
+        <section className="px-4 py-6 md:py-10 lg:px-6 lg:py-12">
+          <div className="mx-auto max-w-5xl space-y-6">
+            {/* Identity header skeleton */}
+            <div className="glass-card flex items-center gap-4 rounded-2xl p-4 md:p-6">
+              <Skeleton className="size-14 shrink-0 rounded-2xl md:size-16" />
+              <div className="flex flex-1 flex-col gap-2">
+                <Skeleton className="h-5 w-32" />
+                <Skeleton className="h-4 w-48" />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
-              <Skeleton className="h-[4.25rem] rounded-xl border border-border/50" />
-              <Skeleton className="h-[4.25rem] rounded-xl border border-border/50" />
-              <Skeleton className="col-span-2 h-[4.25rem] rounded-xl border border-border/50 sm:col-span-1" />
+            {/* KPI cards skeleton */}
+            <div className="grid grid-cols-3 gap-3 md:gap-4">
+              <Skeleton className="h-20 rounded-xl" />
+              <Skeleton className="h-20 rounded-xl" />
+              <Skeleton className="h-20 rounded-xl" />
             </div>
-          </div>
-        </section>
-        <section className="px-4 pb-16 pt-0 lg:px-6 lg:pb-24">
-          <div className="mx-auto max-w-6xl space-y-6">
-            <div className="flex gap-1.5 overflow-hidden rounded-xl border border-border/50 bg-muted/90 p-1.5">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <Skeleton key={i} className="h-10 min-w-[5.25rem] shrink-0 rounded-lg" />
-              ))}
-            </div>
-            <Skeleton className="h-64 w-full rounded-xl border border-dashed border-border/60" />
+            {/* Tabs skeleton */}
+            <Skeleton className="h-12 w-full rounded-xl" />
+            <Skeleton className="h-48 w-full rounded-xl" />
           </div>
         </section>
       </main>
       <Footer tagline="Connect, create, and ship games together." />
+      <MobileBottomNav />
+    </div>
+  )
+}
+
+// Compact Identity Header for Overview
+function DashboardIdentityHeader({
+  displayName,
+  avatarUrl,
+  currentTitle,
+  xp,
+}: {
+  displayName: string
+  avatarUrl: string | null
+  currentTitle: string
+  xp: number
+}) {
+  const level = levelFromTotalXp(xp)
+  const progress = gamificationLevelProgress(xp)
+  const title = currentTitle?.trim() || "Rookie Jammer"
+
+  return (
+    <div className="glass-card overflow-hidden rounded-2xl">
+      {/* XP Progress bar */}
+      <div className="h-1 w-full bg-muted/50">
+        <div
+          className="h-full bg-gradient-to-r from-teal to-peach transition-all duration-500"
+          style={{ width: `${progress.progressPercent}%` }}
+        />
+      </div>
+      <div className="flex items-center gap-3 p-4 md:gap-4 md:p-5">
+        <UserAvatar
+          src={avatarUrl}
+          fallbackName={displayName}
+          size="lg"
+          className="size-12 shrink-0 rounded-xl ring-2 ring-border/30 md:size-14"
+        />
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <p className="truncate text-base font-semibold tracking-tight text-foreground md:text-lg">
+              {displayName}
+            </p>
+            <JammerLevelBadge
+              level={level}
+              className="level-badge-animated shrink-0 border-amber-500/40 bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-bold text-amber-600 dark:text-amber-400"
+            />
+          </div>
+          <div className="mt-1 flex items-center gap-2">
+            <JammerTitleBadge title={title} className="text-sm text-muted-foreground" />
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
@@ -393,8 +437,8 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
 
   const mapApplicationRow = (r: ApplicationRow, profileMap: Record<string, { username?: string; avatar_url?: string }>): ApplicationData => {
     const targetRole = r.target_role
-      ? (ROLE_STYLES[r.target_role] ?? { label: r.target_role, emoji: "🎭", color: "bg-muted text-muted-foreground" })
-      : { label: "Applicant", emoji: "👋", color: "bg-teal/15 text-teal" }
+      ? (ROLE_STYLES[r.target_role] ?? { label: r.target_role, emoji: "?", color: "bg-muted text-muted-foreground" })
+      : { label: "Applicant", emoji: "?", color: "bg-teal/15 text-teal" }
     const profile = r.sender_id ? profileMap[r.sender_id] : null
     const username = profile?.username || r.sender_name || "A Jammer"
     return {
@@ -770,7 +814,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
       }
 
       setApplications((prev) => prev.filter((a) => a.id !== id))
-      toast.success("Application declined.", { icon: "👎" })
+      toast.success("Application declined.", { icon: "?" })
     } catch (err) {
       toast.error("An error occurred.", { description: err instanceof Error ? err.message : "Please try again." })
     }
@@ -849,7 +893,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
         return
       }
 
-      // Notification in-app pour le propriétaire : invitation déclinée
+      // Notification in-app pour le proprietaire : invitation declinee
       const currentUserName =
         session?.user?.user_metadata?.username ??
         session?.user?.user_metadata?.user_name ??
@@ -862,7 +906,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
       }
 
       setInvitations((prev) => prev.filter((i) => i.id !== id))
-      toast.success("Invitation declined.", { icon: "👋" })
+      toast.success("Invitation declined.", { icon: "?" })
     } catch (err) {
       toast.error("An error occurred.", { description: err instanceof Error ? err.message : "Please try again." })
       }
@@ -889,83 +933,77 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
   const headerTitle = profile?.current_title?.trim() || "Rookie Jammer"
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col bg-background">
       <Navbar />
-      <main className="flex-1">
-        <section className="relative overflow-hidden px-4 pb-4 pt-10 sm:pb-6 sm:pt-14 lg:px-6 lg:pt-20">
-          <div className="pointer-events-none absolute inset-0 opacity-25" aria-hidden="true">
-            <div className="absolute left-1/2 top-0 size-[480px] -translate-x-1/2 -translate-y-1/3 rounded-full bg-peach/20 blur-[100px] sm:size-[600px]" />
-            <div className="absolute right-0 top-1/2 size-[320px] -translate-y-1/2 rounded-full bg-teal/15 blur-[90px] sm:size-[400px]" />
-          </div>
-          <div className="relative mx-auto max-w-6xl space-y-4">
+      
+      <main className="flex-1 pb-20 md:pb-0 md:pt-16">
+        {/* Hero section with identity + KPIs */}
+        <section className="px-4 py-6 md:py-8 lg:px-6">
+          <div className="mx-auto max-w-5xl space-y-4 md:space-y-6">
+            {/* Compact Identity Header */}
             {session?.user?.id && profile ? (
-              <GamificationDashboardCompact
+              <DashboardIdentityHeader
                 displayName={displayName}
                 avatarUrl={profile.avatar_url ?? null}
                 currentTitle={headerTitle}
                 xp={headerXp}
               />
             ) : null}
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
-              <Card className="border-teal-500/25 bg-teal-500/[0.06] shadow-sm backdrop-blur-md dark:border-teal-500/20 dark:bg-teal-500/10">
-                <CardContent className="flex items-center gap-3 px-3 py-3 sm:gap-3.5 sm:px-4 sm:py-3.5">
-                  <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-teal-500/15 ring-1 ring-teal-500/25 sm:size-11">
-                    <Users2 className="size-5 text-teal-500 sm:size-[1.35rem]" />
+
+            {/* 3 KPI Cards */}
+            <div className="grid grid-cols-3 gap-2 md:gap-4">
+              {/* Teams KPI */}
+              <Card className="glass-card border-teal/20 bg-teal/5">
+                <CardContent className="flex items-center gap-2 p-3 md:gap-3 md:p-4">
+                  <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-teal/15 md:size-10">
+                    <Users2 className="size-4 text-teal md:size-5" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs font-semibold tracking-tight text-muted-foreground sm:text-sm">My Teams</p>
-                    <p className="text-xl font-bold tabular-nums sm:text-2xl">{teams.length}</p>
+                    <p className="text-[10px] font-medium text-muted-foreground md:text-xs">Teams</p>
+                    <p className="text-lg font-bold tabular-nums md:text-xl">{teams.length}</p>
                   </div>
                 </CardContent>
               </Card>
-              <Card className="border-peach/30 bg-peach/[0.08] shadow-sm backdrop-blur-md dark:border-peach/25 dark:bg-peach/10">
-                <CardContent className="flex items-start gap-3 px-3 py-3 sm:gap-3.5 sm:px-4 sm:py-3.5">
-                  <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-peach/25 ring-1 ring-peach/30 sm:size-11">
-                    <Inbox className="size-5 text-peach sm:size-[1.35rem]" />
+
+              {/* Activity KPI */}
+              <Card className="glass-card border-peach/20 bg-peach/5">
+                <CardContent className="flex items-center gap-2 p-3 md:gap-3 md:p-4">
+                  <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-peach/15 md:size-10">
+                    <Inbox className="size-4 text-peach md:size-5" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1">
-                      <p className="text-xs font-semibold tracking-tight text-muted-foreground sm:text-sm">Activity</p>
+                      <p className="text-[10px] font-medium text-muted-foreground md:text-xs">Activity</p>
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <button
                             type="button"
-                            className="rounded-full p-0.5 text-muted-foreground outline-offset-2 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
-                            aria-label="How activity is counted"
+                            className="rounded-full p-0.5 text-muted-foreground hover:text-foreground"
+                            aria-label="Activity info"
                           >
-                            <Info className="size-3 sm:size-3.5" aria-hidden />
+                            <Info className="size-2.5 md:size-3" aria-hidden />
                           </button>
                         </TooltipTrigger>
-                        <TooltipContent side="top" className="max-w-[min(18rem,calc(100vw-2rem))] space-y-2 text-left text-xs leading-relaxed">
-                          <p>
-                            <span className="font-semibold text-background">To action ({toActionCount})</span>
-                            {" — "}
-                            Incoming applications and squad invitations you can accept or decline.
-                          </p>
-                          <p>
-                            <span className="font-semibold text-background">Waiting for response ({waitingResponseCount})</span>
-                            {" — "}
-                            Applications you sent that are still pending.
-                          </p>
+                        <TooltipContent side="top" className="max-w-56 text-xs">
+                          <p><span className="font-semibold">{toActionCount}</span> to action</p>
+                          <p><span className="font-semibold">{waitingResponseCount}</span> waiting</p>
                         </TooltipContent>
                       </Tooltip>
                     </div>
-                    <p className="text-xl font-bold tabular-nums sm:text-2xl">{activityTotal}</p>
-                    <p className="mt-0.5 line-clamp-2 text-[10px] leading-tight text-muted-foreground sm:text-xs">
-                      <span className="font-medium text-foreground">{toActionCount}</span> to action ·{" "}
-                      <span className="font-medium text-foreground">{waitingResponseCount}</span> waiting
-                    </p>
+                    <p className="text-lg font-bold tabular-nums md:text-xl">{activityTotal}</p>
                   </div>
                 </CardContent>
               </Card>
-              <Card className="col-span-2 border-lavender/30 bg-lavender/[0.08] shadow-sm backdrop-blur-md dark:border-lavender/25 dark:bg-lavender/10 sm:col-span-1">
-                <CardContent className="flex items-center gap-3 px-3 py-3 sm:gap-3.5 sm:px-4 sm:py-3.5">
-                  <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-lavender/25 ring-1 ring-lavender/30 sm:size-11">
-                    <UserSearch className="size-5 text-lavender sm:size-[1.35rem]" />
+
+              {/* Availability KPI */}
+              <Card className="glass-card border-lavender/20 bg-lavender/5">
+                <CardContent className="flex items-center gap-2 p-3 md:gap-3 md:p-4">
+                  <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-lavender/15 md:size-10">
+                    <UserSearch className="size-4 text-lavender md:size-5" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs font-semibold tracking-tight text-muted-foreground sm:text-sm">Availability</p>
-                    <p className="text-xl font-bold tabular-nums sm:text-2xl">{availabilityPosts.length}</p>
+                    <p className="text-[10px] font-medium text-muted-foreground md:text-xs">Available</p>
+                    <p className="text-lg font-bold tabular-nums md:text-xl">{availabilityPosts.length}</p>
                   </div>
                 </CardContent>
               </Card>
@@ -973,36 +1011,31 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
           </div>
         </section>
 
-        <section className="px-4 pb-16 pt-2 lg:px-6 lg:pb-24">
-          <div className="mx-auto max-w-6xl">
+        {/* Tabs Section */}
+        <section className="px-4 pb-8 lg:px-6 lg:pb-12">
+          <div className="mx-auto max-w-5xl">
             <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-              <TabsList
-                className={cn(
-                  "mb-5 flex h-auto min-h-10 w-full max-w-full flex-nowrap items-center justify-start gap-1 overflow-x-auto overflow-y-hidden scroll-smooth rounded-xl border border-border/50 bg-white/[0.06] p-1.5 text-muted-foreground shadow-sm backdrop-blur-xl light:bg-white/55 light:shadow-md dark:bg-slate-900/50",
-                  SCROLLBAR_HIDE,
-                  "sm:mb-6 sm:w-full sm:max-w-full lg:w-fit lg:max-w-none",
-                )}
-              >
+              <TabsList className="glass mb-4 flex h-auto w-full items-center justify-start gap-1 overflow-x-auto rounded-xl p-1.5 md:mb-6 md:w-fit">
                 <DashboardTabTrigger
                   value="squads"
                   tooltipLabel="My Squads"
                   showTooltip={compactTabBar}
                   className={cn(
-                    "shrink-0 flex-none items-center rounded-lg border border-transparent px-2.5 py-2 text-sm font-semibold tracking-tight text-muted-foreground transition-colors hover:text-foreground",
-                    "data-[state=active]:border-teal-500/35 data-[state=active]:bg-background/90 data-[state=active]:text-teal-500 data-[state=active]:shadow-sm dark:data-[state=active]:bg-card/80",
+                    "shrink-0 items-center rounded-lg border border-transparent px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground",
+                    "data-[state=active]:border-teal/30 data-[state=active]:bg-background/80 data-[state=active]:text-teal data-[state=active]:shadow-sm",
                   )}
-                  icon={<Users2 className="mr-2 h-4 w-4 shrink-0 text-teal-500" aria-hidden />}
-                  label="My Squads"
+                  icon={<Users2 className="mr-1.5 size-4 shrink-0 text-teal" aria-hidden />}
+                  label="Squads"
                 />
                 <DashboardTabTrigger
                   value="inbox"
                   tooltipLabel="Inbox"
                   showTooltip={compactTabBar}
                   className={cn(
-                    "shrink-0 flex-none items-center rounded-lg border border-transparent px-2.5 py-2 text-sm font-semibold tracking-tight text-muted-foreground transition-colors hover:text-foreground",
-                    "data-[state=active]:border-peach/40 data-[state=active]:bg-background/90 data-[state=active]:text-peach data-[state=active]:shadow-sm dark:data-[state=active]:bg-card/80",
+                    "shrink-0 items-center rounded-lg border border-transparent px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground",
+                    "data-[state=active]:border-peach/30 data-[state=active]:bg-background/80 data-[state=active]:text-peach data-[state=active]:shadow-sm",
                   )}
-                  icon={<Inbox className="mr-2 h-4 w-4 shrink-0 text-peach" aria-hidden />}
+                  icon={<Inbox className="mr-1.5 size-4 shrink-0 text-peach" aria-hidden />}
                   label="Inbox"
                 />
                 <DashboardTabTrigger
@@ -1010,21 +1043,21 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
                   tooltipLabel="Availability"
                   showTooltip={compactTabBar}
                   className={cn(
-                    "shrink-0 flex-none items-center rounded-lg border border-transparent px-2.5 py-2 text-sm font-semibold tracking-tight text-muted-foreground transition-colors hover:text-foreground",
-                    "data-[state=active]:border-lavender/40 data-[state=active]:bg-background/90 data-[state=active]:text-lavender data-[state=active]:shadow-sm dark:data-[state=active]:bg-card/80",
+                    "shrink-0 items-center rounded-lg border border-transparent px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground",
+                    "data-[state=active]:border-lavender/30 data-[state=active]:bg-background/80 data-[state=active]:text-lavender data-[state=active]:shadow-sm",
                   )}
-                  icon={<UserSearch className="mr-2 h-4 w-4 shrink-0 text-lavender" aria-hidden />}
-                  label="Availability"
+                  icon={<UserSearch className="mr-1.5 size-4 shrink-0 text-lavender" aria-hidden />}
+                  label="Available"
                 />
                 <DashboardTabTrigger
                   value="achievements"
                   tooltipLabel="Achievements"
                   showTooltip={compactTabBar}
                   className={cn(
-                    "shrink-0 flex-none items-center rounded-lg border border-transparent px-2.5 py-2 text-sm font-semibold tracking-tight text-muted-foreground transition-colors hover:text-foreground",
-                    "data-[state=active]:border-amber-500/40 data-[state=active]:bg-background/90 data-[state=active]:text-amber-500 data-[state=active]:shadow-sm dark:data-[state=active]:bg-card/80",
+                    "shrink-0 items-center rounded-lg border border-transparent px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground",
+                    "data-[state=active]:border-amber-500/30 data-[state=active]:bg-background/80 data-[state=active]:text-amber-500 data-[state=active]:shadow-sm",
                   )}
-                  icon={<Trophy className="mr-2 h-4 w-4 shrink-0 text-amber-500" aria-hidden />}
+                  icon={<Trophy className="mr-1.5 size-4 shrink-0 text-amber-500" aria-hidden />}
                   label="Achievements"
                 />
                 <DashboardTabTrigger
@@ -1032,10 +1065,10 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
                   tooltipLabel="Settings"
                   showTooltip={compactTabBar}
                   className={cn(
-                    "shrink-0 flex-none items-center rounded-lg border border-transparent px-2.5 py-2 text-sm font-semibold tracking-tight text-muted-foreground transition-colors hover:text-foreground",
-                    "data-[state=active]:border-slate-400/45 data-[state=active]:bg-background/90 data-[state=active]:text-slate-600 data-[state=active]:shadow-sm dark:data-[state=active]:bg-card/80 dark:data-[state=active]:text-slate-300",
+                    "shrink-0 items-center rounded-lg border border-transparent px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground",
+                    "data-[state=active]:border-slate-400/30 data-[state=active]:bg-background/80 data-[state=active]:text-slate-500 data-[state=active]:shadow-sm dark:data-[state=active]:text-slate-300",
                   )}
-                  icon={<Settings2 className="mr-2 h-4 w-4 shrink-0 text-slate-400" aria-hidden />}
+                  icon={<Settings2 className="mr-1.5 size-4 shrink-0 text-slate-400" aria-hidden />}
                   label="Settings"
                 />
               </TabsList>
@@ -1053,7 +1086,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
                 )}
               </TabsContent>
 
-              <TabsContent value="inbox" className="mt-0 flex flex-col gap-8">
+              <TabsContent value="inbox" className="mt-0 flex flex-col gap-4 md:gap-6">
                 <PushNotificationBanner />
                 <DashboardIncomingApplications
                   applications={applications}
@@ -1076,7 +1109,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
                 />
               </TabsContent>
 
-              <TabsContent value="achievements" className="mt-0 flex flex-col gap-6">
+              <TabsContent value="achievements" className="mt-0 flex flex-col gap-4 md:gap-6">
                 {session?.user?.id ? (
                   <>
                     <GamificationDashboardFull
@@ -1105,7 +1138,9 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
           </div>
         </section>
       </main>
-      <Footer tagline="Connect, create, and ship games together." />
+
+      <Footer tagline="Connect, create, and ship games together." className="hidden md:block" />
+      <MobileBottomNav />
 
       <OnboardingModal
         open={showOnboardingModal}
@@ -1114,11 +1149,11 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
       />
 
       <AlertDialog open={showAvailabilityModal} onOpenChange={(open) => !open && handleAvailabilityModalCancel()}>
-        <AlertDialogContent className="rounded-2xl border-border/60">
+        <AlertDialogContent className="glass-card rounded-2xl border-border/40">
           <AlertDialogHeader>
             <div className="flex items-center gap-3">
-              <div className="flex size-10 items-center justify-center rounded-xl bg-green-500/15">
-                <UserMinus className="size-5 text-green-600" />
+              <div className="flex size-10 items-center justify-center rounded-xl bg-success/15">
+                <UserMinus className="size-5 text-success" />
               </div>
               <AlertDialogTitle className="text-left">
                 Congratulations! You&apos;ve joined the team.
@@ -1132,10 +1167,10 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex-row gap-2 sm:justify-end">
-            <AlertDialogCancel onClick={handleAvailabilityModalCancel}>
+            <AlertDialogCancel onClick={handleAvailabilityModalCancel} className="rounded-xl">
               No, keep it
             </AlertDialogCancel>
-            <AlertDialogAction onClick={handleAvailabilityModalConfirm} className="bg-primary">
+            <AlertDialogAction onClick={handleAvailabilityModalConfirm} className="rounded-xl bg-primary">
               Yes, remove me
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -1143,7 +1178,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
       </AlertDialog>
 
       <AlertDialog open={teamIdToDelete !== null} onOpenChange={(open) => !open && setTeamIdToDelete(null)}>
-        <AlertDialogContent className="rounded-2xl border-border/60">
+        <AlertDialogContent className="glass-card rounded-2xl border-border/40">
           <AlertDialogHeader>
             <div className="flex items-center gap-3">
               <div className="flex size-10 items-center justify-center rounded-xl bg-destructive/15">
@@ -1156,10 +1191,10 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex-row gap-2 sm:justify-end">
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => teamIdToDelete && handleDeleteTeam(teamIdToDelete)}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Delete
             </AlertDialogAction>
@@ -1168,7 +1203,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
       </AlertDialog>
 
       <AlertDialog open={availabilityPostIdToDelete !== null} onOpenChange={(open) => !open && setAvailabilityPostIdToDelete(null)}>
-        <AlertDialogContent className="rounded-2xl border-border/60">
+        <AlertDialogContent className="glass-card rounded-2xl border-border/40">
           <AlertDialogHeader>
             <div className="flex items-center gap-3">
               <div className="flex size-10 items-center justify-center rounded-xl bg-destructive/15">
@@ -1181,17 +1216,16 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex-row gap-2 sm:justify-end">
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => availabilityPostIdToDelete && handleDeleteAvailabilityPost(availabilityPostIdToDelete)}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Remove
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
     </div>
   )
 }

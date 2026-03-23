@@ -288,4 +288,85 @@
     animation: level-badge-shine 4.5s ease-in-out infinite;
     pointer-events: none;
   }
+
+  /* Glassmorphism utilities */
+  .glass {
+    background: oklch(0.22 0.025 280 / 0.7);
+    backdrop-filter: blur(16px) saturate(1.2);
+    -webkit-backdrop-filter: blur(16px) saturate(1.2);
+    border: 1px solid oklch(0.40 0.03 280 / 0.3);
+  }
+
+  .glass-light {
+    background: oklch(1 0 0 / 0.7);
+    backdrop-filter: blur(16px) saturate(1.2);
+    -webkit-backdrop-filter: blur(16px) saturate(1.2);
+    border: 1px solid oklch(0.90 0.02 280 / 0.5);
+  }
+
+  .light .glass {
+    background: oklch(1 0 0 / 0.7);
+    backdrop-filter: blur(16px) saturate(1.2);
+    -webkit-backdrop-filter: blur(16px) saturate(1.2);
+    border: 1px solid oklch(0.90 0.02 280 / 0.5);
+  }
+
+  .glass-card {
+    background: oklch(0.22 0.025 280 / 0.6);
+    backdrop-filter: blur(12px) saturate(1.15);
+    -webkit-backdrop-filter: blur(12px) saturate(1.15);
+    border: 1px solid oklch(0.40 0.03 280 / 0.25);
+  }
+
+  .light .glass-card {
+    background: oklch(1 0 0 / 0.65);
+    backdrop-filter: blur(12px) saturate(1.15);
+    -webkit-backdrop-filter: blur(12px) saturate(1.15);
+    border: 1px solid oklch(0.90 0.02 280 / 0.4);
+  }
+
+  /* Scrollable tabs for mobile */
+  .tabs-scrollable {
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .tabs-scrollable::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tabs-scrollable > * {
+    scroll-snap-align: start;
+    flex-shrink: 0;
+  }
+
+  /* Bottom navigation safe area padding */
+  .pb-safe-bottom {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+
+  /* Spacing system utilities */
+  .section-spacing {
+    @apply py-6 md:py-8;
+  }
+
+  .card-spacing {
+    @apply p-4 md:p-6;
+  }
+
+  .stack-sm {
+    @apply space-y-2;
+  }
+
+  .stack-md {
+    @apply space-y-4;
+  }
+
+  .stack-lg {
+    @apply space-y-6;
+  }
 }
