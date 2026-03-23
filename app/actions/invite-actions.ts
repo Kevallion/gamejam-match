@@ -61,10 +61,17 @@ export async function sendTeamInvitation(input: SendTeamInvitationInput): Promis
   const teamName = (team.team_name as string) || "your squad"
   void notifyInviteeInvitation(input.inviteeUserId, teamName)
 
-  const gamification = await awardXP(user.id, "INVITE_MEMBER")
-  if (!gamification.ok) {
-    console.error("[gamification] INVITE_MEMBER:", gamification.error)
+  let gamification: GamificationRewardSummary | undefined
+  try {
+    const res = await awardXP(user.id, "INVITE_MEMBER")
+    if (!res.ok) {
+      console.error("[gamification] INVITE_MEMBER:", res.error)
+    } else if (res.reward) {
+      gamification = res.reward
+    }
+  } catch (err) {
+    console.error("[gamification] INVITE_MEMBER (unexpected):", err)
   }
 
-  return { success: true, gamification: gamification.ok ? gamification.reward : undefined }
+  return { success: true, gamification }
 }

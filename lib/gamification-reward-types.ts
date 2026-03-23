@@ -18,6 +18,8 @@ export function gamificationRewardHasToast(reward: GamificationRewardSummary): b
   return (
     reward.xpGained > 0 ||
     reward.levelUp === true ||
+    Boolean(reward.newBadge) ||
+    Boolean(reward.newTitle) ||
     (reward.newBadges?.length ?? 0) > 0 ||
     (reward.newTitles?.length ?? 0) > 0
   )

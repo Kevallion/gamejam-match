@@ -1,6 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/admin"
 import { levelFromTotalXp } from "@/lib/gamification-level"
 import type { GamificationRewardSummary } from "@/lib/gamification-reward-types"
+import { teamRosterIsComplete } from "@/lib/team-utils"
 
 /** XP granted per action — RPG pacing (tune with level curve in gamification-level.ts). */
 export const XP_BY_ACTION: Record<string, number> = {
@@ -11,13 +12,18 @@ export const XP_BY_ACTION: Record<string, number> = {
   INVITE_MEMBER: 20,
   CREATE_TEAM: 100,
   TEAM_COMPLETED: 150,
+  TEAM_ROSTER_COMPLETE: 0,
 }
 
-/** Optional user_badges rows (legacy / parallel to titles). */
+/**
+ * Badges inserted on each action (deduped with dynamic badges below).
+ * `founder` (first team) and `captain` (full roster) are computed in `awardXP` / `tryAwardCaptainBadgeForFullRoster`.
+ */
 export const BADGES_BY_ACTION: Record<string, string[]> = {
-  CREATE_TEAM: ["captain"],
+  CREATE_TEAM: [],
   JOIN_TEAM: ["team_player"],
   COMPLETE_PROFILE: ["early_bird"],
+  TEAM_ROSTER_COMPLETE: ["captain"],
 }
 
 /** Titles unlocked when reaching a level (checked after XP is applied). */
@@ -38,7 +44,7 @@ export const TITLES_BY_ACTION: Record<string, string> = {
 
 /**
  * Join-count thresholds per `team_members.role` / `join_requests.target_role` key
- * (must match `ROLE_OPTIONS` values: developer, 2d-artist, voice_actor, …).
+ * (must match `ROLE_OPTIONS` values: developer, writer, 2d-artist, voice_actor, …).
  * Counts are stored on `profiles.role_stats` under the same key, e.g. `role_stats['2d-artist']`.
  */
 export const ROLE_TITLES: Record<string, Record<number, string>> = {
@@ -74,6 +80,10 @@ function parseRoleStats(raw: unknown): Record<string, number> {
     if (Number.isFinite(n) && n >= 0) out[k] = Math.floor(n)
   }
   return out
+}
+
+function countRolesWithAtLeastOneJoin(stats: Record<string, number>): number {
+  return Object.values(stats).filter((n) => n >= 1).length
 }
 
 /** Titles newly earned when `role_stats[roleKey]` goes from prevCount → newCount (JOIN_TEAM). */
@@ -136,6 +146,13 @@ function utcCalendarDay(d: Date): string {
   return d.toISOString().slice(0, 10)
 }
 
+/** Next calendar day after `ymd` (YYYY-MM-DD) in UTC. */
+function addUtcCalendarDay(ymd: string, delta: number): string {
+  const [y, m, d] = ymd.split("-").map(Number)
+  const dt = new Date(Date.UTC(y, m - 1, d + delta))
+  return dt.toISOString().slice(0, 10)
+}
+
 function parseUnlockedTitles(raw: unknown): string[] {
   if (!Array.isArray(raw)) return ["Rookie Jammer"]
   const out = raw.filter((t): t is string => typeof t === "string" && t.trim().length > 0)
@@ -166,12 +183,33 @@ function mergeUniqueTitles(existing: string[], additions: string[]): { merged: s
 }
 
 /**
+ * If the squad listing is full, awards the `captain` badge (+ `TEAM_ROSTER_COMPLETE` flow) to the team owner.
+ */
+export async function tryAwardCaptainBadgeForFullRoster(teamId: string): Promise<AwardXPResult | null> {
+  const admin = createAdminClient()
+  const { data: team, error: teamErr } = await admin
+    .from("teams")
+    .select("user_id, looking_for")
+    .eq("id", teamId)
+    .maybeSingle()
+
+  if (teamErr || !team?.user_id) return null
+
+  const { data: members, error: memErr } = await admin.from("team_members").select("role").eq("team_id", teamId)
+
+  if (memErr || !members || !teamRosterIsComplete(team.looking_for, members)) {
+    return null
+  }
+
+  return awardXP(team.user_id as string, "TEAM_ROSTER_COMPLETE")
+}
+
+/**
  * Awards XP, recomputes level, updates titles and optional badges (service role).
  * DAILY_LOGIN: only once per UTC calendar day (uses `last_daily_xp_at`).
  *
  * Role-slot title progression (`ROLE_TITLES` / `profiles.role_stats`) is applied here when
- * `action === "JOIN_TEAM"` and `options.joinRole` matches a known role key — there is no separate
- * `trackRoleProgression` export.
+ * `action === "JOIN_TEAM"` and `options.joinRole` matches a known role key.
  */
 export async function awardXP(
   userId: string,
@@ -182,7 +220,9 @@ export async function awardXP(
 
   const { data: row, error: fetchError } = await admin
     .from("profiles")
-    .select("xp, level, last_daily_xp_at, unlocked_titles, role_stats")
+    .select(
+      "xp, level, last_daily_xp_at, unlocked_titles, role_stats, daily_login_streak, invitations_sent_count",
+    )
     .eq("id", userId)
     .maybeSingle()
 
@@ -203,12 +243,13 @@ export async function awardXP(
   }
 
   const delta = XP_BY_ACTION[action] ?? 0
-  const badgeIds = BADGES_BY_ACTION[action] ?? []
+  const baseBadges = [...(BADGES_BY_ACTION[action] ?? [])]
   const actionTitle = TITLES_BY_ACTION[action]
 
   const roleKey =
     action === "JOIN_TEAM" ? normalizeJoinRoleKey(options?.joinRole ?? null) : null
   let roleStats = parseRoleStats(row.role_stats)
+  const prevRoleDistinct = countRolesWithAtLeastOneJoin(roleStats)
   const roleTitleAdditions: string[] = []
   if (roleKey) {
     const prevR = roleStats[roleKey] ?? 0
@@ -216,6 +257,55 @@ export async function awardXP(
     roleStats = { ...roleStats, [roleKey]: nextR }
     roleTitleAdditions.push(...roleTitlesForCountCrossing(roleKey, prevR, nextR))
   }
+  const nextRoleDistinct = countRolesWithAtLeastOneJoin(roleStats)
+
+  const prevStreak = typeof row.daily_login_streak === "number" ? row.daily_login_streak : 0
+  let newDailyStreak = prevStreak
+  if (action === "DAILY_LOGIN") {
+    const today = utcCalendarDay(now)
+    const prevLastStr = row.last_daily_xp_at
+      ? utcCalendarDay(new Date(row.last_daily_xp_at as string))
+      : null
+    if (prevLastStr === null) {
+      newDailyStreak = 1
+    } else {
+      const expectedNext = addUtcCalendarDay(prevLastStr, 1)
+      if (expectedNext === today) {
+        newDailyStreak = prevStreak + 1
+      } else {
+        newDailyStreak = 1
+      }
+    }
+  }
+
+  const prevInvites = typeof row.invitations_sent_count === "number" ? row.invitations_sent_count : 0
+  const nextInvites = action === "INVITE_MEMBER" ? prevInvites + 1 : prevInvites
+
+  const dynamicBadges: string[] = []
+
+  if (action === "CREATE_TEAM") {
+    const { count, error: cErr } = await admin
+      .from("teams")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userId)
+    if (!cErr && count === 1) {
+      dynamicBadges.push("founder")
+    }
+  }
+
+  if (action === "DAILY_LOGIN" && newDailyStreak >= 5 && prevStreak < 5) {
+    dynamicBadges.push("stalwart")
+  }
+
+  if (action === "INVITE_MEMBER" && nextInvites >= 5 && prevInvites < 5) {
+    dynamicBadges.push("recruiter")
+  }
+
+  if (action === "JOIN_TEAM" && nextRoleDistinct >= 3 && prevRoleDistinct < 3) {
+    dynamicBadges.push("multi_tool")
+  }
+
+  const badgeIds = [...new Set([...baseBadges, ...dynamicBadges])]
 
   if (
     delta <= 0 &&
@@ -249,6 +339,10 @@ export async function awardXP(
   }
   if (action === "DAILY_LOGIN") {
     patch.last_daily_xp_at = now.toISOString()
+    patch.daily_login_streak = newDailyStreak
+  }
+  if (action === "INVITE_MEMBER") {
+    patch.invitations_sent_count = nextInvites
   }
 
   const { error: updateError } = await admin.from("profiles").update(patch).eq("id", userId)

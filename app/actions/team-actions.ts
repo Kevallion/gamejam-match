@@ -3,6 +3,10 @@
 import { createAdminClient, getUserEmail } from "@/lib/supabase/admin"
 import { sendEmailNotification } from "@/lib/mail"
 import { sendPushToUser } from "@/lib/push"
+import type { GamificationRewardSummary } from "@/lib/gamification-reward-types"
+import { gamificationRewardHasToast } from "@/lib/gamification-reward-types"
+import { formatBadgeLabel } from "@/lib/gamification-toast-labels"
+import { NOTIFICATION_TYPE_GAMIFICATION_SQUAD_COMPLETE } from "@/lib/notification-constants"
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://gamejamcrew.com"
 const DASHBOARD_URL = `${BASE_URL}/dashboard`
@@ -24,6 +28,37 @@ async function insertNotification(
     void sendPushToUser(userId, "GameJamCrew", message, link ?? null)
   } catch {
     // Silent error: notifications should never break the main UX
+  }
+}
+
+function buildSquadCompleteRewardSummaryLine(reward: GamificationRewardSummary): string {
+  const parts: string[] = []
+  if (reward.xpGained > 0) parts.push(`+${reward.xpGained} XP`)
+  if (reward.levelUp && reward.newLevel != null) parts.push(`Level ${reward.newLevel}`)
+  const badges = reward.newBadges?.length ? reward.newBadges : reward.newBadge ? [reward.newBadge] : []
+  for (const b of badges) parts.push(formatBadgeLabel(b))
+  const titles = reward.newTitles?.length ? reward.newTitles : reward.newTitle ? [reward.newTitle] : []
+  for (const t of titles) parts.push(t)
+  return parts.join(" · ")
+}
+
+export async function notifyOwnerSquadRosterComplete(
+  ownerUserId: string,
+  reward?: GamificationRewardSummary | null,
+): Promise<void> {
+  try {
+    const message =
+      reward && gamificationRewardHasToast(reward)
+        ? `Someone joined via invitation — squad complete! ${buildSquadCompleteRewardSummaryLine(reward)}`
+        : "Someone joined via invitation — your squad listing is now full (every role filled)."
+    await insertNotification(
+      ownerUserId,
+      NOTIFICATION_TYPE_GAMIFICATION_SQUAD_COMPLETE,
+      message,
+      "/dashboard?tab=achievements",
+    )
+  } catch {
+    /* best-effort */
   }
 }
 

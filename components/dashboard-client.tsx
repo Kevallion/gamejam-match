@@ -323,11 +323,11 @@ function DashboardIdentityHeader({
             </p>
             <JammerLevelBadge
               level={level}
-              className="level-badge-animated shrink-0 border-amber-500/40 bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-bold text-amber-600 dark:text-amber-400"
+              className="level-badge-animated shrink-0 border-amber-800/35 bg-amber-600/12 px-1.5 py-0.5 text-[10px] font-bold text-amber-950 dark:border-amber-500/40 dark:bg-amber-500/15 dark:text-amber-400"
             />
           </div>
           <div className="mt-1 flex items-center gap-2">
-            <JammerTitleBadge title={title} className="text-sm text-muted-foreground" />
+            <JammerTitleBadge title={title} className="text-sm" />
           </div>
         </div>
       </div>
@@ -786,6 +786,9 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
       }
 
       setApplications((prev) => prev.filter((a) => a.id !== id))
+      if (result.ownerGamification && gamificationRewardHasToast(result.ownerGamification)) {
+        showGamificationRewards("TEAM_ROSTER_COMPLETE", result.ownerGamification)
+      }
       toast.success("Application accepted!", {
         description: `${applicantLabel} joined your team.`,
       })

@@ -41,8 +41,11 @@ export function JammerTitleBadge({
   return (
     <p
       className={cn(
-        "max-w-full truncate bg-gradient-to-r from-amber-200 via-yellow-200 to-amber-300 bg-clip-text text-sm font-bold tracking-wide text-transparent",
-        "drop-shadow-[0_0_14px_rgba(251,191,36,0.45)] dark:from-amber-300 dark:via-yellow-300 dark:to-amber-200",
+        "max-w-full truncate bg-gradient-to-r bg-clip-text text-sm font-bold tracking-wide text-transparent",
+        /* Light theme: dark amber on pale cards (readable on white / glass-light) */
+        "from-amber-900 via-amber-800 to-amber-900",
+        /* Dark theme: bright metallic + glow */
+        "dark:from-amber-300 dark:via-yellow-200 dark:to-amber-200 dark:drop-shadow-[0_0_14px_rgba(251,191,36,0.45)]",
         className,
       )}
     >

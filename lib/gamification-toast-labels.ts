@@ -7,12 +7,17 @@ export const GAMIFICATION_ACTION_LABELS: Record<string, string> = {
   INVITE_MEMBER: "Invitation sent",
   CREATE_TEAM: "Team created",
   TEAM_COMPLETED: "Jam completed",
+  TEAM_ROSTER_COMPLETE: "Squad complete",
 }
 
 export const BADGE_DISPLAY_LABELS: Record<string, string> = {
+  founder: "Founder",
   captain: "Captain",
   team_player: "Team Player",
   early_bird: "Early Bird",
+  stalwart: "💎 Stalwart",
+  recruiter: "📣 Recruiter",
+  multi_tool: "🛠️ Multi-Tool",
 }
 
 export function formatBadgeLabel(badgeId: string): string {

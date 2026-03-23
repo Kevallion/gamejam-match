@@ -1,12 +1,22 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
-import { awardXP } from "@/lib/gamification"
+import { awardXP, tryAwardCaptainBadgeForFullRoster } from "@/lib/gamification"
 import type { GamificationRewardSummary } from "@/lib/gamification-reward-types"
-import { notifyCandidateAccepted, notifyOwnerPlayerJoined } from "@/app/actions/team-actions"
+import {
+  notifyCandidateAccepted,
+  notifyOwnerPlayerJoined,
+  notifyOwnerSquadRosterComplete,
+} from "@/app/actions/team-actions"
 
 export type MembershipActionResult =
-  | { success: true; gamification?: GamificationRewardSummary }
+  | {
+      success: true
+      /** Join XP / badges for the new member (invitation accept only). */
+      gamification?: GamificationRewardSummary
+      /** Captain badge / roster-complete reward for the team owner (when roster just filled). */
+      ownerGamification?: GamificationRewardSummary
+    }
   | { success: false; error: string }
 
 /**
@@ -109,14 +119,23 @@ export async function acceptJoinApplication(joinRequestId: string): Promise<Memb
     void notifyOwnerPlayerJoined(teamId, request.sender_name as string)
   }
 
+  let ownerGamification: GamificationRewardSummary | undefined
   if (!duplicateMember) {
-    const gamification = await awardXP(senderId, "JOIN_TEAM", { joinRole: targetRole })
-    if (!gamification.ok) {
-      console.error("[gamification] JOIN_TEAM (application):", gamification.error)
+    try {
+      const gamification = await awardXP(senderId, "JOIN_TEAM", { joinRole: targetRole })
+      if (!gamification.ok) {
+        console.error("[gamification] JOIN_TEAM (application):", gamification.error)
+      }
+      const captainRes = await tryAwardCaptainBadgeForFullRoster(teamId)
+      if (captainRes?.ok && captainRes.reward) {
+        ownerGamification = captainRes.reward
+      }
+    } catch (err) {
+      console.error("[gamification] after accept application:", err)
     }
   }
 
-  return { success: true }
+  return { success: true, ownerGamification }
 }
 
 /**
@@ -187,14 +206,29 @@ export async function acceptTeamInvitation(invitationId: string): Promise<Member
   }
 
   let joinGamification: GamificationRewardSummary | undefined
+  let ownerGamification: GamificationRewardSummary | undefined
   if (!duplicateMember) {
-    const gamification = await awardXP(user.id, "JOIN_TEAM", { joinRole: targetRole })
-    if (!gamification.ok) {
-      console.error("[gamification] JOIN_TEAM (invitation):", gamification.error)
-    } else if (gamification.reward) {
-      joinGamification = gamification.reward
+    try {
+      const gamification = await awardXP(user.id, "JOIN_TEAM", { joinRole: targetRole })
+      if (!gamification.ok) {
+        console.error("[gamification] JOIN_TEAM (invitation):", gamification.error)
+      } else if (gamification.reward) {
+        joinGamification = gamification.reward
+      }
+      const captainRes = await tryAwardCaptainBadgeForFullRoster(teamId)
+      if (captainRes?.ok && captainRes.reward) {
+        ownerGamification = captainRes.reward
+      }
+      if (captainRes?.ok) {
+        const { data: teamRow } = await supabase.from("teams").select("user_id").eq("id", teamId).maybeSingle()
+        if (teamRow?.user_id) {
+          void notifyOwnerSquadRosterComplete(teamRow.user_id as string, captainRes.reward ?? undefined)
+        }
+      }
+    } catch (err) {
+      console.error("[gamification] after accept invitation:", err)
     }
   }
 
-  return { success: true, gamification: joinGamification }
+  return { success: true, gamification: joinGamification, ownerGamification }
 }

@@ -3,6 +3,22 @@ import { EXPERIENCE_STYLES, JAM_STYLE_STYLES, ROLE_STYLES } from "@/lib/constant
 
 type RawRoleEntry = { role?: string | null; level?: string | null }
 
+/**
+ * True when `team_members` fills every slot in `looking_for` (multiset match on role keys).
+ * Owner is not in `team_members`; only recruited slots count.
+ */
+export function teamRosterIsComplete(
+  lookingForRaw: unknown,
+  members: { role?: string | null }[],
+): boolean {
+  const slots = Array.isArray(lookingForRaw) ? (lookingForRaw as RawRoleEntry[]) : []
+  if (slots.length === 0) return false
+  const need = slots.map((s) => (s.role ?? "").trim().toLowerCase()).filter(Boolean).sort()
+  const have = members.map((m) => (m.role ?? "").trim().toLowerCase()).filter(Boolean).sort()
+  if (need.length !== have.length) return false
+  return need.every((v, i) => v === have[i])
+}
+
 export type TeamRowDb = {
   id: string
   user_id: string

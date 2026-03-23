@@ -84,12 +84,12 @@ export function GamificationDashboardCompact({
             {displayName}
           </p>
           <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex max-w-full items-center rounded-full border border-amber-400/25 bg-amber-500/10 px-2.5 py-1 dark:border-amber-300/20 dark:bg-amber-400/10">
+            <span className="inline-flex max-w-full items-center rounded-full border border-amber-800/20 bg-amber-600/10 px-2.5 py-1 dark:border-amber-300/20 dark:bg-amber-400/10">
               <JammerTitleBadge title={title} className="text-sm font-extrabold sm:text-base" />
             </span>
             <JammerLevelBadge
               level={level}
-              className="border-amber-500/40 bg-amber-500/15 px-2 py-0.5 text-[11px] font-extrabold text-amber-600 shadow-[0_0_16px_-4px_rgba(245,158,11,0.35)] dark:text-amber-400 sm:text-xs"
+              className="border-amber-800/35 bg-amber-600/12 px-2 py-0.5 text-[11px] font-extrabold text-amber-950 shadow-none dark:border-amber-500/40 dark:bg-amber-500/15 dark:text-amber-400 dark:shadow-[0_0_16px_-4px_rgba(245,158,11,0.35)] sm:text-xs"
             />
           </div>
         </div>
@@ -190,19 +190,19 @@ export function GamificationDashboardFull({
         />
         <CardContent className="relative flex items-center gap-4 p-4">
           {/* Trophy icon */}
-          <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/15 ring-1 ring-amber-500/30">
-            <Trophy className="size-5 text-amber-500" aria-hidden />
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-amber-600/15 ring-1 ring-amber-800/25 dark:bg-amber-500/15 dark:ring-amber-500/30">
+            <Trophy className="size-5 text-amber-800 dark:text-amber-400" aria-hidden />
           </div>
 
           {/* Level + title + XP text */}
           <div className="min-w-0 flex-1 space-y-1">
             <div className="flex flex-wrap items-center gap-1.5">
-              <span className="text-xl font-bold tracking-tight text-amber-500">
+              <span className="text-xl font-bold tracking-tight text-amber-900 dark:text-amber-400">
                 Level {level}
               </span>
               <JammerLevelBadge
                 level={level}
-                className="border-amber-500/40 bg-amber-500/15 px-2 py-0.5 text-[11px] text-amber-600 shadow-[0_0_14px_-4px_rgba(245,158,11,0.3)] dark:text-amber-400"
+                className="border-amber-800/35 bg-amber-600/12 px-2 py-0.5 text-[11px] text-amber-950 shadow-none dark:border-amber-500/40 dark:bg-amber-500/15 dark:text-amber-300 dark:shadow-[0_0_14px_-4px_rgba(245,158,11,0.3)]"
               />
             </div>
             <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
@@ -210,8 +210,8 @@ export function GamificationDashboardFull({
               {error ? (
                 <p className="text-xs text-destructive">{error}</p>
               ) : (
-                <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                  <Sparkles className="size-3 shrink-0 text-amber-500" />
+                <span className="inline-flex items-center gap-1 text-xs text-foreground/75 dark:text-muted-foreground">
+                  <Sparkles className="size-3 shrink-0 text-amber-800 dark:text-amber-400" aria-hidden />
                   {xpLabel}
                 </span>
               )}
@@ -219,7 +219,7 @@ export function GamificationDashboardFull({
           </div>
 
           {/* XP percent */}
-          <span className="shrink-0 text-xs font-semibold tabular-nums text-amber-600/80 dark:text-amber-400/80">
+          <span className="shrink-0 text-xs font-semibold tabular-nums text-amber-950 dark:text-amber-400/90">
             {Math.round(progress.progressPercent)}%
           </span>
         </CardContent>
@@ -227,7 +227,7 @@ export function GamificationDashboardFull({
         {/* Thin XP bar at the bottom */}
         <div
           className={cn(
-            "[&_[data-slot=progress]]:h-2 [&_[data-slot=progress]]:rounded-none [&_[data-slot=progress]]:bg-muted/60",
+            "[&_[data-slot=progress]]:h-2 [&_[data-slot=progress]]:rounded-none [&_[data-slot=progress]]:bg-foreground/12 dark:[&_[data-slot=progress]]:bg-muted/60",
             "[&_[data-slot=progress-indicator]]:rounded-none [&_[data-slot=progress-indicator]]:bg-gradient-to-r [&_[data-slot=progress-indicator]]:from-teal-500 [&_[data-slot=progress-indicator]]:to-peach [&_[data-slot=progress-indicator]]:shadow-[0_0_12px_rgba(20,184,166,0.25)]",
           )}
         >

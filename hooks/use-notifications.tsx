@@ -1,7 +1,10 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { Trophy } from "lucide-react"
+import { toast } from "sonner"
 import { supabase } from "@/lib/supabase"
+import { NOTIFICATION_TYPE_GAMIFICATION_SQUAD_COMPLETE } from "@/lib/notification-constants"
 
 export type NotificationItem = {
   id: string
@@ -58,7 +61,24 @@ export function useNotifications(userId: string | null) {
           table: "notifications",
           filter: `user_id=eq.${userId}`,
         },
-        () => void fetchNotifications()
+        (payload) => {
+          const row = payload.new as { type?: string; message?: string }
+          if (
+            row?.type === NOTIFICATION_TYPE_GAMIFICATION_SQUAD_COMPLETE &&
+            typeof row.message === "string" &&
+            row.message.length > 0
+          ) {
+            toast.message(row.message, {
+              icon: <Trophy className="size-5 shrink-0 text-amber-500" aria-hidden />,
+              classNames: {
+                toast:
+                  "group border-amber-500/45 bg-amber-950/20 dark:bg-amber-950/35 backdrop-blur-sm shadow-lg shadow-amber-500/10",
+              },
+              duration: 5200,
+            })
+          }
+          void fetchNotifications()
+        },
       )
       .on(
         "postgres_changes",
@@ -68,7 +88,7 @@ export function useNotifications(userId: string | null) {
           table: "notifications",
           filter: `user_id=eq.${userId}`,
         },
-        () => void fetchNotifications()
+        () => void fetchNotifications(),
       )
       .subscribe()
     return () => {
@@ -119,4 +139,3 @@ export function useNotifications(userId: string | null) {
     markAllAsRead,
   }
 }
-

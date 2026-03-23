@@ -2,9 +2,42 @@
 
 import { motion, useInView } from "framer-motion"
 import { useRef } from "react"
+import type { LucideIcon } from "lucide-react"
 import { UserCircle, Search, Rocket, ArrowRight, Check, Sparkles } from "lucide-react"
 
-const steps = [
+const STEP_COLOR_CLASSES = {
+  teal: {
+    bg: "bg-teal/10",
+    text: "text-teal",
+    border: "border-teal/30",
+    glow: "shadow-teal/20",
+  },
+  peach: {
+    bg: "bg-peach/10",
+    text: "text-peach",
+    border: "border-peach/30",
+    glow: "shadow-peach/20",
+  },
+  lavender: {
+    bg: "bg-lavender/10",
+    text: "text-lavender",
+    border: "border-lavender/30",
+    glow: "shadow-lavender/20",
+  },
+} as const
+
+type StepColor = keyof typeof STEP_COLOR_CLASSES
+
+type HowItWorksStep = {
+  number: string
+  icon: LucideIcon
+  title: string
+  description: string
+  color: StepColor
+  details: string[]
+}
+
+const steps: HowItWorksStep[] = [
   {
     number: "01",
     icon: UserCircle,
@@ -76,26 +109,7 @@ export function LandingHowItWorks() {
 
           <div className="flex flex-col gap-12 lg:gap-0">
             {steps.map((step, index) => {
-              const colorClasses = {
-                teal: {
-                  bg: "bg-teal/10",
-                  text: "text-teal",
-                  border: "border-teal/30",
-                  glow: "shadow-teal/20",
-                },
-                peach: {
-                  bg: "bg-peach/10",
-                  text: "text-peach",
-                  border: "border-peach/30",
-                  glow: "shadow-peach/20",
-                },
-                lavender: {
-                  bg: "bg-lavender/10",
-                  text: "text-lavender",
-                  border: "border-lavender/30",
-                  glow: "shadow-lavender/20",
-                },
-              }[step.color]
+              const colorClasses = STEP_COLOR_CLASSES[step.color]
 
               const isEven = index % 2 === 0
 

@@ -21,12 +21,20 @@ export const BADGE_DICTIONARY: Record<
     locked: string
   }
 > = {
-  captain: {
-    emoji: "👑",
-    label: "Captain",
+  founder: {
+    emoji: "🏗️",
+    label: "Founder",
     blurb: "Created your first squad listing.",
     unlocked:
       "border-amber-500/50 bg-gradient-to-br from-amber-500/20 via-amber-600/10 to-yellow-500/5 shadow-[0_0_24px_-4px_rgba(245,158,11,0.35)]",
+    locked: "border-border/40 bg-muted/20 opacity-45 grayscale",
+  },
+  captain: {
+    emoji: "👑",
+    label: "Captain",
+    blurb: "Filled every open role on your squad listing.",
+    unlocked:
+      "border-violet-500/45 bg-gradient-to-br from-violet-500/20 via-purple-600/10 to-fuchsia-500/5 shadow-[0_0_24px_-4px_rgba(139,92,246,0.35)]",
     locked: "border-border/40 bg-muted/20 opacity-45 grayscale",
   },
   team_player: {
@@ -45,13 +53,41 @@ export const BADGE_DICTIONARY: Record<
       "border-pink/40 bg-gradient-to-br from-peach/25 via-pink/15 to-lavender/10 shadow-[0_0_22px_-4px_rgba(244,114,182,0.28)]",
     locked: "border-border/40 bg-muted/20 opacity-45 grayscale",
   },
+  stalwart: {
+    emoji: "💎",
+    label: "Stalwart",
+    blurb: "Logged in 5 days in a row.",
+    unlocked:
+      "border-sky-500/45 bg-gradient-to-br from-sky-500/20 via-cyan-500/10 to-teal-500/5 shadow-[0_0_22px_-4px_rgba(14,165,233,0.3)]",
+    locked: "border-border/40 bg-muted/20 opacity-45 grayscale",
+  },
+  recruiter: {
+    emoji: "📣",
+    label: "Recruiter",
+    blurb: "Sent 5 squad invitations to other jammers.",
+    unlocked:
+      "border-orange-500/40 bg-gradient-to-br from-orange-500/20 via-amber-500/10 to-yellow-500/5 shadow-[0_0_22px_-4px_rgba(249,115,22,0.28)]",
+    locked: "border-border/40 bg-muted/20 opacity-45 grayscale",
+  },
+  multi_tool: {
+    emoji: "🛠️",
+    label: "Multi-Tool",
+    blurb: "Joined squads in 3 different role slots.",
+    unlocked:
+      "border-emerald-500/40 bg-gradient-to-br from-emerald-500/20 via-teal/15 to-lime-500/5 shadow-[0_0_22px_-4px_rgba(16,185,129,0.28)]",
+    locked: "border-border/40 bg-muted/20 opacity-45 grayscale",
+  },
 }
 
 /** Display order for the badge grid */
 export const ALL_BADGE_IDS: (keyof typeof BADGE_DICTIONARY)[] = [
+  "founder",
   "captain",
   "team_player",
   "early_bird",
+  "stalwart",
+  "recruiter",
+  "multi_tool",
 ]
 
 export type ProfileGamificationProps = {
