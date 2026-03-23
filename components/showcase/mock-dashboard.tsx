@@ -15,16 +15,27 @@ import {
   MessageSquareText,
 } from "lucide-react"
 
-const DICEBEAR_BASE = "https://api.dicebear.com/9.x/adventurer/svg"
+const AVATAR_COLORS: Record<string, string> = {
+  PixelDev42: "from-teal/70 to-primary/70",
+  "SynthWave_Alex": "from-mint/70 to-teal/70",
+}
 
-function DiceBearAvatar({ name, className }: { name: string; className?: string }) {
-  const url = `${DICEBEAR_BASE}?seed=${encodeURIComponent(name)}&backgroundColor=d1d4f9`
+function InitialsAvatar({ name, className }: { name: string; className?: string }) {
+  const initials = name
+    .replace(/_/g, " ")
+    .split(/[\s_]/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0].toUpperCase())
+    .join("")
+  const gradient = AVATAR_COLORS[name] ?? "from-lavender/70 to-primary/70"
   return (
-    <img
-      src={url}
-      alt={name}
-      className={className}
-    />
+    <div
+      aria-label={name}
+      className={`flex items-center justify-center rounded-full bg-gradient-to-br text-[10px] font-bold text-white ${gradient} ${className ?? ""}`}
+    >
+      {initials}
+    </div>
   )
 }
 
@@ -47,7 +58,7 @@ export function MockDashboard() {
               <span className="relative inline-flex size-2 rounded-full bg-primary" />
             </span>
           </div>
-          <DiceBearAvatar name="PixelDev42" className="size-7 rounded-full ring-2 ring-border/40" />
+          <InitialsAvatar name="PixelDev42" className="size-7 ring-2 ring-border/40" />
         </div>
       </header>
 
@@ -62,9 +73,9 @@ export function MockDashboard() {
             />
           </div>
           <div className="flex items-center gap-3 p-4">
-            <DiceBearAvatar
+            <InitialsAvatar
               name="PixelDev42"
-              className="size-12 shrink-0 rounded-xl ring-2 ring-border/30"
+              className="size-12 shrink-0 rounded-xl ring-2 ring-border/30 text-sm"
             />
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
@@ -181,9 +192,9 @@ export function MockDashboard() {
                   {/* Top row: avatar + user info */}
                   <div className="flex items-start gap-3">
                     <div className="relative">
-                      <DiceBearAvatar
+                      <InitialsAvatar
                         name={app.name}
-                        className="size-9 shrink-0 rounded-full ring-2 ring-mint/20"
+                        className="size-9 shrink-0 ring-2 ring-mint/20"
                       />
                       {/* Online dot */}
                       <span className="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full border-2 border-card bg-mint" />
