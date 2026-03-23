@@ -1,7 +1,6 @@
 "use client"
 
 import { Navbar } from "@/components/navbar"
-import { Footer } from "@/components/footer"
 import { LandingHero } from "@/components/landing/landing-hero"
 import { LandingShowcase } from "@/components/landing/landing-showcase"
 import { LandingFeatures } from "@/components/landing/landing-features"
@@ -19,7 +18,6 @@ export function LandingHome() {
         <LandingHowItWorks />
         <LandingCTA />
       </main>
-      <Footer tagline="The ultimate team builder for Game Jams" />
     </div>
   )
 }

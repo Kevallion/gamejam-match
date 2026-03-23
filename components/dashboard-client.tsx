@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { Navbar } from "@/components/navbar"
-import { Footer } from "@/components/footer"
 import { DashboardMyTeams, type TeamData } from "@/components/dashboard-my-teams"
 import { DashboardRecommendedTeams } from "@/components/dashboard-recommended-teams"
 import { DashboardMyAvailability } from "@/components/dashboard-my-availability"
@@ -281,7 +280,6 @@ function DashboardLoadingSkeleton() {
           </div>
         </section>
       </main>
-      <Footer tagline="Connect, create, and ship games together." />
     </div>
   )
 }
@@ -1168,8 +1166,6 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
           </div>
         </section>
       </main>
-
-      <Footer tagline="Connect, create, and ship games together." />
 
       <OnboardingModal
         open={showOnboardingModal}

@@ -1,7 +1,6 @@
 "use client"
 
 import { Navbar } from "@/components/navbar"
-import { Footer } from "@/components/footer"
 import { BrowserFrame } from "@/components/showcase/browser-frame"
 import { MockHero } from "@/components/showcase/mock-hero"
 import { MockTeamGrid } from "@/components/showcase/mock-team-grid"
@@ -231,8 +230,6 @@ export function ShowcaseShell() {
           </div>
         </section>
       </main>
-
-      <Footer tagline="GameJamCrew - The team builder for Game Jams" />
     </div>
   )
 }

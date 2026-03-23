@@ -4,7 +4,6 @@ import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import Link from "next/link"
 import { Navbar } from "@/components/navbar"
-import { Footer } from "@/components/footer"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { TeamChat } from "@/components/team-chat"
@@ -269,7 +268,6 @@ export default function TeamPage() {
             </Card>
           </div>
         </main>
-        <Footer tagline="Connect, create, and ship games together." />
       </div>
     )
   }
@@ -421,7 +419,6 @@ export default function TeamPage() {
             </div>
           </section>
         </main>
-        <Footer tagline="Connect, create, and ship games together." />
       </div>
     )
   }

@@ -8,7 +8,6 @@ import { Hero } from "@/components/hero"
 import { Search } from "@/components/search"
 import { Filters } from "@/components/filters"
 import { TeamGrid } from "@/components/team-grid"
-import { Footer } from "@/components/footer"
 import { ENGINE_OPTIONS, EXPERIENCE_OPTIONS, JAM_STYLE_OPTIONS, LANGUAGE_OPTIONS, ROLE_OPTIONS } from "@/lib/constants"
 
 export function HomeShell() {
@@ -180,8 +179,6 @@ export function HomeShell() {
           />
         </div>
       </main>
-
-      <Footer />
     </div>
   )
 }

@@ -1,5 +1,4 @@
 import { Navbar } from "@/components/navbar"
-import { Footer } from "@/components/footer"
 import type { Metadata } from "next"
 import Link from "next/link"
 
@@ -137,7 +136,6 @@ export default function PrivacyPage() {
           </div>
         </article>
       </main>
-      <Footer />
     </div>
   )
 }

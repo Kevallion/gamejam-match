@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import { Navbar } from "@/components/navbar"
-import { Footer } from "@/components/footer"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { UserAvatar } from "@/components/user-avatar"
@@ -465,7 +464,6 @@ export default function TeamManagePage() {
             </Card>
           </div>
         </main>
-        <Footer tagline="Connect, create, and ship games together." />
       </div>
     )
   }
@@ -813,7 +811,6 @@ export default function TeamManagePage() {
           </div>
         </section>
       </main>
-      <Footer tagline="Connect, create, and ship games together." />
     </div>
   )
 }

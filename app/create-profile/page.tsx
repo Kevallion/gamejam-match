@@ -1,6 +1,5 @@
 import { Navbar } from "@/components/navbar"
 import { AvailabilityForm } from "@/components/availability-form"
-import { Footer } from "@/components/footer"
 import { UserCheck } from "lucide-react"
 import type { Metadata } from "next"
 
@@ -49,8 +48,6 @@ export default function AvailabilityPage() {
           </div>
         </section>
       </main>
-
-      <Footer tagline="Connect, create, and ship games together." />
     </div>
   )
 }

@@ -2,7 +2,6 @@
 
 import Link from "next/link"
 import { Navbar } from "@/components/navbar"
-import { Footer } from "@/components/footer"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { JoinTeamModal } from "@/components/join-team-modal"
@@ -171,7 +170,6 @@ export function TeamAnnouncementPublic({ team, isLoggedIn }: TeamAnnouncementPub
           </div>
         </div>
       </main>
-      <Footer tagline="Connect, create, and ship games together." />
     </div>
   )
 }

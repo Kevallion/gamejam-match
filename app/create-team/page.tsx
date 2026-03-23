@@ -1,6 +1,5 @@
 import { Navbar } from "@/components/navbar"
 import { CreateTeamForm } from "@/components/create-team-form"
-import { Footer } from "@/components/footer"
 import { PenLine } from "lucide-react"
 import type { Metadata } from "next"
 
@@ -49,8 +48,6 @@ export default function CreateTeamPage() {
           </div>
         </section>
       </main>
-
-      <Footer tagline="Connect, create, and ship games together." />
     </div>
   )
 }

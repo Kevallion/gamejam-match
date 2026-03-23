@@ -4,7 +4,6 @@ import { notFound } from "next/navigation"
 import { ArrowLeft } from "lucide-react"
 import { createClient } from "@/lib/supabase/server"
 import { Navbar } from "@/components/navbar"
-import { Footer } from "@/components/footer"
 import { ProfileGamification } from "@/components/profile-gamification"
 import { GamificationDashboard } from "@/components/gamification-dashboard"
 import { ProfileCard } from "@/components/profile-card"
@@ -118,7 +117,6 @@ export default async function JammerPublicProfilePage({ params }: PageProps) {
           </div>
         </section>
       </main>
-      <Footer tagline="Connect, create, and ship games together." />
     </div>
   )
 }

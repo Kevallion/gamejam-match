@@ -6,7 +6,6 @@ import { MemberFilters } from "@/components/member-filters"
 import { MembersGrid } from "@/components/members-grid"
 import { Search, UserSearch } from "lucide-react"
 import { Input } from "@/components/ui/input"
-import { Footer } from "@/components/footer"
 import { ENGINE_OPTIONS, EXPERIENCE_OPTIONS, ROLE_OPTIONS } from "@/lib/constants"
 
 export function FindMembersShell() {
@@ -114,8 +113,6 @@ export function FindMembersShell() {
           onResultsCountChange={setResultsCount}
         />
       </main>
-
-      <Footer />
     </div>
   )
 }

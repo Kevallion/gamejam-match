@@ -8,6 +8,7 @@ import { FeedbackButton } from '@/components/FeedbackButton'
 import { ThemeProvider } from '@/components/theme-provider'
 import { GamificationProvider } from '@/components/gamification-provider'
 import { Toaster } from '@/components/ui/sonner'
+import { Footer } from '@/components/footer'
 import './globals.css'
 
 const _nunito = Nunito({
@@ -97,7 +98,10 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
           <AuthProvider>
             <GamificationProvider>
               <AuthCallbackHandler />
-              {children}
+              <div className="flex min-h-svh flex-col">
+                <div className="flex min-h-0 flex-1 flex-col">{children}</div>
+                <Footer />
+              </div>
               <FeedbackButton />
               <Toaster richColors position="bottom-right" closeButton />
             </GamificationProvider>
