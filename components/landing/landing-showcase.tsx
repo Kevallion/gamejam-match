@@ -4,69 +4,17 @@ import { motion, useInView } from "framer-motion"
 import { useRef } from "react"
 import { 
   Users, 
-  Gamepad2, 
+  Bell, 
+  UserCircle, 
+  LayoutDashboard, 
+  Send, 
+  Gamepad2,
   Sparkles,
-  Cpu,
-  Globe,
-  ArrowRight,
   Zap,
-  Bell
+  User,
+  Palette,
+  Music
 } from "lucide-react"
-
-const MOCK_TEAMS = [
-  {
-    name: "The Pixel Knights",
-    jam: "Ludum Dare 57",
-    engine: "Godot",
-    language: "English",
-    description: "Cozy pixel-art RPG with a unique twist on turn-based combat. Looking for passionate jammers!",
-    members: 2,
-    maxMembers: 4,
-    roles: [
-      { label: "2D Artist", emoji: "\uD83C\uDFA8", color: "bg-pink/15 text-pink" },
-      { label: "Audio", emoji: "\uD83C\uDFB5", color: "bg-lavender/15 text-lavender" },
-    ],
-    level: { label: "Junior / Student", emoji: "\uD83D\uDCDA", color: "bg-emerald-500/15 text-emerald-400" },
-  },
-  {
-    name: "Neon Runners",
-    jam: "GMTK 2026",
-    engine: "Unity",
-    language: "English",
-    description: "Fast-paced cyberpunk runner. Neon aesthetics, synthwave soundtrack.",
-    members: 3,
-    maxMembers: 5,
-    roles: [
-      { label: "Developer", emoji: "\uD83D\uDCBB", color: "bg-teal/15 text-teal" },
-      { label: "Game Designer", emoji: "\uD83C\uDFAF", color: "bg-peach/15 text-peach" },
-    ],
-    level: { label: "Regular Jammer", emoji: "\uD83C\uDFAE", color: "bg-blue-500/15 text-blue-400" },
-    highlighted: true,
-  },
-]
-
-const MOCK_PLAYERS = [
-  {
-    name: "SynthWave_Alex",
-    initials: "SA",
-    role: { label: "Developer", emoji: "\uD83D\uDCBB", color: "bg-teal text-teal-foreground" },
-    level: { label: "Regular Jammer", emoji: "\uD83C\uDFAE", color: "bg-blue-500/15 text-blue-400" },
-    engine: "Godot",
-    language: "English",
-    bio: "Full-stack dev with a passion for procedural generation.",
-    bgColor: "bg-teal/10",
-  },
-  {
-    name: "ArtistKira",
-    initials: "AK",
-    role: { label: "2D Artist", emoji: "\uD83C\uDFA8", color: "bg-pink text-pink-foreground" },
-    level: { label: "Junior / Student", emoji: "\uD83D\uDCDA", color: "bg-emerald-500/15 text-emerald-400" },
-    engine: "Any",
-    language: "French",
-    bio: "Pixel art enthusiast. Love retro aesthetics.",
-    bgColor: "bg-pink/10",
-  },
-]
 
 export function LandingShowcase() {
   const ref = useRef(null)
@@ -83,19 +31,19 @@ export function LandingShowcase() {
       >
         <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-peach/30 bg-peach/10 px-4 py-1.5 text-sm font-medium text-peach">
           <Sparkles className="size-4" />
-          Your Squad Awaits
+          Your Command Center
         </div>
         <h2 className="text-balance text-3xl font-extrabold tracking-tight text-foreground md:text-4xl lg:text-5xl">
-          Discover talented jammers
+          Manage your teams
           <br />
-          <span className="text-primary">ready to create</span>
+          <span className="text-primary">in one place</span>
         </h2>
         <p className="mx-auto mt-4 max-w-xl text-pretty text-lg leading-relaxed text-muted-foreground">
-          Browse profiles, explore teams, and find collaborators who match your creative vision.
+          Track applications, communicate with teammates, and level up your jam experience.
         </p>
       </motion.div>
 
-      {/* Browser Frame Mockup */}
+      {/* Browser Frame with real Dashboard design */}
       <motion.div
         initial={{ opacity: 0, y: 50 }}
         animate={isInView ? { opacity: 1, y: 0 } : {}}
@@ -116,15 +64,15 @@ export function LandingShowcase() {
             </div>
             <div className="mx-4 flex-1">
               <div className="mx-auto max-w-sm rounded-lg bg-background/80 px-4 py-1.5 text-center text-xs font-medium text-muted-foreground">
-                gamejamcrew.com
+                gamejamcrew.com/dashboard
               </div>
             </div>
             <div className="w-[52px]" />
           </div>
 
-          {/* App content */}
+          {/* Dashboard content - exact design from MockDashboard */}
           <div className="bg-background">
-            {/* Navbar mock */}
+            {/* Navbar */}
             <header className="flex h-12 items-center justify-between border-b border-border/50 bg-background/80 px-4">
               <div className="flex items-center gap-2">
                 <div className="flex size-7 items-center justify-center rounded-lg bg-primary/15">
@@ -132,12 +80,13 @@ export function LandingShowcase() {
                 </div>
                 <span className="text-xs font-extrabold tracking-tight text-foreground">GameJamCrew</span>
               </div>
-              <div className="hidden items-center gap-3 sm:flex">
-                <span className="text-[10px] text-muted-foreground">Find Teams</span>
-                <span className="text-[10px] text-primary font-medium">Find Members</span>
-                <span className="text-[10px] text-muted-foreground">Post a Team</span>
-              </div>
               <div className="flex items-center gap-2">
+                <span className="hidden text-[10px] text-muted-foreground sm:inline">
+                  Hello, <span className="text-foreground font-medium">PixelDev42</span> !
+                </span>
+                <div className="rounded-lg border border-primary/30 bg-primary/5 px-2 py-1 text-[10px] font-medium text-primary">
+                  Dashboard
+                </div>
                 <div className="relative">
                   <Bell className="size-3.5 text-muted-foreground" />
                   <span className="absolute -right-0.5 -top-0.5 flex size-2">
@@ -145,143 +94,146 @@ export function LandingShowcase() {
                     <span className="relative inline-flex size-2 rounded-full bg-primary" />
                   </span>
                 </div>
-                <div className="size-6 rounded-full bg-gradient-to-br from-teal/40 to-primary/40" />
               </div>
             </header>
 
-            {/* Page content - Teams and Members side by side */}
-            <div className="p-4 md:p-6">
-              <div className="grid gap-6 md:grid-cols-2">
-                {/* Teams column */}
-                <div>
-                  <div className="mb-3 flex items-center gap-2">
-                    <div className="flex size-6 items-center justify-center rounded-lg bg-teal/10">
-                      <Users className="size-3.5 text-teal" />
+            {/* Dashboard header */}
+            <section className="relative overflow-hidden px-4 pb-4 pt-8">
+              <div className="pointer-events-none absolute inset-0 opacity-30" aria-hidden="true">
+                <div className="absolute left-1/2 top-0 size-[200px] -translate-x-1/2 -translate-y-1/3 rounded-full bg-peach/20 blur-[80px]" />
+              </div>
+              <div className="relative">
+                <div className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-peach/20 bg-peach/10 px-2.5 py-0.5 text-[9px] font-medium text-peach">
+                  <LayoutDashboard className="size-3" />
+                  Command Center
+                </div>
+                <h1 className="text-lg font-extrabold tracking-tight text-foreground">Dashboard</h1>
+              </div>
+            </section>
+
+            {/* Stats row */}
+            <div className="px-4 pb-4">
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  { icon: Users, label: "My Teams", value: "3", color: "bg-teal/15 text-teal" },
+                  { icon: Bell, label: "Applications", value: "5", color: "bg-peach/15 text-peach" },
+                  { icon: UserCircle, label: "Profiles", value: "1", color: "bg-lavender/15 text-lavender" },
+                ].map((stat) => (
+                  <div key={stat.label} className="rounded-xl border border-border/50 bg-card p-3">
+                    <div className="flex items-center gap-2">
+                      <div className={`flex size-8 items-center justify-center rounded-lg ${stat.color}`}>
+                        <stat.icon className="size-4" />
+                      </div>
+                      <div>
+                        <p className="text-[9px] font-medium text-muted-foreground">{stat.label}</p>
+                        <p className="text-sm font-bold text-foreground">{stat.value}</p>
+                      </div>
                     </div>
-                    <h3 className="text-xs font-bold text-foreground">Open Teams</h3>
                   </div>
-                  <div className="flex flex-col gap-3">
-                    {MOCK_TEAMS.map((team, idx) => (
-                      <motion.div
-                        key={idx}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={isInView ? { opacity: 1, y: 0 } : {}}
-                        transition={{ duration: 0.5, delay: 0.4 + idx * 0.1 }}
-                        className={`flex flex-col rounded-xl border bg-card p-3 transition-all ${
-                          team.highlighted
-                            ? "border-primary/50 ring-2 ring-primary/30 shadow-lg shadow-primary/10"
-                            : "border-border/50"
-                        }`}
-                      >
-                        <div className="flex items-start justify-between gap-1 mb-2">
-                          <div className="min-w-0 flex-1">
-                            <h4 className="truncate text-xs font-bold text-foreground">{team.name}</h4>
-                            <p className="text-[10px] font-medium text-primary">{team.jam}</p>
-                          </div>
-                          <span className="shrink-0 inline-flex items-center gap-0.5 rounded-full border border-border/60 px-1.5 py-0.5 text-[9px] text-muted-foreground">
-                            <Users className="size-2.5" />
-                            {team.members}/{team.maxMembers}
-                          </span>
-                        </div>
+                ))}
+              </div>
+            </div>
 
-                        <div className="flex items-center gap-2 text-[9px] text-muted-foreground mb-1.5">
-                          <span className="inline-flex items-center gap-1">
-                            <Cpu className="size-2.5 text-lavender" />
-                            {team.engine}
-                          </span>
-                          <span className="inline-flex items-center gap-1">
-                            <Globe className="size-2.5 text-teal" />
-                            {team.language}
-                          </span>
-                        </div>
+            {/* Tabs */}
+            <div className="px-4">
+              <div className="flex gap-1 rounded-lg border border-border/50 bg-muted/50 p-0.5">
+                {["My Teams", "Inbox", "Profiles", "Sent"].map((tab, i) => (
+                  <div
+                    key={tab}
+                    className={`flex-1 rounded-md px-2 py-1.5 text-center text-[10px] font-semibold transition-all ${
+                      i === 1
+                        ? "bg-background text-foreground shadow-sm"
+                        : "text-muted-foreground"
+                    }`}
+                  >
+                    {tab}
+                  </div>
+                ))}
+              </div>
+            </div>
 
-                        <p className="text-[9px] leading-relaxed text-muted-foreground line-clamp-2 mb-2 flex-1">
-                          {team.description}
-                        </p>
-
-                        <div className="flex flex-wrap gap-1 mb-2">
-                          <span className={`rounded-full px-1.5 py-0.5 text-[8px] font-semibold ${team.level.color}`}>
-                            {team.level.emoji} {team.level.label}
-                          </span>
-                          {team.roles.map((role, rIdx) => (
-                            <span
-                              key={rIdx}
-                              className={`rounded-full px-1.5 py-0.5 text-[8px] font-semibold ${role.color}`}
-                            >
-                              {role.emoji} {role.label}
-                            </span>
-                          ))}
-                        </div>
-
-                        <div className="flex items-center justify-center gap-1 rounded-lg border border-primary/30 bg-primary/5 px-2 py-1.5 text-[10px] font-semibold text-primary">
-                          <ArrowRight className="size-3" />
-                          View details
-                        </div>
-                      </motion.div>
-                    ))}
+            {/* Inbox content */}
+            <div className="px-4 py-4">
+              <div className="rounded-xl border border-border/50 bg-card/50 p-4">
+                <div className="mb-3 flex items-center gap-2">
+                  <div className="flex size-7 items-center justify-center rounded-lg bg-peach/10">
+                    <Bell className="size-3.5 text-peach" />
+                  </div>
+                  <div>
+                    <h2 className="text-xs font-bold text-foreground">Incoming Applications</h2>
+                    <p className="text-[9px] text-muted-foreground">Review requests to join your squads</p>
                   </div>
                 </div>
 
-                {/* Players column */}
-                <div>
-                  <div className="mb-3 flex items-center gap-2">
-                    <div className="flex size-6 items-center justify-center rounded-lg bg-lavender/10">
-                      <Sparkles className="size-3.5 text-lavender" />
-                    </div>
-                    <h3 className="text-xs font-bold text-foreground">Available Jammers</h3>
+                <div className="flex flex-col gap-2">
+                  {[
+                    { name: "SynthWave_Alex", team: "Neon Runners", role: "Developer", roleColor: "bg-teal/15 text-teal", icon: User, iconColor: "text-teal" },
+                    { name: "ArtistKira", team: "The Pixel Knights", role: "2D Artist", roleColor: "bg-pink/15 text-pink", icon: Palette, iconColor: "text-pink" },
+                    { name: "BeatMaker99", team: "Neon Runners", role: "Audio", roleColor: "bg-lavender/15 text-lavender", icon: Music, iconColor: "text-lavender" },
+                  ].map((app, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={isInView ? { opacity: 1, x: 0 } : {}}
+                      transition={{ duration: 0.4, delay: 0.6 + i * 0.1 }}
+                      className={`flex items-center justify-between rounded-lg border p-2.5 ${
+                        i === 0 ? "border-primary/30 bg-primary/5" : "border-border/40 bg-background"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className={`flex size-7 items-center justify-center rounded-full bg-secondary ${app.iconColor}`}>
+                          <app.icon className="size-3.5" />
+                        </div>
+                        <div>
+                          <p className="text-[10px] font-bold text-foreground">{app.name}</p>
+                          <p className="text-[9px] text-muted-foreground">{app.team}</p>
+                        </div>
+                        <span className={`rounded-full px-1.5 py-0.5 text-[8px] font-semibold ${app.roleColor}`}>
+                          {app.role}
+                        </span>
+                      </div>
+                      <div className="hidden items-center gap-1 sm:flex">
+                        <div className="rounded-md bg-success/15 px-2 py-0.5 text-[9px] font-semibold text-success">
+                          Accept
+                        </div>
+                        <div className="rounded-md bg-destructive/10 px-2 py-0.5 text-[9px] font-semibold text-destructive">
+                          Decline
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Sent section teaser */}
+            <div className="px-4 pb-4">
+              <div className="rounded-xl border border-border/50 bg-card/50 p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <div className="flex size-7 items-center justify-center rounded-lg bg-teal/10">
+                    <Send className="size-3.5 text-teal" />
                   </div>
-                  <div className="flex flex-col gap-3">
-                    {MOCK_PLAYERS.map((player, idx) => (
-                      <motion.div
-                        key={idx}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={isInView ? { opacity: 1, y: 0 } : {}}
-                        transition={{ duration: 0.5, delay: 0.5 + idx * 0.1 }}
-                        className="flex flex-col rounded-xl border border-border/50 bg-card p-3 transition-all hover:border-primary/30"
-                      >
-                        {/* Avatar + name */}
-                        <div className="flex items-center gap-2 mb-2">
-                          <div className={`flex size-8 items-center justify-center rounded-full text-[9px] font-bold ring-1 ring-border/60 ${player.bgColor}`}>
-                            {player.initials}
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <h4 className="truncate text-[10px] font-bold text-foreground">{player.name}</h4>
-                            <div className="flex items-center gap-1 text-[9px] text-muted-foreground">
-                              <Globe className="size-2.5 text-teal" />
-                              {player.language}
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Role + Level badges */}
-                        <div className="flex flex-wrap items-center gap-1 mb-2">
-                          <span className={`rounded-full px-1.5 py-0.5 text-[8px] font-semibold ${player.role.color}`}>
-                            {player.role.emoji} {player.role.label}
-                          </span>
-                          <span className={`rounded-full px-1.5 py-0.5 text-[8px] font-semibold ${player.level.color}`}>
-                            {player.level.emoji} {player.level.label}
-                          </span>
-                        </div>
-
-                        {/* Engine */}
-                        <div className="flex items-center gap-1 text-[9px] text-muted-foreground mb-1.5">
-                          <Cpu className="size-2.5 text-lavender" />
-                          {player.engine}
-                        </div>
-
-                        {/* Bio */}
-                        <p className="flex-1 text-[9px] leading-relaxed text-muted-foreground line-clamp-2 mb-2">
-                          {player.bio}
-                        </p>
-
-                        <div className="flex items-center justify-center gap-1 rounded-lg border border-primary/30 bg-primary/5 px-2 py-1.5 text-[10px] font-semibold text-primary">
-                          <ArrowRight className="size-3" />
-                          View profile
-                        </div>
-                      </motion.div>
-                    ))}
+                  <div>
+                    <h2 className="text-xs font-bold text-foreground">My Sent Applications</h2>
+                    <p className="text-[9px] text-muted-foreground">Track your applications</p>
                   </div>
                 </div>
+                <motion.div
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={isInView ? { opacity: 1, x: 0 } : {}}
+                  transition={{ duration: 0.4, delay: 0.9 }}
+                  className="flex items-center justify-between rounded-lg border border-border/40 bg-background p-2.5"
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-medium text-foreground">Dreamweaver Studio</span>
+                    <span className="rounded-full bg-peach/15 px-1.5 py-0.5 text-[8px] font-semibold text-peach">
+                      3D Artist
+                    </span>
+                  </div>
+                  <span className="rounded bg-success/10 px-2 py-0.5 text-[9px] font-medium text-success">
+                    Accepted
+                  </span>
+                </motion.div>
               </div>
             </div>
           </div>
