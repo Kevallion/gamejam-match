@@ -422,98 +422,105 @@ export function Navbar() {
               </DropdownMenu>
             )}
 
-            {/* Menu */}
-            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="size-9 rounded-xl">
-                  <Menu className="size-5" />
-                  <span className="sr-only">Open menu</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="flex flex-col w-[min(100vw-2rem,320px)] glass-card border-l-0 px-0">
-                <SheetHeader className="sr-only">
-                  <SheetTitle>Navigation menu</SheetTitle>
-                </SheetHeader>
-                <div className="flex flex-1 flex-col pt-4 px-4">
-                  {/* User Info */}
-                  <div className="pb-4 border-b border-border/40">
-                    {!mounted || loading ? (
-                      <Loader2 className="size-5 animate-spin text-muted-foreground" />
-                    ) : user ? (
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-3">
-                          <JammerLevelBadge level={navLevel} />
-                          <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-foreground truncate">{displayName}</p>
-                            <JammerTitleBadge title={navTitle} className="text-xs" />
+            {/* Menu — Sheet monté après hydratation pour éviter mismatch Radix (aria-controls / useId). */}
+            {mounted ? (
+              <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon" className="size-9 rounded-xl">
+                    <Menu className="size-5" />
+                    <span className="sr-only">Open menu</span>
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="flex flex-col w-[min(100vw-2rem,320px)] glass-card border-l-0 px-0">
+                  <SheetHeader className="sr-only">
+                    <SheetTitle>Navigation menu</SheetTitle>
+                  </SheetHeader>
+                  <div className="flex flex-1 flex-col pt-4 px-4">
+                    {/* User Info */}
+                    <div className="pb-4 border-b border-border/40">
+                      {!mounted || loading ? (
+                        <Loader2 className="size-5 animate-spin text-muted-foreground" />
+                      ) : user ? (
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-3">
+                            <JammerLevelBadge level={navLevel} />
+                            <div className="flex-1 min-w-0">
+                              <p className="font-semibold text-foreground truncate">{displayName}</p>
+                              <JammerTitleBadge title={navTitle} className="text-xs" />
+                            </div>
+                          </div>
+                          <div className="flex gap-2 pt-2">
+                            <Button asChild size="sm" className="flex-1 rounded-xl bg-teal text-teal-foreground hover:bg-teal/90">
+                              <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}>
+                                <LayoutDashboard className="size-4 mr-1.5" />
+                                Dashboard
+                              </Link>
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="rounded-xl text-destructive border-destructive/30 hover:bg-destructive/10"
+                              onClick={() => { handleSignOut(); setMobileMenuOpen(false); }}
+                            >
+                              <LogOut className="size-4" />
+                            </Button>
                           </div>
                         </div>
-                        <div className="flex gap-2 pt-2">
-                          <Button asChild size="sm" className="flex-1 rounded-xl bg-teal text-teal-foreground hover:bg-teal/90">
-                            <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}>
-                              <LayoutDashboard className="size-4 mr-1.5" />
-                              Dashboard
-                            </Link>
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="rounded-xl text-destructive border-destructive/30 hover:bg-destructive/10"
-                            onClick={() => { handleSignOut(); setMobileMenuOpen(false); }}
-                          >
-                            <LogOut className="size-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ) : (
-                      <Button
-                        onClick={() => { setAuthModalOpen(true); setMobileMenuOpen(false); }}
-                        className="w-full rounded-xl bg-teal text-teal-foreground hover:bg-teal/90"
-                      >
-                        <LogIn className="size-4 mr-2" />
-                        Sign In
-                      </Button>
-                    )}
-                  </div>
+                      ) : (
+                        <Button
+                          onClick={() => { setAuthModalOpen(true); setMobileMenuOpen(false); }}
+                          className="w-full rounded-xl bg-teal text-teal-foreground hover:bg-teal/90"
+                        >
+                          <LogIn className="size-4 mr-2" />
+                          Sign In
+                        </Button>
+                      )}
+                    </div>
 
-                  {/* Nav Links */}
-                  <nav className="mt-4 flex flex-col gap-1">
-                    <Link
-                      href="/teams"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="flex items-center gap-3 rounded-xl px-3 py-3 text-muted-foreground transition-colors hover:bg-white/5 hover:text-foreground"
-                    >
-                      <Users className="size-5" />
-                      <span className="font-medium">Find Teams</span>
-                    </Link>
-                    <Link
-                      href="/find-members"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="flex items-center gap-3 rounded-xl px-3 py-3 text-muted-foreground transition-colors hover:bg-white/5 hover:text-foreground"
-                    >
-                      <UserSearch className="size-5" />
-                      <span className="font-medium">Find Members</span>
-                    </Link>
-                    <Link
-                      href="/create-team"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="flex items-center gap-3 rounded-xl px-3 py-3 text-muted-foreground transition-colors hover:bg-white/5 hover:text-foreground"
-                    >
-                      <PenLine className="size-5" />
-                      <span className="font-medium">Post a Team</span>
-                    </Link>
-                    <Link
-                      href="/create-profile"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="flex items-center gap-3 rounded-xl px-3 py-3 text-muted-foreground transition-colors hover:bg-white/5 hover:text-foreground"
-                    >
-                      <Hand className="size-5" />
-                      <span className="font-medium">I{"'"}m Available</span>
-                    </Link>
-                  </nav>
-                </div>
-              </SheetContent>
-            </Sheet>
+                    {/* Nav Links */}
+                    <nav className="mt-4 flex flex-col gap-1">
+                      <Link
+                        href="/teams"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center gap-3 rounded-xl px-3 py-3 text-muted-foreground transition-colors hover:bg-white/5 hover:text-foreground"
+                      >
+                        <Users className="size-5" />
+                        <span className="font-medium">Find Teams</span>
+                      </Link>
+                      <Link
+                        href="/find-members"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center gap-3 rounded-xl px-3 py-3 text-muted-foreground transition-colors hover:bg-white/5 hover:text-foreground"
+                      >
+                        <UserSearch className="size-5" />
+                        <span className="font-medium">Find Members</span>
+                      </Link>
+                      <Link
+                        href="/create-team"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center gap-3 rounded-xl px-3 py-3 text-muted-foreground transition-colors hover:bg-white/5 hover:text-foreground"
+                      >
+                        <PenLine className="size-5" />
+                        <span className="font-medium">Post a Team</span>
+                      </Link>
+                      <Link
+                        href="/create-profile"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center gap-3 rounded-xl px-3 py-3 text-muted-foreground transition-colors hover:bg-white/5 hover:text-foreground"
+                      >
+                        <Hand className="size-5" />
+                        <span className="font-medium">I{"'"}m Available</span>
+                      </Link>
+                    </nav>
+                  </div>
+                </SheetContent>
+              </Sheet>
+            ) : (
+              <Button variant="ghost" size="icon" className="size-9 rounded-xl" disabled aria-label="Open menu">
+                <Menu className="size-5" />
+                <span className="sr-only">Open menu</span>
+              </Button>
+            )}
           </div>
         </nav>
       </header>

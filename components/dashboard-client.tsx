@@ -6,6 +6,7 @@ import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { MobileBottomNav } from "@/components/mobile-bottom-nav"
 import { DashboardMyTeams, type TeamData } from "@/components/dashboard-my-teams"
+import { DashboardRecommendedTeams } from "@/components/dashboard-recommended-teams"
 import { DashboardMyAvailability } from "@/components/dashboard-my-availability"
 import { DashboardIncomingApplications, type ApplicationData } from "@/components/dashboard-incoming-applications"
 import { DashboardSquadInvitations, type InvitationData } from "@/components/dashboard-squad-invitations"
@@ -63,6 +64,7 @@ import { EXPERIENCE_STYLES, ROLE_STYLES } from "@/lib/constants"
 import { UserAvatar } from "@/components/user-avatar"
 import { JammerTitleBadge, JammerLevelBadge } from "@/components/profile-card"
 import { levelFromTotalXp, gamificationLevelProgress } from "@/lib/gamification-level"
+import { getRecommendedTeams, type SmartRecommendedTeam } from "@/lib/queries"
 
 const LEVEL_STYLES = EXPERIENCE_STYLES
 const FALLBACK_ROLE = { label: "Other", emoji: "?", color: "bg-muted text-muted-foreground" }
@@ -378,6 +380,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
   const [hasShownAvailabilityPrompt, setHasShownAvailabilityPrompt] = useState(false)
   const [teamIdToDelete, setTeamIdToDelete] = useState<string | null>(null)
   const [availabilityPostIdToDelete, setAvailabilityPostIdToDelete] = useState<string | null>(null)
+  const [recommendedTeams, setRecommendedTeams] = useState<SmartRecommendedTeam[]>([])
   const [showOnboardingModal, setShowOnboardingModal] = useState(false)
   const [profile, setProfile] = useState<{
     id: string
@@ -464,7 +467,11 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
   const loadData = useCallback(async () => {
     try {
       const { data: { session: authSession } } = await supabase.auth.getSession()
-      if (!authSession?.user) { setLoading(false); return }
+      if (!authSession?.user) {
+        setRecommendedTeams([])
+        setLoading(false)
+        return
+      }
       setSession(authSession)
 
       const { data: teamsData } = await supabase
@@ -525,22 +532,32 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
     const { data: profileData } = await supabase
       .from("profiles")
       .select(
-        "id, has_completed_onboarding, onboarding_version, jam_id, username, avatar_url, discord_username, default_role, default_engine, default_language, portfolio_url, xp, current_title",
+        "id, has_completed_onboarding, onboarding_version, jam_id, username, avatar_url, discord_username, default_role, default_engine, engine, default_language, portfolio_url, xp, current_title",
       )
       .eq("id", authSession.user.id)
       .maybeSingle()
 
-    if (teamsData || memberTeamsData) {
-      const ownedTeams = ((teamsData ?? []) as TeamRow[]).map((t) => mapTeamRow(t, authSession.user.id))
-      const memberTeams = (memberTeamsData ?? []).map((t) => mapTeamRow(t, authSession.user.id))
-      const merged = new Map<string, TeamData>()
-      for (const team of [...ownedTeams, ...memberTeams]) {
-        merged.set(team.id, team)
-      }
-      setTeams(Array.from(merged.values()))
-    } else {
-      setTeams([])
+    const ownedTeams = ((teamsData ?? []) as TeamRow[]).map((t) => mapTeamRow(t, authSession.user.id))
+    const memberTeams = (memberTeamsData ?? []).map((t) => mapTeamRow(t, authSession.user.id))
+    const merged = new Map<string, TeamData>()
+    for (const team of [...ownedTeams, ...memberTeams]) {
+      merged.set(team.id, team)
     }
+    setTeams(Array.from(merged.values()))
+
+    const profilePrefs = profileData as {
+      default_role?: string | null
+      default_engine?: string | null
+      engine?: string | null
+    } | null
+    const { teams: smartMatches } = await getRecommendedTeams({
+      id: authSession.user.id,
+      default_role: profilePrefs?.default_role ?? null,
+      default_engine: profilePrefs?.default_engine ?? null,
+      profile_engine: profilePrefs?.engine ?? null,
+      excludeTeamIds: Array.from(merged.keys()),
+    })
+    setRecommendedTeams(smartMatches)
 
     // Show the new onboarding wizard: when no profile yet (new user), or when
     // onboarding was never completed, or when they completed an older version.
@@ -1103,7 +1120,8 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
                 <SentApplicationsSection sentApplications={sentApplications} />
               </TabsContent>
 
-              <TabsContent value="availability" className="mt-0">
+              <TabsContent value="availability" className="mt-0 flex flex-col gap-4 md:gap-6">
+                <DashboardRecommendedTeams teams={recommendedTeams} />
                 <DashboardMyAvailability
                   availabilityPosts={availabilityPosts}
                   onDeletePost={handleDeleteAvailabilityPostClick}
