@@ -221,7 +221,7 @@ export function ShowcaseShell() {
                 Create a Squad
               </Link>
               <Link
-                href="/"
+                href="/teams"
                 className="inline-flex items-center gap-2 rounded-xl border border-border/60 bg-card px-8 py-3 text-base font-semibold text-foreground transition-all hover:border-primary/40 hover:text-primary"
               >
                 <Sparkles className="size-5" />

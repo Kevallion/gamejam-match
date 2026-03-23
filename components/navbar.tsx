@@ -134,7 +134,7 @@ export function Navbar() {
     <>
       {/* Floating Desktop Navbar - Hidden on mobile */}
       <header className="fixed top-4 left-1/2 -translate-x-1/2 z-50 hidden md:block">
-        <nav className="glass flex items-center gap-2 rounded-2xl px-3 py-2 shadow-lg shadow-black/5">
+        <nav className="glass-navbar flex items-center gap-2 rounded-2xl px-3 py-2 shadow-lg shadow-black/5">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 px-2 text-foreground transition-colors hover:text-primary">
             <div className="flex size-8 items-center justify-center rounded-xl bg-primary/15">
@@ -149,7 +149,7 @@ export function Navbar() {
           {/* Nav Links */}
           <div className="flex items-center gap-0.5">
             <Button variant="ghost" asChild size="sm" className="gap-1.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-white/10">
-              <Link href="/"><Users className="size-3.5" />Teams</Link>
+              <Link href="/teams"><Users className="size-3.5" />Teams</Link>
             </Button>
             <Button variant="ghost" asChild size="sm" className="gap-1.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-white/10">
               <Link href="/find-members"><UserSearch className="size-3.5" />Members</Link>
@@ -329,7 +329,7 @@ export function Navbar() {
       </header>
 
       {/* Mobile Header - Simple top bar for branding + actions */}
-      <header className="sticky top-0 z-40 w-full glass md:hidden">
+      <header className="sticky top-0 z-40 w-full glass-navbar md:hidden">
         <nav className="flex h-14 items-center justify-between px-4">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 text-foreground">
@@ -476,7 +476,7 @@ export function Navbar() {
                   {/* Nav Links */}
                   <nav className="mt-4 flex flex-col gap-1">
                     <Link
-                      href="/"
+                      href="/teams"
                       onClick={() => setMobileMenuOpen(false)}
                       className="flex items-center gap-3 rounded-xl px-3 py-3 text-muted-foreground transition-colors hover:bg-white/5 hover:text-foreground"
                     >

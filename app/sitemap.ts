@@ -5,6 +5,7 @@ const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://gamejamcrew.com'
 export default function sitemap(): MetadataRoute.Sitemap {
   const routes = [
     '',
+    '/teams',
     '/find-members',
     '/create-team',
     '/create-profile',

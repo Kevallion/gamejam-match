@@ -311,6 +311,12 @@
     border: 1px solid oklch(0.90 0.02 280 / 0.5);
   }
 
+  /* Navbar: opaque surface (no backdrop blur / glass) */
+  .glass-navbar {
+    background: var(--card);
+    border: 1px solid var(--border);
+  }
+
   .glass-card {
     background: oklch(0.22 0.025 280 / 0.6);
     backdrop-filter: blur(12px) saturate(1.15);
