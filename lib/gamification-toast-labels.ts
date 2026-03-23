@@ -18,6 +18,8 @@ export const BADGE_DISPLAY_LABELS: Record<string, string> = {
   stalwart: "💎 Stalwart",
   recruiter: "📣 Recruiter",
   multi_tool: "🛠️ Multi-Tool",
+  supporter: "☕ Supporter",
+  golden_heart: "💛 Golden Heart",
 }
 
 export function formatBadgeLabel(badgeId: string): string {

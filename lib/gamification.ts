@@ -459,3 +459,35 @@ export async function awardXP(
     }),
   }
 }
+
+/**
+ * Inserts badges for a user (service role). Duplicates are ignored (unique user_id + badge_id).
+ * For webhooks and other server flows that should not touch XP or titles.
+ */
+export async function grantBadgesOnce(
+  userId: string,
+  badgeIds: string[],
+): Promise<{ ok: boolean; granted: string[]; error?: string }> {
+  if (!userId || !badgeIds.length) {
+    return { ok: true, granted: [] }
+  }
+
+  const admin = createAdminClient()
+  const granted: string[] = []
+  const unique = [...new Set(badgeIds.map((id) => id.trim()).filter(Boolean))]
+
+  for (const badgeId of unique) {
+    const { error: badgeError } = await admin.from("user_badges").insert({
+      user_id: userId,
+      badge_id: badgeId,
+    })
+    if (!badgeError) {
+      granted.push(badgeId)
+    } else if (badgeError.code !== "23505") {
+      console.error("[gamification] user_badges insert (grantBadgesOnce):", badgeError.message)
+      return { ok: false, granted, error: badgeError.message }
+    }
+  }
+
+  return { ok: true, granted }
+}

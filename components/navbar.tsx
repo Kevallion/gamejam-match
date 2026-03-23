@@ -2,7 +2,8 @@
 
 /* eslint-disable react-hooks/set-state-in-effect */
 
-import { Bell, Gamepad2, Hand, LayoutDashboard, Loader2, LogIn, LogOut, Menu, Monitor, Moon, PenLine, Sun, UserSearch, Users } from "lucide-react"
+import { Bell, Gamepad2, Hand, Heart, LayoutDashboard, Loader2, LogIn, LogOut, Menu, Monitor, Moon, PenLine, Sun, UserSearch, Users } from "lucide-react"
+import { SupportNavbarPopover } from "@/components/support-navbar-popover"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -170,6 +171,13 @@ export function Navbar() {
 
           {/* Actions */}
           <div className="flex items-center gap-1">
+            {mounted ? (
+              <SupportNavbarPopover className="size-8" />
+            ) : (
+              <Button variant="ghost" size="icon" className="size-8 rounded-xl" disabled aria-label="Support the project">
+                <Heart className="size-4 opacity-30" />
+              </Button>
+            )}
             {/* Theme switcher */}
             {mounted ? (
               <DropdownMenu>
@@ -344,6 +352,11 @@ export function Navbar() {
 
           {/* Mobile Actions */}
           <div className="flex items-center gap-1">
+            {mounted ? <SupportNavbarPopover className="size-9" /> : (
+              <Button variant="ghost" size="icon" className="size-9 rounded-xl" disabled aria-label="Support the project">
+                <Heart className="size-4 opacity-30" />
+              </Button>
+            )}
             {/* Theme */}
             {mounted && (
               <DropdownMenu>

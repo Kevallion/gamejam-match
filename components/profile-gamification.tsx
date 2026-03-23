@@ -8,19 +8,20 @@ import { supabase } from "@/lib/supabase"
 import { gamificationLevelProgress } from "@/lib/gamification-level"
 import { cn } from "@/lib/utils"
 
+export type BadgeCatalogMeta = {
+  emoji: string
+  label: string
+  blurb: string
+  /** Card when unlocked */
+  unlocked: string
+  /** Card when locked */
+  locked: string
+  /** Shown instead of the generic “keep jamming” line when locked */
+  lockedHint?: string
+}
+
 /** Ordered catalog: known badges + copy/styling. Extend when adding new badge_id values in the backend. */
-export const BADGE_DICTIONARY: Record<
-  string,
-  {
-    emoji: string
-    label: string
-    blurb: string
-    /** Card when unlocked */
-    unlocked: string
-    /** Card when locked */
-    locked: string
-  }
-> = {
+export const BADGE_DICTIONARY: Record<string, BadgeCatalogMeta> = {
   founder: {
     emoji: "🏗️",
     label: "Founder",
@@ -77,6 +78,23 @@ export const BADGE_DICTIONARY: Record<
       "border-emerald-500/40 bg-gradient-to-br from-emerald-500/20 via-teal/15 to-lime-500/5 shadow-[0_0_22px_-4px_rgba(16,185,129,0.28)]",
     locked: "border-border/40 bg-muted/20 opacity-45 grayscale",
   },
+  supporter: {
+    emoji: "☕",
+    label: "Supporter",
+    blurb: "Awarded to our Buy Me a Coffee supporters.",
+    lockedHint: "Unlock by supporting the project on Buy Me a Coffee (use the email on your account).",
+    unlocked:
+      "border-amber-600/45 bg-gradient-to-br from-amber-500/25 via-orange-500/15 to-rose-500/10 shadow-[0_0_24px_-4px_rgba(245,158,11,0.35)]",
+    locked: "border-border/40 bg-muted/20 opacity-45 grayscale",
+  },
+  golden_heart: {
+    emoji: "💛",
+    label: "Golden Heart",
+    blurb: "Verified supporter — thank you for backing the community.",
+    unlocked:
+      "border-rose-500/45 bg-gradient-to-br from-rose-500/25 via-pink-500/15 to-amber-400/10 shadow-[0_0_26px_-4px_rgba(244,63,94,0.35)]",
+    locked: "border-border/40 bg-muted/20 opacity-45 grayscale",
+  },
 }
 
 /** Display order for the badge grid */
@@ -85,6 +103,8 @@ export const ALL_BADGE_IDS: (keyof typeof BADGE_DICTIONARY)[] = [
   "captain",
   "team_player",
   "early_bird",
+  "supporter",
+  "golden_heart",
   "stalwart",
   "recruiter",
   "multi_tool",
@@ -142,8 +162,15 @@ function GamificationBadgeGrid({
             </div>
             <p className="text-xs leading-snug text-muted-foreground">{meta.blurb}</p>
             {!unlocked ? (
-              <p className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground/70">
-                Locked — keep jamming to unlock
+              <p
+                className={cn(
+                  "mt-1 text-[10px] text-muted-foreground/85",
+                  meta.lockedHint
+                    ? "font-medium leading-snug"
+                    : "font-semibold uppercase tracking-wide text-muted-foreground/70",
+                )}
+              >
+                {meta.lockedHint ?? "Locked — keep jamming to unlock"}
               </p>
             ) : earned?.earned_at ? (
               <p className="mt-auto pt-1 text-[10px] text-muted-foreground/80">
