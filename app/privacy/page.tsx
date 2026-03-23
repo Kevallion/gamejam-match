@@ -3,9 +3,21 @@ import type { Metadata } from "next"
 import Link from "next/link"
 
 export const metadata: Metadata = {
-  title: "Privacy Policy",
+  title: "Privacy Policy — GameJamCrew",
   description:
     "Privacy policy for GameJamCrew — how we collect, use and protect your data on our Game Jam squad finder platform.",
+  openGraph: {
+    title: "Privacy Policy — GameJamCrew",
+    description:
+      "Privacy policy for GameJamCrew — how we collect, use and protect your data on our Game Jam squad finder platform.",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "Privacy Policy — GameJamCrew",
+    description:
+      "Privacy policy for GameJamCrew — how we collect, use and protect your data on our Game Jam squad finder platform.",
+  },
 }
 
 export default function PrivacyPage() {

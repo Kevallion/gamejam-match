@@ -6,6 +6,18 @@ import type { Metadata } from "next"
 export const metadata: Metadata = {
   title: "Form a Squad — GameJamCrew",
   description: "Create a new team listing for your game jam. Describe your project, pick the roles you need, and find the perfect teammates.",
+  openGraph: {
+    title: "Form a Squad — GameJamCrew",
+    description:
+      "Create a new team listing for your game jam. Describe your project, pick the roles you need, and find the perfect teammates.",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Form a Squad — GameJamCrew",
+    description:
+      "Create a new team listing for your game jam. Describe your project, pick the roles you need, and find the perfect teammates.",
+  },
 }
 
 export default function CreateTeamPage() {

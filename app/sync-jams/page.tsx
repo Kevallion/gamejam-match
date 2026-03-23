@@ -4,6 +4,17 @@ import { SyncJamsClient } from "./sync-jams-client"
 export const metadata: Metadata = {
   title: "Sync Itch.io Jams — GameJamCrew",
   description: "Force sync game jams from itch.io into the database.",
+  robots: { index: false, follow: false },
+  openGraph: {
+    title: "Sync Itch.io Jams — GameJamCrew",
+    description: "Admin tool to sync game jams from itch.io into GameJamCrew.",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "Sync Itch.io Jams — GameJamCrew",
+    description: "Admin tool to sync game jams from itch.io into GameJamCrew.",
+  },
 }
 
 export default function SyncJamsPage() {

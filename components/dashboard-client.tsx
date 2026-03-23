@@ -472,195 +472,187 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
       }
       setSession(authSession)
 
-      const { data: teamsData } = await supabase
-        .from("teams")
-        .select("*, team_members(count)")
-        .eq("user_id", authSession.user.id)
+      const uid = authSession.user.id
 
-      const { data: membershipRows } = await supabase
-        .from("team_members")
-        .select("team_id")
-        .eq("user_id", authSession.user.id)
+      const [
+        { data: membershipRows },
+        { data: profileData },
+        { data: appsData },
+        { data: rawInvitesData },
+        { data: sentAppsData },
+        { data: postsData },
+      ] = await Promise.all([
+        supabase.from("team_members").select("team_id").eq("user_id", uid),
+        supabase
+          .from("profiles")
+          .select(
+            "id, has_completed_onboarding, onboarding_version, jam_id, username, avatar_url, discord_username, default_role, default_engine, engine, default_language, portfolio_url, xp, current_title",
+          )
+          .eq("id", uid)
+          .maybeSingle(),
+        supabase
+          .from("join_requests")
+          .select("*, target_role, teams!inner(team_name, user_id)")
+          .eq("teams.user_id", uid)
+          .eq("status", "pending")
+          .eq("type", "application"),
+        supabase
+          .from("join_requests")
+          .select("id, team_id, status, target_role, teams(team_name, game_name, discord_link)")
+          .eq("sender_id", uid)
+          .eq("status", "pending")
+          .eq("type", "invitation"),
+        supabase
+          .from("join_requests")
+          .select("id, status, target_role, teams(team_name, discord_link)")
+          .eq("sender_id", uid)
+          .eq("type", "application"),
+        supabase
+          .from("availability_posts")
+          .select("id, user_id, availability, role, experience, jam_style, engine, language, bio, portfolio_link")
+          .eq("user_id", uid)
+          .order("updated_at", { ascending: false }),
+      ])
 
-      let memberTeamsData: TeamRow[] | null = null
-      if (membershipRows && membershipRows.length > 0) {
-        const memberTeamIds = [...new Set((membershipRows as MembershipRow[]).map((m) => m.team_id).filter(Boolean))] as string[]
-        if (memberTeamIds.length > 0) {
-          const { data } = await supabase
-            .from("teams")
-            .select("*, team_members(count)")
-            .in("id", memberTeamIds)
-          memberTeamsData = (data ?? null) as TeamRow[] | null
+      const memberTeamIds = [
+        ...new Set((membershipRows as MembershipRow[] | null)?.map((m) => m.team_id).filter(Boolean) ?? []),
+      ] as string[]
+
+      let teamsQuery = supabase.from("teams").select("*, team_members(count)")
+      if (memberTeamIds.length > 0) {
+        teamsQuery = teamsQuery.or(`user_id.eq.${uid},id.in.(${memberTeamIds.join(",")})`)
+      } else {
+        teamsQuery = teamsQuery.eq("user_id", uid)
+      }
+      const { data: allTeamsRows } = await teamsQuery
+
+      const merged = new Map<string, TeamData>()
+      for (const t of (allTeamsRows ?? []) as TeamRow[]) {
+        merged.set(t.id, mapTeamRow(t, uid))
+      }
+      setTeams(Array.from(merged.values()))
+
+      const senderIds = [...new Set(((appsData || []) as ApplicationRow[]).map((a) => a.sender_id).filter(Boolean))]
+      const profileMap: Record<string, { username?: string; avatar_url?: string }> = {}
+      if (senderIds.length > 0) {
+        const { data: profilesData } = await supabase
+          .from("profiles")
+          .select("id, username, avatar_url")
+          .in("id", senderIds)
+        for (const p of profilesData || []) {
+          profileMap[p.id] = { username: p.username, avatar_url: p.avatar_url ?? undefined }
         }
       }
 
-    const { data: appsData } = await supabase
-      .from("join_requests")
-      .select("*, target_role, teams!inner(team_name, user_id)")
-      .eq("teams.user_id", authSession.user.id)
-      .eq("status", "pending")
-      .eq("type", "application")
-
-    // Fetch sender profiles for username and avatar
-    const senderIds = [...new Set(((appsData || []) as ApplicationRow[]).map((a) => a.sender_id).filter(Boolean))]
-    const profileMap: Record<string, { username?: string; avatar_url?: string }> = {}
-    if (senderIds.length > 0) {
-      const { data: profilesData } = await supabase
-        .from("profiles")
-        .select("id, username, avatar_url")
-        .in("id", senderIds)
-      for (const p of profilesData || []) {
-        profileMap[p.id] = { username: p.username, avatar_url: p.avatar_url ?? undefined }
-      }
-    }
-
-    const { data: rawInvitesData } = await supabase
-      .from("join_requests")
-      .select("id, team_id, status, target_role, teams(team_name, game_name, discord_link)")
-      .eq("sender_id", authSession.user.id)
-      .eq("status", "pending")
-      .eq("type", "invitation")
-
-    const { data: sentAppsData } = await supabase
-      .from("join_requests")
-      .select("id, status, target_role, teams(team_name, discord_link)")
-      .eq("sender_id", authSession.user.id)
-      .eq("type", "application")
-
-    const { data: profileData } = await supabase
-      .from("profiles")
-      .select(
-        "id, has_completed_onboarding, onboarding_version, jam_id, username, avatar_url, discord_username, default_role, default_engine, engine, default_language, portfolio_url, xp, current_title",
-      )
-      .eq("id", authSession.user.id)
-      .maybeSingle()
-
-    const ownedTeams = ((teamsData ?? []) as TeamRow[]).map((t) => mapTeamRow(t, authSession.user.id))
-    const memberTeams = (memberTeamsData ?? []).map((t) => mapTeamRow(t, authSession.user.id))
-    const merged = new Map<string, TeamData>()
-    for (const team of [...ownedTeams, ...memberTeams]) {
-      merged.set(team.id, team)
-    }
-    setTeams(Array.from(merged.values()))
-
-    const profilePrefs = profileData as {
-      default_role?: string | null
-      default_engine?: string | null
-      engine?: string | null
-    } | null
-    const { teams: smartMatches } = await getRecommendedTeams({
-      id: authSession.user.id,
+      const profilePrefs = profileData as {
+        default_role?: string | null
+        default_engine?: string | null
+        engine?: string | null
+      } | null
+      const { teams: smartMatches } = await getRecommendedTeams({
+        id: uid,
       default_role: profilePrefs?.default_role ?? null,
       default_engine: profilePrefs?.default_engine ?? null,
       profile_engine: profilePrefs?.engine ?? null,
-      excludeTeamIds: Array.from(merged.keys()),
-    })
-    setRecommendedTeams(smartMatches)
+        excludeTeamIds: Array.from(merged.keys()),
+      })
+      setRecommendedTeams(smartMatches)
 
-    // Show the new onboarding wizard: when no profile yet (new user), or when
-    // onboarding was never completed, or when they completed an older version.
-    if (!profileData) {
-      setShowOnboardingModal(true)
-    } else {
-      const hasCompletedOnboarding = profileData.has_completed_onboarding === true
-      const onboardingVersion = (profileData as { onboarding_version?: number | null }).onboarding_version ?? 0
-      setShowOnboardingModal(!hasCompletedOnboarding || onboardingVersion < CURRENT_ONBOARDING_VERSION)
-    }
+      // Show the new onboarding wizard: when no profile yet (new user), or when
+      // onboarding was never completed, or when they completed an older version.
+      if (!profileData) {
+        setShowOnboardingModal(true)
+      } else {
+        const hasCompletedOnboarding = profileData.has_completed_onboarding === true
+        const onboardingVersion = (profileData as { onboarding_version?: number | null }).onboarding_version ?? 0
+        setShowOnboardingModal(!hasCompletedOnboarding || onboardingVersion < CURRENT_ONBOARDING_VERSION)
+      }
 
-    const meta = authSession.user.user_metadata as Record<string, string> | undefined
-    const sessionAvatarUrl =
-      profileData?.avatar_url?.trim() ||
-      meta?.avatar_url ||
-      meta?.picture ||
-      null
+      const meta = authSession.user.user_metadata as Record<string, string> | undefined
+      const sessionAvatarUrl =
+        profileData?.avatar_url?.trim() ||
+        meta?.avatar_url ||
+        meta?.picture ||
+        null
 
-    setProfile(
-      profileData
-        ? {
-            id: (profileData as { id: string }).id ?? authSession.user.id,
-            username: profileData.username,
-            discord_username: (profileData as { discord_username?: string | null }).discord_username,
-            avatar_url: sessionAvatarUrl || profileData.avatar_url,
-            default_role: (profileData as { default_role?: string | null }).default_role,
-            default_engine: (profileData as { default_engine?: string | null }).default_engine,
-            default_language: (profileData as { default_language?: string | null }).default_language,
-            portfolio_url: (profileData as { portfolio_url?: string | null }).portfolio_url,
-            xp: typeof (profileData as { xp?: number | null }).xp === "number" ? (profileData as { xp: number }).xp : 0,
-            current_title: (profileData as { current_title?: string | null }).current_title ?? null,
-          }
-        : authSession.user
+      setProfile(
+        profileData
           ? {
-              id: authSession.user.id,
-              username: null,
-              discord_username: null,
-              avatar_url: (authSession.user.user_metadata as Record<string, string> | undefined)?.avatar_url ??
-                (authSession.user.user_metadata as Record<string, string> | undefined)?.picture ??
-                null,
-              default_role: null,
-              default_engine: null,
-              default_language: null,
-              portfolio_url: null,
-              xp: 0,
-              current_title: null,
+              id: (profileData as { id: string }).id ?? authSession.user.id,
+              username: profileData.username,
+              discord_username: (profileData as { discord_username?: string | null }).discord_username,
+              avatar_url: sessionAvatarUrl || profileData.avatar_url,
+              default_role: (profileData as { default_role?: string | null }).default_role,
+              default_engine: (profileData as { default_engine?: string | null }).default_engine,
+              default_language: (profileData as { default_language?: string | null }).default_language,
+              portfolio_url: (profileData as { portfolio_url?: string | null }).portfolio_url,
+              xp: typeof (profileData as { xp?: number | null }).xp === "number" ? (profileData as { xp: number }).xp : 0,
+              current_title: (profileData as { current_title?: string | null }).current_title ?? null,
             }
-          : null
-    )
+          : authSession.user
+            ? {
+                id: authSession.user.id,
+                username: null,
+                discord_username: null,
+                avatar_url: (authSession.user.user_metadata as Record<string, string> | undefined)?.avatar_url ??
+                  (authSession.user.user_metadata as Record<string, string> | undefined)?.picture ??
+                  null,
+                default_role: null,
+                default_engine: null,
+                default_language: null,
+                portfolio_url: null,
+                xp: 0,
+                current_title: null,
+              }
+            : null,
+      )
 
-    const { data: postsData } = await supabase
-      .from("availability_posts")
-      .select("id, user_id, availability, role, experience, jam_style, engine, language, bio, portfolio_link")
-      .eq("user_id", authSession.user.id)
-      .order("updated_at", { ascending: false })
+      const profile = profileData as { username?: string | null; avatar_url?: string | null } | null
+      const profileUsername = profile?.username?.trim() ?? null
+      const profileAvatarUrl = sessionAvatarUrl ?? profile?.avatar_url?.trim() ?? null
 
-    const profile = profileData as { username?: string | null; avatar_url?: string | null } | null
-    const profileUsername = profile?.username?.trim() ?? null
-    const profileAvatarUrl = sessionAvatarUrl ?? profile?.avatar_url?.trim() ?? null
+      let postsWithJam: AvailabilityPostRow[] = ((postsData ?? []) as Record<string, unknown>[]).map((p) => ({
+        ...p,
+        username: profileUsername,
+        avatar_url: profileAvatarUrl,
+      })) as AvailabilityPostRow[]
 
-    let postsWithJam: AvailabilityPostRow[] = ((postsData ?? []) as Record<string, unknown>[]).map((p) => ({
-      ...p,
-      username: profileUsername,
-      avatar_url: profileAvatarUrl,
-    })) as AvailabilityPostRow[]
+      const jamId = (profileData as { jam_id?: string | null } | null)?.jam_id ?? null
+      const [kudosRpcResult, jamLookupResult] = await Promise.all([
+        supabase.rpc("get_kudos_counts_for_users", { p_user_ids: [uid] }),
+        jamId
+          ? supabase.from("external_jams").select("id, title, url").eq("id", jamId).maybeSingle()
+          : Promise.resolve({ data: null }),
+      ])
+      const kudosMap = kudosCountsMapFromRpcRows(
+        (kudosRpcResult.data ?? []) as { receiver_id: string; category: string; cnt: number | string }[],
+      )
+      const myKudosCounts = kudosMap.get(uid) ?? null
+      postsWithJam = postsWithJam.map((p) => ({ ...p, kudosCounts: myKudosCounts }))
 
-    const { data: kudosRpcRows } = await supabase.rpc("get_kudos_counts_for_users", {
-      p_user_ids: [authSession.user.id],
-    })
-    const kudosMap = kudosCountsMapFromRpcRows(
-      (kudosRpcRows ?? []) as { receiver_id: string; category: string; cnt: number | string }[],
-    )
-    const myKudosCounts = kudosMap.get(authSession.user.id) ?? null
-    postsWithJam = postsWithJam.map((p) => ({ ...p, kudosCounts: myKudosCounts }))
-
-    const jamId = (profileData as { jam_id?: string | null } | null)?.jam_id ?? null
-    if (jamId) {
-      const { data: jamData } = await supabase
-        .from("external_jams")
-        .select("id, title, url")
-        .eq("id", jamId)
-        .maybeSingle()
+      const jamData = jamLookupResult.data as { id: string; title: string | null; url: string | null } | null
       if (jamData) {
         const jam: JamInfo = { id: jamData.id, title: jamData.title ?? null, url: jamData.url ?? null }
         postsWithJam = postsWithJam.map((p) => ({ ...p, jam }))
       }
-    }
-    setAvailabilityPosts(postsWithJam)
-    if (appsData) setApplications((appsData as ApplicationRow[]).map((r) => mapApplicationRow(r, profileMap)))
-    if (rawInvitesData) setInvitations((rawInvitesData as InvitationRow[]).map(mapInvitationRow))
-    if (sentAppsData) {
-      setSentApplications(
-        (sentAppsData as SentApplicationRow[]).map((a) => {
-          const t = Array.isArray(a.teams) ? a.teams[0] ?? undefined : a.teams ?? undefined
-          return {
-            id: a.id,
-            status: a.status,
-            target_role: a.target_role ?? undefined,
-            teams: t
-              ? { team_name: t.team_name ?? undefined, discord_link: t.discord_link ?? undefined }
-              : undefined,
-          }
-        }),
-      )
-    }
+      setAvailabilityPosts(postsWithJam)
+      if (appsData) setApplications((appsData as ApplicationRow[]).map((r) => mapApplicationRow(r, profileMap)))
+      if (rawInvitesData) setInvitations((rawInvitesData as InvitationRow[]).map(mapInvitationRow))
+      if (sentAppsData) {
+        setSentApplications(
+          (sentAppsData as SentApplicationRow[]).map((a) => {
+            const t = Array.isArray(a.teams) ? a.teams[0] ?? undefined : a.teams ?? undefined
+            return {
+              id: a.id,
+              status: a.status,
+              target_role: a.target_role ?? undefined,
+              teams: t
+                ? { team_name: t.team_name ?? undefined, discord_link: t.discord_link ?? undefined }
+                : undefined,
+            }
+          }),
+        )
+      }
 
       if (authSession.user && !dailyXpClaimRef.current) {
         dailyXpClaimRef.current = true

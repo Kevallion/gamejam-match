@@ -1,6 +1,24 @@
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { AuthCodeErrorClient } from './auth-code-error-client'
+import type { Metadata } from "next"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { AuthCodeErrorClient } from "./auth-code-error-client"
+
+export const metadata: Metadata = {
+  title: "Sign-in error — GameJamCrew",
+  description:
+    "Something went wrong while signing in with Discord. Troubleshooting tips for GameJamCrew authentication.",
+  robots: { index: false, follow: false },
+  openGraph: {
+    title: "Sign-in error — GameJamCrew",
+    description: "Something went wrong while signing in. See how to fix common Discord / Supabase issues.",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "Sign-in error — GameJamCrew",
+    description: "Something went wrong while signing in. See how to fix common Discord / Supabase issues.",
+  },
+}
 
 const REASON_MESSAGES: Record<string, string> = {
   no_code:

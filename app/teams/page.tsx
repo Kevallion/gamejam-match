@@ -6,6 +6,18 @@ import { HomeShell } from "@/components/home-shell"
 export const metadata: Metadata = {
   title: "Find a Squad",
   description: "Browse open game jam teams looking for developers, artists, audio designers and more. Find your perfect jam squad.",
+  openGraph: {
+    title: "Find a Squad — GameJamCrew",
+    description:
+      "Browse open game jam teams looking for developers, artists, audio designers and more. Find your perfect jam squad.",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Find a Squad — GameJamCrew",
+    description:
+      "Browse open game jam teams looking for developers, artists, audio designers and more. Find your perfect jam squad.",
+  },
 }
 
 export default function TeamsBrowsePage() {

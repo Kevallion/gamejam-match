@@ -30,12 +30,14 @@ export async function generateMetadata({
       title,
       description,
       type: "website",
-      siteName: "GameJam Crew",
+      siteName: "GameJamCrew",
+      images: ["/og-image.png"],
     },
     twitter: {
       card: "summary_large_image",
       title,
       description,
+      images: ["/og-image.png"],
     },
   }
 }

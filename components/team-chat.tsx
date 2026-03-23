@@ -213,7 +213,7 @@ export function TeamChat({ teamId, currentUserId }: TeamChatProps) {
       })
 
     return () => {
-      channel.unsubscribe()
+      void supabase.removeChannel(channel)
     }
   }, [teamId, buildMessageFromRow])
 

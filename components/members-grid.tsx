@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { JammerCard, type JammerCardData, type SquadOption } from "@/components/player-card"
 import { Button } from "@/components/ui/button"
+import { Skeleton } from "@/components/ui/skeleton"
 import { Loader2 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { toast } from "sonner"
@@ -260,7 +261,43 @@ export function MembersGrid({
     onResultsCountChange?.(displayedMembers.length)
   }, [displayedMembers.length, onResultsCountChange])
 
-  if (loading) return <div className="text-center py-20 text-muted-foreground">Loading jammers...</div>
+  if (loading) {
+    return (
+      <section className="px-4 pb-16 pt-4 sm:px-6 lg:pb-24" aria-busy="true" aria-label="Loading jammers">
+        <div className="mx-auto w-full max-w-6xl">
+          <div className="mb-6 flex items-center justify-between">
+            <Skeleton className="h-5 w-56 rounded-md" />
+          </div>
+          <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {Array.from({ length: 9 }).map((_, i) => (
+              <div
+                key={i}
+                className="flex min-h-[320px] flex-col gap-4 rounded-xl border border-border/60 bg-card/40 p-4 sm:p-6"
+              >
+                <div className="flex items-center gap-3.5">
+                  <Skeleton className="size-12 shrink-0 rounded-full" />
+                  <div className="flex flex-1 flex-col gap-2">
+                    <Skeleton className="h-5 w-3/5 max-w-[180px]" />
+                    <Skeleton className="h-4 w-2/5 max-w-[120px]" />
+                  </div>
+                  <Skeleton className="size-8 shrink-0 rounded-full" />
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Skeleton className="h-7 w-24 rounded-full" />
+                  <Skeleton className="h-7 w-20 rounded-full" />
+                </div>
+                <Skeleton className="h-16 w-full rounded-lg" />
+                <div className="mt-auto flex gap-2">
+                  <Skeleton className="h-9 flex-1 rounded-xl" />
+                  <Skeleton className="h-9 flex-1 rounded-xl" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    )
+  }
 
   return (
     <section className="px-4 pb-16 pt-4 sm:px-6 lg:pb-24">

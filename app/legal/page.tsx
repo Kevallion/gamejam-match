@@ -3,9 +3,21 @@ import type { Metadata } from "next"
 import Link from "next/link"
 
 export const metadata: Metadata = {
-  title: "Legal",
+  title: "Legal — GameJamCrew",
   description:
     "Legal notices for GameJamCrew — publisher, hosting, and terms of use of the platform.",
+  openGraph: {
+    title: "Legal — GameJamCrew",
+    description:
+      "Legal notices for GameJamCrew — publisher, hosting, and terms of use of the platform.",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "Legal — GameJamCrew",
+    description:
+      "Legal notices for GameJamCrew — publisher, hosting, and terms of use of the platform.",
+  },
 }
 
 export default function LegalPage() {

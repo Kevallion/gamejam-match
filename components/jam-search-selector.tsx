@@ -1,9 +1,11 @@
 "use client"
 
 import * as React from "react"
+import Image from "next/image"
 import { Check, ChevronsUpDown, Loader2, X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
+import { externalImageNeedsUnoptimized } from "@/lib/external-image"
 import { Button } from "@/components/ui/button"
 import {
   Command,
@@ -85,10 +87,14 @@ export function JamSearchSelector({
             {selectedJam ? (
               <span className="flex items-center gap-2">
                 {selectedJam.thumbnail_url && (
-                  <img
+                  <Image
                     src={selectedJam.thumbnail_url}
                     alt=""
-                    className="size-6 rounded object-cover shrink-0"
+                    width={24}
+                    height={24}
+                    className="size-6 shrink-0 rounded object-cover"
+                    unoptimized={externalImageNeedsUnoptimized(selectedJam.thumbnail_url)}
+                    sizes="24px"
                   />
                 )}
                 {selectedJam.title || "Untitled"}
@@ -157,10 +163,14 @@ export function JamSearchSelector({
                   >
                     <span className="flex items-center gap-2 truncate">
                       {jam.thumbnail_url && (
-                        <img
+                        <Image
                           src={jam.thumbnail_url}
                           alt=""
-                          className="size-8 rounded object-cover shrink-0"
+                          width={32}
+                          height={32}
+                          className="size-8 shrink-0 rounded object-cover"
+                          unoptimized={externalImageNeedsUnoptimized(jam.thumbnail_url)}
+                          sizes="32px"
                         />
                       )}
                       <span className="truncate">{jam.title || "Untitled"}</span>

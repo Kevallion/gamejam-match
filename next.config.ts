@@ -18,6 +18,16 @@ const nextConfig: NextConfig = {
         hostname: "lh3.googleusercontent.com",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "img.itch.zone",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "cdn.itch.io",
+        pathname: "/**",
+      },
     ],
   },
 };

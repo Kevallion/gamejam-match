@@ -27,9 +27,21 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const supabase = await createClient()
   const { data } = await supabase.from("profiles").select("username").eq("id", userId).maybeSingle()
   const name = data?.username?.trim() || "Jammer"
+  const title = `${name} — GameJamCrew`
+  const description = `View ${name}'s public jammer profile, level, and badges on GameJamCrew.`
   return {
-    title: `${name} — GameJamCrew`,
-    description: `View ${name}'s public jammer profile, level, and badges on GameJamCrew.`,
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+    },
   }
 }
 
