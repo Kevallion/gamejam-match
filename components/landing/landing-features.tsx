@@ -3,48 +3,49 @@
 import { motion, useInView } from "framer-motion"
 import { useRef } from "react"
 import { 
-  Brain,
+  Target,
   MessageCircle,
   Trophy,
   Sparkles,
   Users,
   Zap,
-  Target,
   Star,
-  Award
+  Award,
+  Filter,
+  Languages
 } from "lucide-react"
 
 const features = [
   {
-    icon: Brain,
+    icon: Target,
     title: "Smart Matchmaking",
-    description: "Our intelligent algorithm pairs you with jammers who complement your skills, match your experience level, and speak your language.",
+    description: "Find teammates who complement your skills and match your experience level. Filter by role, engine, language, and availability to discover your perfect squad.",
     color: "from-teal to-primary",
     bgColor: "bg-teal/10",
     iconColor: "text-teal",
     highlights: [
-      { icon: Target, label: "Skill-based matching" },
-      { icon: Users, label: "Team chemistry" },
-      { icon: Sparkles, label: "Role compatibility" },
+      { icon: Filter, label: "Skill-based filters" },
+      { icon: Users, label: "Team compatibility" },
+      { icon: Languages, label: "Language matching" },
     ],
   },
   {
     icon: MessageCircle,
     title: "In-App Messaging",
-    description: "Chat directly with potential teammates, coordinate project details, and build connections — all without leaving the platform.",
+    description: "Coordinate with potential teammates directly on the platform. Send invites, discuss project ideas, and build connections without switching apps.",
     color: "from-peach to-pink",
     bgColor: "bg-peach/10",
     iconColor: "text-peach",
     highlights: [
       { icon: Zap, label: "Real-time chat" },
       { icon: Users, label: "Team channels" },
-      { icon: Star, label: "Rich notifications" },
+      { icon: Star, label: "Invite system" },
     ],
   },
   {
     icon: Trophy,
     title: "RPG Gamification",
-    description: "Level up as you participate in jams, earn XP for team activities, unlock exclusive titles, and showcase your progression on your profile.",
+    description: "Level up as you participate in jams, earn XP for completing projects, unlock exclusive titles, and showcase your progression on your profile.",
     color: "from-lavender to-primary",
     bgColor: "bg-lavender/10",
     iconColor: "text-lavender",
@@ -104,10 +105,10 @@ export function LandingFeatures() {
           <h2 className="text-balance text-3xl font-extrabold tracking-tight text-foreground md:text-4xl lg:text-5xl">
             Everything you need to
             <br />
-            <span className="text-primary">win your next jam</span>
+            <span className="text-primary">dominate your next jam</span>
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-pretty text-lg leading-relaxed text-muted-foreground">
-            Three core features designed to make team building effortless and game development fun.
+            Three core features designed to make team building effortless and game development more fun.
           </p>
         </motion.div>
 
@@ -118,7 +119,7 @@ export function LandingFeatures() {
           animate={isInView ? "visible" : "hidden"}
           className="grid gap-6 lg:grid-cols-3"
         >
-          {features.map((feature, index) => (
+          {features.map((feature) => (
             <motion.div
               key={feature.title}
               variants={cardVariants}
@@ -162,25 +163,17 @@ export function LandingFeatures() {
           ))}
         </motion.div>
 
-        {/* Bottom stats */}
+        {/* Bottom tagline */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
           transition={{ duration: 0.6, delay: 0.6 }}
-          className="mt-16 flex flex-wrap items-center justify-center gap-8 rounded-2xl border border-border/40 bg-card/50 p-6 lg:gap-16"
+          className="mt-16 text-center"
         >
-          {[
-            { value: "90%", label: "Match satisfaction" },
-            { value: "< 24h", label: "Avg. team formation" },
-            { value: "4.9/5", label: "User rating" },
-          ].map((stat) => (
-            <div key={stat.label} className="text-center">
-              <p className="text-3xl font-extrabold text-foreground lg:text-4xl">
-                {stat.value}
-              </p>
-              <p className="text-sm text-muted-foreground">{stat.label}</p>
-            </div>
-          ))}
+          <p className="text-muted-foreground">
+            Built by jammers, for jammers. 
+            <span className="ml-1 font-semibold text-foreground">No endless scrolling through Discord servers.</span>
+          </p>
         </motion.div>
       </div>
     </section>

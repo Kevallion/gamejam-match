@@ -2,7 +2,7 @@
 
 import { motion, useInView } from "framer-motion"
 import { useRef } from "react"
-import { ArrowRight, Gamepad2, Users, Sparkles, Zap, Star } from "lucide-react"
+import { ArrowRight, Gamepad2, Users, Zap, Star, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
@@ -67,7 +67,7 @@ export function LandingCTA() {
           
           {/* Card */}
           <div className="relative rounded-3xl border border-border/60 bg-card/80 backdrop-blur-xl p-8 md:p-12 lg:p-16 text-center">
-            {/* Floating badges */}
+            {/* Floating badge */}
             <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
@@ -76,7 +76,7 @@ export function LandingCTA() {
             >
               <div className="flex items-center gap-2 rounded-full border border-teal/40 bg-card px-4 py-2 shadow-lg">
                 <Sparkles className="size-4 text-teal" />
-                <span className="text-sm font-semibold text-foreground">Join 500+ jammers</span>
+                <span className="text-sm font-semibold text-foreground">Your next jam awaits</span>
               </div>
             </motion.div>
 
@@ -158,7 +158,7 @@ export function LandingCTA() {
               <div className="h-4 w-px bg-border" />
               <div className="flex items-center gap-2">
                 <Star className="size-4 text-peach" />
-                <span>No credit card required</span>
+                <span>No credit card</span>
               </div>
               <div className="h-4 w-px bg-border" />
               <div className="flex items-center gap-2">

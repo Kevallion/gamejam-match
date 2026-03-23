@@ -1,7 +1,7 @@
 "use client"
 
 import { motion } from "framer-motion"
-import { ArrowRight, Sparkles, Zap } from "lucide-react"
+import { ArrowRight, Sparkles, Gamepad2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
@@ -73,11 +73,7 @@ export function LandingHero() {
           className="mb-6 inline-flex items-center gap-2 rounded-full border border-teal/30 bg-teal/10 px-4 py-1.5 text-sm font-medium text-teal"
         >
           <Sparkles className="size-4" />
-          <span>Level up your game jam experience</span>
-          <span className="flex items-center gap-1 rounded-full bg-teal/20 px-2 py-0.5 text-xs font-bold">
-            <Zap className="size-3" />
-            +500 XP
-          </span>
+          <span>The ultimate game jam team builder</span>
         </motion.div>
 
         {/* Headline */}
@@ -101,8 +97,8 @@ export function LandingHero() {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="mx-auto mt-6 max-w-2xl text-pretty text-lg leading-relaxed text-muted-foreground md:text-xl"
         >
-          The smart way to find your perfect game jam squad. Connect with developers, artists, and composers — 
-          powered by AI matchmaking and RPG-style progression.
+          Find your perfect game jam squad. Connect with developers, artists, and composers 
+          who share your vision and complement your skills.
         </motion.p>
 
         {/* CTA Buttons */}
@@ -134,33 +130,33 @@ export function LandingHero() {
           </Button>
         </motion.div>
 
-        {/* Social proof */}
+        {/* Social proof - aspirational, no specific numbers */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.5 }}
-          className="mt-16 flex flex-wrap items-center justify-center gap-8 text-sm text-muted-foreground"
+          className="mt-16 flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground"
         >
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <div className="flex -space-x-2">
-              {[...Array(4)].map((_, i) => (
+              {[
+                "from-teal/50 to-primary/50",
+                "from-peach/50 to-pink/50",
+                "from-lavender/50 to-primary/50",
+                "from-mint/50 to-teal/50",
+              ].map((gradient, i) => (
                 <div
                   key={i}
-                  className="size-8 rounded-full border-2 border-background bg-gradient-to-br from-teal/40 to-lavender/40"
+                  className={`size-9 rounded-full border-2 border-background bg-gradient-to-br ${gradient}`}
                 />
               ))}
             </div>
-            <span className="font-medium">500+ jammers</span>
+            <span className="font-medium text-foreground">Join the community</span>
           </div>
-          <div className="hidden h-4 w-px bg-border sm:block" />
+          <div className="hidden h-5 w-px bg-border sm:block" />
           <div className="flex items-center gap-2">
-            <span className="font-bold text-teal">100+</span>
-            <span>teams formed</span>
-          </div>
-          <div className="hidden h-4 w-px bg-border sm:block" />
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-peach">50+</span>
-            <span>jams supported</span>
+            <Gamepad2 className="size-4 text-teal" />
+            <span>Ludum Dare, GMTK, Game Off & more</span>
           </div>
         </motion.div>
       </div>

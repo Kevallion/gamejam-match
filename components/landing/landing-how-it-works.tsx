@@ -9,17 +9,17 @@ const steps = [
     number: "01",
     icon: UserCircle,
     title: "Create Your Profile",
-    description: "Set up your jammer profile with your skills, preferred engines, experience level, and the roles you're looking to fill or play.",
+    description: "Set up your jammer profile with your skills, preferred engines, experience level, and the roles you want to play or are seeking.",
     color: "teal",
-    details: ["Add your skills & expertise", "Set your availability", "Choose preferred engines"],
+    details: ["Showcase your skills", "Set your availability", "Choose preferred engines"],
   },
   {
     number: "02",
     icon: Search,
     title: "Find Your Team",
-    description: "Browse teams looking for members or post your own squad. Use smart filters to find the perfect match for your playstyle.",
+    description: "Browse teams looking for members or post your own squad. Use filters to find the perfect match for your playstyle and goals.",
     color: "peach",
-    details: ["Smart matchmaking", "Advanced filters", "Direct messaging"],
+    details: ["Browse open teams", "Filter by role & engine", "Send direct invites"],
   },
   {
     number: "03",
@@ -27,7 +27,7 @@ const steps = [
     title: "Jam Together",
     description: "Connect with your teammates, coordinate your jam strategy, and ship an amazing game. Level up and earn XP along the way!",
     color: "lavender",
-    details: ["Real-time coordination", "Progress tracking", "Earn XP rewards"],
+    details: ["Real-time coordination", "Track your progress", "Earn XP rewards"],
   },
 ]
 
