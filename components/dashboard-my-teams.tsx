@@ -152,7 +152,6 @@ export function DashboardMyTeams({
     return () => {
       cancelled = true
     }
-    // Eligible teams fingerprinted by `suggestionsFetchKey` (not `teams` ref) to avoid duplicate fetches.
   }, [suggestionsFetchKey])
 
   async function handleInviteFromModal(team: TeamData, player: SuggestedPlayer) {
@@ -172,7 +171,7 @@ export function DashboardMyTeams({
         inviteeUsername: player.username,
         targetRole: player.role,
         message:
-          "We spotted you on Find Members — we’d love to have you on the squad. Check your dashboard to accept or decline.",
+          "We spotted you on Find Members — we'd love to have you on the squad. Check your dashboard to accept or decline.",
       })
 
       if (!result.success) {
@@ -183,7 +182,7 @@ export function DashboardMyTeams({
         showGamificationRewards("INVITE_MEMBER", result.gamification)
       }
 
-      toast.success("👀 Invitation sent!")
+      toast.success("Invitation sent!")
 
       setSuggestionCache((prev) => {
         const entry = prev[team.id]
@@ -211,71 +210,71 @@ export function DashboardMyTeams({
 
   return (
     <section>
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-extrabold text-foreground">
-            My Teams
-          </h2>
+          <h2 className="text-xl font-extrabold text-foreground">My Teams</h2>
           <p className="mt-0.5 text-sm text-muted-foreground">
             Teams you{"'"}ve created or joined
           </p>
         </div>
         <Button
           asChild
-          className="gap-2 rounded-xl bg-primary text-primary-foreground hover:bg-primary/85"
+          size="sm"
+          className="gap-1.5 rounded-xl bg-primary text-primary-foreground hover:bg-primary/85"
         >
           <Link href="/create-team">
-            <Rocket className="size-4" />
-            Create New Team
+            <Rocket className="size-3.5" />
+            New Team
           </Link>
         </Button>
       </div>
 
       {teams.length === 0 ? (
-        <Card className="flex flex-col items-center gap-3 rounded-2xl border-border/50 bg-card px-6 py-12 text-center">
-          <PenLine className="size-8 text-muted-foreground/50" />
+        <Card className="flex flex-col items-center gap-3 rounded-2xl border-border/50 bg-card px-6 py-10 text-center">
+          <PenLine className="size-7 text-muted-foreground/50" />
           <p className="text-sm text-muted-foreground">
             You haven{"'"}t created any teams yet.
           </p>
           <Button
             asChild
             variant="outline"
-            className="mt-2 gap-2 rounded-xl border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
+            size="sm"
+            className="gap-2 rounded-xl border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
           >
             <Link href="/create-team">Post your first team</Link>
           </Button>
         </Card>
       ) : (
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {teams.map((team) => (
             <Card
               key={team.id}
-              className="group relative flex flex-col rounded-2xl border-border/50 bg-card transition-all duration-300 hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5"
+              className="group relative flex flex-col rounded-2xl border-border/50 bg-card transition-all duration-200 hover:border-primary/30 hover:shadow-md hover:shadow-primary/5"
             >
-              <CardHeader className="gap-3 pb-0">
+              <CardHeader className="gap-2 pb-0 pt-4 px-4">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 flex-1">
-                    <h3 className="truncate text-lg font-bold text-foreground">
+                    <h3 className="truncate text-base font-bold text-foreground">
                       {team.name}
                     </h3>
-                    <p className="mt-0.5 text-sm font-medium text-primary">
+                    <p className="mt-0.5 text-xs font-medium text-primary truncate">
                       {team.jam}
                     </p>
                   </div>
-                  <div className="flex flex-col items-end gap-1">
+                  <div className="flex shrink-0 items-center gap-1.5">
                     <Badge
                       variant="outline"
-                      className={`shrink-0 rounded-full border-border/60 text-[10px] font-semibold ${
+                      className={`rounded-full text-[10px] font-semibold px-2 py-0.5 ${
                         team.isOwner
                           ? "border-primary/30 bg-primary/10 text-primary"
-                          : "bg-muted text-muted-foreground"
+                          : "border-border/60 bg-muted text-muted-foreground"
                       }`}
                     >
                       {team.isOwner ? "Leader" : "Member"}
                     </Badge>
                     <Badge
                       variant="outline"
-                      className="shrink-0 rounded-full border-border/60 text-xs text-muted-foreground"
+                      className="rounded-full border-border/60 text-[10px] text-muted-foreground px-2 py-0.5"
                     >
                       <Users className="mr-1 size-3" />
                       {team.members}/{team.maxMembers}
@@ -284,161 +283,180 @@ export function DashboardMyTeams({
                 </div>
               </CardHeader>
 
-              <CardContent className="flex flex-1 flex-col gap-3 pt-3">
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
-                  <span className="inline-flex items-center gap-1.5">
-                    <Cpu className="size-3.5 text-lavender" />
+              <CardContent className="flex flex-1 flex-col gap-2.5 pt-3 px-4">
+                {/* Engine + language row */}
+                <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                  <span className="inline-flex items-center gap-1">
+                    <Cpu className="size-3 text-lavender" />
                     {team.engine}
                   </span>
-                  <span className="inline-flex items-center gap-1.5">
-                    <Globe className="size-3.5 text-teal" />
+                  <span className="inline-flex items-center gap-1">
+                    <Globe className="size-3 text-teal" />
                     {team.language}
                   </span>
                 </div>
 
-                <p className="flex-1 text-sm leading-relaxed text-muted-foreground line-clamp-2">
+                {/* Description */}
+                <p className="flex-1 text-xs leading-relaxed text-muted-foreground line-clamp-2">
                   {team.description}
                 </p>
 
-                <div className="flex flex-wrap gap-1.5">
+                {/* Role + level badges */}
+                <div className="flex flex-wrap gap-1">
                   <span
-                    className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${team.level.color}`}
+                    className={`inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[10px] font-semibold ${team.level.color}`}
                   >
                     {team.level.emoji} {team.level.label}
                   </span>
                   {team.roles.map((role, roleIdx) => (
                     <span
                       key={`${role.label}-${roleIdx}`}
-                      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${role.color}`}
+                      className={`inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[10px] font-semibold ${role.color}`}
                     >
                       {role.emoji} {role.label}
                     </span>
                   ))}
                 </div>
-              </CardContent>
 
-              {team.isOwner &&
-              team.lookingForRoleKeys.length > 0 &&
-              suggestionCache[team.id] &&
-              !suggestionCache[team.id].loading &&
-              suggestionCache[team.id].players.length > 0 ? (
-                <div className="px-6 pb-2">
+                {/* Matches button */}
+                {team.isOwner &&
+                team.lookingForRoleKeys.length > 0 &&
+                suggestionCache[team.id] &&
+                !suggestionCache[team.id].loading &&
+                suggestionCache[team.id].players.length > 0 ? (
                   <Button
                     type="button"
                     variant="secondary"
-                    className="h-10 w-full gap-2 rounded-xl border border-teal-500/40 bg-secondary/90 font-semibold text-teal-600 shadow-sm hover:bg-teal-500/15 hover:text-teal-700 dark:text-teal-400 dark:hover:text-teal-300"
+                    size="sm"
+                    className="w-full gap-1.5 rounded-xl border border-teal-500/40 bg-secondary/90 text-xs font-semibold text-teal-600 hover:bg-teal-500/15 hover:text-teal-700 dark:text-teal-400 dark:hover:text-teal-300"
                     onClick={() => setTeamMatchesContext(team)}
                   >
-                    ✨ {suggestionCache[team.id].players.length} Matches Found
+                    <Sparkles className="size-3" />
+                    {suggestionCache[team.id].players.length} Matches Found
                   </Button>
-                </div>
-              ) : null}
+                ) : null}
+              </CardContent>
 
-              <CardFooter className="flex flex-col gap-2">
+              <CardFooter className="flex flex-col gap-1.5 px-4 pb-4 pt-1">
                 {team.isOwner ? (
                   <>
-                    <Button
-                      asChild
-                      variant="outline"
-                      className="w-full gap-2 rounded-xl border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
-                    >
-                      <Link href={`/teams/${team.id}`}>
-                        <MessageCircle className="size-4" />
-                        Open Squad Space
-                      </Link>
-                    </Button>
-                    <Button
-                      asChild
-                      variant="outline"
-                      className="w-full gap-2 rounded-xl border-border/60 text-foreground hover:bg-muted"
-                    >
-                      <Link href={`/teams/${team.id}/manage`}>
-                        <Settings className="size-4" />
-                        Manage Team
-                      </Link>
-                    </Button>
-                    {onRenew && (
+                    {/* Primary actions row */}
+                    <div className="flex w-full gap-1.5">
+                      <Button
+                        asChild
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 gap-1.5 rounded-xl border-primary/30 text-primary hover:bg-primary/10 hover:text-primary text-xs"
+                      >
+                        <Link href={`/teams/${team.id}`}>
+                          <MessageCircle className="size-3.5" />
+                          Squad Space
+                        </Link>
+                      </Button>
+                      <Button
+                        asChild
+                        variant="outline"
+                        size="sm"
+                        className="flex-1 gap-1.5 rounded-xl border-border/60 text-foreground hover:bg-muted text-xs"
+                      >
+                        <Link href={`/teams/${team.id}/manage`}>
+                          <Settings className="size-3.5" />
+                          Manage
+                        </Link>
+                      </Button>
+                    </div>
+                    {/* Secondary actions row */}
+                    <div className="flex w-full gap-1.5">
+                      {onRenew && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1 gap-1.5 rounded-xl border-primary/30 text-primary hover:bg-primary/10 hover:text-primary text-xs"
+                          onClick={async () => {
+                            setRenewingTeamId(team.id)
+                            try {
+                              await onRenew(team.id)
+                            } finally {
+                              setRenewingTeamId(null)
+                            }
+                          }}
+                          disabled={renewingTeamId === team.id}
+                        >
+                          <RotateCw className={`size-3.5 ${renewingTeamId === team.id ? "animate-spin" : ""}`} />
+                          {renewingTeamId === team.id ? "Renewing…" : "Renew"}
+                        </Button>
+                      )}
                       <Button
                         variant="outline"
-                        className="w-full gap-2 rounded-xl border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
-                        onClick={async () => {
-                          setRenewingTeamId(team.id)
-                          try {
-                            await onRenew(team.id)
-                          } finally {
-                            setRenewingTeamId(null)
-                          }
-                        }}
-                        disabled={renewingTeamId === team.id}
+                        size="sm"
+                        onClick={() => onDelete(team.id)}
+                        className="flex-1 gap-1.5 rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive text-xs"
                       >
-                        <RotateCw className={`size-4 ${renewingTeamId === team.id ? "animate-spin" : ""}`} />
-                        {renewingTeamId === team.id ? "Renewing…" : "Renew"}
+                        <Trash2 className="size-3.5" />
+                        Delete
                       </Button>
-                    )}
-                    <Button
-                      variant="outline"
-                      onClick={() => onDelete(team.id)}
-                      className="w-full gap-2 rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                    >
-                      <Trash2 className="size-4" />
-                      Delete Team
-                    </Button>
+                    </div>
                   </>
                 ) : (
                   <>
                     <Button
                       asChild
                       variant="outline"
-                      className="w-full gap-2 rounded-xl border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
+                      size="sm"
+                      className="w-full gap-1.5 rounded-xl border-primary/30 text-primary hover:bg-primary/10 hover:text-primary text-xs"
                     >
                       <Link href={`/teams/${team.id}`}>
-                        <MessageCircle className="size-4" />
+                        <MessageCircle className="size-3.5" />
                         Open Squad Space
                       </Link>
                     </Button>
-                    {team.discord_link ? (
-                      <Button
-                        asChild
-                        variant="outline"
-                        className="w-full gap-2 rounded-xl border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
-                      >
-                        <a
-                          href={team.discord_link}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                    <div className="flex w-full gap-1.5">
+                      {team.discord_link ? (
+                        <Button
+                          asChild
+                          variant="outline"
+                          size="sm"
+                          className="flex-1 gap-1.5 rounded-xl border-primary/30 text-primary hover:bg-primary/10 hover:text-primary text-xs"
                         >
-                          <Link2 className="size-4" />
-                          Team Discord
-                        </a>
-                      </Button>
-                    ) : (
-                      <p className="w-full text-center text-xs italic text-muted-foreground">
-                        No Discord link provided yet.
-                      </p>
-                    )}
-                    {onLeave && (
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="w-full gap-2 rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                        onClick={async () => {
-                          setLeavingTeamId(team.id)
-                          try {
-                            await onLeave(team.id)
-                          } finally {
-                            setLeavingTeamId(null)
-                          }
-                        }}
-                        disabled={leavingTeamId === team.id}
-                      >
-                        {leavingTeamId === team.id ? (
-                          <Loader2 className="size-4 animate-spin" />
-                        ) : (
-                          <UserMinus className="size-4" />
-                        )}
-                        Leave Squad
-                      </Button>
-                    )}
+                          <a
+                            href={team.discord_link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <Link2 className="size-3.5" />
+                            Discord
+                          </a>
+                        </Button>
+                      ) : (
+                        <p className="flex-1 text-center text-[10px] italic text-muted-foreground">
+                          No Discord link yet.
+                        </p>
+                      )}
+                      {onLeave && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="flex-1 gap-1.5 rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive text-xs"
+                          onClick={async () => {
+                            setLeavingTeamId(team.id)
+                            try {
+                              await onLeave(team.id)
+                            } finally {
+                              setLeavingTeamId(null)
+                            }
+                          }}
+                          disabled={leavingTeamId === team.id}
+                        >
+                          {leavingTeamId === team.id ? (
+                            <Loader2 className="size-3.5 animate-spin" />
+                          ) : (
+                            <UserMinus className="size-3.5" />
+                          )}
+                          Leave
+                        </Button>
+                      )}
+                    </div>
                   </>
                 )}
               </CardFooter>
@@ -447,6 +465,7 @@ export function DashboardMyTeams({
         </div>
       )}
 
+      {/* Suggested matches dialog */}
       <Dialog
         open={teamMatchesContext !== null}
         onOpenChange={(open) => {
@@ -513,10 +532,7 @@ export function DashboardMyTeams({
                               {p.username}
                             </span>
                             <span className="inline-flex min-w-0 max-w-full items-center gap-1 text-xs text-muted-foreground">
-                              <Globe
-                                className="size-3 shrink-0 text-teal/80"
-                                aria-hidden
-                              />
+                              <Globe className="size-3 shrink-0 text-teal/80" aria-hidden />
                               <span className="truncate">{langLine}</span>
                             </span>
                           </div>
