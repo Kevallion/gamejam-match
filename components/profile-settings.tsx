@@ -5,7 +5,8 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
-import { UserAvatar } from "@/components/user-avatar"
+import { ProfileCard } from "@/components/profile-card"
+import { levelFromTotalXp } from "@/lib/gamification-level"
 import { PushNotificationManager } from "@/components/push-notification-manager"
 import {
   AlertDialog,
@@ -49,6 +50,8 @@ export type ProfileSettingsProfile = {
   default_engine?: string | null
   default_language?: string | null
   portfolio_url?: string | null
+  xp?: number | null
+  current_title?: string | null
 }
 
 type ProfileSettingsProps = {
@@ -75,7 +78,16 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
     setDefaultEngine(profile?.default_engine?.trim() ?? "")
     setDefaultLanguage(profile?.default_language?.trim() ?? "")
     setPortfolioUrl(profile?.portfolio_url?.trim() ?? "")
-  }, [profile?.username, profile?.discord_username, profile?.default_role, profile?.default_engine, profile?.default_language, profile?.portfolio_url])
+  }, [
+    profile?.username,
+    profile?.discord_username,
+    profile?.default_role,
+    profile?.default_engine,
+    profile?.default_language,
+    profile?.portfolio_url,
+    profile?.xp,
+    profile?.current_title,
+  ])
 
   const trimmedUsername = username.trim()
   const usernameEmpty = trimmedUsername.length === 0
@@ -183,18 +195,21 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
 
           <Card className="border-border/50 bg-muted/30">
             <CardContent className="p-6 md:p-8">
-              {/* Avatar Section */}
-              <div className="mb-8 flex items-center gap-5">
-                <UserAvatar
-                  src={profile?.avatar_url ?? null}
-                  fallbackName={displayName}
+              {/* Avatar + jammer title / level */}
+              <div className="mb-8">
+                <ProfileCard
+                  avatarUrl={profile?.avatar_url ?? null}
+                  displayName={displayName}
+                  fallbackName={displayNameFallback ?? undefined}
+                  currentTitle={
+                    profile?.current_title?.trim()
+                      ? profile.current_title.trim()
+                      : "Rookie Jammer"
+                  }
+                  level={levelFromTotalXp(typeof profile?.xp === "number" ? profile.xp : 0)}
                   size="lg"
-                  className="size-20 shrink-0 rounded-2xl ring-2 ring-border/40 transition-shadow hover:ring-primary/30"
+                  subtitle="Your avatar is synced from your login provider"
                 />
-                <div className="space-y-1">
-                  <p className="text-lg font-medium text-foreground">{displayName}</p>
-                  <p className="text-sm text-muted-foreground">Your avatar is synced from your login provider</p>
-                </div>
               </div>
 
               {/* Form Fields */}

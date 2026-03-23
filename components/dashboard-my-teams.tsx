@@ -1,7 +1,9 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { notifyInviteeInvitation } from "@/app/actions/team-actions"
+import { sendTeamInvitation } from "@/app/actions/invite-actions"
+import { showGamificationRewards } from "@/components/gamification-reward-toasts"
+import { gamificationRewardHasToast } from "@/lib/gamification-reward-types"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -164,20 +166,23 @@ export function DashboardMyTeams({
         return
       }
 
-      const { error } = await supabase.from("join_requests").insert({
-        team_id: team.id,
-        sender_id: player.userId,
-        sender_name: player.username,
+      const result = await sendTeamInvitation({
+        teamId: team.id,
+        inviteeUserId: player.userId,
+        inviteeUsername: player.username,
+        targetRole: player.role,
         message:
           "We spotted you on Find Members — we’d love to have you on the squad. Check your dashboard to accept or decline.",
-        status: "pending",
-        type: "invitation",
-        target_role: player.role,
       })
 
-      if (error) throw error
+      if (!result.success) {
+        throw new Error(result.error)
+      }
 
-      void notifyInviteeInvitation(player.userId, team.name)
+      if (result.gamification && gamificationRewardHasToast(result.gamification)) {
+        showGamificationRewards("INVITE_MEMBER", result.gamification)
+      }
+
       toast.success("👀 Invitation sent!")
 
       setSuggestionCache((prev) => {

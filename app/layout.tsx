@@ -6,6 +6,7 @@ import { AuthCallbackHandler } from '@/components/auth-callback-handler'
 import { AuthProvider } from '@/components/auth-provider'
 import { FeedbackButton } from '@/components/FeedbackButton'
 import { ThemeProvider } from '@/components/theme-provider'
+import { GamificationProvider } from '@/components/gamification-provider'
 import { Toaster } from '@/components/ui/sonner'
 import './globals.css'
 
@@ -94,10 +95,12 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
         </noscript>
         <ThemeProvider attribute="class" defaultTheme="dark">
           <AuthProvider>
-            <AuthCallbackHandler />
-            {children}
-            <FeedbackButton />
-            <Toaster richColors position="bottom-right" />
+            <GamificationProvider>
+              <AuthCallbackHandler />
+              {children}
+              <FeedbackButton />
+              <Toaster richColors position="bottom-right" closeButton />
+            </GamificationProvider>
           </AuthProvider>
         </ThemeProvider>
         <Analytics />

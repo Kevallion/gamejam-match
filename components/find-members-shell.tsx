@@ -47,7 +47,7 @@ export function FindMembersShell() {
     <div className="flex min-h-screen flex-col">
       <Navbar />
       <main className="flex-1">
-        <section className="relative overflow-hidden px-4 pb-8 pt-16 lg:px-6 lg:pt-24 lg:pb-12">
+        <section className="relative overflow-hidden px-4 pb-8 pt-16 sm:px-6 lg:pt-24 lg:pb-12">
           <div className="pointer-events-none absolute inset-0 opacity-30" aria-hidden="true">
             <div className="absolute left-1/2 top-0 size-[600px] -translate-x-1/2 -translate-y-1/3 rounded-full bg-lavender/20 blur-[120px]" />
             <div className="absolute right-0 top-1/2 size-[400px] -translate-y-1/2 rounded-full bg-pink/15 blur-[100px]" />
@@ -96,7 +96,7 @@ export function FindMembersShell() {
         />
 
         {activeFilterLabels.length > 0 && (
-          <section className="px-4 pt-1 lg:px-6">
+          <section className="px-4 pt-1 sm:px-6">
             <div className="mx-auto max-w-6xl">
               <p className="text-xs text-muted-foreground">
                 <span className="font-semibold text-foreground">Active filters:</span>{" "}

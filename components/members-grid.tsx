@@ -7,6 +7,7 @@ import { Loader2 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { toast } from "sonner"
 import { EXPERIENCE_STYLES, JAM_STYLE_STYLES, ROLE_STYLES } from "@/lib/constants"
+import { levelFromTotalXp } from "@/lib/gamification-level"
 
 const PAGE_SIZE = 24
 
@@ -36,6 +37,8 @@ type ProfileWithUser = {
   username: string | null
   avatar_url: string | null
   jam_id: string | null
+  xp?: number | null
+  current_title?: string | null
 }
 
 interface MembersGridProps {
@@ -50,10 +53,14 @@ type MemberRow = AvailabilityPostRowDb & { id: string }
 
 function formatMember(m: MemberRow, profile: ProfileWithUser | null): JammerWithFilters {
   const jamStyle = m.jam_style ? JAM_STYLE_STYLES[m.jam_style] : undefined
+  const xp = typeof profile?.xp === "number" ? profile.xp : 0
+  const jammerTitle = profile?.current_title?.trim() || "Rookie Jammer"
   return {
     id: m.id as string,
     username: profile?.username?.trim() || "Anonymous",
     avatar_url: profile?.avatar_url?.trim() || null,
+    jammerTitle,
+    jammerLevel: levelFromTotalXp(xp),
     rawRole: m.role || "",
     rawLevel: m.experience || m.experience_level || "",
     rawEngine: m.engine || "",
@@ -114,7 +121,7 @@ export function MembersGrid({
     const userIds = [...new Set((postsData as AvailabilityPostRowDb[]).map((r) => r.user_id).filter(Boolean))]
     const { data: profilesData } = await supabase
       .from("profiles")
-      .select("id, username, avatar_url, jam_id")
+      .select("id, username, avatar_url, jam_id, xp, current_title")
       .in("id", userIds)
     const profilesByUserId = new Map<string, ProfileWithUser>()
     for (const p of (profilesData ?? []) as ProfileWithUser[]) {
@@ -237,8 +244,8 @@ export function MembersGrid({
   if (loading) return <div className="text-center py-20 text-muted-foreground">Loading jammers...</div>
 
   return (
-    <section className="px-4 pb-16 pt-4 lg:px-6 lg:pb-24">
-      <div className="mx-auto max-w-6xl">
+    <section className="px-4 pb-16 pt-4 sm:px-6 lg:pb-24">
+      <div className="mx-auto w-full max-w-6xl">
         <div className="mb-6 flex items-center justify-between">
           <p className="text-sm text-muted-foreground">
             Showing <span className="font-semibold text-foreground">{displayedMembers.length}</span> available jammers
@@ -250,7 +257,7 @@ export function MembersGrid({
             No jammers found matching these filters. 😢
           </div>
         ) : (
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {displayedMembers.map((jammer) => (
               <JammerCard
                 key={jammer.availabilityPostId ?? jammer.id}

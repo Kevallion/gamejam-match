@@ -44,7 +44,7 @@ export async function notifyOwnerNewApplication(
       ownerUserId,
       "application_received",
       message,
-      "/dashboard?tab=requests",
+      "/dashboard?tab=inbox",
     )
 
     if (!email) return
@@ -78,7 +78,7 @@ export async function notifyInviteeInvitation(
       inviteeUserId,
       "team_invitation",
       message,
-      "/dashboard?tab=requests",
+      "/dashboard?tab=inbox",
     )
 
     if (!email) return
@@ -111,7 +111,7 @@ export async function notifyApplicantDeclined(candidateUserId: string): Promise<
       candidateUserId,
       "application_declined",
       message,
-      "/dashboard?tab=requests",
+      "/dashboard?tab=inbox",
     )
 
     if (!email) return
@@ -147,7 +147,7 @@ export async function notifyCandidateAccepted(
       candidateUserId,
       "application_accepted",
       message,
-      "/dashboard?tab=teams",
+      "/dashboard",
     )
 
     if (!email) return
@@ -334,7 +334,7 @@ export async function notifyOwnerInvitationDeclined(
       teamRow.user_id as string,
       "invitation_declined",
       message,
-      "/dashboard?tab=requests",
+      "/dashboard?tab=inbox",
     )
   } catch {
     // Silent error
@@ -365,7 +365,7 @@ export async function notifyOwnerPlayerJoined(
       teamRow.user_id as string,
       "player_joined",
       message,
-      "/dashboard?tab=teams",
+      "/dashboard",
     )
   } catch {
     // Silent error
@@ -381,7 +381,7 @@ export async function notifyPlayerKicked(
 ): Promise<void> {
   try {
     const message = `You have been removed from the team "${teamName}".`
-    void insertNotification(playerUserId, "team_kicked", message, "/dashboard?tab=teams")
+    void insertNotification(playerUserId, "team_kicked", message, "/dashboard")
 
     const email = await getUserEmail(playerUserId)
     if (!email) return

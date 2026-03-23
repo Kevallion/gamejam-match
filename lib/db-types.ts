@@ -33,6 +33,11 @@ export interface ProfileRow {
   default_engine?: string | null
   default_language?: string | null
   portfolio_url?: string | null
+  xp?: number | null
+  level?: number | null
+  last_daily_xp_at?: string | null
+  unlocked_titles?: unknown
+  current_title?: string | null
 }
 
 export interface TeamRow {
@@ -49,4 +54,5 @@ export interface TeamRow {
   experience_required?: ExperienceLevel | string | null
   created_at?: string
   expires_at?: string
+  jam_completion_xp_claimed?: boolean | null
 }

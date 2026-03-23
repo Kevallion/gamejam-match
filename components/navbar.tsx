@@ -27,10 +27,14 @@ import { supabase } from "@/lib/supabase"
 import { useEffect, useState } from "react"
 import type { User } from "@supabase/supabase-js"
 import { useNotifications } from "@/hooks/use-notifications"
+import { JammerLevelBadge, JammerTitleBadge } from "@/components/profile-card"
+import { levelFromTotalXp } from "@/lib/gamification-level"
 
 type NavbarProfile = {
   username?: string | null
   avatar_url?: string | null
+  xp?: number | null
+  current_title?: string | null
 }
 
 function getDisplayName(user: User | null, profile: NavbarProfile | null): string {
@@ -80,7 +84,7 @@ export function Navbar() {
 
       const { data } = await supabase
         .from("profiles")
-        .select("username, avatar_url")
+        .select("username, avatar_url, xp, current_title")
         .eq("id", authUser.id)
         .maybeSingle()
 
@@ -120,6 +124,11 @@ export function Navbar() {
   }
 
   const displayName = getDisplayName(user, profile)
+  const navXp = typeof profile?.xp === "number" ? profile.xp : 0
+  const navLevel = levelFromTotalXp(navXp)
+  const navTitle =
+    profile?.current_title?.trim() ||
+    (user ? "Rookie Jammer" : "")
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/50 bg-background/80 backdrop-blur-xl">
@@ -176,9 +185,17 @@ export function Navbar() {
                       <Loader2 className="size-5 animate-spin text-muted-foreground self-center" />
                     ) : user ? (
                       <>
-                        <span className="text-sm font-medium text-muted-foreground px-3">
-                          Hello, <span className="text-foreground">{displayName}</span> !
-                        </span>
+                        <div className="space-y-1 px-3">
+                          <p className="text-sm font-medium text-muted-foreground">
+                            Hello, <span className="text-foreground">{displayName}</span> !
+                          </p>
+                          {user ? (
+                            <div className="flex flex-wrap items-center gap-2">
+                              <JammerTitleBadge title={navTitle} className="text-xs" />
+                              <JammerLevelBadge level={navLevel} />
+                            </div>
+                          ) : null}
+                        </div>
                         <Button asChild variant="outline" className="gap-2 rounded-xl border-primary/30 text-primary hover:bg-primary/10 w-full justify-start">
                           <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}>
                             <LayoutDashboard className="size-4" />
@@ -320,7 +337,7 @@ export function Navbar() {
                       .map((notif) => (
                       <DropdownMenuItem key={notif.id} asChild>
                         <Link
-                          href={notif.link || "/dashboard?tab=teams"}
+                          href={notif.link || "/dashboard"}
                           onClick={() => dismissNotification(notif.id)}
                           className="flex cursor-pointer items-start gap-3 rounded-xl px-3 py-2.5 text-left focus:bg-accent"
                         >
@@ -350,7 +367,7 @@ export function Navbar() {
                     Mark all as read
                   </button>
                   <Link
-                    href={unreadCount > 0 ? "/dashboard?tab=requests" : "/dashboard"}
+                    href={unreadCount > 0 ? "/dashboard?tab=inbox" : "/dashboard"}
                     className="flex cursor-pointer items-center gap-1.5 rounded-xl px-2 py-1 text-xs font-semibold text-primary hover:text-primary/90"
                   >
                     <LayoutDashboard className="size-3.5" />
@@ -367,12 +384,17 @@ export function Navbar() {
               <Loader2 className="size-5 animate-spin text-muted-foreground" />
             ) : user ? (
               <>
-                <span className="max-w-[160px] truncate text-sm font-medium text-muted-foreground">
-                  Hello,{" "}
-                  <span className="truncate text-foreground align-middle">
-                    {displayName}
-                  </span>{" "}
-                  !
+                <div className="hidden max-w-[220px] flex-col items-end gap-0.5 text-right lg:flex">
+                  <span className="truncate text-sm font-medium text-muted-foreground">
+                    Hello, <span className="text-foreground">{displayName}</span> !
+                  </span>
+                  <div className="flex flex-wrap items-center justify-end gap-2">
+                    <JammerTitleBadge title={navTitle} className="max-w-[180px] truncate text-xs" />
+                    <JammerLevelBadge level={navLevel} />
+                  </div>
+                </div>
+                <span className="max-w-[160px] truncate text-sm font-medium text-muted-foreground lg:hidden">
+                  Hello, <span className="truncate text-foreground align-middle">{displayName}</span> !
                 </span>
 
                 <Button asChild variant="outline" className="gap-2 rounded-xl border-primary/30 text-primary hover:bg-primary/10">

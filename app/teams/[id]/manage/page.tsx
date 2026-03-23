@@ -38,6 +38,7 @@ import {
   ShieldAlert,
   MessageCircle,
   Link2,
+  Trophy,
 } from "lucide-react"
 import { toast } from "sonner"
 import { JamSearchSelector } from "@/components/jam-search-selector"
@@ -46,6 +47,9 @@ import {
   notifyPlayerKicked,
   notifyTeamDiscordUpdated,
 } from "@/app/actions/team-actions"
+import { claimTeamJamCompletedXp } from "@/app/actions/team-gamification-actions"
+import { showGamificationRewards } from "@/components/gamification-reward-toasts"
+import { gamificationRewardHasToast } from "@/lib/gamification-reward-types"
 import { EXPERIENCE_OPTIONS, JAM_STYLE_OPTIONS, ROLE_STYLES } from "@/lib/constants"
 
 const DISCORD_LINK_REGEX = /^https:\/\/(discord\.gg\/|discord\.com\/invite\/)/i
@@ -69,6 +73,7 @@ type TeamManageData = {
   language: string
   jam_id: string | null
   discord_link: string | null
+  jam_completion_xp_claimed?: boolean | null
   members: MemberRow[]
 }
 
@@ -95,6 +100,7 @@ export default function TeamManagePage() {
   const [discordInput, setDiscordInput] = useState("")
   const [discordSaving, setDiscordSaving] = useState(false)
   const [discordError, setDiscordError] = useState<string | null>(null)
+  const [jamXpClaimBusy, setJamXpClaimBusy] = useState(false)
 
   const loadTeam = useCallback(async () => {
     if (!teamId) return
@@ -111,7 +117,7 @@ export default function TeamManagePage() {
       const { data: teamData, error: teamError } = await supabase
         .from("teams")
         .select(
-          "id, user_id, team_name, game_name, description, team_vibe, experience_required, engine, language, jam_id, discord_link",
+          "id, user_id, team_name, game_name, description, team_vibe, experience_required, engine, language, jam_id, discord_link, jam_completion_xp_claimed",
         )
         .eq("id", teamId)
         .single()
@@ -184,6 +190,8 @@ export default function TeamManagePage() {
 
       setTeam({
         ...teamData,
+        jam_completion_xp_claimed: (teamData as { jam_completion_xp_claimed?: boolean | null })
+          .jam_completion_xp_claimed,
         members,
       })
       setEditForm({
@@ -261,6 +269,37 @@ export default function TeamManagePage() {
       })
     } finally {
       setRemovingUserId(null)
+    }
+  }
+
+  const handleClaimJamCompletionXp = async () => {
+    if (
+      !teamId ||
+      !window.confirm(
+        "Claim one-time rewards for finishing a jam with this squad? You can only do this once per team listing.",
+      )
+    ) {
+      return
+    }
+    setJamXpClaimBusy(true)
+    try {
+      const result = await claimTeamJamCompletedXp(teamId)
+      if (!result.success) {
+        toast.error("Could not claim reward.", { description: result.error })
+        return
+      }
+      setTeam((prev) => (prev ? { ...prev, jam_completion_xp_claimed: true } : prev))
+      if (result.gamification && gamificationRewardHasToast(result.gamification)) {
+        showGamificationRewards("TEAM_COMPLETED", result.gamification)
+      } else {
+        toast.success("Rewards claimed!")
+      }
+    } catch (err) {
+      toast.error("Something went wrong.", {
+        description: err instanceof Error ? err.message : "Try again later.",
+      })
+    } finally {
+      setJamXpClaimBusy(false)
     }
   }
 
@@ -690,6 +729,37 @@ export default function TeamManagePage() {
                 )}
               </CardContent>
             </Card>
+
+            {isOwner && team && !team.jam_completion_xp_claimed ? (
+              <Card className="rounded-2xl border-border/50 border-teal/25 bg-gradient-to-br from-teal/10 via-transparent to-lavender/5">
+                <CardHeader>
+                  <h3 className="flex items-center gap-2 text-lg font-bold text-foreground">
+                    <Trophy className="size-5 text-teal" />
+                    Jam complete
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    Finished a game jam with this squad? Claim a one-time XP bonus and the &quot;Jam Champion&quot;
+                    title. This can only be done once per team listing.
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    className="gap-2 rounded-xl"
+                    disabled={jamXpClaimBusy}
+                    onClick={() => void handleClaimJamCompletionXp()}
+                  >
+                    {jamXpClaimBusy ? (
+                      <Loader2 className="size-4 animate-spin" />
+                    ) : (
+                      <Trophy className="size-4" />
+                    )}
+                    Claim jam rewards (+150 XP)
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : null}
 
             <Card className="rounded-2xl border-border/50">
               <CardHeader>

@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { UserAvatar } from "@/components/user-avatar"
+import { JammerLevelBadge, JammerTitleBadge } from "@/components/profile-card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
@@ -44,9 +45,12 @@ import {
   Target,
   Share2,
 } from "lucide-react"
+import Link from "next/link"
 import { format, parseISO, isPast, addDays, isBefore } from "date-fns"
 import { toast } from "sonner"
-import { notifyInviteeInvitation } from "@/app/actions/team-actions"
+import { sendTeamInvitation } from "@/app/actions/invite-actions"
+import { showGamificationRewards } from "@/components/gamification-reward-toasts"
+import { gamificationRewardHasToast } from "@/lib/gamification-reward-types"
 
 export type JammerCardData = {
   id: string
@@ -74,6 +78,10 @@ export type JammerCardData = {
   availability?: string
   /** Linked game jam (from profile) */
   jam?: { title: string; url?: string }
+  /** RPG display title (profiles.current_title) */
+  jammerTitle?: string | null
+  /** RPG level from XP (not experience tier) */
+  jammerLevel?: number
 }
 
 export type SquadOption = {
@@ -128,8 +136,9 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
     e.preventDefault()
     e.stopPropagation()
     const title = player.username
-    const text = `${player.username} is looking for a team as a ${player.role.label} using ${player.engine}! Recruit them on GameJam Crew:`
-    const url = `${typeof window !== "undefined" ? window.location.origin : ""}/find-members`
+    const text = `${player.username} is looking for a team as a ${player.role.label} using ${player.engine}! View their GameJam Crew profile:`
+    const profileUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/jammer/${player.id}`
+    const url = profileUrl
     try {
       if (typeof navigator !== "undefined" && navigator.share) {
         await navigator.share({ title, text, url })
@@ -183,20 +192,21 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
     setStatusMsg(null)
 
     try {
-      const { error } = await supabase.from("join_requests").insert({
-        team_id: selectedSquad.id,
-        sender_id: player.id,
-        sender_name: player.username,
+      const result = await sendTeamInvitation({
+        teamId: selectedSquad.id,
+        inviteeUserId: player.id,
+        inviteeUsername: player.username,
         message: message.trim(),
-        status: "pending",
-        type: "invitation",
-        target_role: selectedRole.key,
+        targetRole: selectedRole.key,
       })
 
-      if (error) throw error
+      if (!result.success) {
+        throw new Error(result.error)
+      }
 
-      // Email + in-app notification to the invited player (async, non-blocking)
-      void notifyInviteeInvitation(player.id, selectedSquad.team_name)
+      if (result.gamification && gamificationRewardHasToast(result.gamification)) {
+        showGamificationRewards("INVITE_MEMBER", result.gamification)
+      }
 
       setSentSquadIds((prev) => new Set(prev).add(selectedSquad.id))
       setStatusMsg({ type: "success", text: `Invite sent for the role of ${selectedRole.label}!` })
@@ -228,22 +238,36 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
     <>
       <Dialog>
         <DialogTrigger asChild>
-          <Card className="card-interactive group relative flex flex-col cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all">
-            <CardContent className="flex flex-1 flex-col gap-4 pt-6">
+          <Card className="card-interactive group relative flex w-full flex-col cursor-pointer overflow-hidden py-4 transition-all hover:ring-2 hover:ring-primary/50 sm:py-6">
+            <CardContent className="flex flex-1 flex-col gap-4 px-4 pt-0 sm:px-6 sm:pt-0">
               {/* Avatar + Username + Share */}
-              <div className="flex items-center gap-3.5">
+              <div className="flex min-w-0 items-center gap-3.5">
                 <UserAvatar
                   src={player.avatar_url}
                   fallbackName={player.username}
                   size="md"
                 />
                 <div className="min-w-0 flex-1">
-                  <h3 className="truncate text-lg font-bold text-foreground">
-                    {player.username}
-                  </h3>
-                  <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                    <Globe className="size-3.5 text-teal" />
-                    {player.language}
+                  <div className="flex min-w-0 flex-wrap items-center gap-2 gap-y-1">
+                    <h3 className="truncate text-lg font-bold text-foreground">
+                      <Link
+                        href={`/jammer/${player.id}`}
+                        className="transition-colors hover:text-teal hover:underline"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {player.username}
+                      </Link>
+                    </h3>
+                    {typeof player.jammerLevel === "number" ? (
+                      <JammerLevelBadge level={player.jammerLevel} className="text-[10px]" />
+                    ) : null}
+                  </div>
+                  {player.jammerTitle?.trim() ? (
+                    <JammerTitleBadge title={player.jammerTitle.trim()} className="text-xs" />
+                  ) : null}
+                  <div className="flex min-w-0 items-center gap-1.5 text-sm text-muted-foreground">
+                    <Globe className="size-3.5 shrink-0 text-teal" />
+                    <span className="truncate">{player.language}</span>
                   </div>
                 </div>
                 <Button
@@ -258,59 +282,76 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
               </div>
 
               {/* Role + Level + Jam Style badges */}
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap items-center gap-1.5">
                 <Badge
                   variant="secondary"
-                  className={`rounded-full px-3 py-1 text-xs font-semibold ${player.role.color}`}
+                  title={`${player.role.emoji} ${player.role.label}`}
+                  className={`max-w-full min-w-0 shrink truncate rounded-full px-3 py-1 text-xs font-semibold ${player.role.color}`}
                 >
-                  {player.role.emoji} {player.role.label}
+                  <span className="min-w-0 truncate">
+                    {player.role.emoji} {player.role.label}
+                  </span>
                 </Badge>
                 <span
-                  className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${player.level.color}`}
+                  title={`${player.level.emoji} ${player.level.label}`}
+                  className={`inline-flex min-w-0 max-w-full shrink items-center gap-1 truncate rounded-full px-2.5 py-1 text-xs font-semibold ${player.level.color}`}
                 >
-                  {player.level.emoji} {player.level.label}
+                  <span className="min-w-0 truncate">
+                    {player.level.emoji} {player.level.label}
+                  </span>
                 </span>
                 {player.jamStyle && (
                   <span
-                    className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${player.jamStyle.color}`}
+                    className={`inline-flex min-w-0 max-w-full shrink items-center gap-1 truncate rounded-full px-2.5 py-1 text-xs font-semibold ${player.jamStyle.color}`}
                     title={player.jamStyle.label}
                   >
-                    {player.jamStyle.emoji} {player.jamStyle.label}
+                    <span className="min-w-0 truncate">
+                      {player.jamStyle.emoji} {player.jamStyle.label}
+                    </span>
                   </span>
                 )}
               </div>
 
               {/* Engine */}
-              <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                <Cpu className="size-3.5 text-lavender" />
-                {player.engine}
+              <div className="flex min-w-0 items-center gap-1.5 text-sm text-muted-foreground">
+                <Cpu className="size-3.5 shrink-0 text-lavender" />
+                <span className="min-w-0 truncate" title={player.engine}>
+                  {player.engine}
+                </span>
               </div>
 
               {/* Availability */}
               {availabilityInfo && (
                 <div
                   className={cn(
-                    "inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-medium",
+                    "inline-flex min-w-0 max-w-full items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-medium",
                     availabilityInfo.isWarning
                       ? "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400"
                       : "border-border/60 bg-muted/50 text-muted-foreground",
                   )}
                 >
                   <Calendar className="size-3.5 shrink-0" />
-                  <span>Available: {availabilityInfo.label}</span>
+                  <span className="min-w-0 truncate">
+                    Available: {availabilityInfo.label}
+                  </span>
                 </div>
               )}
 
               {/* Linked game jam */}
               {player.jam?.title && (
-                <div className="inline-flex items-center gap-1.5 rounded-lg border border-border/60 bg-muted/30 px-2.5 py-1 text-xs font-medium text-muted-foreground">
+                <div className="inline-flex min-w-0 max-w-full items-center gap-1.5 rounded-lg border border-border/60 bg-muted/30 px-2.5 py-1 text-xs font-medium text-muted-foreground">
                   <Target className="size-3.5 shrink-0 text-lavender" />
                   {player.jam.url ? (
-                    <a href={player.jam.url} target="_blank" rel="noopener noreferrer" className="text-lavender hover:underline truncate">
+                    <a
+                      href={player.jam.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="min-w-0 truncate text-lavender hover:underline"
+                    >
                       {player.jam.title}
                     </a>
                   ) : (
-                    <span className="truncate">{player.jam.title}</span>
+                    <span className="min-w-0 truncate">{player.jam.title}</span>
                   )}
                 </div>
               )}
@@ -321,7 +362,7 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
               </p>
             </CardContent>
 
-            <CardFooter className="flex flex-col gap-2">
+            <CardFooter className="flex flex-col gap-2 px-4 sm:px-6">
               {mySquads.length === 0 ? (
                 <div className="w-full rounded-xl border border-dashed border-border/60 px-3 py-2.5 text-center">
                   <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
@@ -348,11 +389,19 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
                 fallbackName={player.username}
                 size="lg"
               />
-              <div>
-                <DialogTitle className="text-xl font-bold text-foreground">
-                  {player.username}
-                </DialogTitle>
-                <div className="flex items-center gap-1.5 text-sm text-muted-foreground mt-1">
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2 gap-y-1">
+                  <DialogTitle className="text-xl font-bold text-foreground">
+                    {player.username}
+                  </DialogTitle>
+                  {typeof player.jammerLevel === "number" ? (
+                    <JammerLevelBadge level={player.jammerLevel} />
+                  ) : null}
+                </div>
+                {player.jammerTitle?.trim() ? (
+                  <JammerTitleBadge title={player.jammerTitle.trim()} className="mt-1 text-sm" />
+                ) : null}
+                <div className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
                   <Globe className="size-3.5 text-teal" />
                   {player.language}
                 </div>
@@ -363,31 +412,41 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
           <ScrollArea className="max-h-[60vh] px-6 py-4">
             <div className="flex flex-col gap-4 pr-4">
               {/* Badges Role, Level, Jam Style, Engine */}
-              <div className="flex flex-wrap items-center gap-2">
+              <div className="flex flex-wrap items-center gap-1.5">
                 <Badge
                   variant="outline"
-                  className={`rounded-full border-border/60 px-3 py-1 text-xs font-semibold ${player.role.color}`}
+                  title={`${player.role.emoji} ${player.role.label}`}
+                  className={`max-w-full min-w-0 shrink truncate rounded-full border-border/60 px-3 py-1 text-xs font-semibold ${player.role.color}`}
                 >
-                  {player.role.emoji} {player.role.label}
+                  <span className="min-w-0 truncate">
+                    {player.role.emoji} {player.role.label}
+                  </span>
                 </Badge>
                 <span
-                  className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold ${player.level.color}`}
+                  title={`${player.level.emoji} ${player.level.label}`}
+                  className={`inline-flex min-w-0 max-w-full shrink items-center gap-1 truncate rounded-full px-3 py-1 text-xs font-semibold ${player.level.color}`}
                 >
-                  {player.level.emoji} {player.level.label}
+                  <span className="min-w-0 truncate">
+                    {player.level.emoji} {player.level.label}
+                  </span>
                 </span>
                 {player.jamStyle && (
                   <span
-                    className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold ${player.jamStyle.color}`}
+                    className={`inline-flex min-w-0 max-w-full shrink items-center gap-1 truncate rounded-full px-3 py-1 text-xs font-semibold ${player.jamStyle.color}`}
+                    title={player.jamStyle.label}
                   >
-                    {player.jamStyle.emoji} {player.jamStyle.label}
+                    <span className="min-w-0 truncate">
+                      {player.jamStyle.emoji} {player.jamStyle.label}
+                    </span>
                   </span>
                 )}
                 <Badge
                   variant="outline"
-                  className="inline-flex items-center gap-1.5 rounded-full border-border/60 bg-lavender px-3 py-1 text-xs font-semibold text-lavender-foreground"
+                  className="inline-flex min-w-0 max-w-full shrink items-center gap-1.5 truncate rounded-full border-border/60 bg-lavender px-3 py-1 text-xs font-semibold text-lavender-foreground"
+                  title={player.engine}
                 >
-                  <Cpu className="size-3.5" />
-                  {player.engine}
+                  <Cpu className="size-3.5 shrink-0" />
+                  <span className="min-w-0 truncate">{player.engine}</span>
                 </Badge>
               </div>
 

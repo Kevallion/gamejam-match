@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { completeOnboarding } from "@/app/actions/onboarding-actions"
+import { showGamificationRewardBatch } from "@/components/gamification-reward-toasts"
 import { ENGINE_OPTIONS, LANGUAGE_OPTIONS, ROLE_OPTIONS } from "@/lib/constants"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
@@ -199,6 +200,10 @@ export function OnboardingModal({ open, onOpenChange, profile }: OnboardingModal
       if (!result.success) {
         toast.error("Error", { description: result.error ?? "Please try again." })
         return
+      }
+
+      if (result.gamification?.length) {
+        void showGamificationRewardBatch(result.gamification)
       }
 
       toast.success("You're all set!", {

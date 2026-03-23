@@ -242,4 +242,50 @@
     ring-offset-color: var(--card);
     ring-color: var(--primary);
   }
+
+  /* Gamification level badge — soft pulse + sweeping shine */
+  @keyframes level-badge-glow {
+    0%,
+    100% {
+      box-shadow:
+        0 0 0 0 oklch(0.72 0.12 185 / 0.25),
+        inset 0 1px 0 oklch(0.95 0.02 280 / 0.12);
+    }
+    50% {
+      box-shadow:
+        0 0 28px 2px oklch(0.72 0.12 185 / 0.22),
+        inset 0 1px 0 oklch(0.95 0.02 280 / 0.18);
+    }
+  }
+
+  @keyframes level-badge-shine {
+    0% {
+      transform: translateX(-130%) skewX(-14deg);
+    }
+    100% {
+      transform: translateX(230%) skewX(-14deg);
+    }
+  }
+
+  .level-badge-animated {
+    position: relative;
+    overflow: hidden;
+    animation: level-badge-glow 3.2s ease-in-out infinite;
+  }
+
+  .level-badge-animated::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      105deg,
+      transparent 0%,
+      oklch(0.95 0.02 280 / 0.08) 42%,
+      oklch(0.95 0.02 280 / 0.22) 50%,
+      oklch(0.95 0.02 280 / 0.08) 58%,
+      transparent 100%
+    );
+    animation: level-badge-shine 4.5s ease-in-out infinite;
+    pointer-events: none;
+  }
 }

@@ -35,6 +35,9 @@ import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 import { ENGINE_OPTIONS_WITH_ANY, EXPERIENCE_OPTIONS, JAM_STYLE_OPTIONS, ROLE_OPTIONS } from "@/lib/constants"
 import { JamSearchSelector } from "@/components/jam-search-selector"
+import { claimAvailabilityPostXp } from "@/app/actions/availability-actions"
+import { showGamificationRewards } from "@/components/gamification-reward-toasts"
+import { gamificationRewardHasToast } from "@/lib/gamification-reward-types"
 import {
   Drawer,
   DrawerClose,
@@ -83,6 +86,9 @@ export function AvailabilityForm() {
   const step1Ref = useRef<HTMLInputElement | null>(null)
   const step2Ref = useRef<HTMLButtonElement | null>(null)
   const step3Ref = useRef<HTMLTextAreaElement | null>(null)
+  const formRef = useRef<HTMLFormElement | null>(null)
+  /** Même correctif que create-team : évite clic/tactile fantôme quand le bouton devient « envoyer ». */
+  const [publishTapGuard, setPublishTapGuard] = useState(false)
 
   const fieldError = (field: string) => errors[field]
 
@@ -143,6 +149,15 @@ export function AvailabilityForm() {
     }
   }, [step])
 
+  useEffect(() => {
+    if (step !== 3) {
+      setPublishTapGuard(false)
+      return
+    }
+    const id = window.setTimeout(() => setPublishTapGuard(false), 900)
+    return () => clearTimeout(id)
+  }, [step])
+
   function validateStep(currentStep: number) {
     const newErrors: Record<string, string> = {}
 
@@ -186,11 +201,24 @@ export function AvailabilityForm() {
 
   function goToNextStep() {
     if (!validateStep(step)) return
+    if (step === 2) {
+      setPublishTapGuard(true)
+    }
     setStep((prev) => Math.min(prev + 1, totalSteps))
   }
 
   function goToPreviousStep() {
     setStep((prev) => Math.max(prev - 1, 1))
+  }
+
+  function handlePrimaryAction() {
+    if (submitted) return
+    if (step < totalSteps) {
+      goToNextStep()
+      return
+    }
+    if (publishTapGuard) return
+    formRef.current?.requestSubmit()
   }
 
   function resetForNewAnnouncement() {
@@ -203,6 +231,7 @@ export function AvailabilityForm() {
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!user) return
+    if (step !== totalSteps) return
     if (!validateStep(1) || !validateStep(2) || !validateStep(3)) {
       return
     }
@@ -249,17 +278,21 @@ export function AvailabilityForm() {
       const avatarUrl = existingProfile?.avatar_url ?? user.user_metadata?.avatar_url ?? null
 
       // username et avatar_url viennent de profiles (jointure à la lecture), pas stockés dans availability_posts
-      const { error: postError } = await supabase.from("availability_posts").insert({
-        user_id: user.id,
-        availability: dateString,
-        role: role,
-        experience: level,
-        jam_style: jamStyle || null,
-        engine: engine,
-        language: language,
-        bio: bioValue,
-        portfolio_link: portfolioLink.trim() || null,
-      })
+      const { data: insertedPost, error: postError } = await supabase
+        .from("availability_posts")
+        .insert({
+          user_id: user.id,
+          availability: dateString,
+          role: role,
+          experience: level,
+          jam_style: jamStyle || null,
+          engine: engine,
+          language: language,
+          bio: bioValue,
+          portfolio_link: portfolioLink.trim() || null,
+        })
+        .select("id")
+        .single()
 
       if (!postError) {
         await supabase.from("profiles").upsert([{
@@ -281,6 +314,17 @@ export function AvailabilityForm() {
       if (postError) {
         toast.error("Could not add announcement.", { description: postError.message })
       } else {
+        if (insertedPost?.id) {
+          void claimAvailabilityPostXp(insertedPost.id).then((xpRes) => {
+            if (!xpRes.ok && "error" in xpRes && xpRes.error && xpRes.error !== "Reward window expired.") {
+              console.warn("[gamification] POST_ANNOUNCEMENT:", xpRes.error)
+              return
+            }
+            if (xpRes.ok && "reward" in xpRes && xpRes.reward && gamificationRewardHasToast(xpRes.reward)) {
+              showGamificationRewards("POST_ANNOUNCEMENT", xpRes.reward)
+            }
+          })
+        }
         toast.success("Announcement added!", {
           description: `You have ${(count ?? 0) + 1} of 3 announcements.`,
         })
@@ -750,9 +794,9 @@ export function AvailabilityForm() {
                         </div>
                       ) : (
                         <Button
-                          type={step === totalSteps ? "submit" : "button"}
-                          disabled={loading}
-                          onClick={step === totalSteps ? undefined : goToNextStep}
+                          type="button"
+                          disabled={loading || (step === totalSteps && publishTapGuard)}
+                          onClick={handlePrimaryAction}
                           className="ml-auto flex-1 justify-center gap-2 rounded-2xl bg-primary py-3 text-sm font-extrabold text-primary-foreground sm:flex-none sm:px-6"
                         >
                           {step === totalSteps

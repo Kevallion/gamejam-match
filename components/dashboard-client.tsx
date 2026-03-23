@@ -1,16 +1,30 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
-import { useSearchParams } from "next/navigation"
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
 import { DashboardMyTeams, type TeamData } from "@/components/dashboard-my-teams"
 import { DashboardMyAvailability } from "@/components/dashboard-my-availability"
 import { DashboardIncomingApplications, type ApplicationData } from "@/components/dashboard-incoming-applications"
 import { DashboardSquadInvitations, type InvitationData } from "@/components/dashboard-squad-invitations"
-import { Gamepad2, LayoutDashboard, Loader2, MessageCircle, Send, Users, Bell, UserCircle, UserMinus, Trash2, Settings } from "lucide-react"
+import {
+  Info,
+  Inbox,
+  MessageCircle,
+  Send,
+  Settings2,
+  Trash2,
+  Trophy,
+  UserMinus,
+  UserSearch,
+  Users2,
+} from "lucide-react"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Card, CardContent } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { cn } from "@/lib/utils"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,18 +37,27 @@ import {
 } from "@/components/ui/alert-dialog"
 import { supabase } from "@/lib/supabase"
 import {
-  notifyCandidateAccepted,
   notifyApplicantDeclined,
   notifyOwnerInvitationDeclined,
-  notifyOwnerPlayerJoined,
 } from "@/app/actions/team-actions"
+import {
+  acceptJoinApplication,
+  acceptTeamInvitation,
+} from "@/app/actions/team-membership-actions"
+import { claimDailyLoginXp } from "@/app/actions/gamification-actions"
 import { OnboardingModal } from "@/components/onboarding-modal"
 import { CURRENT_ONBOARDING_VERSION } from "@/lib/onboarding"
 import { ProfileSettings } from "@/components/profile-settings"
+import { ProfileGamification } from "@/components/profile-gamification"
+import {
+  GamificationDashboardCompact,
+  GamificationDashboardFull,
+} from "@/components/gamification-dashboard"
 import { DashboardEmptyState } from "@/components/dashboard-empty-state"
-import { PushNotificationManager } from "@/components/push-notification-manager"
 import { PushNotificationBanner } from "@/components/push-notification-banner"
 import type { Session } from "@supabase/supabase-js"
+import { showGamificationRewards } from "@/components/gamification-reward-toasts"
+import { gamificationRewardHasToast } from "@/lib/gamification-reward-types"
 import { toast } from "sonner"
 import { EXPERIENCE_STYLES, ROLE_STYLES } from "@/lib/constants"
 
@@ -112,7 +135,7 @@ function SentApplicationsSection({ sentApplications }: { sentApplications: SentA
             <Send className="size-5 text-teal" />
           </div>
           <div>
-            <h2 className="text-xl font-bold tracking-tight">My sent applications</h2>
+            <h2 className="text-xl font-semibold tracking-tight">My sent applications</h2>
             <p className="text-sm text-muted-foreground">Track your applications to join a team.</p>
           </div>
         </div>
@@ -182,15 +205,123 @@ type DashboardClientProps = {
   defaultTab?: string | null
 }
 
-const VALID_TABS = ["teams", "requests", "availability", "profile"] as const
+const VALID_TABS = ["squads", "inbox", "availability", "achievements", "settings"] as const
+
+const LEGACY_TAB_TO_CURRENT: Record<string, (typeof VALID_TABS)[number]> = {
+  requests: "inbox",
+  overview: "squads",
+  teams: "squads",
+  profile: "settings",
+}
+
+const SCROLLBAR_HIDE =
+  "[-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+
+function DashboardTabTrigger({
+  value,
+  tooltipLabel,
+  showTooltip,
+  className,
+  icon,
+  label,
+}: {
+  value: string
+  tooltipLabel: string
+  showTooltip: boolean
+  className: string
+  icon: ReactNode
+  label: string
+}) {
+  const trigger = (
+    <TabsTrigger
+      value={value}
+      title={tooltipLabel}
+      className={className}
+    >
+      {icon}
+      <span className="max-[380px]:sr-only">{label}</span>
+    </TabsTrigger>
+  )
+  if (!showTooltip) return trigger
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>{trigger}</TooltipTrigger>
+      <TooltipContent side="bottom" className="text-xs font-semibold tracking-tight">
+        {tooltipLabel}
+      </TooltipContent>
+    </Tooltip>
+  )
+}
+
+function DashboardLoadingSkeleton() {
+  return (
+    <div className="flex min-h-screen flex-col bg-background">
+      <Navbar />
+      <main className="flex-1">
+        <section className="px-4 pb-6 pt-10 sm:pt-14 lg:px-6 lg:pt-20">
+          <div className="mx-auto max-w-6xl space-y-4">
+            <Skeleton className="h-[4px] w-full rounded-none rounded-t-2xl" />
+            <div className="flex gap-4 rounded-2xl border border-border/60 p-4">
+              <Skeleton className="size-14 shrink-0 rounded-2xl sm:size-16" />
+              <div className="flex flex-1 flex-col justify-center gap-2">
+                <Skeleton className="h-5 w-40" />
+                <Skeleton className="h-6 w-56 max-w-full" />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
+              <Skeleton className="h-[4.25rem] rounded-xl border border-border/50" />
+              <Skeleton className="h-[4.25rem] rounded-xl border border-border/50" />
+              <Skeleton className="col-span-2 h-[4.25rem] rounded-xl border border-border/50 sm:col-span-1" />
+            </div>
+          </div>
+        </section>
+        <section className="px-4 pb-16 pt-0 lg:px-6 lg:pb-24">
+          <div className="mx-auto max-w-6xl space-y-6">
+            <div className="flex gap-1.5 overflow-hidden rounded-xl border border-border/50 bg-muted/90 p-1.5">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <Skeleton key={i} className="h-10 min-w-[5.25rem] shrink-0 rounded-lg" />
+              ))}
+            </div>
+            <Skeleton className="h-64 w-full rounded-xl border border-dashed border-border/60" />
+          </div>
+        </section>
+      </main>
+      <Footer tagline="Connect, create, and ship games together." />
+    </div>
+  )
+}
 
 export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientProps = {}) {
+  const pathname = usePathname()
+  const router = useRouter()
   const searchParams = useSearchParams()
   const tabFromUrl = searchParams.get("tab")
-  const initialTab = defaultTabProp ?? tabFromUrl ?? "teams"
-  const activeTab = VALID_TABS.includes(initialTab as (typeof VALID_TABS)[number])
-    ? initialTab
-    : "teams"
+
+  const activeTab = useMemo(() => {
+    const raw = (tabFromUrl ?? defaultTabProp ?? "").trim().toLowerCase()
+    const mapped = LEGACY_TAB_TO_CURRENT[raw]
+    if (mapped) return mapped
+    if (VALID_TABS.includes(raw as (typeof VALID_TABS)[number])) {
+      return raw as (typeof VALID_TABS)[number]
+    }
+    return "squads"
+  }, [tabFromUrl, defaultTabProp])
+
+  const handleTabChange = useCallback(
+    (value: string) => {
+      if (!VALID_TABS.includes(value as (typeof VALID_TABS)[number])) return
+      const params = new URLSearchParams(searchParams.toString())
+      if (value === "squads") {
+        params.delete("tab")
+      } else {
+        params.set("tab", value)
+      }
+      const qs = params.toString()
+      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
+    },
+    [pathname, router, searchParams],
+  )
+
   const [session, setSession] = useState<Session | null>(null)
   const [teams, setTeams] = useState<TeamData[]>([])
   const [availabilityPosts, setAvailabilityPosts] = useState<AvailabilityPostRow[]>([])
@@ -213,7 +344,21 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
     default_engine?: string | null
     default_language?: string | null
     portfolio_url?: string | null
+    xp?: number | null
+    current_title?: string | null
   } | null>(null)
+
+  const dailyXpClaimRef = useRef(false)
+  const [compactTabBar, setCompactTabBar] = useState(false)
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const mq = window.matchMedia("(max-width: 639px)")
+    const apply = () => setCompactTabBar(mq.matches)
+    apply()
+    mq.addEventListener("change", apply)
+    return () => mq.removeEventListener("change", apply)
+  }, [])
 
   const mapTeamRow = (t: TeamRow, authUserId: string): TeamData => {
     type LookingForEntry = { level?: string | null; role?: string | null }
@@ -335,7 +480,9 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
 
     const { data: profileData } = await supabase
       .from("profiles")
-      .select("id, has_completed_onboarding, onboarding_version, jam_id, username, avatar_url, discord_username, default_role, default_engine, default_language, portfolio_url")
+      .select(
+        "id, has_completed_onboarding, onboarding_version, jam_id, username, avatar_url, discord_username, default_role, default_engine, default_language, portfolio_url, xp, current_title",
+      )
       .eq("id", authSession.user.id)
       .maybeSingle()
 
@@ -379,6 +526,8 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
             default_engine: (profileData as { default_engine?: string | null }).default_engine,
             default_language: (profileData as { default_language?: string | null }).default_language,
             portfolio_url: (profileData as { portfolio_url?: string | null }).portfolio_url,
+            xp: typeof (profileData as { xp?: number | null }).xp === "number" ? (profileData as { xp: number }).xp : 0,
+            current_title: (profileData as { current_title?: string | null }).current_title ?? null,
           }
         : authSession.user
           ? {
@@ -392,6 +541,8 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
               default_engine: null,
               default_language: null,
               portfolio_url: null,
+              xp: 0,
+              current_title: null,
             }
           : null
     )
@@ -441,6 +592,19 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
         }),
       )
     }
+
+      if (authSession.user && !dailyXpClaimRef.current) {
+        dailyXpClaimRef.current = true
+        void claimDailyLoginXp().then((res) => {
+          if (!res.ok && res.error) {
+            console.warn("[gamification] DAILY_LOGIN:", res.error)
+            return
+          }
+          if (res.ok && res.reward && gamificationRewardHasToast(res.reward)) {
+            showGamificationRewards("DAILY_LOGIN", res.reward)
+          }
+        })
+      }
     } catch (err) {
       toast.error("Error loading the dashboard.", {
         description: err instanceof Error ? err.message : "Please refresh the page.",
@@ -569,76 +733,18 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
 
   const handleAcceptApplication = async (id: string) => {
     try {
-      const { data: request, error: fetchError } = await supabase
-        .from("join_requests")
-        .select("id, team_id, sender_id, sender_name, target_role, teams(team_name)")
-        .eq("id", id)
-        .single()
-
-      if (fetchError || !request) {
-        toast.error("Could not read the request.", { description: fetchError?.message })
+      const applicantLabel =
+        applications.find((a) => a.id === id)?.username ?? "The jammer"
+      const result = await acceptJoinApplication(id)
+      if (!result.success) {
+        toast.error("Could not accept the application.", { description: result.error })
         return
-      }
-
-      // Race condition guard: verify role slot is still open before accepting
-      const targetRole = request.target_role
-      const { data: teamData } = await supabase
-        .from("teams")
-        .select("looking_for")
-        .eq("id", request.team_id)
-        .single()
-
-      const lookingFor = Array.isArray(teamData?.looking_for) ? teamData.looking_for : []
-      const slotsForRole = lookingFor.filter((r: { role?: string }) => (r?.role || "").toLowerCase() === (targetRole || "").toLowerCase()).length
-      if (slotsForRole === 0) {
-        toast.error("Role no longer available.", { description: "This role may have been filled. Please refresh." })
-        return
-      }
-
-      // Count currently filled slots based on team_members, not just accepted requests,
-      // so that when someone leaves the squad the slot becomes available again.
-      const { data: existingMembers } = await supabase
-        .from("team_members")
-        .select("id")
-        .eq("team_id", request.team_id)
-        .eq("role", targetRole)
-
-      const usedSlotsForRole = existingMembers?.length ?? 0
-      if (usedSlotsForRole >= slotsForRole) {
-        toast.error("Role already filled.", {
-          description: "Someone else was accepted for this role. Please refresh.",
-        })
-        return
-      }
-
-      const { error: insertError } = await supabase
-        .from("team_members")
-        .insert({ team_id: request.team_id, user_id: request.sender_id, role: targetRole || 'member' })
-
-      if (insertError && insertError.code !== '23505') {
-        toast.error("Could not add the member.", { description: insertError.message })
-        return
-      }
-
-      const { error: updateError } = await supabase.from("join_requests").update({ status: 'accepted' }).eq("id", id)
-      if (updateError) {
-        toast.error("Could not accept the application.", { description: updateError.message })
-        return
-      }
-
-      // Notification e-mail au candidat (asynchrone, non bloquant)
-      const teamName = (request as { teams?: { team_name?: string } }).teams?.team_name
-      if (request.sender_id && teamName) {
-        void notifyCandidateAccepted(request.sender_id, teamName)
-      }
-
-      // Notification in-app pour le propriétaire : un joueur a rejoint l'équipe
-      if (request.team_id && request.sender_name) {
-        void notifyOwnerPlayerJoined(request.team_id, request.sender_name)
       }
 
       setApplications((prev) => prev.filter((a) => a.id !== id))
-      toast.success("Application accepted!", { description: `${request.sender_name || "The jammer"} joined your team.` })
+      toast.success("Application accepted!", {
+        description: `${applicantLabel} joined your team.`,
+      })
     } catch (err) {
       toast.error("An error occurred.", { description: err instanceof Error ? err.message : "Please try again." })
     }
@@ -672,39 +778,17 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
 
   const handleAcceptInvitation = async (invitation: InvitationData) => {
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (!session?.user) {
-        toast.error("You must be logged in to accept an invitation.")
+      const result = await acceptTeamInvitation(invitation.id)
+      if (!result.success) {
+        toast.error("Could not join the team.", { description: result.error })
         return
       }
 
-      const { error: insertError } = await supabase
-        .from("team_members")
-        .insert({ team_id: invitation.team_id, user_id: session.user.id, role: invitation.targetRole ?? "member" })
-
-      if (insertError && insertError.code !== "23505") {
-        toast.error("Could not join the team.", { description: insertError.message })
-        return
-      }
-
-      const { error: updateError } = await supabase.from("join_requests").update({ status: "accepted" }).eq("id", invitation.id)
-      if (updateError) {
-        toast.error("Could not accept the invitation.", { description: updateError.message })
-        return
-      }
-      // Notification in-app pour le propriétaire : un joueur a rejoint l'équipe via une invitation
-      const currentUserName =
-        session.user.user_metadata?.username ??
-        session.user.user_metadata?.user_name ??
-        session.user.user_metadata?.full_name ??
-        session.user.user_metadata?.name ??
-        (session.user.email ? session.user.email.split("@")[0] : null)
-
-      if (invitation.team_id && currentUserName) {
-        void notifyOwnerPlayerJoined(invitation.team_id, currentUserName)
-      }
       setInvitations((prev) => prev.filter((i) => i.id !== invitation.id))
-      loadData() // Refresh sent applications
+      loadData()
+      if (result.gamification && gamificationRewardHasToast(result.gamification)) {
+        showGamificationRewards("JOIN_TEAM", result.gamification)
+      }
       toast.success(`You joined ${invitation.squadName}!`, {
         description: invitation.discordLink ? "Check the Discord link to connect." : undefined,
       })
@@ -785,96 +869,178 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
   }
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen flex-col bg-background">
-        <Navbar />
-        <div className="flex flex-1 flex-col items-center justify-center gap-3">
-          <Loader2 className="size-8 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground">Loading your data...</p>
-        </div>
-      </div>
-    )
+    return <DashboardLoadingSkeleton />
   }
+
+  const toActionCount = applications.length + invitations.length
+  const waitingResponseCount = sentApplications.filter((s) => s.status === "pending").length
+  const activityTotal = toActionCount + waitingResponseCount
+
+  const meta = session?.user?.user_metadata as Record<string, string> | undefined
+  const displayName =
+    profile?.username?.trim() ||
+    meta?.username?.trim() ||
+    meta?.user_name?.trim() ||
+    meta?.full_name?.trim() ||
+    meta?.name?.trim() ||
+    (session?.user?.email ? session.user.email.split("@")[0] : null) ||
+    "Jammer"
+  const headerXp = typeof profile?.xp === "number" ? profile.xp : 0
+  const headerTitle = profile?.current_title?.trim() || "Rookie Jammer"
 
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
       <main className="flex-1">
-        <section className="relative overflow-hidden px-4 pb-8 pt-16 lg:px-6 lg:pt-24 lg:pb-12">
-          <div className="pointer-events-none absolute inset-0 opacity-30" aria-hidden="true">
-            <div className="absolute left-1/2 top-0 size-[600px] -translate-x-1/2 -translate-y-1/3 rounded-full bg-peach/20 blur-[120px]" />
-            <div className="absolute right-0 top-1/2 size-[400px] -translate-y-1/2 rounded-full bg-teal/15 blur-[100px]" />
+        <section className="relative overflow-hidden px-4 pb-4 pt-10 sm:pb-6 sm:pt-14 lg:px-6 lg:pt-20">
+          <div className="pointer-events-none absolute inset-0 opacity-25" aria-hidden="true">
+            <div className="absolute left-1/2 top-0 size-[480px] -translate-x-1/2 -translate-y-1/3 rounded-full bg-peach/20 blur-[100px] sm:size-[600px]" />
+            <div className="absolute right-0 top-1/2 size-[320px] -translate-y-1/2 rounded-full bg-teal/15 blur-[90px] sm:size-[400px]" />
           </div>
-          <div className="relative mx-auto max-w-6xl">
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-peach/20 bg-peach/10 px-4 py-1.5 text-sm font-medium text-peach">
-              <LayoutDashboard className="size-4" />
-              Command Center
-            </div>
-            <h1 className="text-balance text-4xl font-extrabold tracking-tight text-foreground md:text-5xl">
-              Dashboard
-            </h1>
-            <p className="mt-3 max-w-lg text-pretty text-lg leading-relaxed text-muted-foreground">
-              Manage your teams, track your availability, and keep your jam life organized all in one place.
-            </p>
-          </div>
-        </section>
-
-        <section className="px-4 pb-16 pt-4 lg:px-6 lg:pb-24">
-          <div className="mx-auto max-w-6xl">
-            <PushNotificationBanner />
-            {/* Stat Cards */}
-            <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-3">
-              <Card>
-                <CardContent className="flex items-center gap-4 pt-6">
-                  <div className="flex size-12 items-center justify-center rounded-xl bg-teal/15">
-                    <Users className="size-6 text-teal" />
+          <div className="relative mx-auto max-w-6xl space-y-4">
+            {session?.user?.id && profile ? (
+              <GamificationDashboardCompact
+                displayName={displayName}
+                avatarUrl={profile.avatar_url ?? null}
+                currentTitle={headerTitle}
+                xp={headerXp}
+              />
+            ) : null}
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
+              <Card className="border-teal-500/25 bg-teal-500/[0.06] shadow-sm backdrop-blur-md dark:border-teal-500/20 dark:bg-teal-500/10">
+                <CardContent className="flex items-center gap-3 px-3 py-3 sm:gap-3.5 sm:px-4 sm:py-3.5">
+                  <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-teal-500/15 ring-1 ring-teal-500/25 sm:size-11">
+                    <Users2 className="size-5 text-teal-500 sm:size-[1.35rem]" />
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">My Teams</p>
-                    <p className="text-2xl font-bold">{teams.length}</p>
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold tracking-tight text-muted-foreground sm:text-sm">My Teams</p>
+                    <p className="text-xl font-bold tabular-nums sm:text-2xl">{teams.length}</p>
                   </div>
                 </CardContent>
               </Card>
-              <Card>
-                <CardContent className="flex items-center gap-4 pt-6">
-                  <div className="flex size-12 items-center justify-center rounded-xl bg-peach/15">
-                    <Bell className="size-6 text-peach" />
+              <Card className="border-peach/30 bg-peach/[0.08] shadow-sm backdrop-blur-md dark:border-peach/25 dark:bg-peach/10">
+                <CardContent className="flex items-start gap-3 px-3 py-3 sm:gap-3.5 sm:px-4 sm:py-3.5">
+                  <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-peach/25 ring-1 ring-peach/30 sm:size-11">
+                    <Inbox className="size-5 text-peach sm:size-[1.35rem]" />
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Pending Requests</p>
-                    <p className="text-2xl font-bold">
-                      {applications.length +
-                        invitations.length +
-                        sentApplications.filter((s) => s.status === "pending").length}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1">
+                      <p className="text-xs font-semibold tracking-tight text-muted-foreground sm:text-sm">Activity</p>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            type="button"
+                            className="rounded-full p-0.5 text-muted-foreground outline-offset-2 hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+                            aria-label="How activity is counted"
+                          >
+                            <Info className="size-3 sm:size-3.5" aria-hidden />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent side="top" className="max-w-[min(18rem,calc(100vw-2rem))] space-y-2 text-left text-xs leading-relaxed">
+                          <p>
+                            <span className="font-semibold text-background">To action ({toActionCount})</span>
+                            {" — "}
+                            Incoming applications and squad invitations you can accept or decline.
+                          </p>
+                          <p>
+                            <span className="font-semibold text-background">Waiting for response ({waitingResponseCount})</span>
+                            {" — "}
+                            Applications you sent that are still pending.
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                    <p className="text-xl font-bold tabular-nums sm:text-2xl">{activityTotal}</p>
+                    <p className="mt-0.5 line-clamp-2 text-[10px] leading-tight text-muted-foreground sm:text-xs">
+                      <span className="font-medium text-foreground">{toActionCount}</span> to action ·{" "}
+                      <span className="font-medium text-foreground">{waitingResponseCount}</span> waiting
                     </p>
                   </div>
                 </CardContent>
               </Card>
-              <Card className="col-span-2 sm:col-span-1">
-                <CardContent className="flex items-center gap-4 pt-6">
-                  <div className="flex size-12 items-center justify-center rounded-xl bg-lavender/15">
-                    <UserCircle className="size-6 text-lavender" />
+              <Card className="col-span-2 border-lavender/30 bg-lavender/[0.08] shadow-sm backdrop-blur-md dark:border-lavender/25 dark:bg-lavender/10 sm:col-span-1">
+                <CardContent className="flex items-center gap-3 px-3 py-3 sm:gap-3.5 sm:px-4 sm:py-3.5">
+                  <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-lavender/25 ring-1 ring-lavender/30 sm:size-11">
+                    <UserSearch className="size-5 text-lavender sm:size-[1.35rem]" />
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-muted-foreground">Availability</p>
-                    <p className="text-2xl font-bold">{availabilityPosts.length}</p>
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold tracking-tight text-muted-foreground sm:text-sm">Availability</p>
+                    <p className="text-xl font-bold tabular-nums sm:text-2xl">{availabilityPosts.length}</p>
                   </div>
                 </CardContent>
               </Card>
             </div>
+          </div>
+        </section>
 
-            {/* Tabs */}
-            <Tabs key={activeTab} defaultValue={activeTab} className="w-full">
-              <TabsList className="mb-6">
-                <TabsTrigger value="teams">My Teams</TabsTrigger>
-                <TabsTrigger value="requests">Inbox / Requests</TabsTrigger>
-                <TabsTrigger value="availability">Availability</TabsTrigger>
-                <TabsTrigger value="profile" className="gap-2">
-                  <Settings className="size-4" />
-                  Profile
-                </TabsTrigger>
+        <section className="px-4 pb-16 pt-2 lg:px-6 lg:pb-24">
+          <div className="mx-auto max-w-6xl">
+            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+              <TabsList
+                className={cn(
+                  "mb-5 flex h-auto min-h-10 w-full max-w-full flex-nowrap items-center justify-start gap-1 overflow-x-auto overflow-y-hidden scroll-smooth rounded-xl border border-border/50 bg-white/[0.06] p-1.5 text-muted-foreground shadow-sm backdrop-blur-xl light:bg-white/55 light:shadow-md dark:bg-slate-900/50",
+                  SCROLLBAR_HIDE,
+                  "sm:mb-6 sm:w-full sm:max-w-full lg:w-fit lg:max-w-none",
+                )}
+              >
+                <DashboardTabTrigger
+                  value="squads"
+                  tooltipLabel="My Squads"
+                  showTooltip={compactTabBar}
+                  className={cn(
+                    "shrink-0 flex-none items-center rounded-lg border border-transparent px-2.5 py-2 text-sm font-semibold tracking-tight text-muted-foreground transition-colors hover:text-foreground",
+                    "data-[state=active]:border-teal-500/35 data-[state=active]:bg-background/90 data-[state=active]:text-teal-500 data-[state=active]:shadow-sm dark:data-[state=active]:bg-card/80",
+                  )}
+                  icon={<Users2 className="mr-2 h-4 w-4 shrink-0 text-teal-500" aria-hidden />}
+                  label="My Squads"
+                />
+                <DashboardTabTrigger
+                  value="inbox"
+                  tooltipLabel="Inbox"
+                  showTooltip={compactTabBar}
+                  className={cn(
+                    "shrink-0 flex-none items-center rounded-lg border border-transparent px-2.5 py-2 text-sm font-semibold tracking-tight text-muted-foreground transition-colors hover:text-foreground",
+                    "data-[state=active]:border-peach/40 data-[state=active]:bg-background/90 data-[state=active]:text-peach data-[state=active]:shadow-sm dark:data-[state=active]:bg-card/80",
+                  )}
+                  icon={<Inbox className="mr-2 h-4 w-4 shrink-0 text-peach" aria-hidden />}
+                  label="Inbox"
+                />
+                <DashboardTabTrigger
+                  value="availability"
+                  tooltipLabel="Availability"
+                  showTooltip={compactTabBar}
+                  className={cn(
+                    "shrink-0 flex-none items-center rounded-lg border border-transparent px-2.5 py-2 text-sm font-semibold tracking-tight text-muted-foreground transition-colors hover:text-foreground",
+                    "data-[state=active]:border-lavender/40 data-[state=active]:bg-background/90 data-[state=active]:text-lavender data-[state=active]:shadow-sm dark:data-[state=active]:bg-card/80",
+                  )}
+                  icon={<UserSearch className="mr-2 h-4 w-4 shrink-0 text-lavender" aria-hidden />}
+                  label="Availability"
+                />
+                <DashboardTabTrigger
+                  value="achievements"
+                  tooltipLabel="Achievements"
+                  showTooltip={compactTabBar}
+                  className={cn(
+                    "shrink-0 flex-none items-center rounded-lg border border-transparent px-2.5 py-2 text-sm font-semibold tracking-tight text-muted-foreground transition-colors hover:text-foreground",
+                    "data-[state=active]:border-amber-500/40 data-[state=active]:bg-background/90 data-[state=active]:text-amber-500 data-[state=active]:shadow-sm dark:data-[state=active]:bg-card/80",
+                  )}
+                  icon={<Trophy className="mr-2 h-4 w-4 shrink-0 text-amber-500" aria-hidden />}
+                  label="Achievements"
+                />
+                <DashboardTabTrigger
+                  value="settings"
+                  tooltipLabel="Settings"
+                  showTooltip={compactTabBar}
+                  className={cn(
+                    "shrink-0 flex-none items-center rounded-lg border border-transparent px-2.5 py-2 text-sm font-semibold tracking-tight text-muted-foreground transition-colors hover:text-foreground",
+                    "data-[state=active]:border-slate-400/45 data-[state=active]:bg-background/90 data-[state=active]:text-slate-600 data-[state=active]:shadow-sm dark:data-[state=active]:bg-card/80 dark:data-[state=active]:text-slate-300",
+                  )}
+                  icon={<Settings2 className="mr-2 h-4 w-4 shrink-0 text-slate-400" aria-hidden />}
+                  label="Settings"
+                />
               </TabsList>
-              <TabsContent value="teams" className="mt-0">
+
+              <TabsContent value="squads" className="mt-0">
                 {teams.length === 0 && availabilityPosts.length === 0 ? (
                   <DashboardEmptyState />
                 ) : (
@@ -886,7 +1052,9 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
                   />
                 )}
               </TabsContent>
-              <TabsContent value="requests" className="mt-0 flex flex-col gap-8">
+
+              <TabsContent value="inbox" className="mt-0 flex flex-col gap-8">
+                <PushNotificationBanner />
                 <DashboardIncomingApplications
                   applications={applications}
                   onAccept={handleAcceptApplication}
@@ -899,6 +1067,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
                 />
                 <SentApplicationsSection sentApplications={sentApplications} />
               </TabsContent>
+
               <TabsContent value="availability" className="mt-0">
                 <DashboardMyAvailability
                   availabilityPosts={availabilityPosts}
@@ -906,21 +1075,29 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
                   profileAvatarUrl={profile?.avatar_url ?? null}
                 />
               </TabsContent>
-              <TabsContent value="profile" className="mt-0 flex w-full flex-col">
+
+              <TabsContent value="achievements" className="mt-0 flex flex-col gap-6">
+                {session?.user?.id ? (
+                  <>
+                    <GamificationDashboardFull
+                      userId={session.user.id}
+                      onDataChanged={() => void loadData()}
+                    />
+                    <ProfileGamification userId={session.user.id} badgesOnly />
+                  </>
+                ) : null}
+              </TabsContent>
+
+              <TabsContent value="settings" className="mt-0 flex w-full flex-col">
                 <ProfileSettings
                   profile={profile}
                   onProfileUpdated={loadData}
                   displayNameFallback={
-                    (() => {
-                      const meta = session?.user?.user_metadata as Record<string, string> | undefined
-                      return (
-                        meta?.username?.trim() ||
-                        meta?.user_name?.trim() ||
-                        meta?.full_name?.trim() ||
-                        meta?.name?.trim() ||
-                        (session?.user?.email ? session.user.email.split("@")[0] : null)
-                      )
-                    })()
+                    meta?.username?.trim() ||
+                    meta?.user_name?.trim() ||
+                    meta?.full_name?.trim() ||
+                    meta?.name?.trim() ||
+                    (session?.user?.email ? session.user.email.split("@")[0] : null)
                   }
                 />
               </TabsContent>

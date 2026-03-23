@@ -23,6 +23,9 @@ import { toast } from "sonner"
 import { track } from "@vercel/analytics"
 import { ENGINE_OPTIONS, EXPERIENCE_OPTIONS, JAM_STYLE_OPTIONS, ROLE_OPTIONS } from "@/lib/constants"
 import { JamSearchSelector } from "@/components/jam-search-selector"
+import { createTeam } from "@/app/actions/create-team-actions"
+import { showGamificationRewards } from "@/components/gamification-reward-toasts"
+import { gamificationRewardHasToast } from "@/lib/gamification-reward-types"
 
 type RoleEntry = {
   id: number
@@ -129,8 +132,7 @@ export function CreateTeamForm() {
       setPublishTapGuard(false)
       return
     }
-    setPublishTapGuard(true)
-    const id = window.setTimeout(() => setPublishTapGuard(false), 450)
+    const id = window.setTimeout(() => setPublishTapGuard(false), 900)
     return () => clearTimeout(id)
   }, [step])
 
@@ -176,6 +178,9 @@ export function CreateTeamForm() {
 
   function goToNextStep() {
     if (!validateStep(step)) return
+    if (step === 2) {
+      setPublishTapGuard(true)
+    }
     setStep((prev) => Math.min(prev + 1, totalSteps))
   }
 
@@ -212,6 +217,7 @@ export function CreateTeamForm() {
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!user) return
+    if (step !== totalSteps) return
 
     // Ensure previous steps are valid before final submission
     if (!validateStep(1) || !validateStep(2)) {
@@ -239,27 +245,26 @@ export function CreateTeamForm() {
       return
     }
 
-    const teamData = {
-      user_id: user.id,
-      team_name: teamName.trim(),
-      game_name: jamName.trim(),
-      description: description.trim(),
-      engine: engine,
-      language: language,
-      looking_for: cleanRoles,
-      discord_link: discordLinkValue,
-      team_vibe: teamVibe || null,
-      experience_required: experienceRequired && experienceRequired !== "any" ? experienceRequired : null,
-      jam_id: jamId || null,
-      expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-    }
-
     try {
-      const { data, error } = await supabase.from('teams').insert([teamData]).select('id').single()
-      if (error) {
-        toast.error("Could not create the team.", { description: error.message })
+      const result = await createTeam({
+        teamName: teamName.trim(),
+        jamName: jamName.trim(),
+        description: description.trim(),
+        engine,
+        language,
+        lookingFor: cleanRoles,
+        discordLink: discordLinkValue,
+        teamVibe: teamVibe || null,
+        experienceRequired: experienceRequired || null,
+        jamId: jamId || null,
+      })
+      if (!result.success) {
+        toast.error("Could not create the team.", { description: result.error })
       } else {
-        track("Created Team", { engine: teamData.engine })
+        if (result.gamification && gamificationRewardHasToast(result.gamification)) {
+          showGamificationRewards("CREATE_TEAM", result.gamification)
+        }
+        track("Created Team", { engine })
         toast.success("Team created successfully!", { description: "Your listing is now live." })
         setTeamName("")
         setJamName("")
@@ -272,7 +277,7 @@ export function CreateTeamForm() {
         setDiscordLinkError("")
         setDescription("")
         setRoles([{ id: roleIdCounter++, role: "", level: "" }])
-        router.push(data?.id ? `/teams/${data.id}/manage` : "/dashboard")
+        router.push(result.teamId ? `/teams/${result.teamId}/manage` : "/dashboard")
       }
     } catch (err) {
       toast.error("An error occurred.", { description: err instanceof Error ? err.message : "Please try again." })

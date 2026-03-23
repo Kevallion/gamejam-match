@@ -3,6 +3,14 @@
 import { createClient } from "@/lib/supabase/server"
 import { sendEmailNotification } from "@/lib/mail"
 import { CURRENT_ONBOARDING_VERSION } from "@/lib/onboarding"
+import { awardXP } from "@/lib/gamification"
+import type { GamificationRewardSummary } from "@/lib/gamification-reward-types"
+import { gamificationRewardHasToast } from "@/lib/gamification-reward-types"
+
+export type OnboardingGamificationStep = {
+  action: string
+  reward: GamificationRewardSummary
+}
 
 /**
  * Persists onboarding preferences for the current user
@@ -20,7 +28,7 @@ export type CompleteOnboardingInput = {
 
 export async function completeOnboarding(
   input: CompleteOnboardingInput
-): Promise<{ success: boolean; error?: string; warning?: string }> {
+): Promise<{ success: boolean; error?: string; warning?: string; gamification?: OnboardingGamificationStep[] }> {
   const supabase = await createClient()
 
   const {
@@ -47,6 +55,14 @@ export async function completeOnboarding(
   const portfolioUrl = input.portfolioUrl?.trim() || null
   const publishImmediately = input.publishImmediately !== false
 
+  const { data: profileBefore } = await supabase
+    .from("profiles")
+    .select("has_completed_onboarding")
+    .eq("id", user.id)
+    .maybeSingle()
+
+  const firstTimeCompletingOnboarding = profileBefore?.has_completed_onboarding !== true
+
   // Ensure the profile row exists and keep onboarding data in sync
   // with both the default_* fields and the base profile fields.
   const { error } = await supabase
@@ -72,6 +88,17 @@ export async function completeOnboarding(
 
   if (error) {
     return { success: false, error: error.message }
+  }
+
+  const gamificationSteps: OnboardingGamificationStep[] = []
+
+  if (firstTimeCompletingOnboarding) {
+    const gamification = await awardXP(user.id, "COMPLETE_PROFILE")
+    if (!gamification.ok) {
+      console.error("[gamification] COMPLETE_PROFILE:", gamification.error)
+    } else if (gamification.reward && gamificationRewardHasToast(gamification.reward)) {
+      gamificationSteps.push({ action: "COMPLETE_PROFILE", reward: gamification.reward })
+    }
   }
 
   // Fire-and-forget welcome email once onboarding is marked as completed.
@@ -125,34 +152,55 @@ Founder of GameJam Crew`
   }
 
   if (!publishImmediately) {
-    return { success: true }
+    return {
+      success: true,
+      ...(gamificationSteps.length > 0 ? { gamification: gamificationSteps } : {}),
+    }
   }
 
   try {
-    const { error: postError } = await supabase.from("availability_posts").insert({
-      user_id: user.id,
-      role: defaultRole,
-      engine: defaultEngine,
-      language: defaultLanguage,
-      portfolio_link: portfolioUrl,
-      availability: "Ready for upcoming game jams!",
-      jam_style: null,
-      experience: "regular",
-      bio: "Open to joining upcoming game jams.",
-    })
+    const { data: newPost, error: postError } = await supabase
+      .from("availability_posts")
+      .insert({
+        user_id: user.id,
+        role: defaultRole,
+        engine: defaultEngine,
+        language: defaultLanguage,
+        portfolio_link: portfolioUrl,
+        availability: "Ready for upcoming game jams!",
+        jam_style: null,
+        experience: "regular",
+        bio: "Open to joining upcoming game jams.",
+      })
+      .select("id")
+      .single()
 
     if (postError) {
       return {
         success: true,
         warning: "Your onboarding was completed, but we could not publish your profile automatically yet.",
+        ...(gamificationSteps.length > 0 ? { gamification: gamificationSteps } : {}),
+      }
+    }
+
+    if (newPost?.id) {
+      const postXp = await awardXP(user.id, "POST_ANNOUNCEMENT")
+      if (!postXp.ok) {
+        console.error("[gamification] POST_ANNOUNCEMENT (onboarding):", postXp.error)
+      } else if (postXp.reward && gamificationRewardHasToast(postXp.reward)) {
+        gamificationSteps.push({ action: "POST_ANNOUNCEMENT", reward: postXp.reward })
       }
     }
   } catch {
     return {
       success: true,
       warning: "Your onboarding was completed, but we could not publish your profile automatically yet.",
+      ...(gamificationSteps.length > 0 ? { gamification: gamificationSteps } : {}),
     }
   }
 
-  return { success: true }
+  return {
+    success: true,
+    ...(gamificationSteps.length > 0 ? { gamification: gamificationSteps } : {}),
+  }
 }
