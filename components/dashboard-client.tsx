@@ -4,7 +4,6 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { Navbar } from "@/components/navbar"
 import { Footer } from "@/components/footer"
-import { MobileBottomNav } from "@/components/mobile-bottom-nav"
 import { DashboardMyTeams, type TeamData } from "@/components/dashboard-my-teams"
 import { DashboardRecommendedTeams } from "@/components/dashboard-recommended-teams"
 import { DashboardMyAvailability } from "@/components/dashboard-my-availability"
@@ -259,7 +258,7 @@ function DashboardLoadingSkeleton() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <Navbar />
-      <main className="flex-1 pb-20 md:pb-0">
+      <main className="flex-1">
         <section className="px-4 py-6 md:py-10 lg:px-6 lg:py-12">
           <div className="mx-auto max-w-5xl space-y-6">
             {/* Identity header skeleton */}
@@ -283,7 +282,6 @@ function DashboardLoadingSkeleton() {
         </section>
       </main>
       <Footer tagline="Connect, create, and ship games together." />
-      <MobileBottomNav />
     </div>
   )
 }
@@ -967,7 +965,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
     <div className="flex min-h-screen flex-col bg-background">
       <Navbar />
       
-      <main className="flex-1 pb-20 md:pb-0 md:pt-16">
+      <main className="flex-1 md:pt-16">
         {/* Hero section with identity + KPIs */}
         <section className="px-4 py-6 md:py-8 lg:px-6">
           <div className="mx-auto max-w-5xl space-y-4 md:space-y-6">
@@ -1171,8 +1169,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
         </section>
       </main>
 
-      <Footer tagline="Connect, create, and ship games together." className="hidden md:block" />
-      <MobileBottomNav />
+      <Footer tagline="Connect, create, and ship games together." />
 
       <OnboardingModal
         open={showOnboardingModal}
