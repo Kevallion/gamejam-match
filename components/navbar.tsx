@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/sheet"
 import { useTheme } from "next-themes"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { subscribeToAuthComplete } from "@/lib/auth-utils"
 import { AuthModal } from "@/components/auth-modal"
 import { supabase } from "@/lib/supabase"
@@ -59,6 +60,7 @@ function getDisplayName(user: User | null, profile: NavbarProfile | null): strin
 }
 
 export function Navbar() {
+  const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<NavbarProfile | null>(null)
   const [loading, setLoading] = useState(true)
@@ -121,6 +123,7 @@ export function Navbar() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
+    router.replace("/")
   }
 
   const displayName = getDisplayName(user, profile)

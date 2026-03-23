@@ -1,14 +1,15 @@
 "use client"
 
 import { motion, useInView } from "framer-motion"
-import { useRef } from "react"
-import { ArrowRight, Gamepad2, Users, Zap, Star, Sparkles } from "lucide-react"
+import { useRef, useState } from "react"
+import { Gamepad2, LogIn, Zap, Star, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import Link from "next/link"
+import { AuthModal } from "@/components/auth-modal"
 
 export function LandingCTA() {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: "-100px" })
+  const [authModalOpen, setAuthModalOpen] = useState(false)
 
   return (
     <section ref={ref} className="relative overflow-hidden px-4 py-20 lg:px-6 lg:py-32">
@@ -122,25 +123,13 @@ export function LandingCTA() {
               className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row"
             >
               <Button
-                asChild
+                type="button"
                 size="lg"
-                className="group h-14 min-w-[220px] rounded-2xl bg-teal px-8 text-base font-semibold text-teal-foreground shadow-xl shadow-teal/25 transition-all hover:bg-teal/90 hover:shadow-teal/35 hover:scale-[1.02]"
+                onClick={() => setAuthModalOpen(true)}
+                className="h-14 min-w-[220px] gap-2 rounded-2xl bg-teal px-8 text-base font-semibold text-teal-foreground shadow-xl shadow-teal/25 transition-all hover:bg-teal/90 hover:shadow-teal/35 hover:scale-[1.02]"
               >
-                <Link href="/create-profile">
-                  <Users className="size-5" />
-                  Create Your Profile
-                  <ArrowRight className="size-5 transition-transform group-hover:translate-x-1" />
-                </Link>
-              </Button>
-              <Button
-                asChild
-                variant="outline"
-                size="lg"
-                className="h-14 min-w-[180px] rounded-2xl border-border/60 bg-background/50 px-8 text-base font-semibold backdrop-blur-sm transition-all hover:border-teal/40 hover:bg-background/80"
-              >
-                <Link href="/teams">
-                  Browse Teams
-                </Link>
+                <LogIn className="size-5" />
+                Sign In
               </Button>
             </motion.div>
 
@@ -198,6 +187,8 @@ export function LandingCTA() {
           ))}
         </motion.div>
       </div>
+
+      <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
     </section>
   )
 }
