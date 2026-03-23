@@ -10,9 +10,14 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
-import { Progress } from "@/components/ui/progress"
 import { supabase } from "@/lib/supabase"
 import type { User } from "@supabase/supabase-js"
+import {
+  FormStepIndicator,
+  FormStepContent,
+  FormStepActions,
+  type FormStep,
+} from "@/components/ui/form-step-indicator"
 import {
   Popover,
   PopoverContent,
@@ -29,6 +34,10 @@ import {
   CalendarDays,
   Loader2,
   AlertCircle,
+  CheckCircle2,
+  User as UserIcon,
+  Settings,
+  FileText,
 } from "lucide-react"
 import { SignInButton } from "@/components/sign-in-button"
 import { cn } from "@/lib/utils"
@@ -38,6 +47,7 @@ import { JamSearchSelector } from "@/components/jam-search-selector"
 import { claimAvailabilityPostXp } from "@/app/actions/availability-actions"
 import { showGamificationRewards } from "@/components/gamification-reward-toasts"
 import { gamificationRewardHasToast } from "@/lib/gamification-reward-types"
+import { Skeleton } from "@/components/ui/skeleton"
 import {
   Drawer,
   DrawerClose,
@@ -59,9 +69,15 @@ const LANGUAGE_OPTIONS = [
   { value: "chinese", label: "Chinese" },
 ]
 
+const FORM_STEPS: FormStep[] = [
+  { id: 1, label: "Identity", description: "Who you are" },
+  { id: 2, label: "Preferences", description: "Style & tools" },
+  { id: 3, label: "Profile", description: "Bio & links" },
+]
+
 export function AvailabilityForm() {
   const isMobile = useIsMobile()
-  const totalSteps = 3
+  const totalSteps = FORM_STEPS.length
   const [step, setStep] = useState(1)
   // Form state
   const [loading, setLoading] = useState(false)
@@ -190,8 +206,9 @@ export function AvailabilityForm() {
 
     if (Object.keys(newErrors).length > 0) {
       setErrors((prev) => ({ ...prev, ...newErrors }))
-      toast.error("Please fill all required fields.", {
+      toast.error("Please fill all required fields", {
         description: "Check the highlighted fields and try again.",
+        icon: <AlertCircle className="size-5" />,
       })
       return false
     }
@@ -209,6 +226,13 @@ export function AvailabilityForm() {
 
   function goToPreviousStep() {
     setStep((prev) => Math.max(prev - 1, 1))
+  }
+
+  function goToStep(targetStep: number) {
+    // Only allow going back to completed steps
+    if (targetStep < step) {
+      setStep(targetStep)
+    }
   }
 
   function handlePrimaryAction() {
@@ -256,13 +280,17 @@ export function AvailabilityForm() {
         .eq("user_id", user.id)
 
       if (countError) {
-        toast.error("Could not check your announcements.", { description: countError.message })
+        toast.error("Could not check your announcements", { 
+          description: countError.message,
+          icon: <AlertCircle className="size-5" />,
+        })
         setLoading(false)
         return
       }
       if ((count ?? 0) >= 3) {
-        toast.error("Maximum reached.", {
+        toast.error("Maximum reached", {
           description: "You can have up to 3 availability announcements. Delete one from your dashboard to add another.",
+          icon: <AlertCircle className="size-5" />,
         })
         setLoading(false)
         return
@@ -312,7 +340,10 @@ export function AvailabilityForm() {
       }
 
       if (postError) {
-        toast.error("Could not add announcement.", { description: postError.message })
+        toast.error("Could not add announcement", { 
+          description: postError.message,
+          icon: <AlertCircle className="size-5" />,
+        })
       } else {
         if (insertedPost?.id) {
           void claimAvailabilityPostXp(insertedPost.id).then((xpRes) => {
@@ -326,16 +357,58 @@ export function AvailabilityForm() {
         }
         toast.success("Announcement added!", {
           description: `You have ${(count ?? 0) + 1} of 3 announcements.`,
+          icon: <CheckCircle2 className="size-5" />,
         })
         setDateRange(undefined)
         // Keep other fields so user can add another with same profile info
         setSubmitted(true)
       }
     } catch (err) {
-      toast.error("An error occurred.", { description: err instanceof Error ? err.message : "Please try again." })
+      toast.error("An error occurred", { 
+        description: err instanceof Error ? err.message : "Please try again.",
+        icon: <AlertCircle className="size-5" />,
+      })
     } finally {
       setLoading(false)
     }
+  }
+
+  const stepDescriptions: Record<number, string> = {
+    1: "Tell us who you are and what you do.",
+    2: "Set your preferred style, engine, and language.",
+    3: "Add your bio and portfolio links.",
+  }
+
+  // Loading skeleton
+  if (checkingAuth) {
+    return (
+      <Card className="rounded-3xl border-border/50 bg-card shadow-xl shadow-lavender/5">
+        <CardContent className="p-6 md:p-10">
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-3">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-2 w-full rounded-full" />
+            </div>
+            <div className="flex flex-col gap-6">
+              <div className="flex flex-col gap-2.5">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-12 w-full rounded-xl" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="flex flex-col gap-2.5">
+                  <Skeleton className="h-4 w-20" />
+                  <Skeleton className="h-12 w-full rounded-xl" />
+                </div>
+                <div className="flex flex-col gap-2.5">
+                  <Skeleton className="h-4 w-28" />
+                  <Skeleton className="h-12 w-full rounded-xl" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    )
   }
 
   return (
@@ -344,6 +417,11 @@ export function AvailabilityForm() {
       {!checkingAuth && !user && (
         <Card className="mb-8 rounded-3xl border-destructive/50 bg-destructive/10">
           <CardContent className="p-6 text-center">
+            <div className="mb-4 flex justify-center">
+              <div className="flex size-12 items-center justify-center rounded-full bg-destructive/20">
+                <AlertCircle className="size-6 text-destructive" />
+              </div>
+            </div>
             <h3 className="mb-2 text-lg font-bold text-destructive">You must be signed in!</h3>
             <p className="mb-4 text-muted-foreground">Please sign in to post your availability.</p>
             <SignInButton />
@@ -355,29 +433,34 @@ export function AvailabilityForm() {
       {user && (
         <Card className="rounded-3xl border-border/50 bg-card shadow-xl shadow-lavender/5">
           <CardContent className="p-6 md:p-10">
-            <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-              <div className="mb-2 flex flex-col gap-3">
-                <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  <span>Step {step} of {totalSteps}</span>
-                  <span>
-                    {step === 1 && "Who you are"}
-                    {step === 2 && "Your Preferences"}
-                    {step === 3 && "Your Profile"}
-                  </span>
-                </div>
-                <Progress
-                  value={(step / totalSteps) * 100}
-                  className="h-2 rounded-full bg-secondary/80"
-                />
-              </div>
+            <form ref={formRef} onSubmit={handleSubmit} className="flex flex-col gap-6">
+              {/* Step Indicator */}
+              <FormStepIndicator
+                steps={FORM_STEPS}
+                currentStep={step}
+                onStepClick={goToStep}
+                allowStepNavigation={!submitted}
+              />
 
               <div className="relative flex flex-col gap-8 pb-28 md:pb-10">
-                {step === 1 && (
-                  <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-left-2 duration-200">
+                {/* Step 1: Identity */}
+                <FormStepContent step={1} currentStep={step}>
+                  <div className="flex flex-col gap-6">
+                    {/* Section header */}
+                    <div className="flex items-center gap-3 rounded-2xl border border-border/40 bg-secondary/30 p-4">
+                      <div className="flex size-10 items-center justify-center rounded-xl bg-lavender/10">
+                        <UserIcon className="size-5 text-lavender" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-semibold text-foreground">Your Identity</h3>
+                        <p className="text-xs text-muted-foreground">Let teams know who you are</p>
+                      </div>
+                    </div>
+
                     {/* Username */}
                     <div className="flex flex-col gap-2.5">
                       <Label htmlFor="username" className="text-sm font-bold text-foreground">
-                        Username
+                        Username <span className="text-destructive">*</span>
                       </Label>
                       <Input
                         id="username"
@@ -390,14 +473,14 @@ export function AvailabilityForm() {
                           clearFieldError("username")
                         }}
                         placeholder="e.g. PixelWizard42"
-                        className={cn(
-                          "h-12 rounded-xl border-border/60 bg-secondary/50 text-foreground",
-                          fieldError("username") && "border-destructive",
-                        )}
                         aria-invalid={!!fieldError("username")}
+                        className={cn(
+                          "h-12 rounded-xl border-border/60 bg-secondary/50 text-foreground transition-colors",
+                          fieldError("username") && "border-destructive focus-visible:ring-destructive/20"
+                        )}
                       />
                       {fieldError("username") && (
-                        <div className="status-error flex items-center gap-1.5 text-xs text-destructive">
+                        <div className="status-error flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs">
                           <AlertCircle className="size-4 shrink-0" />
                           <span>{fieldError("username")}</span>
                         </div>
@@ -407,7 +490,9 @@ export function AvailabilityForm() {
                     {/* Role & Level row */}
                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                       <div className="flex flex-col gap-2.5">
-                        <Label className="text-sm font-bold text-foreground">Main Role</Label>
+                        <Label className="text-sm font-bold text-foreground">
+                          Main Role <span className="text-destructive">*</span>
+                        </Label>
                         <Select
                           value={role}
                           onValueChange={(value) => {
@@ -420,7 +505,7 @@ export function AvailabilityForm() {
                             ref={step2Ref}
                             className={cn(
                               "h-12 rounded-xl border-border/60 bg-secondary/50",
-                              fieldError("role") && "border-destructive",
+                              fieldError("role") && "border-destructive"
                             )}
                             aria-invalid={!!fieldError("role")}
                           >
@@ -433,7 +518,7 @@ export function AvailabilityForm() {
                           </SelectContent>
                         </Select>
                         {fieldError("role") && (
-                          <div className="status-error flex items-center gap-1.5 text-xs text-destructive">
+                          <div className="status-error flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs">
                             <AlertCircle className="size-4 shrink-0" />
                             <span>{fieldError("role")}</span>
                           </div>
@@ -441,7 +526,9 @@ export function AvailabilityForm() {
                       </div>
 
                       <div className="flex flex-col gap-2.5">
-                        <Label className="text-sm font-bold text-foreground">Experience Level</Label>
+                        <Label className="text-sm font-bold text-foreground">
+                          Experience Level <span className="text-destructive">*</span>
+                        </Label>
                         <Select
                           value={level}
                           onValueChange={(value) => {
@@ -453,7 +540,7 @@ export function AvailabilityForm() {
                           <SelectTrigger
                             className={cn(
                               "h-12 rounded-xl border-border/60 bg-secondary/50",
-                              fieldError("level") && "border-destructive",
+                              fieldError("level") && "border-destructive"
                             )}
                             aria-invalid={!!fieldError("level")}
                           >
@@ -470,7 +557,7 @@ export function AvailabilityForm() {
                           </SelectContent>
                         </Select>
                         {fieldError("level") && (
-                          <div className="status-error flex items-center gap-1.5 text-xs text-destructive">
+                          <div className="status-error flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs">
                             <AlertCircle className="size-4 shrink-0" />
                             <span>{fieldError("level")}</span>
                           </div>
@@ -478,10 +565,22 @@ export function AvailabilityForm() {
                       </div>
                     </div>
                   </div>
-                )}
+                </FormStepContent>
 
-                {step === 2 && (
-                  <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-right-2 duration-200">
+                {/* Step 2: Preferences */}
+                <FormStepContent step={2} currentStep={step}>
+                  <div className="flex flex-col gap-6">
+                    {/* Section header */}
+                    <div className="flex items-center gap-3 rounded-2xl border border-border/40 bg-secondary/30 p-4">
+                      <div className="flex size-10 items-center justify-center rounded-xl bg-teal/10">
+                        <Settings className="size-5 text-teal" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-semibold text-foreground">Your Preferences</h3>
+                        <p className="text-xs text-muted-foreground">Help teams find the right match</p>
+                      </div>
+                    </div>
+
                     {/* Jam Style */}
                     <div className="flex flex-col gap-2.5">
                       <Label className="text-sm font-bold text-foreground">Jam Style</Label>
@@ -503,14 +602,16 @@ export function AvailabilityForm() {
                         </SelectContent>
                       </Select>
                       <p className="text-xs text-muted-foreground">
-                        Chill ☕, Learning 📖, Dedicated 🔥, Competitive 🏆 — helps match you with teams that share your approach.
+                        Chill, Learning, Dedicated, Competitive — helps match you with teams that share your approach.
                       </p>
                     </div>
 
                     {/* Engine & Language row */}
                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                       <div className="flex flex-col gap-2.5">
-                        <Label className="text-sm font-bold text-foreground">Preferred Engine</Label>
+                        <Label className="text-sm font-bold text-foreground">
+                          Preferred Engine <span className="text-destructive">*</span>
+                        </Label>
                         <Select
                           value={engine}
                           onValueChange={(value) => {
@@ -522,7 +623,7 @@ export function AvailabilityForm() {
                           <SelectTrigger
                             className={cn(
                               "h-12 rounded-xl border-border/60 bg-secondary/50",
-                              fieldError("engine") && "border-destructive",
+                              fieldError("engine") && "border-destructive"
                             )}
                             aria-invalid={!!fieldError("engine")}
                           >
@@ -535,7 +636,7 @@ export function AvailabilityForm() {
                           </SelectContent>
                         </Select>
                         {fieldError("engine") && (
-                          <div className="status-error flex items-center gap-1.5 text-xs text-destructive">
+                          <div className="status-error flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs">
                             <AlertCircle className="size-4 shrink-0" />
                             <span>{fieldError("engine")}</span>
                           </div>
@@ -543,7 +644,9 @@ export function AvailabilityForm() {
                       </div>
 
                       <div className="flex flex-col gap-2.5">
-                        <Label className="text-sm font-bold text-foreground">Spoken Language</Label>
+                        <Label className="text-sm font-bold text-foreground">
+                          Spoken Language <span className="text-destructive">*</span>
+                        </Label>
                         <Select
                           value={language}
                           onValueChange={(value) => {
@@ -555,7 +658,7 @@ export function AvailabilityForm() {
                           <SelectTrigger
                             className={cn(
                               "h-12 rounded-xl border-border/60 bg-secondary/50",
-                              fieldError("language") && "border-destructive",
+                              fieldError("language") && "border-destructive"
                             )}
                             aria-invalid={!!fieldError("language")}
                           >
@@ -568,7 +671,7 @@ export function AvailabilityForm() {
                           </SelectContent>
                         </Select>
                         {fieldError("language") && (
-                          <div className="status-error flex items-center gap-1.5 text-xs text-destructive">
+                          <div className="status-error flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs">
                             <AlertCircle className="size-4 shrink-0" />
                             <span>{fieldError("language")}</span>
                           </div>
@@ -578,11 +681,14 @@ export function AvailabilityForm() {
 
                     {/* Jam Itch.io (optional) */}
                     <div className="flex flex-col gap-2.5">
-                      <Label className="text-sm font-bold text-foreground">Link to an Itch.io Jam (optional)</Label>
+                      <Label className="text-sm font-bold text-foreground">
+                        Link to an Itch.io Jam{" "}
+                        <span className="text-xs font-normal text-muted-foreground">(optional)</span>
+                      </Label>
                       <JamSearchSelector
                         value={jamId}
                         onValueChange={setJamId}
-                        placeholder="Choose an Itch.io jam…"
+                        placeholder="Choose an Itch.io jam..."
                         syncOnOpen={true}
                         activeOnly={true}
                       />
@@ -598,7 +704,7 @@ export function AvailabilityForm() {
                               variant="outline"
                               className={cn(
                                 "h-12 w-full justify-start gap-3 rounded-xl border-border/60 bg-secondary/50",
-                                !dateRange?.from && "text-muted-foreground",
+                                !dateRange?.from && "text-muted-foreground"
                               )}
                             >
                               <CalendarDays className="size-4 text-lavender" />
@@ -640,7 +746,7 @@ export function AvailabilityForm() {
                               variant="outline"
                               className={cn(
                                 "h-12 w-full justify-start gap-3 rounded-xl border-border/60 bg-secondary/50",
-                                !dateRange?.from && "text-muted-foreground",
+                                !dateRange?.from && "text-muted-foreground"
                               )}
                             >
                               <CalendarDays className="size-4 text-lavender" />
@@ -664,10 +770,22 @@ export function AvailabilityForm() {
                       )}
                     </div>
                   </div>
-                )}
+                </FormStepContent>
 
-                {step === 3 && (
-                  <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-left-2 duration-200">
+                {/* Step 3: Profile */}
+                <FormStepContent step={3} currentStep={step}>
+                  <div className="flex flex-col gap-6">
+                    {/* Section header */}
+                    <div className="flex items-center gap-3 rounded-2xl border border-border/40 bg-secondary/30 p-4">
+                      <div className="flex size-10 items-center justify-center rounded-xl bg-pink/10">
+                        <FileText className="size-5 text-pink" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-semibold text-foreground">Your Profile</h3>
+                        <p className="text-xs text-muted-foreground">Show teams what you bring to the table</p>
+                      </div>
+                    </div>
+
                     {/* Portfolio / Itch.io */}
                     <div className="flex flex-col gap-2.5">
                       <Label htmlFor="portfolio_link" className="text-sm font-bold text-foreground">
@@ -690,7 +808,9 @@ export function AvailabilityForm() {
 
                     {/* About Me */}
                     <div className="flex flex-col gap-2.5">
-                      <Label htmlFor="about" className="text-sm font-bold text-foreground">About Me</Label>
+                      <Label htmlFor="about" className="text-sm font-bold text-foreground">
+                        About Me <span className="text-destructive">*</span>
+                      </Label>
                       <Textarea
                         id="about"
                         name="about"
@@ -702,14 +822,15 @@ export function AvailabilityForm() {
                           setBio(e.target.value)
                           clearFieldError("bio")
                         }}
+                        placeholder="Tell teams about yourself, your experience, and what you're looking for..."
                         className={cn(
-                          "rounded-xl border-border/60 bg-secondary/50",
-                          fieldError("bio") && "border-destructive",
+                          "rounded-xl border-border/60 bg-secondary/50 transition-colors",
+                          fieldError("bio") && "border-destructive focus-visible:ring-destructive/20"
                         )}
                         aria-invalid={!!fieldError("bio")}
                       />
                       {fieldError("bio") && (
-                        <div className="status-error flex items-center gap-1.5 text-xs text-destructive">
+                        <div className="status-error flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs">
                           <AlertCircle className="size-4 shrink-0" />
                           <span>{fieldError("bio")}</span>
                         </div>
@@ -717,102 +838,83 @@ export function AvailabilityForm() {
                     </div>
 
                     {/* Review */}
-                    <div className="rounded-2xl border border-border/60 bg-secondary/40 p-4 text-sm text-muted-foreground">
-                      <p className="mb-2 font-semibold text-foreground">Quick review of your profile</p>
-                      <ul className="space-y-1.5">
-                        <li>
-                          <span className="font-medium text-foreground">Username:</span>{" "}
-                          {username || <span className="italic text-muted-foreground">Not set</span>}
+                    <div className="rounded-2xl border border-lavender/20 bg-lavender/5 p-4 text-sm">
+                      <div className="mb-3 flex items-center gap-2">
+                        <CheckCircle2 className="size-5 text-lavender" />
+                        <p className="font-semibold text-foreground">Quick review of your profile</p>
+                      </div>
+                      <ul className="space-y-2 text-muted-foreground">
+                        <li className="flex items-start gap-2">
+                          <span className="font-medium text-foreground">Username:</span>
+                          {username || <span className="italic">Not set</span>}
                         </li>
-                        <li>
-                          <span className="font-medium text-foreground">Role / Level:</span>{" "}
+                        <li className="flex items-start gap-2">
+                          <span className="font-medium text-foreground">Role / Level:</span>
                           {role || level
-                            ? `${role || "Any"} • ${level || "Any"}`
-                            : <span className="italic text-muted-foreground">Not set</span>}
+                            ? `${ROLE_OPTIONS.find(r => r.value === role)?.label || "Any"} • ${EXPERIENCE_OPTIONS.find(e => e.value === level)?.label || "Any"}`
+                            : <span className="italic">Not set</span>}
                         </li>
-                        <li>
-                          <span className="font-medium text-foreground">Engine / Language:</span>{" "}
+                        <li className="flex items-start gap-2">
+                          <span className="font-medium text-foreground">Engine / Language:</span>
                           {engine || language
-                            ? `${engine || "Any"} • ${language || "Any"}`
-                            : <span className="italic text-muted-foreground">Not set</span>}
+                            ? `${ENGINE_OPTIONS_WITH_ANY.find(e => e.value === engine)?.label || "Any"} • ${LANGUAGE_OPTIONS.find(l => l.value === language)?.label || "Any"}`
+                            : <span className="italic">Not set</span>}
                         </li>
-                        <li>
-                          <span className="font-medium text-foreground">Jam Style:</span>{" "}
+                        <li className="flex items-start gap-2">
+                          <span className="font-medium text-foreground">Jam Style:</span>
                           {jamStyle
                             ? JAM_STYLE_OPTIONS.find((j) => j.value === jamStyle)?.label ?? jamStyle
-                            : <span className="italic text-muted-foreground">Not set</span>}
+                            : <span className="italic">Not set</span>}
                         </li>
-                        <li>
-                          <span className="font-medium text-foreground">Availability:</span>{" "}
+                        <li className="flex items-start gap-2">
+                          <span className="font-medium text-foreground">Availability:</span>
                           {dateRange?.from
                             ? dateRange.to
-                              ? `${format(dateRange.from, "yyyy-MM-dd")} → ${format(dateRange.to, "yyyy-MM-dd")}`
+                              ? `${format(dateRange.from, "yyyy-MM-dd")} to ${format(dateRange.to, "yyyy-MM-dd")}`
                               : format(dateRange.from, "yyyy-MM-dd")
-                            : <span className="italic text-muted-foreground">Not specified</span>}
+                            : <span className="italic">Not specified</span>}
                         </li>
                       </ul>
                     </div>
                   </div>
-                )}
+                </FormStepContent>
 
                 {/* Sticky bottom actions */}
-                <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border/60 bg-background/95 px-4 py-3 backdrop-blur md:static md:mt-4 md:border-none md:bg-transparent md:px-0 md:py-0 md:sticky md:bottom-0">
-                  <div className="mx-auto flex w-full max-w-3xl items-center justify-between gap-3">
-                    <div className="hidden text-xs text-muted-foreground md:block">
-                      {step === 1 && "Who you are — username & role."}
-                      {step === 2 && "Your preferences — jam style, engine & language."}
-                      {step === 3 && "Your profile — links and bio."}
-                    </div>
-                    <div className="flex flex-1 items-center justify-between gap-3">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        disabled={step === 1 || loading || submitted}
-                        onClick={goToPreviousStep}
-                        className="rounded-xl text-muted-foreground hover:text-foreground"
-                      >
-                        Back
-                      </Button>
-                      {submitted ? (
-                        <div className="ml-auto flex flex-1 items-center justify-end gap-2 sm:flex-none">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            onClick={resetForNewAnnouncement}
-                            className="rounded-2xl px-4 text-sm font-semibold"
-                          >
-                            Post another availability
-                          </Button>
-                          <Button
-                            type="button"
-                            disabled
-                            className="rounded-2xl bg-primary/80 py-3 text-sm font-extrabold text-primary-foreground"
-                          >
-                            Announcement posted
-                          </Button>
-                        </div>
-                      ) : (
-                        <Button
-                          type="button"
-                          disabled={loading || (step === totalSteps && publishTapGuard)}
-                          onClick={handlePrimaryAction}
-                          className="ml-auto flex-1 justify-center gap-2 rounded-2xl bg-primary py-3 text-sm font-extrabold text-primary-foreground sm:flex-none sm:px-6"
-                        >
-                          {step === totalSteps
-                            ? loading
-                              ? (
-                                <>
-                                  <Loader2 className="size-4 animate-spin" />
-                                  Sending...
-                                </>
-                              )
-                              : "Post My Availability"
-                            : "Next step"}
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                </div>
+                <FormStepActions
+                  currentStep={step}
+                  totalSteps={totalSteps}
+                  loading={loading}
+                  submitted={submitted}
+                  disabled={step === totalSteps && publishTapGuard}
+                  onPrevious={goToPreviousStep}
+                  onNext={goToNextStep}
+                  onReset={resetForNewAnnouncement}
+                  stepDescription={stepDescriptions[step]}
+                  submitLabel="Post My Availability"
+                  submittingLabel="Sending..."
+                  submittedLabel="Announcement posted"
+                  resetLabel="Post another availability"
+                >
+                  {!submitted && (
+                    <Button
+                      type="button"
+                      disabled={loading || (step === totalSteps && publishTapGuard)}
+                      onClick={handlePrimaryAction}
+                      className="ml-auto flex flex-1 items-center justify-center gap-2 rounded-2xl bg-primary py-3 text-sm font-extrabold text-primary-foreground transition-all hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/20 active:scale-[0.98] sm:flex-none sm:px-6"
+                    >
+                      {step === totalSteps
+                        ? loading
+                          ? (
+                            <>
+                              <Loader2 className="size-4 animate-spin" />
+                              Sending...
+                            </>
+                          )
+                          : "Post My Availability"
+                        : "Next step"}
+                    </Button>
+                  )}
+                </FormStepActions>
               </div>
             </form>
           </CardContent>

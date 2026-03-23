@@ -9,7 +9,12 @@ import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
 import { supabase } from "@/lib/supabase"
 import type { User } from "@supabase/supabase-js"
-import { Progress } from "@/components/ui/progress"
+import {
+  FormStepIndicator,
+  FormStepContent,
+  FormStepActions,
+  type FormStep,
+} from "@/components/ui/form-step-indicator"
 import {
   Select,
   SelectContent,
@@ -17,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Plus, X, Rocket, Sparkles, Loader2, AlertCircle } from "lucide-react"
+import { Plus, X, Rocket, Sparkles, Loader2, AlertCircle, CheckCircle2, Users, Settings, FileText } from "lucide-react"
 import { SignInButton } from "@/components/sign-in-button"
 import { toast } from "sonner"
 import { track } from "@vercel/analytics"
@@ -26,6 +31,8 @@ import { JamSearchSelector } from "@/components/jam-search-selector"
 import { createTeam } from "@/app/actions/create-team-actions"
 import { showGamificationRewards } from "@/components/gamification-reward-toasts"
 import { gamificationRewardHasToast } from "@/lib/gamification-reward-types"
+import { cn } from "@/lib/utils"
+import { Skeleton } from "@/components/ui/skeleton"
 
 type RoleEntry = {
   id: number
@@ -47,11 +54,17 @@ const LANGUAGE_OPTIONS = [
 const TEAM_FORM_ENGINE_VALUES = new Set<string>(ENGINE_OPTIONS.map((o) => o.value))
 const TEAM_FORM_LANGUAGE_VALUES = new Set<string>(LANGUAGE_OPTIONS.map((o) => o.value))
 
+const FORM_STEPS: FormStep[] = [
+  { id: 1, label: "Basics", description: "Team name & jam" },
+  { id: 2, label: "Team Setup", description: "Engine & roles" },
+  { id: 3, label: "Details", description: "Description & Discord" },
+]
+
 let roleIdCounter = 1
 
 export function CreateTeamForm() {
   const router = useRouter()
-  const totalSteps = 3
+  const totalSteps = FORM_STEPS.length
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
   const [teamName, setTeamName] = useState("")
@@ -63,10 +76,11 @@ export function CreateTeamForm() {
   /** Single empty row so the user can type the first needed role without clicking "Add another role". */
   const [roles, setRoles] = useState<RoleEntry[]>([{ id: 0, role: "", level: "" }])
   const [discordLink, setDiscordLink] = useState("")
-  const [discordLinkError, setDiscordLinkError] = useState("")
-  const [rolesError, setRolesError] = useState("")
   const [jamId, setJamId] = useState<string | null>(null)
   const [description, setDescription] = useState("")
+
+  // Error state per field
+  const [errors, setErrors] = useState<Record<string, string>>({})
 
   const [user, setUser] = useState<User | null>(null)
   const [checkingAuth, setCheckingAuth] = useState(true)
@@ -77,6 +91,16 @@ export function CreateTeamForm() {
   const formRef = useRef<HTMLFormElement | null>(null)
   /** Évite un second « clic » sur le bouton qui devient « Publish » au même endroit (surtout au tactile). */
   const [publishTapGuard, setPublishTapGuard] = useState(false)
+
+  const fieldError = (field: string) => errors[field]
+
+  const clearFieldError = (field: string) => {
+    setErrors((prev) => {
+      if (!(field in prev)) return prev
+      const { [field]: _removed, ...rest } = prev
+      return rest
+    })
+  }
 
   useEffect(() => {
     async function checkUser() {
@@ -141,36 +165,37 @@ export function CreateTeamForm() {
   }
 
   function validateStep(currentStep: number) {
+    const newErrors: Record<string, string> = {}
+
     if (currentStep === 1) {
-      if (!teamName.trim() || !jamName.trim()) {
-        toast.error("Please complete the required basics.", {
-          description: "Team / Project Name and Game Jam Name are required.",
-        })
-        return false
+      if (!teamName.trim()) {
+        newErrors.teamName = "Team name is required"
+      }
+      if (!jamName.trim()) {
+        newErrors.jamName = "Game jam name is required"
       }
     }
 
     if (currentStep === 2) {
-      let valid = true
-      const cleanRoles = getCleanRoles()
-
       if (!engine) {
-        valid = false
+        newErrors.engine = "Please select an engine"
       }
       if (!language) {
-        valid = false
+        newErrors.language = "Please select a language"
       }
+      const cleanRoles = getCleanRoles()
       if (cleanRoles.length < 1) {
-        setRolesError("Please select at least one role you are looking for.")
-        valid = false
+        newErrors.roles = "Please add at least one role you are looking for"
       }
+    }
 
-      if (!valid) {
-        toast.error("Please complete the team setup.", {
-          description: "Engine, language and at least one role are required.",
-        })
-        return false
-      }
+    if (Object.keys(newErrors).length > 0) {
+      setErrors((prev) => ({ ...prev, ...newErrors }))
+      toast.error("Please complete the required fields", {
+        description: "Check the highlighted fields and try again.",
+        icon: <AlertCircle className="size-5" />,
+      })
+      return false
     }
 
     return true
@@ -188,6 +213,13 @@ export function CreateTeamForm() {
     setStep((prev) => Math.max(prev - 1, 1))
   }
 
+  function goToStep(targetStep: number) {
+    // Only allow going back to completed steps
+    if (targetStep < step) {
+      setStep(targetStep)
+    }
+  }
+
   function handlePrimaryAction() {
     if (step < totalSteps) {
       goToNextStep()
@@ -198,17 +230,17 @@ export function CreateTeamForm() {
   }
 
   function addRole() {
-    setRolesError("")
+    clearFieldError("roles")
     setRoles((prev) => [...prev, { id: roleIdCounter++, role: "", level: "" }])
   }
 
   function removeRole(id: number) {
-    setRolesError("")
+    clearFieldError("roles")
     setRoles((prev) => prev.filter((r) => r.id !== id))
   }
 
   function updateRole(id: number, field: "role" | "level", value: string) {
-    setRolesError("")
+    clearFieldError("roles")
     setRoles((prev) =>
       prev.map((r) => (r.id === id ? { ...r, [field]: value } : r))
     )
@@ -225,13 +257,12 @@ export function CreateTeamForm() {
     }
 
     setLoading(true)
-    setDiscordLinkError("")
-    setRolesError("")
+    setErrors({})
 
     const cleanRoles = getCleanRoles()
     if (cleanRoles.length < 1) {
       setLoading(false)
-      setRolesError("Please select at least one role you are looking for.")
+      setErrors((prev) => ({ ...prev, roles: "Please add at least one role" }))
       return
     }
 
@@ -241,7 +272,7 @@ export function CreateTeamForm() {
       !/^https:\/\/discord\.(gg|com\/invite)\//.test(discordLinkValue)
     ) {
       setLoading(false)
-      setDiscordLinkError("Please enter a valid Discord invite link")
+      setErrors((prev) => ({ ...prev, discordLink: "Please enter a valid Discord invite link" }))
       return
     }
 
@@ -259,13 +290,19 @@ export function CreateTeamForm() {
         jamId: jamId || null,
       })
       if (!result.success) {
-        toast.error("Could not create the team.", { description: result.error })
+        toast.error("Could not create the team", { 
+          description: result.error,
+          icon: <AlertCircle className="size-5" />,
+        })
       } else {
         if (result.gamification && gamificationRewardHasToast(result.gamification)) {
           showGamificationRewards("CREATE_TEAM", result.gamification)
         }
         track("Created Team", { engine })
-        toast.success("Team created successfully!", { description: "Your listing is now live." })
+        toast.success("Team created successfully!", { 
+          description: "Your listing is now live.",
+          icon: <CheckCircle2 className="size-5" />,
+        })
         setTeamName("")
         setJamName("")
         setEngine("")
@@ -274,16 +311,55 @@ export function CreateTeamForm() {
         setExperienceRequired("")
         setDiscordLink("")
         setJamId(null)
-        setDiscordLinkError("")
+        setErrors({})
         setDescription("")
         setRoles([{ id: roleIdCounter++, role: "", level: "" }])
         router.push(result.teamId ? `/teams/${result.teamId}/manage` : "/dashboard")
       }
     } catch (err) {
-      toast.error("An error occurred.", { description: err instanceof Error ? err.message : "Please try again." })
+      toast.error("An error occurred", { 
+        description: err instanceof Error ? err.message : "Please try again.",
+        icon: <AlertCircle className="size-5" />,
+      })
     } finally {
       setLoading(false)
     }
+  }
+
+  const stepDescriptions: Record<number, string> = {
+    1: "Start by naming your team and the game jam.",
+    2: "Set your engine, language, and roles needed.",
+    3: "Add a description and optional Discord link.",
+  }
+
+  // Loading skeleton
+  if (checkingAuth) {
+    return (
+      <Card className="rounded-3xl border-border/50 bg-card shadow-xl shadow-primary/5">
+        <CardContent className="p-6 md:p-10">
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-3">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-2 w-full rounded-full" />
+            </div>
+            <div className="flex flex-col gap-6">
+              <div className="flex flex-col gap-2.5">
+                <Skeleton className="h-4 w-40" />
+                <Skeleton className="h-12 w-full rounded-xl" />
+              </div>
+              <div className="flex flex-col gap-2.5">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-12 w-full rounded-xl" />
+              </div>
+              <div className="flex flex-col gap-2.5">
+                <Skeleton className="h-4 w-48" />
+                <Skeleton className="h-12 w-full rounded-xl" />
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    )
   }
 
   return (
@@ -292,6 +368,11 @@ export function CreateTeamForm() {
       {!checkingAuth && !user && (
         <Card className="mb-8 rounded-3xl border-destructive/50 bg-destructive/10">
           <CardContent className="p-6 text-center">
+            <div className="mb-4 flex justify-center">
+              <div className="flex size-12 items-center justify-center rounded-full bg-destructive/20">
+                <AlertCircle className="size-6 text-destructive" />
+              </div>
+            </div>
             <h3 className="mb-2 text-lg font-bold text-destructive">You must be signed in!</h3>
             <p className="mb-4 text-muted-foreground">Please sign in to post a team.</p>
             <SignInButton />
@@ -304,28 +385,33 @@ export function CreateTeamForm() {
         <Card className="rounded-3xl border-border/50 bg-card shadow-xl shadow-primary/5">
           <CardContent className="p-6 md:p-10">
             <form ref={formRef} onSubmit={handleSubmit} className="flex flex-col gap-6">
-              <div className="mb-2 flex flex-col gap-3">
-                <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  <span>Step {step} of {totalSteps}</span>
-                  <span>
-                    {step === 1 && "Basics"}
-                    {step === 2 && "Team Setup"}
-                    {step === 3 && "Final Details"}
-                  </span>
-                </div>
-                <Progress
-                  value={(step / totalSteps) * 100}
-                  className="h-2 rounded-full bg-secondary/80"
-                />
-              </div>
+              {/* Step Indicator */}
+              <FormStepIndicator
+                steps={FORM_STEPS}
+                currentStep={step}
+                onStepClick={goToStep}
+                allowStepNavigation={true}
+              />
 
               <div className="relative flex flex-col gap-8 pb-28 md:pb-10">
-                {step === 1 && (
-                  <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-left-2 duration-200">
+                {/* Step 1: Basics */}
+                <FormStepContent step={1} currentStep={step}>
+                  <div className="flex flex-col gap-6">
+                    {/* Section header */}
+                    <div className="flex items-center gap-3 rounded-2xl border border-border/40 bg-secondary/30 p-4">
+                      <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10">
+                        <Users className="size-5 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-semibold text-foreground">Team Identity</h3>
+                        <p className="text-xs text-muted-foreground">Let others know who you are</p>
+                      </div>
+                    </div>
+
                     {/* Team / Project Name */}
                     <div className="flex flex-col gap-2.5">
                       <Label htmlFor="teamName" className="text-sm font-bold text-foreground">
-                        Team / Project Name
+                        Team / Project Name <span className="text-destructive">*</span>
                       </Label>
                       <Input
                         id="teamName"
@@ -334,15 +420,28 @@ export function CreateTeamForm() {
                         ref={step1Ref}
                         placeholder="e.g. The Pixel Knights"
                         value={teamName}
-                        onChange={(e) => setTeamName(e.target.value)}
-                        className="h-12 rounded-xl border-border/60 bg-secondary/50 text-foreground"
+                        onChange={(e) => {
+                          setTeamName(e.target.value)
+                          clearFieldError("teamName")
+                        }}
+                        aria-invalid={!!fieldError("teamName")}
+                        className={cn(
+                          "h-12 rounded-xl border-border/60 bg-secondary/50 text-foreground transition-colors",
+                          fieldError("teamName") && "border-destructive focus-visible:ring-destructive/20"
+                        )}
                       />
+                      {fieldError("teamName") && (
+                        <div className="status-error flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs">
+                          <AlertCircle className="size-4 shrink-0" />
+                          <span>{fieldError("teamName")}</span>
+                        </div>
+                      )}
                     </div>
 
                     {/* Game Jam Name */}
                     <div className="flex flex-col gap-2.5">
                       <Label htmlFor="jamName" className="text-sm font-bold text-foreground">
-                        Game Jam Name
+                        Game Jam Name <span className="text-destructive">*</span>
                       </Label>
                       <Input
                         id="jamName"
@@ -350,37 +449,79 @@ export function CreateTeamForm() {
                         required
                         placeholder="e.g. Ludum Dare 57, GMTK 2026..."
                         value={jamName}
-                        onChange={(e) => setJamName(e.target.value)}
-                        className="h-12 rounded-xl border-border/60 bg-secondary/50 text-foreground"
+                        onChange={(e) => {
+                          setJamName(e.target.value)
+                          clearFieldError("jamName")
+                        }}
+                        aria-invalid={!!fieldError("jamName")}
+                        className={cn(
+                          "h-12 rounded-xl border-border/60 bg-secondary/50 text-foreground transition-colors",
+                          fieldError("jamName") && "border-destructive focus-visible:ring-destructive/20"
+                        )}
                       />
+                      {fieldError("jamName") && (
+                        <div className="status-error flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs">
+                          <AlertCircle className="size-4 shrink-0" />
+                          <span>{fieldError("jamName")}</span>
+                        </div>
+                      )}
                     </div>
 
                     {/* Jam Itch.io (optional link) */}
                     <div className="flex flex-col gap-2.5">
                       <Label className="text-sm font-bold text-foreground">
-                        Link to an Itch.io Jam (optional)
+                        Link to an Itch.io Jam{" "}
+                        <span className="text-xs font-normal text-muted-foreground">(optional)</span>
                       </Label>
                       <JamSearchSelector
                         value={jamId}
                         onValueChange={setJamId}
-                        placeholder="Choose an Itch.io jam…"
+                        placeholder="Choose an Itch.io jam..."
                         syncOnOpen={true}
                         activeOnly={true}
                       />
+                      <p className="text-xs text-muted-foreground">
+                        Link your listing to an official jam for better visibility
+                      </p>
                     </div>
                   </div>
-                )}
+                </FormStepContent>
 
-                {step === 2 && (
-                  <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-right-2 duration-200">
+                {/* Step 2: Team Setup */}
+                <FormStepContent step={2} currentStep={step}>
+                  <div className="flex flex-col gap-6">
+                    {/* Section header */}
+                    <div className="flex items-center gap-3 rounded-2xl border border-border/40 bg-secondary/30 p-4">
+                      <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10">
+                        <Settings className="size-5 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-semibold text-foreground">Team Configuration</h3>
+                        <p className="text-xs text-muted-foreground">Define your tech stack and team needs</p>
+                      </div>
+                    </div>
+
                     {/* Engine & Language row */}
                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
                       <div className="flex flex-col gap-2.5">
-                        <Label className="text-sm font-bold text-foreground">Engine</Label>
-                        <Select value={engine} onValueChange={setEngine} required>
+                        <Label className="text-sm font-bold text-foreground">
+                          Engine <span className="text-destructive">*</span>
+                        </Label>
+                        <Select 
+                          value={engine} 
+                          onValueChange={(v) => {
+                            setEngine(v)
+                            clearFieldError("engine")
+                          }}
+                          required
+                        >
                           <SelectTrigger
                             ref={step2Ref}
-                            className="h-12 w-full rounded-xl border-border/60 bg-secondary/50"
+                            className={cn(
+                              "h-12 w-full rounded-xl border-border/60 bg-secondary/50",
+                              fieldError("engine") && "border-destructive"
+                            )}
+                            aria-invalid={!!fieldError("engine")}
                           >
                             <SelectValue placeholder="Pick an engine" />
                           </SelectTrigger>
@@ -390,12 +531,33 @@ export function CreateTeamForm() {
                             ))}
                           </SelectContent>
                         </Select>
+                        {fieldError("engine") && (
+                          <div className="status-error flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs">
+                            <AlertCircle className="size-4 shrink-0" />
+                            <span>{fieldError("engine")}</span>
+                          </div>
+                        )}
                       </div>
 
                       <div className="flex flex-col gap-2.5">
-                        <Label className="text-sm font-bold text-foreground">Spoken Language</Label>
-                        <Select value={language} onValueChange={setLanguage} required>
-                          <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-secondary/50">
+                        <Label className="text-sm font-bold text-foreground">
+                          Spoken Language <span className="text-destructive">*</span>
+                        </Label>
+                        <Select 
+                          value={language} 
+                          onValueChange={(v) => {
+                            setLanguage(v)
+                            clearFieldError("language")
+                          }}
+                          required
+                        >
+                          <SelectTrigger 
+                            className={cn(
+                              "h-12 w-full rounded-xl border-border/60 bg-secondary/50",
+                              fieldError("language") && "border-destructive"
+                            )}
+                            aria-invalid={!!fieldError("language")}
+                          >
                             <SelectValue placeholder="Pick a language" />
                           </SelectTrigger>
                           <SelectContent className="rounded-xl">
@@ -404,6 +566,12 @@ export function CreateTeamForm() {
                             ))}
                           </SelectContent>
                         </Select>
+                        {fieldError("language") && (
+                          <div className="status-error flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs">
+                            <AlertCircle className="size-4 shrink-0" />
+                            <span>{fieldError("language")}</span>
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -458,9 +626,16 @@ export function CreateTeamForm() {
                     {/* Roles Needed */}
                     <div className="flex flex-col gap-4">
                       <div className="flex items-center justify-between">
-                        <Label className="text-sm font-bold text-foreground">Roles Needed</Label>
-                        <span className="text-xs font-medium text-muted-foreground">
-                          {roles.length} role{roles.length !== 1 ? "s" : ""} added
+                        <Label className="text-sm font-bold text-foreground">
+                          Roles Needed <span className="text-destructive">*</span>
+                        </Label>
+                        <span className={cn(
+                          "rounded-full px-2.5 py-1 text-xs font-medium transition-colors",
+                          getCleanRoles().length > 0 
+                            ? "bg-success/10 text-success" 
+                            : "bg-muted text-muted-foreground"
+                        )}>
+                          {getCleanRoles().length} role{getCleanRoles().length !== 1 ? "s" : ""} added
                         </span>
                       </div>
 
@@ -468,7 +643,7 @@ export function CreateTeamForm() {
                         {roles.map((entry) => (
                           <div
                             key={entry.id}
-                            className="group flex flex-col gap-3 rounded-2xl border border-border/40 bg-secondary/30 p-4 sm:flex-row sm:items-center"
+                            className="group flex flex-col gap-3 rounded-2xl border border-border/40 bg-secondary/30 p-4 transition-colors hover:border-border/60 sm:flex-row sm:items-center"
                           >
                             <div className="flex flex-1 flex-col gap-3 sm:flex-row">
                               <Select value={entry.role} onValueChange={(v) => updateRole(entry.id, "role", v)}>
@@ -522,22 +697,35 @@ export function CreateTeamForm() {
                         <Plus className="size-4" />
                         Add another role
                       </Button>
-                      {rolesError && (
-                        <div className="status-error flex items-center gap-2 text-sm text-destructive">
+                      {fieldError("roles") && (
+                        <div className="status-error flex items-center gap-2 rounded-lg px-3 py-2 text-sm">
                           <AlertCircle className="size-4 shrink-0" />
-                          <span>{rolesError}</span>
+                          <span>{fieldError("roles")}</span>
                         </div>
                       )}
                     </div>
                   </div>
-                )}
+                </FormStepContent>
 
-                {step === 3 && (
-                  <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-left-2 duration-200">
+                {/* Step 3: Final Details */}
+                <FormStepContent step={3} currentStep={step}>
+                  <div className="flex flex-col gap-6">
+                    {/* Section header */}
+                    <div className="flex items-center gap-3 rounded-2xl border border-border/40 bg-secondary/30 p-4">
+                      <div className="flex size-10 items-center justify-center rounded-xl bg-primary/10">
+                        <FileText className="size-5 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-semibold text-foreground">Final Details</h3>
+                        <p className="text-xs text-muted-foreground">Share your vision and contact info</p>
+                      </div>
+                    </div>
+
                     {/* Discord Invitation Link */}
                     <div className="flex flex-col gap-2.5">
                       <Label htmlFor="discordLink" className="text-sm font-bold text-foreground">
-                        Discord Invitation Link (optional)
+                        Discord Invitation Link{" "}
+                        <span className="text-xs font-normal text-muted-foreground">(optional)</span>
                       </Label>
                       <Input
                         id="discordLink"
@@ -547,15 +735,19 @@ export function CreateTeamForm() {
                         value={discordLink}
                         onChange={(e) => {
                           setDiscordLink(e.target.value)
-                          if (discordLinkError) setDiscordLinkError("")
+                          clearFieldError("discordLink")
                         }}
                         autoComplete="off"
-                        className={`h-12 rounded-xl border-border/60 bg-secondary/50 text-foreground${discordLinkError ? " border-destructive" : ""}`}
+                        aria-invalid={!!fieldError("discordLink")}
+                        className={cn(
+                          "h-12 rounded-xl border-border/60 bg-secondary/50 text-foreground transition-colors",
+                          fieldError("discordLink") && "border-destructive focus-visible:ring-destructive/20"
+                        )}
                       />
-                      {discordLinkError && (
-                        <div className="status-error flex items-center gap-2 text-sm text-destructive">
+                      {fieldError("discordLink") && (
+                        <div className="status-error flex items-center gap-2 rounded-lg px-3 py-2 text-sm">
                           <AlertCircle className="size-4 shrink-0" />
-                          <span>{discordLinkError}</span>
+                          <span>{fieldError("discordLink")}</span>
                         </div>
                       )}
                     </div>
@@ -579,90 +771,85 @@ export function CreateTeamForm() {
                     </div>
 
                     {/* Mini review */}
-                    <div className="rounded-2xl border border-border/60 bg-secondary/40 p-4 text-sm text-muted-foreground">
-                      <p className="mb-2 font-semibold text-foreground">Quick preview before publishing</p>
-                      <ul className="space-y-1.5">
-                        <li>
-                          <span className="font-medium text-foreground">Team:</span>{" "}
-                          {teamName || <span className="italic text-muted-foreground">Not set</span>}
+                    <div className="rounded-2xl border border-primary/20 bg-primary/5 p-4 text-sm">
+                      <div className="mb-3 flex items-center gap-2">
+                        <CheckCircle2 className="size-5 text-primary" />
+                        <p className="font-semibold text-foreground">Quick preview before publishing</p>
+                      </div>
+                      <ul className="space-y-2 text-muted-foreground">
+                        <li className="flex items-start gap-2">
+                          <span className="font-medium text-foreground">Team:</span>
+                          {teamName || <span className="italic">Not set</span>}
                         </li>
-                        <li>
-                          <span className="font-medium text-foreground">Jam:</span>{" "}
-                          {jamName || <span className="italic text-muted-foreground">Not set</span>}
+                        <li className="flex items-start gap-2">
+                          <span className="font-medium text-foreground">Jam:</span>
+                          {jamName || <span className="italic">Not set</span>}
                         </li>
-                        <li>
-                          <span className="font-medium text-foreground">Engine / Language:</span>{" "}
+                        <li className="flex items-start gap-2">
+                          <span className="font-medium text-foreground">Engine / Language:</span>
                           {engine || language
-                            ? `${engine || "Any"} • ${language || "Any"}`
-                            : <span className="italic text-muted-foreground">Not set</span>}
+                            ? `${ENGINE_OPTIONS.find(e => e.value === engine)?.label || "Any"} • ${LANGUAGE_OPTIONS.find(l => l.value === language)?.label || "Any"}`
+                            : <span className="italic">Not set</span>}
                         </li>
-                        <li>
-                          <span className="font-medium text-foreground">Roles needed:</span>{" "}
+                        <li className="flex items-start gap-2">
+                          <span className="font-medium text-foreground">Roles needed:</span>
                           {getCleanRoles().length > 0
-                            ? `${getCleanRoles().length} role(s)`
-                            : <span className="italic text-muted-foreground">No roles yet</span>}
+                            ? <span className="text-success">{getCleanRoles().length} role(s)</span>
+                            : <span className="italic text-warning">No roles yet</span>}
                         </li>
-                        <li>
-                          <span className="font-medium text-foreground">Discord:</span>{" "}
+                        <li className="flex items-start gap-2">
+                          <span className="font-medium text-foreground">Discord:</span>
                           {discordLink
-                            ? discordLink
-                            : <span className="italic text-muted-foreground">No invite link</span>}
+                            ? <span className="truncate max-w-[200px]">{discordLink}</span>
+                            : <span className="italic">No invite link</span>}
                         </li>
                       </ul>
-                      <p className="mt-3 text-xs text-muted-foreground">
+                      <p className="mt-4 rounded-lg bg-secondary/50 px-3 py-2 text-xs text-muted-foreground">
                         Your listing will be visible for 30 days.
                       </p>
                     </div>
                   </div>
-                )}
+                </FormStepContent>
 
                 {/* Sticky bottom actions */}
-                <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border/60 bg-background/95 px-4 py-3 backdrop-blur md:static md:mt-4 md:border-none md:bg-transparent md:px-0 md:py-0 md:sticky md:bottom-0">
-                  <div className="mx-auto flex w-full max-w-3xl items-center justify-between gap-3">
-                    <div className="hidden text-xs text-muted-foreground md:block">
-                      {step === 1 && "Basics — team name & jam."}
-                      {step === 2 && "Team setup — engine, language & roles."}
-                      {step === 3 && "Final details — description & Discord."}
-                    </div>
-                    <div className="flex flex-1 items-center justify-between gap-3">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        disabled={step === 1 || loading}
-                        onClick={goToPreviousStep}
-                        className="rounded-xl text-muted-foreground hover:text-foreground"
-                      >
-                        Back
-                      </Button>
-                      <Button
-                        type="button"
-                        disabled={loading || (step === totalSteps && publishTapGuard)}
-                        onClick={handlePrimaryAction}
-                        className="ml-auto flex-1 justify-center gap-2 rounded-2xl bg-primary py-3 text-sm font-extrabold text-primary-foreground sm:flex-none sm:px-6"
-                      >
-                        {step === totalSteps ? (
-                          loading ? (
-                            <>
-                              <Loader2 className="size-4 animate-spin" />
-                              Publishing...
-                            </>
-                          ) : (
-                            <>
-                              <Sparkles className="size-4" />
-                              Publish Announcement
-                              <Rocket className="size-4" />
-                            </>
-                          )
-                        ) : (
-                          <>
-                            <Sparkles className="size-4" />
-                            Next step
-                          </>
-                        )}
-                      </Button>
-                    </div>
-                  </div>
-                </div>
+                <FormStepActions
+                  currentStep={step}
+                  totalSteps={totalSteps}
+                  loading={loading}
+                  disabled={step === totalSteps && publishTapGuard}
+                  onPrevious={goToPreviousStep}
+                  onNext={goToNextStep}
+                  stepDescription={stepDescriptions[step]}
+                  submitLabel="Publish Announcement"
+                  submittingLabel="Publishing..."
+                >
+                  <Button
+                    type="button"
+                    disabled={loading || (step === totalSteps && publishTapGuard)}
+                    onClick={handlePrimaryAction}
+                    className="ml-auto flex flex-1 items-center justify-center gap-2 rounded-2xl bg-primary py-3 text-sm font-extrabold text-primary-foreground transition-all hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/20 active:scale-[0.98] sm:flex-none sm:px-6"
+                  >
+                    {step === totalSteps ? (
+                      loading ? (
+                        <>
+                          <Loader2 className="size-4 animate-spin" />
+                          Publishing...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="size-4" />
+                          Publish Announcement
+                          <Rocket className="size-4" />
+                        </>
+                      )
+                    ) : (
+                      <>
+                        <Sparkles className="size-4" />
+                        Next step
+                      </>
+                    )}
+                  </Button>
+                </FormStepActions>
               </div>
             </form>
           </CardContent>
