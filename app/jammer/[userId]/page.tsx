@@ -8,8 +8,10 @@ import { Footer } from "@/components/footer"
 import { ProfileGamification } from "@/components/profile-gamification"
 import { GamificationDashboard } from "@/components/gamification-dashboard"
 import { ProfileCard } from "@/components/profile-card"
+import { GiveKudosControl } from "@/components/give-kudos-control"
 import { Button } from "@/components/ui/button"
 import { levelFromTotalXp } from "@/lib/gamification-level"
+import { usersShareATeam } from "@/lib/kudos-collaboration"
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
@@ -53,6 +55,16 @@ export default async function JammerPublicProfilePage({ params }: PageProps) {
   const publicLevel = levelFromTotalXp(publicXp)
   const publicTitle = profile.current_title?.trim() || "Rookie Jammer"
 
+  const {
+    data: { user: viewer },
+  } = await supabase.auth.getUser()
+
+  const viewerId = viewer?.id ?? null
+  let viewerSharesTeamWithReceiver = false
+  if (viewerId && viewerId !== userId) {
+    viewerSharesTeamWithReceiver = await usersShareATeam(supabase, viewerId, userId)
+  }
+
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
@@ -86,6 +98,14 @@ export default async function JammerPublicProfilePage({ params }: PageProps) {
                   subtitle="Level, XP, and badges on GameJamCrew. Share this page to show your jammer cred."
                   className="w-full justify-center sm:justify-start"
                 />
+                <div className="flex justify-center pt-4 sm:justify-start">
+                  <GiveKudosControl
+                    receiverId={userId}
+                    viewerUserId={viewerId}
+                    viewerSharesTeamWithReceiver={viewerSharesTeamWithReceiver}
+                    profileDisplayName={profile.username}
+                  />
+                </div>
               </div>
             </div>
           </div>

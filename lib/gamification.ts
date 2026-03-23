@@ -2,6 +2,7 @@ import { createAdminClient } from "@/lib/supabase/admin"
 import { levelFromTotalXp } from "@/lib/gamification-level"
 import type { GamificationRewardSummary } from "@/lib/gamification-reward-types"
 import { teamRosterIsComplete } from "@/lib/team-utils"
+import { isKudosCategoryDb, type KudosCategoryDb } from "@/lib/kudos"
 
 /** XP granted per action — RPG pacing (tune with level curve in gamification-level.ts). */
 export const XP_BY_ACTION: Record<string, number> = {
@@ -50,6 +51,14 @@ export const TITLES_BY_ACTION: Record<string, string> = {
  * (must match `ROLE_OPTIONS` values: developer, writer, 2d-artist, voice_actor, …).
  * Counts are stored on `profiles.role_stats` under the same key, e.g. `role_stats['2d-artist']`.
  */
+/** Unlocked when a jammer receives at least 5 kudos in that category (see `kudos` table). */
+export const KUDOS_TITLES_BY_CATEGORY: Record<KudosCategoryDb, string> = {
+  Technical: "Tech Virtuoso",
+  Artistic: "Creative Spark",
+  Leadership: "Natural Leader",
+  Friendly: "Community Star",
+}
+
 export const ROLE_TITLES: Record<string, Record<number, string>> = {
   developer: { 1: "Code Monkey", 3: "Hacker", 5: "Code Wizard" },
   "2d-artist": { 1: "Sketcher", 3: "Pixel Pusher", 5: "Master Illustrator" },
@@ -188,6 +197,72 @@ function mergeUniqueTitles(existing: string[], additions: string[]): { merged: s
 /**
  * If the squad listing is full, awards the `captain` badge (+ `TEAM_ROSTER_COMPLETE` flow) to the team owner.
  */
+const KUDOS_TITLE_THRESHOLD = 5
+
+/**
+ * After a new kudo is recorded, if the receiver has at least `KUDOS_TITLE_THRESHOLD` kudos in that
+ * category, grants the matching title once (idempotent if already unlocked).
+ */
+export async function tryUnlockKudosCategoryTitle(
+  receiverId: string,
+  category: string,
+): Promise<{ ok: boolean; error?: string; newTitles?: string[] }> {
+  if (!isKudosCategoryDb(category)) {
+    return { ok: false, error: "Invalid kudos category." }
+  }
+
+  const title = KUDOS_TITLES_BY_CATEGORY[category]
+  const admin = createAdminClient()
+
+  const { count, error: countErr } = await admin
+    .from("kudos")
+    .select("id", { count: "exact", head: true })
+    .eq("receiver_id", receiverId)
+    .eq("category", category)
+
+  if (countErr) {
+    return { ok: false, error: countErr.message }
+  }
+  const total = typeof count === "number" ? count : 0
+  if (total < KUDOS_TITLE_THRESHOLD) {
+    return { ok: true, newTitles: [] }
+  }
+
+  const { data: row, error: fetchError } = await admin
+    .from("profiles")
+    .select("unlocked_titles")
+    .eq("id", receiverId)
+    .maybeSingle()
+
+  if (fetchError) {
+    return { ok: false, error: fetchError.message }
+  }
+  if (!row) {
+    return { ok: false, error: "Profile not found" }
+  }
+
+  const existingTitles = parseUnlockedTitles(row.unlocked_titles)
+  if (existingTitles.some((t) => t.trim() === title)) {
+    return { ok: true, newTitles: [] }
+  }
+
+  const { merged, newTitles } = mergeUniqueTitles(existingTitles, [title])
+  if (newTitles.length === 0) {
+    return { ok: true, newTitles: [] }
+  }
+
+  const { error: updateError } = await admin
+    .from("profiles")
+    .update({ unlocked_titles: merged })
+    .eq("id", receiverId)
+
+  if (updateError) {
+    return { ok: false, error: updateError.message }
+  }
+
+  return { ok: true, newTitles }
+}
+
 export async function tryAwardCaptainBadgeForFullRoster(teamId: string): Promise<AwardXPResult | null> {
   const admin = createAdminClient()
   const { data: team, error: teamErr } = await admin

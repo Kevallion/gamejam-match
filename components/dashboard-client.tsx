@@ -65,6 +65,7 @@ import { UserAvatar } from "@/components/user-avatar"
 import { JammerTitleBadge, JammerLevelBadge } from "@/components/profile-card"
 import { levelFromTotalXp, gamificationLevelProgress } from "@/lib/gamification-level"
 import { getRecommendedTeams, type SmartRecommendedTeam } from "@/lib/queries"
+import { kudosCountsMapFromRpcRows, type KudosCounts } from "@/lib/kudos"
 
 const LEVEL_STYLES = EXPERIENCE_STYLES
 const FALLBACK_ROLE = { label: "Other", emoji: "?", color: "bg-muted text-muted-foreground" }
@@ -129,6 +130,7 @@ export type AvailabilityPostRow = {
   portfolio_link?: string | null
   avatar_url?: string | null
   jam?: JamInfo | null
+  kudosCounts?: KudosCounts | null
 }
 
 function SentApplicationsSection({ sentApplications }: { sentApplications: SentApp[] }) {
@@ -623,6 +625,16 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
       username: profileUsername,
       avatar_url: profileAvatarUrl,
     })) as AvailabilityPostRow[]
+
+    const { data: kudosRpcRows } = await supabase.rpc("get_kudos_counts_for_users", {
+      p_user_ids: [authSession.user.id],
+    })
+    const kudosMap = kudosCountsMapFromRpcRows(
+      (kudosRpcRows ?? []) as { receiver_id: string; category: string; cnt: number | string }[],
+    )
+    const myKudosCounts = kudosMap.get(authSession.user.id) ?? null
+    postsWithJam = postsWithJam.map((p) => ({ ...p, kudosCounts: myKudosCounts }))
+
     const jamId = (profileData as { jam_id?: string | null } | null)?.jam_id ?? null
     if (jamId) {
       const { data: jamData } = await supabase

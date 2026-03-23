@@ -8,6 +8,7 @@ import { supabase } from "@/lib/supabase"
 import { toast } from "sonner"
 import { EXPERIENCE_STYLES, JAM_STYLE_STYLES, ROLE_STYLES } from "@/lib/constants"
 import { levelFromTotalXp } from "@/lib/gamification-level"
+import { kudosCountsMapFromRpcRows, type KudosCounts } from "@/lib/kudos"
 
 const PAGE_SIZE = 24
 
@@ -51,7 +52,11 @@ interface MembersGridProps {
 
 type MemberRow = AvailabilityPostRowDb & { id: string }
 
-function formatMember(m: MemberRow, profile: ProfileWithUser | null): JammerWithFilters {
+function formatMember(
+  m: MemberRow,
+  profile: ProfileWithUser | null,
+  kudosCounts?: KudosCounts | null,
+): JammerWithFilters {
   const jamStyle = m.jam_style ? JAM_STYLE_STYLES[m.jam_style] : undefined
   const xp = typeof profile?.xp === "number" ? profile.xp : 0
   const jammerTitle = profile?.current_title?.trim() || "Rookie Jammer"
@@ -76,6 +81,7 @@ function formatMember(m: MemberRow, profile: ProfileWithUser | null): JammerWith
     bio: m.bio ?? "",
     portfolio_link: m.portfolio_link || "",
     availability: m.availability || undefined,
+    kudosCounts: kudosCounts ?? undefined,
   }
 }
 
@@ -145,9 +151,22 @@ export function MembersGrid({
       profileJamMap[p.id] = jamId && jamMap[jamId] ? jamMap[jamId] : null
     }
 
+    let kudosByUser = new Map<string, KudosCounts>()
+    if (userIds.length > 0) {
+      const { data: kudosRows, error: kudosErr } = await supabase.rpc("get_kudos_counts_for_users", {
+        p_user_ids: userIds,
+      })
+      if (!kudosErr && kudosRows) {
+        kudosByUser = kudosCountsMapFromRpcRows(
+          kudosRows as { receiver_id: string; category: string; cnt: number | string }[],
+        )
+      }
+    }
+
     const formatted = (postsData as AvailabilityPostRowDb[]).map((row) => {
       const profile = profilesByUserId.get(row.user_id) ?? null
-      const member = formatMember({ ...row, id: row.user_id }, profile) as JammerWithFilters
+      const kudosCounts = kudosByUser.get(row.user_id) ?? null
+      const member = formatMember({ ...row, id: row.user_id }, profile, kudosCounts) as JammerWithFilters
       member.availabilityPostId = row.id
       const jam = profileJamMap[row.user_id]
       if (jam?.title) member.jam = { title: jam.title, url: jam.url ?? undefined }

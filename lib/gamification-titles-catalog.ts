@@ -49,6 +49,11 @@ export const TITLE_CATALOG: TitleCatalogEntry[] = [
   { title: "Bug Hunter", unlockHint: "Join a team as QA / Playtester." },
   { title: "Glitch Finder", unlockHint: "Join 3 teams as QA / Playtester." },
   { title: "The Exterminator", unlockHint: "Join 5 teams as QA / Playtester." },
+  // Kudos milestones (see KUDOS_TITLES_BY_CATEGORY in lib/gamification.ts)
+  { title: "Tech Virtuoso", unlockHint: "Receive 5 Technical kudos from other jammers." },
+  { title: "Creative Spark", unlockHint: "Receive 5 Creative (Artistic) kudos." },
+  { title: "Natural Leader", unlockHint: "Receive 5 Leadership kudos." },
+  { title: "Community Star", unlockHint: "Receive 5 Great Vibe (Friendly) kudos." },
 ]
 
 export const TITLE_CATALOG_BY_NAME: Record<string, TitleCatalogEntry> = Object.fromEntries(

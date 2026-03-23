@@ -16,6 +16,8 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { EXPERIENCE_STYLES, ROLE_STYLES } from "@/lib/constants"
+import { KudosBadgeRow } from "@/components/kudos-badges"
+import type { KudosCounts } from "@/lib/kudos"
 
 const FALLBACK_ROLE = { label: "Other", emoji: "❓", color: "bg-muted text-muted-foreground" }
 const FALLBACK_LEVEL = EXPERIENCE_STYLES["beginner"]
@@ -37,6 +39,7 @@ export type AvailabilityPostData = {
   portfolio_link?: string | null
   avatar_url?: string | null
   jam?: { id: string; title: string | null; url: string | null } | null
+  kudosCounts?: KudosCounts | null
 }
 
 // ---------------------------------------------------------------------------
@@ -90,6 +93,8 @@ function AnnouncementCard({ post, onDelete, profileAvatarUrl }: AnnouncementCard
             {displayLevel.emoji} {displayLevel.label}
           </span>
         </div>
+
+        <KudosBadgeRow counts={post.kudosCounts} />
 
         {/* Availability dates */}
         <div className="flex items-center gap-2 rounded-xl border border-border/50 bg-secondary/20 px-3 py-2">

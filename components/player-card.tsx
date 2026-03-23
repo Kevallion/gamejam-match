@@ -51,6 +51,8 @@ import { toast } from "sonner"
 import { sendTeamInvitation } from "@/app/actions/invite-actions"
 import { showGamificationRewards } from "@/components/gamification-reward-toasts"
 import { gamificationRewardHasToast } from "@/lib/gamification-reward-types"
+import { KudosBadgeRow } from "@/components/kudos-badges"
+import type { KudosCounts } from "@/lib/kudos"
 
 export type JammerCardData = {
   id: string
@@ -82,6 +84,8 @@ export type JammerCardData = {
   jammerTitle?: string | null
   /** RPG level from XP (not experience tier) */
   jammerLevel?: number
+  /** Endorsement counts by category (public aggregate). */
+  kudosCounts?: KudosCounts | null
 }
 
 export type SquadOption = {
@@ -311,6 +315,8 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
                   </span>
                 )}
               </div>
+
+              <KudosBadgeRow counts={player.kudosCounts} className="gap-1.5" size="xs" />
 
               {/* Engine */}
               <div className="flex min-w-0 items-center gap-1.5 text-sm text-muted-foreground">
