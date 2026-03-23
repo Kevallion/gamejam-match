@@ -181,62 +181,58 @@ export function GamificationDashboardFull({
   }
 
   return (
-    <div className={cn("flex flex-col gap-4 sm:gap-6", className)}>
-      <Card className="relative overflow-hidden border-border/50 bg-white/[0.05] shadow-lg shadow-teal/5 backdrop-blur-xl light:bg-white/70 dark:bg-slate-900/45">
+    <div className={cn("flex flex-col gap-3", className)}>
+      {/* Compact XP + level card */}
+      <Card className="relative overflow-hidden border-border/50 bg-white/[0.05] shadow-sm shadow-teal/5 backdrop-blur-xl light:bg-white/70 dark:bg-slate-900/45">
         <div
-          className="pointer-events-none absolute -right-16 -top-16 size-40 rounded-full bg-gradient-to-br from-amber-500/15 via-teal/10 to-peach/10 blur-3xl sm:size-48"
+          className="pointer-events-none absolute -right-12 -top-12 size-32 rounded-full bg-gradient-to-br from-amber-500/15 via-teal/10 to-peach/10 blur-2xl"
           aria-hidden
         />
-        <CardHeader className="relative space-y-2 pb-2 pt-4 sm:space-y-3 sm:pt-6">
-          <div className="flex flex-wrap items-start justify-between gap-3 sm:gap-4">
-            <div className="flex items-center gap-2.5 sm:gap-3">
-              <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-amber-500/15 ring-2 ring-amber-500/35 sm:size-12 sm:rounded-2xl">
-                <Trophy className="size-6 text-amber-500 sm:size-7" aria-hidden />
-              </div>
-              <div className="min-w-0 space-y-1.5 sm:space-y-2">
-                <p className="text-[10px] font-semibold uppercase tracking-tight text-muted-foreground sm:text-xs">
-                  Your progress
-                </p>
-                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
-                  <span className="text-2xl font-semibold tracking-tight text-amber-500 sm:text-3xl">
-                    Level {level}
-                  </span>
-                  <JammerLevelBadge
-                    level={level}
-                    className="border-amber-500/40 bg-amber-500/15 px-2 py-0.5 text-xs text-amber-600 shadow-[0_0_16px_-4px_rgba(245,158,11,0.35)] dark:text-amber-400 sm:px-2.5 sm:py-1 sm:text-sm"
-                  />
-                </div>
-                <JammerTitleBadge title={currentTitle} className="text-sm sm:text-base" />
-                {error ? (
-                  <p className="text-xs text-destructive">{error}</p>
-                ) : (
-                  <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-muted-foreground">
-                    <span className="inline-flex items-center gap-1 font-medium text-foreground/90">
-                      <Sparkles className="size-3.5 shrink-0 text-amber-500" />
-                      {xpLabel}
-                    </span>
-                    <span className="text-muted-foreground/80">·</span>
-                    <span>{totalLabel}</span>
-                  </p>
-                )}
-              </div>
+        <CardContent className="relative flex items-center gap-4 p-4">
+          {/* Trophy icon */}
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-amber-500/15 ring-1 ring-amber-500/30">
+            <Trophy className="size-5 text-amber-500" aria-hidden />
+          </div>
+
+          {/* Level + title + XP text */}
+          <div className="min-w-0 flex-1 space-y-1">
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="text-xl font-bold tracking-tight text-amber-500">
+                Level {level}
+              </span>
+              <JammerLevelBadge
+                level={level}
+                className="border-amber-500/40 bg-amber-500/15 px-2 py-0.5 text-[11px] text-amber-600 shadow-[0_0_14px_-4px_rgba(245,158,11,0.3)] dark:text-amber-400"
+              />
+            </div>
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+              <JammerTitleBadge title={currentTitle} className="text-sm" />
+              {error ? (
+                <p className="text-xs text-destructive">{error}</p>
+              ) : (
+                <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                  <Sparkles className="size-3 shrink-0 text-amber-500" />
+                  {xpLabel}
+                </span>
+              )}
             </div>
           </div>
-        </CardHeader>
-        <CardContent className="relative space-y-2 pb-4 sm:pb-6">
-          <div
-            className={cn(
-              "space-y-2",
-              "[&_[data-slot=progress]]:h-3.5 [&_[data-slot=progress]]:overflow-hidden [&_[data-slot=progress]]:rounded-full [&_[data-slot=progress]]:bg-muted/70 [&_[data-slot=progress]]:ring-1 [&_[data-slot=progress]]:ring-border/40",
-              "[&_[data-slot=progress-indicator]]:rounded-full [&_[data-slot=progress-indicator]]:bg-gradient-to-r [&_[data-slot=progress-indicator]]:from-teal-500 [&_[data-slot=progress-indicator]]:to-peach [&_[data-slot=progress-indicator]]:shadow-[0_0_20px_rgba(20,184,166,0.28)]",
-            )}
-          >
-            <Progress value={progress.progressPercent} className="h-3.5 bg-transparent" />
-          </div>
-          <p className="text-right text-xs font-semibold tracking-tight text-amber-600/90 dark:text-amber-400/90">
-            {Math.round(progress.progressPercent)}% to level {level + 1}
-          </p>
+
+          {/* XP percent */}
+          <span className="shrink-0 text-xs font-semibold tabular-nums text-amber-600/80 dark:text-amber-400/80">
+            {Math.round(progress.progressPercent)}%
+          </span>
         </CardContent>
+
+        {/* Thin XP bar at the bottom */}
+        <div
+          className={cn(
+            "[&_[data-slot=progress]]:h-2 [&_[data-slot=progress]]:rounded-none [&_[data-slot=progress]]:bg-muted/60",
+            "[&_[data-slot=progress-indicator]]:rounded-none [&_[data-slot=progress-indicator]]:bg-gradient-to-r [&_[data-slot=progress-indicator]]:from-teal-500 [&_[data-slot=progress-indicator]]:to-peach [&_[data-slot=progress-indicator]]:shadow-[0_0_12px_rgba(20,184,166,0.25)]",
+          )}
+        >
+          <Progress value={progress.progressPercent} className="h-2 rounded-none bg-transparent" />
+        </div>
       </Card>
 
       {!readOnly ? (
