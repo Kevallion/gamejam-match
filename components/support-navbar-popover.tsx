@@ -1,12 +1,13 @@
 "use client"
 
 import { useCallback, type ReactNode } from "react"
+import * as TooltipPrimitive from "@radix-ui/react-tooltip"
 import { Coffee, Facebook, Heart, Linkedin, X } from "lucide-react"
 import Link from "next/link"
 
 import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { TooltipContent } from "@/components/ui/tooltip"
 import {
   BUY_ME_A_COFFEE_URL,
   SUPPORT_POPOVER_BODY,
@@ -45,8 +46,8 @@ function SocialShareButton({
   children: ReactNode
 }) {
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>
+    <TooltipPrimitive.Root>
+      <TooltipPrimitive.Trigger asChild>
         <Button
           type="button"
           variant="ghost"
@@ -59,11 +60,11 @@ function SocialShareButton({
         >
           {children}
         </Button>
-      </TooltipTrigger>
-      <TooltipContent side="bottom" sideOffset={4} className="max-w-[14rem] text-xs">
+      </TooltipPrimitive.Trigger>
+      <TooltipContent side="bottom" sideOffset={4} className="z-[110] max-w-[14rem] text-xs">
         {tooltip}
       </TooltipContent>
-    </Tooltip>
+    </TooltipPrimitive.Root>
   )
 }
 
@@ -102,6 +103,7 @@ export function SupportNavbarPopover({ className }: { className?: string }) {
       <PopoverContent
         align="end"
         sideOffset={8}
+        onOpenAutoFocus={(e) => e.preventDefault()}
         className={cn(
           "glass-card w-[min(100vw-2rem,22rem)] max-w-[22rem] rounded-2xl border border-white/20 p-4 shadow-xl shadow-black/15",
           "dark:border-white/10 dark:shadow-black/40",
@@ -126,7 +128,8 @@ export function SupportNavbarPopover({ className }: { className?: string }) {
 
           <div className="space-y-2 border-t border-border/40 pt-3">
             <p className="text-xs font-semibold tracking-tight text-muted-foreground">Spread the word</p>
-            <div className="flex flex-row flex-wrap items-center justify-center gap-2">
+            <TooltipPrimitive.Provider delayDuration={350} skipDelayDuration={200}>
+              <div className="flex flex-row flex-wrap items-center justify-center gap-2">
               <SocialShareButton
                 tooltip="Share on X (Twitter) with a pre-filled post about JamSquad"
                 onClick={shareOnX}
@@ -155,7 +158,8 @@ export function SupportNavbarPopover({ className }: { className?: string }) {
               >
                 <Linkedin className="size-5" aria-hidden />
               </SocialShareButton>
-            </div>
+              </div>
+            </TooltipPrimitive.Provider>
           </div>
         </div>
       </PopoverContent>
