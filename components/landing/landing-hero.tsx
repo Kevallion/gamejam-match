@@ -140,15 +140,17 @@ export function LandingHero() {
           <div className="flex items-center gap-3">
             <div className="flex -space-x-2">
               {[
-                "from-teal/50 to-primary/50",
-                "from-peach/50 to-pink/50",
-                "from-lavender/50 to-primary/50",
-                "from-mint/50 to-teal/50",
-              ].map((gradient, i) => (
+                { gradient: "from-teal/70 to-primary/70", initials: "PX" },
+                { gradient: "from-peach/70 to-pink/70", initials: "KR" },
+                { gradient: "from-lavender/70 to-primary/70", initials: "SW" },
+                { gradient: "from-mint/70 to-teal/70", initials: "NB" },
+              ].map(({ gradient, initials }, i) => (
                 <div
                   key={i}
-                  className={`size-9 rounded-full border-2 border-background bg-gradient-to-br ${gradient}`}
-                />
+                  className={`flex size-9 items-center justify-center rounded-full border-2 border-background bg-gradient-to-br ${gradient} text-[10px] font-bold text-white`}
+                >
+                  {initials}
+                </div>
               ))}
             </div>
             <span className="font-medium text-foreground">Join the community</span>
