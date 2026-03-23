@@ -162,15 +162,13 @@ export function MockDashboard() {
               <p className="text-[9px] text-muted-foreground">Players who want to join your teams</p>
             </div>
             <span className="ml-auto rounded-full bg-mint px-2 py-0.5 text-[9px] font-bold text-mint-foreground">
-              3 pending
+              1 pending
             </span>
           </div>
 
           <div className="flex flex-col gap-2">
             {[
               { name: "SynthWave_Alex", team: "Neon Runners", role: "Developer", roleEmoji: "< >", roleColor: "bg-teal/15 text-teal", time: "2h ago" },
-              { name: "ArtistKira", team: "The Pixel Knights", role: "2D Artist", roleEmoji: "P", roleColor: "bg-pink/15 text-pink", time: "5h ago" },
-              { name: "BeatMaker99", team: "Neon Runners", role: "Audio", roleEmoji: "A", roleColor: "bg-lavender/15 text-lavender", time: "1d ago" },
             ].map((app, i) => (
               <div
                 key={i}
@@ -218,9 +216,7 @@ export function MockDashboard() {
                         Motivation
                       </div>
                       <p className="text-[9px] leading-relaxed text-foreground/80">
-                        {i === 0 && "Super excited to join! I've been working with Unity for 3 years..."}
-                        {i === 1 && "Love your game concept! I'd love to help with the art direction..."}
-                        {i === 2 && "Looking to create some epic soundscapes for your project!"}
+                        Super excited to join! I&apos;ve been working with Unity for 3 years...
                       </p>
                     </div>
                   </div>
