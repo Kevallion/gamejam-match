@@ -1,11 +1,15 @@
 "use client"
 
+import { useState } from "react"
 import { motion } from "framer-motion"
 import { ArrowRight, Sparkles, Gamepad2 } from "lucide-react"
+import { AuthModal } from "@/components/auth-modal"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
 export function LandingHero() {
+  const [authModalOpen, setAuthModalOpen] = useState(false)
+
   return (
     <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden px-4 pt-24 pb-12 lg:px-6 lg:pt-32 lg:pb-20">
       {/* Animated mesh gradient background */}
@@ -109,14 +113,13 @@ export function LandingHero() {
           className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row"
         >
           <Button
-            asChild
+            type="button"
             size="lg"
             className="group h-14 min-w-[200px] rounded-2xl bg-teal px-8 text-base font-semibold text-teal-foreground shadow-xl shadow-teal/25 transition-all hover:bg-teal/90 hover:shadow-teal/35 hover:scale-[1.02]"
+            onClick={() => setAuthModalOpen(true)}
           >
-            <Link href="/teams">
-              Get Started
-              <ArrowRight className="size-5 transition-transform group-hover:translate-x-1" />
-            </Link>
+            Get Started
+            <ArrowRight className="size-5 transition-transform group-hover:translate-x-1" />
           </Button>
           <Button
             asChild
@@ -165,6 +168,8 @@ export function LandingHero() {
 
       {/* Bottom gradient fade */}
       <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent" />
+
+      <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
     </section>
   )
 }
