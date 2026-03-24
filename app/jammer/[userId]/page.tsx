@@ -58,9 +58,11 @@ export default async function JammerPublicProfilePage({ params }: PageProps) {
     .eq("id", userId)
     .maybeSingle()
 
-  if (!profile?.username?.trim()) {
+  if (!profile) {
     notFound()
   }
+
+  const displayName = profile.username?.trim() || "Jammer"
 
   const publicXp = typeof profile.xp === "number" ? profile.xp : 0
   const publicLevel = levelFromTotalXp(publicXp)
@@ -97,11 +99,11 @@ export default async function JammerPublicProfilePage({ params }: PageProps) {
                 Public profile
               </p>
               <div className="w-full">
-                <h1 className="sr-only">{profile.username}</h1>
+                <h1 className="sr-only">{displayName}</h1>
                 <ProfileCard
                   avatarUrl={profile.avatar_url ?? null}
-                  displayName={profile.username}
-                  fallbackName={profile.username}
+                  displayName={displayName}
+                  fallbackName={displayName}
                   currentTitle={publicTitle}
                   level={publicLevel}
                   size="lg"
@@ -114,7 +116,7 @@ export default async function JammerPublicProfilePage({ params }: PageProps) {
                     receiverId={userId}
                     viewerUserId={viewerId}
                     viewerSharesTeamWithReceiver={viewerSharesTeamWithReceiver}
-                    profileDisplayName={profile.username}
+                    profileDisplayName={displayName}
                   />
                 </div>
               </div>

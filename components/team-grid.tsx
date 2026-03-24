@@ -7,6 +7,7 @@ import { TeamCard, type TeamCardData } from "@/components/team-card"
 import { Button } from "@/components/ui/button"
 import { getRecommendedTeams } from "@/lib/matchmaking"
 import { supabase } from "@/lib/supabase"
+import { fetchProfilesMap } from "@/lib/profiles"
 import { Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { EXPERIENCE_STYLES, JAM_STYLE_STYLES, ROLE_STYLES } from "@/lib/constants"
@@ -54,6 +55,23 @@ type GridFilterOpts = {
   levelFilter: string
   languageFilter: string
   styleFilter: string
+}
+
+async function attachOwnerProfiles(teams: TeamWithMeta[]): Promise<TeamWithMeta[]> {
+  const ownerIds = teams
+    .map((t) => t.user_id)
+    .filter((id): id is string => Boolean(id))
+  const profilesMap = await fetchProfilesMap(ownerIds)
+  return teams.map((team) => {
+    const owner = team.user_id ? profilesMap[team.user_id] : undefined
+    const ownerUsername = owner?.username?.trim() || ""
+    return {
+      ...team,
+      ownerProfileExists: ownerUsername.length > 0,
+      ownerUsername: ownerUsername || "Team owner",
+      ownerAvatarUrl: owner?.avatar_url ?? null,
+    }
+  })
 }
 
 function formatTeam(t: TeamRowDb): TeamWithMeta {
@@ -159,7 +177,8 @@ export function TeamGrid({
 
     if (!error && data) {
       const formatted = data.map(formatTeam)
-      setTeams((prev) => (append ? [...prev, ...formatted] : formatted))
+      const formattedWithOwners = await attachOwnerProfiles(formatted)
+      setTeams((prev) => (append ? [...prev, ...formattedWithOwners] : formattedWithOwners))
       setHasMore(data.length === PAGE_SIZE)
       offsetRef.current = from + data.length
     } else if (error) {
@@ -225,7 +244,7 @@ export function TeamGrid({
       ordered.push({ ...meta, isRecommended: true })
       if (ordered.length >= 3) break
     }
-    setRecommendedTeams(ordered)
+    setRecommendedTeams(await attachOwnerProfiles(ordered))
   }, [])
 
   useEffect(() => {
