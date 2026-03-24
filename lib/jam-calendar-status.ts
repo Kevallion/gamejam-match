@@ -1,6 +1,6 @@
 export type JamListingPhase = "upcoming" | "live" | "ended" | "dates_pending"
 
-export type JamListingStatus = {
+export interface JamListingStatus {
   phase: JamListingPhase
   label: string
   badgeClassName: string

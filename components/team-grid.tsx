@@ -267,43 +267,82 @@ export function TeamGrid({
   if (!teams.length && hasMore)
     return <div className="text-center py-20 text-muted-foreground">Loading teams...</div>
 
+  // Separate recommended teams for special section
+  const recommendedDisplayed = displayedTeams.filter((t) => t.isRecommended)
+  const regularDisplayed = displayedTeams.filter((t) => !t.isRecommended)
+
   return (
     <section className="px-4 pb-16 pt-4 lg:px-6 lg:pb-24">
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-7xl">
+        {/* Results count header */}
         <div className="mb-6 flex items-center justify-between">
           <p className="text-sm text-muted-foreground">
             Showing{" "}
             <span className="font-semibold text-foreground">{displayedTeams.length}</span>{" "}
-            teams
+            {displayedTeams.length === 1 ? "team" : "teams"}
           </p>
         </div>
 
         {displayedTeams.length === 0 ? (
-          <div className="text-center py-10 bg-card/50 rounded-3xl border border-dashed border-border">
-            No teams found matching these filters. 😢
+          <div className="flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-border bg-card/50 py-16 text-center">
+            <div className="text-4xl">😢</div>
+            <p className="text-muted-foreground">No teams found matching these filters.</p>
+            <p className="text-sm text-muted-foreground/70">Try adjusting your search or filters</p>
           </div>
         ) : (
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {displayedTeams.map((team) => (
-              <div key={team.id} className="min-h-0 h-full">
-                <TeamCard team={team} isRecommended={!!team.isRecommended} />
+          <div className="space-y-8">
+            {/* Recommended teams section */}
+            {recommendedDisplayed.length > 0 && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <div className="h-px flex-1 bg-gradient-to-r from-teal/40 to-transparent" />
+                  <h2 className="shrink-0 text-xs font-bold uppercase tracking-wider text-teal">
+                    Recommended for you
+                  </h2>
+                  <div className="h-px flex-1 bg-gradient-to-l from-teal/40 to-transparent" />
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
+                  {recommendedDisplayed.map((team) => (
+                    <TeamCard key={team.id} team={team} isRecommended />
+                  ))}
+                </div>
               </div>
-            ))}
+            )}
+
+            {/* Regular teams grid */}
+            {regularDisplayed.length > 0 && (
+              <div className="space-y-4">
+                {recommendedDisplayed.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <div className="h-px flex-1 bg-gradient-to-r from-border to-transparent" />
+                    <h2 className="shrink-0 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                      All Teams
+                    </h2>
+                    <div className="h-px flex-1 bg-gradient-to-l from-border to-transparent" />
+                  </div>
+                )}
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                  {regularDisplayed.map((team) => (
+                    <TeamCard key={team.id} team={team} isRecommended={false} />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
         {hasMore && (
-          <div className="mt-10 flex justify-center">
+          <div className="mt-12 flex justify-center">
             <Button
               variant="outline"
               onClick={handleLoadMore}
               disabled={loadingMore}
-              className="gap-2 rounded-xl"
+              className="gap-2 rounded-xl border-border/60 px-6 py-5 text-sm font-semibold transition-all hover:border-primary/40 hover:bg-primary/5"
             >
               {loadingMore ? (
                 <>
                   <Loader2 className="size-4 animate-spin" />
-                  Loading...
+                  Loading more teams...
                 </>
               ) : (
                 "Load more teams"

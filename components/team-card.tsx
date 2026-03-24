@@ -20,14 +20,15 @@ import {
   ShieldCheck,
   Share2,
   Sparkles,
-  Flame,
-  Zap,
+  Clock,
+  Calendar,
+  CircleDot,
 } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
 import { JoinTeamModal } from "@/components/join-team-modal"
-import { getJamListingStatus } from "@/lib/jam-calendar-status"
+import { getJamListingStatus, type JamListingStatus } from "@/lib/jam-calendar-status"
 
 type RoleBadge = {
   label: string
@@ -63,6 +64,45 @@ export type TeamCardData = {
   createdAt?: string | null
 }
 
+/** Calculate jam duration in human-readable format */
+function getJamDuration(startIso: string | null | undefined, endIso: string | null | undefined): string | null {
+  if (!startIso || !endIso) return null
+  const start = new Date(startIso).getTime()
+  const end = new Date(endIso).getTime()
+  if (!Number.isFinite(start) || !Number.isFinite(end)) return null
+  
+  const diffMs = end - start
+  if (diffMs <= 0) return null
+  
+  const hours = Math.floor(diffMs / (1000 * 60 * 60))
+  const days = Math.floor(hours / 24)
+  
+  if (days >= 7) {
+    const weeks = Math.floor(days / 7)
+    return weeks === 1 ? "1 week" : `${weeks} weeks`
+  }
+  if (days >= 1) {
+    return days === 1 ? "24 hours" : `${days} days`
+  }
+  return hours === 1 ? "1 hour" : `${hours} hours`
+}
+
+/** Get status icon based on jam phase */
+function StatusIcon({ status }: { status: JamListingStatus }) {
+  switch (status.phase) {
+    case "live":
+      return <CircleDot className="size-3 animate-pulse" />
+    case "upcoming":
+      return <Calendar className="size-3" />
+    case "ended":
+      return <Clock className="size-3" />
+    case "dates_pending":
+      return <Calendar className="size-3" />
+    default:
+      return null
+  }
+}
+
 export function TeamCard({
   team,
   isRecommended = false,
@@ -76,6 +116,7 @@ export function TeamCard({
   const jamStatus = getJamListingStatus(team.jamStartDate, team.jamEndDate, {
     createdAtIso: team.createdAt,
   })
+  const jamDuration = getJamDuration(team.jamStartDate, team.jamEndDate)
 
   // Count acceptances per role (e.g. 2 artists, 1 acceptance -> only first slot filled)
   const filledCountByKey: Record<string, number> = {}
@@ -102,7 +143,7 @@ export function TeamCard({
   const isSquadFull =
     availableRoles.length > 0 && availableRoles.every((r) => r.filled)
 
-  const remainingSpots = team.maxMembers - team.members
+  const openRolesCount = availableRoles.filter((r) => !r.filled).length
 
   async function handleShare(e: React.MouseEvent) {
     e.preventDefault()
@@ -136,8 +177,8 @@ export function TeamCard({
       ownerUserId={team.user_id}
       isRecommended={isRecommended}
     >
-      <Button className="w-full gap-2 rounded-xl bg-primary text-primary-foreground transition-all hover:bg-primary/85 hover:gap-3 sm:flex-1">
-        Apply
+      <Button className="w-full gap-2 rounded-xl bg-primary text-primary-foreground transition-all hover:bg-primary/85 hover:gap-3">
+        Apply Now
         <ArrowRight className="size-4" />
       </Button>
     </JoinTeamModal>
@@ -145,35 +186,63 @@ export function TeamCard({
 
   const dialogBody = (
     <>
-      <DialogHeader className="space-y-1 border-b border-border/60 px-6 pt-6 pb-4 text-left">
-        <DialogTitle className="text-xl font-bold text-foreground">
-          {team.name}
-        </DialogTitle>
-        <p className="text-sm font-medium text-primary">{team.jam}</p>
-        {jamStatus && (
-          <Badge
-            variant="outline"
-            title={
-              jamStatus.phase === "dates_pending"
-                ? "Jam dates match listing creation — update them in Manage team for an accurate status."
-                : undefined
-            }
-            className={cn(
-              "mt-2 w-fit rounded-full px-2.5 py-0.5 text-xs font-semibold",
-              jamStatus.badgeClassName,
-            )}
-          >
-            {jamStatus.label}
-          </Badge>
-        )}
+      <DialogHeader className="space-y-3 border-b border-border/60 px-6 pt-6 pb-4 text-left">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <DialogTitle className="text-xl font-bold text-foreground">
+              {team.name}
+            </DialogTitle>
+            <p className="mt-1 text-sm font-medium text-primary">{team.jam}</p>
+          </div>
+          {isRecommended && (
+            <Badge
+              variant="outline"
+              className="shrink-0 gap-1 border-teal/30 bg-teal/10 text-xs font-semibold text-teal"
+            >
+              <Sparkles className="size-3" />
+              Match
+            </Badge>
+          )}
+        </div>
+        
+        {/* Status + Duration row */}
+        <div className="flex flex-wrap items-center gap-2">
+          {jamStatus && (
+            <Badge
+              variant="outline"
+              title={
+                jamStatus.phase === "dates_pending"
+                  ? "Jam dates match listing creation — update them in Manage team for an accurate status."
+                  : undefined
+              }
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold",
+                jamStatus.badgeClassName,
+              )}
+            >
+              <StatusIcon status={jamStatus} />
+              {jamStatus.label}
+            </Badge>
+          )}
+          {jamDuration && (
+            <Badge
+              variant="outline"
+              className="inline-flex items-center gap-1.5 rounded-full border-border/60 bg-secondary/50 px-2.5 py-0.5 text-xs font-medium text-muted-foreground"
+            >
+              <Clock className="size-3" />
+              {jamDuration}
+            </Badge>
+          )}
+        </div>
       </DialogHeader>
 
       <ScrollArea className="max-h-[60vh] px-6 py-4">
-        <div className="flex flex-col gap-4 pr-4">
+        <div className="flex flex-col gap-5 pr-4">
+          {/* Meta badges */}
           <div className="flex flex-wrap items-center gap-2">
             <Badge
               variant="outline"
-              className="inline-flex items-center gap-1.5 rounded-full border-border/60 bg-lavender px-3 py-1 text-xs font-semibold text-lavender-foreground"
+              className="inline-flex items-center gap-1.5 rounded-full border-border/60 bg-lavender/15 px-3 py-1 text-xs font-semibold text-lavender"
             >
               <Cpu className="size-3.5" />
               {team.engine}
@@ -199,49 +268,44 @@ export function TeamCard({
             )}
           </div>
 
+          {/* Description */}
           <div>
             <h4 className="mb-2 text-sm font-semibold text-foreground">
-              Description
+              About this team
             </h4>
             <p className="whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">
               {team.description}
             </p>
           </div>
 
+          {/* Roles */}
           <div>
             <h4 className="mb-2 text-sm font-semibold text-foreground">
-              Roles sought
+              Roles needed
             </h4>
-            <ul className="space-y-2">
+            <div className="flex flex-wrap gap-2">
               {availableRoles.map((role, index) => (
-                <li
+                <span
                   key={`${role.key}-${index}`}
-                  className={[
-                    "flex items-center gap-2 rounded-lg border border-border/40 px-3 py-2 text-sm transition-colors",
+                  className={cn(
+                    "inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-all",
                     role.filled
-                      ? "bg-muted/50 opacity-60"
-                      : "bg-secondary/30",
-                  ].join(" ")}
+                      ? "border-border/40 bg-muted/50 text-muted-foreground line-through opacity-60"
+                      : `border-transparent ${role.color}`,
+                  )}
                 >
-                  <span
-                    className={[
-                      "inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-semibold",
-                      role.filled ? "opacity-40" : role.color,
-                    ].join(" ")}
-                  >
-                    {role.emoji} {role.label}
-                  </span>
+                  {role.emoji} {role.label}
                   {role.filled && (
-                    <span className="ml-auto text-xs text-muted-foreground">
-                      Filled
+                    <span className="ml-1 text-[10px] font-medium no-underline">
+                      (Filled)
                     </span>
                   )}
-                </li>
+                </span>
               ))}
-            </ul>
+            </div>
             {availableRoles.length === 0 && (
               <p className="text-sm text-muted-foreground italic">
-                No role specified
+                No specific roles listed
               </p>
             )}
           </div>
@@ -252,7 +316,7 @@ export function TeamCard({
         {isSquadFull ? (
           <div className="flex items-center justify-center gap-2 rounded-xl border border-border/60 bg-muted/50 px-4 py-3 text-sm font-bold text-muted-foreground">
             <ShieldCheck className="size-4 text-primary" />
-            Team full
+            Squad Complete
           </div>
         ) : (
           applyButton
@@ -261,26 +325,55 @@ export function TeamCard({
     </>
   )
 
-  const cardHeader = (
-    <CardHeader className="min-w-0 shrink-0 gap-3 pb-0">
-      <div className="flex w-full min-w-0 items-start justify-between gap-2">
-        <div className="min-w-0 flex-1 overflow-hidden">
-          <div className="flex min-w-0 flex-wrap items-center gap-2">
-            <h3 className="min-w-0 max-w-full truncate text-lg font-bold text-foreground">
+  const dialogContentClass =
+    "max-w-lg overflow-hidden rounded-2xl border-border/60 bg-card p-0 shadow-2xl shadow-teal/10"
+
+  // Card content - redesigned for clarity
+  const cardBody = (
+    <>
+      <CardHeader className="space-y-3 pb-3">
+        {/* Top row: Team name + Share/Members */}
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0 flex-1">
+            <h3 className="truncate text-base font-bold leading-tight text-foreground">
               {team.name}
             </h3>
-            {team.teamVibe && (
-              <span
-                className={`max-w-full shrink-0 truncate inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-bold ${team.teamVibe.badgeColor ?? team.teamVibe.color}`}
-                title={team.teamVibe.label}
-              >
-                {team.teamVibe.emoji} {team.teamVibe.label}
-              </span>
-            )}
+            <p className="mt-0.5 truncate text-sm font-medium text-primary/90">
+              {team.jam}
+            </p>
           </div>
-          <p className="mt-0.5 min-w-0 max-w-full truncate text-sm font-medium text-primary">
-            {team.jam}
-          </p>
+          <div className="flex shrink-0 items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7 rounded-full text-muted-foreground hover:text-foreground"
+              onClick={handleShare}
+              aria-label="Share team"
+            >
+              <Share2 className="size-3.5" />
+            </Button>
+            <Badge
+              variant="outline"
+              className="h-6 rounded-full border-border/60 px-2 text-[10px] font-semibold text-muted-foreground"
+            >
+              <Users className="mr-1 size-3" />
+              {team.members}/{team.maxMembers}
+            </Badge>
+          </div>
+        </div>
+
+        {/* Status row: Jam status badge + Duration + Perfect Match */}
+        <div className="flex flex-wrap items-center gap-1.5">
+          {isRecommended && (
+            <Badge
+              variant="outline"
+              aria-label="Perfect match for your profile"
+              className="gap-1 border-teal/30 bg-teal/15 px-2 py-0.5 text-[10px] font-bold text-teal"
+            >
+              <Sparkles className="size-2.5" aria-hidden />
+              Perfect Match
+            </Badge>
+          )}
           {jamStatus && (
             <Badge
               variant="outline"
@@ -290,137 +383,105 @@ export function TeamCard({
                   : undefined
               }
               className={cn(
-                "mt-1.5 w-fit max-w-full truncate rounded-full px-2.5 py-0.5 text-[10px] font-semibold",
+                "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold",
                 jamStatus.badgeClassName,
               )}
             >
+              <StatusIcon status={jamStatus} />
               {jamStatus.label}
             </Badge>
           )}
-        </div>
-        <div className="flex min-w-0 max-w-full shrink-0 flex-wrap items-center justify-end gap-1.5">
-          {isRecommended && (
+          {jamDuration && (
             <Badge
               variant="outline"
-              aria-label="Perfect match for your profile"
-              className="gap-1 border-teal/20 bg-teal/10 text-xs font-semibold text-teal"
+              className="inline-flex items-center gap-1 rounded-full border-border/60 bg-muted/50 px-2 py-0.5 text-[10px] font-medium text-muted-foreground"
             >
-              <Sparkles className="size-3" aria-hidden />
-              Perfect Match
+              <Clock className="size-2.5" />
+              {jamDuration}
             </Badge>
           )}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-8 rounded-full"
-            onClick={handleShare}
-            aria-label="Share team"
-          >
-            <Share2 className="size-4" />
-          </Button>
-          <Badge
-            variant="outline"
-            className="rounded-full border-border/60 text-xs text-muted-foreground"
-          >
-            <Users className="mr-1 size-3" />
-            {team.members}/{team.maxMembers}
-          </Badge>
         </div>
-      </div>
-    </CardHeader>
-  )
+      </CardHeader>
 
-  const cardContent = (
-    <CardContent className="flex min-h-0 min-w-0 flex-1 flex-col gap-4 pt-3">
-      <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
-        <span className="inline-flex min-w-0 max-w-full items-center gap-1.5 break-words">
-          <Cpu className="size-3.5 shrink-0 text-lavender" />
-          <span className="min-w-0">{team.engine}</span>
-        </span>
-        <span className="inline-flex min-w-0 max-w-full items-center gap-1.5 break-words">
-          <Globe className="size-3.5 shrink-0 text-teal" />
-          <span className="min-w-0">{team.language}</span>
-        </span>
-      </div>
-
-      <p className="line-clamp-3 min-h-0 overflow-hidden text-ellipsis break-words text-sm leading-relaxed text-muted-foreground">
-        {team.description}
-      </p>
-
-      <div className="flex min-w-0 flex-wrap gap-1.5">
-        <span
-          className={`inline-flex max-w-full min-w-0 items-center gap-1 break-words rounded-full px-2.5 py-1 text-xs font-semibold ${team.level.color}`}
-        >
-          {team.level.emoji} {team.level.label}
-        </span>
-        {availableRoles.map((role, index) => (
-          <span
-            key={`${role.key}-${index}`}
-            className={[
-              "inline-flex max-w-full min-w-0 items-center gap-1 break-words rounded-full px-2.5 py-1 text-xs font-semibold transition-opacity",
-              role.filled
-                ? "bg-muted text-muted-foreground line-through opacity-40"
-                : role.color,
-            ].join(" ")}
-            title={role.filled ? `${role.label} — Filled` : `${role.label} — Open`}
-          >
-            <span className="min-w-0">
-              {role.emoji} {role.label}
-            </span>
+      <CardContent className="flex flex-1 flex-col gap-3 pt-0">
+        {/* Engine + Language */}
+        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+          <span className="inline-flex items-center gap-1">
+            <Cpu className="size-3 text-lavender" />
+            {team.engine}
           </span>
-        ))}
-      </div>
+          <span className="text-border">•</span>
+          <span className="inline-flex items-center gap-1">
+            <Globe className="size-3 text-teal" />
+            {team.language}
+          </span>
+        </div>
 
-      {!isSquadFull && remainingSpots === 1 ? (
-        <div
-          className="mt-auto flex min-w-0 max-w-full flex-wrap items-center gap-1.5 self-start rounded-md border border-orange-500/20 bg-orange-500/10 px-2 py-1 text-xs font-medium text-orange-500"
-          role="status"
-        >
-          <Flame className="size-3.5 shrink-0" aria-hidden />
-          <span className="min-w-0 break-words">Only 1 spot left!</span>
+        {/* Description */}
+        <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+          {team.description}
+        </p>
+
+        {/* Roles needed - compact tags */}
+        <div className="mt-auto">
+          <div className="mb-1.5 flex items-center justify-between">
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Roles needed
+            </span>
+            {openRolesCount > 0 && (
+              <span className="text-[10px] font-medium text-primary">
+                {openRolesCount} open
+              </span>
+            )}
+          </div>
+          <div className="flex flex-wrap gap-1">
+            {availableRoles.slice(0, 4).map((role, index) => (
+              <span
+                key={`${role.key}-${index}`}
+                className={cn(
+                  "inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-semibold transition-opacity",
+                  role.filled
+                    ? "bg-muted text-muted-foreground line-through opacity-50"
+                    : role.color,
+                )}
+                title={role.filled ? `${role.label} — Filled` : `${role.label} — Open`}
+              >
+                {role.emoji} {role.label}
+              </span>
+            ))}
+            {availableRoles.length > 4 && (
+              <span className="inline-flex items-center rounded-md bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                +{availableRoles.length - 4} more
+              </span>
+            )}
+          </div>
         </div>
-      ) : !isSquadFull && team.members > 1 && remainingSpots > 1 ? (
-        <div
-          className="mt-auto flex min-w-0 max-w-full flex-wrap items-center gap-1.5 self-start rounded-md bg-muted/50 px-2 py-1 text-xs font-medium text-muted-foreground"
-          role="status"
-        >
-          <Zap className="size-3.5 shrink-0" aria-hidden />
-          <span className="min-w-0 break-words">Teams are filling fast</span>
-        </div>
-      ) : null}
-    </CardContent>
+      </CardContent>
+
+      <CardFooter className="pt-3">
+        {isSquadFull ? (
+          <div className="flex w-full items-center justify-center gap-2 rounded-xl border border-border/60 bg-muted/50 px-4 py-2 text-xs font-bold text-muted-foreground">
+            <ShieldCheck className="size-3.5 text-primary" />
+            Squad Complete
+          </div>
+        ) : (
+          <div className="flex w-full items-center justify-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-4 py-2 text-xs font-semibold text-primary transition-colors group-hover:bg-primary/10">
+            <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
+            View & Apply
+          </div>
+        )}
+      </CardFooter>
+    </>
   )
-
-  const defaultFooter = (
-    <CardFooter className="mt-auto shrink-0">
-      {isSquadFull ? (
-        <div className="flex w-full items-center justify-center gap-2 rounded-xl border border-border/60 bg-muted/50 px-4 py-2.5 text-sm font-bold text-muted-foreground">
-          <ShieldCheck className="size-4 text-primary" />
-          SQUAD FULL
-        </div>
-      ) : (
-        <div className="flex w-full items-center justify-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-4 py-2.5 text-sm font-semibold text-primary">
-          <ArrowRight className="size-4" />
-          View details
-        </div>
-      )}
-    </CardFooter>
-  )
-
-  const dialogContentClass =
-    "max-w-lg overflow-hidden rounded-2xl border-border/60 bg-card p-0 shadow-2xl shadow-teal/10"
 
   if (!isRecommended) {
     return (
       <Dialog>
         <DialogTrigger asChild>
-          <Card className="card-interactive group relative flex h-full min-h-0 min-w-0 cursor-pointer flex-col transition-all hover:ring-2 hover:ring-primary/50">
-            {cardHeader}
-            {cardContent}
-            {defaultFooter}
+          <Card className="card-interactive group relative flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border-border/60 bg-card transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/5">
+            {cardBody}
           </Card>
         </DialogTrigger>
-
         <DialogContent className={dialogContentClass}>{dialogBody}</DialogContent>
       </Dialog>
     )
@@ -430,48 +491,21 @@ export function TeamCard({
     <>
       <Card
         className={cn(
-          "group relative flex h-full min-h-0 min-w-0 flex-col overflow-hidden border-teal/50 bg-gradient-to-br from-card to-teal/5 shadow-[0_0_20px_-5px_rgba(20,184,166,0.15)] transition-all",
+          "group relative flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border-teal/40 bg-gradient-to-br from-card via-card to-teal/5 shadow-lg shadow-teal/10 transition-all duration-200 hover:-translate-y-0.5 hover:border-teal/60 hover:shadow-xl hover:shadow-teal/15",
         )}
+        role="button"
+        tabIndex={0}
+        onClick={() => setDetailsOpen(true)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault()
+            setDetailsOpen(true)
+          }
+        }}
       >
-        <div
-          role="button"
-          tabIndex={0}
-          className="flex min-h-0 min-w-0 flex-1 cursor-pointer flex-col rounded-t-xl text-left outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-card"
-          onClick={() => setDetailsOpen(true)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault()
-              setDetailsOpen(true)
-            }
-          }}
-        >
-          {cardHeader}
-          {cardContent}
-        </div>
-
-        <CardFooter
-          className="mt-auto shrink-0 flex flex-col gap-2 sm:flex-row sm:items-stretch"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {isSquadFull ? (
-            <div className="flex w-full items-center justify-center gap-2 rounded-xl border border-border/60 bg-muted/50 px-4 py-2.5 text-sm font-bold text-muted-foreground">
-              <ShieldCheck className="size-4 text-primary" />
-              SQUAD FULL
-            </div>
-          ) : (
-            <>
-              {applyButton}
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full shrink-0 rounded-xl border-border/60 sm:w-auto sm:min-w-[8.5rem]"
-                onClick={() => setDetailsOpen(true)}
-              >
-                View details
-              </Button>
-            </>
-          )}
-        </CardFooter>
+        {/* Subtle gradient accent */}
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-teal/50 to-transparent" />
+        {cardBody}
       </Card>
 
       <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>

@@ -129,18 +129,22 @@ export function HomeShell() {
   return (
     <div className="flex min-h-screen flex-col">
       <main className="flex-1">
-        {/* Hero — top of page */}
+        {/* Hero — compact top section */}
         <Hero />
 
-        {/* Search + filters (in document flow — avoids covering team cards while scrolling) */}
-        <div className="border-b border-border/50 bg-background/95 backdrop-blur-md">
-          <div className="mx-auto max-w-6xl flex flex-col gap-4 px-4 py-4 sm:gap-6 sm:py-6 lg:px-6 lg:py-6">
-            <div className="w-full max-w-xl">
+        {/* Search + filters — sticky section */}
+        <div className="sticky top-0 z-30 border-b border-border/50 bg-background/95 backdrop-blur-md">
+          <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 sm:gap-4 sm:py-4 lg:px-6">
+            {/* Search bar */}
+            <div className="w-full max-w-2xl">
               <Search
                 value={searchQuery}
                 onChange={handleSearchChange}
+                placeholder="Search teams, jams, or skills..."
               />
             </div>
+            
+            {/* Filters */}
             <Filters
               engine={engineFilter}
               role={roleFilter}
@@ -157,17 +161,26 @@ export function HomeShell() {
               onStyleChange={handleStyleChange}
               onReset={handleResetFilters}
             />
+            
+            {/* Active filter chips */}
             {activeFilterLabels.length > 0 && (
-              <p className="text-xs text-muted-foreground">
-                <span className="font-semibold text-foreground">Active filters:</span>{" "}
-                {activeFilterLabels.join(" • ")}
-              </p>
+              <div className="flex flex-wrap items-center gap-2 text-xs">
+                <span className="font-semibold text-muted-foreground">Filtering by:</span>
+                {activeFilterLabels.map((label) => (
+                  <span
+                    key={label}
+                    className="rounded-full bg-primary/10 px-2 py-0.5 font-medium text-primary"
+                  >
+                    {label}
+                  </span>
+                ))}
+              </div>
             )}
           </div>
         </div>
 
-        {/* Results — team grid (includes personalized matches when logged in) */}
-        <div className="pt-12 lg:pt-16">
+        {/* Results — team grid */}
+        <div className="pt-8 lg:pt-10">
           <TeamGrid
             searchQuery={searchQuery}
             engineFilter={engineFilter}
