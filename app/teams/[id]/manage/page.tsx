@@ -1,6 +1,8 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
+import { format } from "date-fns"
+import type { DateRange } from "react-day-picker"
 import { useParams, useRouter } from "next/navigation"
 import Link from "next/link"
 import { Navbar } from "@/components/navbar"
@@ -47,11 +49,19 @@ import {
   notifyTeamDiscordUpdated,
 } from "@/app/actions/team-actions"
 import { claimTeamJamCompletedXp } from "@/app/actions/team-gamification-actions"
+import { updateTeamJamListing } from "@/app/actions/create-team-actions"
+import { dateInputToUtcEnd, dateInputToUtcStart, isoTimestampToDateInput } from "@/lib/jam-date-utc"
 import { showGamificationRewards } from "@/components/gamification-reward-toasts"
 import { gamificationRewardHasToast } from "@/lib/gamification-reward-types"
 import { EXPERIENCE_OPTIONS, JAM_STYLE_OPTIONS, ROLE_STYLES } from "@/lib/constants"
+import { DateRangeField } from "@/components/date-range-field"
 
 const DISCORD_LINK_REGEX = /^https:\/\/(discord\.gg\/|discord\.com\/invite\/)/i
+
+function ymdToLocalDate(ymd: string): Date {
+  const [y, m, d] = ymd.split("-").map(Number)
+  return new Date(y, m - 1, d)
+}
 
 type MemberRow = {
   user_id: string
@@ -72,6 +82,8 @@ type TeamManageData = {
   language: string
   jam_id: string | null
   discord_link: string | null
+  jam_start_date: string | null
+  jam_end_date: string | null
   jam_completion_xp_claimed?: boolean | null
   members: MemberRow[]
 }
@@ -95,11 +107,14 @@ export default function TeamManagePage() {
     team_vibe: "",
     experience_required: "",
     jam_id: null as string | null,
+    jam_start_date: "",
+    jam_end_date: "",
   })
   const [discordInput, setDiscordInput] = useState("")
   const [discordSaving, setDiscordSaving] = useState(false)
   const [discordError, setDiscordError] = useState<string | null>(null)
   const [jamXpClaimBusy, setJamXpClaimBusy] = useState(false)
+  const [editJamRange, setEditJamRange] = useState<DateRange | undefined>(undefined)
 
   const loadTeam = useCallback(async () => {
     if (!teamId) return
@@ -116,7 +131,7 @@ export default function TeamManagePage() {
       const { data: teamData, error: teamError } = await supabase
         .from("teams")
         .select(
-          "id, user_id, team_name, game_name, description, team_vibe, experience_required, engine, language, jam_id, discord_link, jam_completion_xp_claimed",
+          "id, user_id, team_name, game_name, description, team_vibe, experience_required, engine, language, jam_id, discord_link, jam_completion_xp_claimed, jam_start_date, jam_end_date",
         )
         .eq("id", teamId)
         .single()
@@ -187,10 +202,12 @@ export default function TeamManagePage() {
         },
       )
 
+      const td = teamData as TeamManageData & { jam_completion_xp_claimed?: boolean | null }
       setTeam({
         ...teamData,
-        jam_completion_xp_claimed: (teamData as { jam_completion_xp_claimed?: boolean | null })
-          .jam_completion_xp_claimed,
+        jam_start_date: td.jam_start_date ?? null,
+        jam_end_date: td.jam_end_date ?? null,
+        jam_completion_xp_claimed: td.jam_completion_xp_claimed,
         members,
       })
       setEditForm({
@@ -200,6 +217,8 @@ export default function TeamManagePage() {
         team_vibe: teamData.team_vibe ?? "",
         experience_required: teamData.experience_required ?? "",
         jam_id: (teamData as { jam_id?: string | null }).jam_id ?? null,
+        jam_start_date: isoTimestampToDateInput(td.jam_start_date),
+        jam_end_date: isoTimestampToDateInput(td.jam_end_date),
       })
       setDiscordInput(teamData.discord_link ?? "")
       setDiscordError(null)
@@ -329,26 +348,41 @@ export default function TeamManagePage() {
     e.preventDefault()
     setEditSaving(true)
     try {
-      const { error } = await supabase
-        .from("teams")
-        .update({
-          team_name: editForm.team_name.trim() || undefined,
-          game_name: editForm.game_name.trim() || undefined,
-          description: editForm.description.trim() || undefined,
-          team_vibe: editForm.team_vibe || null,
-          experience_required:
-            editForm.experience_required && editForm.experience_required !== "any"
-              ? editForm.experience_required
-              : null,
-          jam_id: editForm.jam_id || null,
+      if (!editForm.jam_start_date || !editForm.jam_end_date) {
+        toast.error("Jam dates required.", {
+          description: "Please specify the Jam dates to keep your team visible.",
         })
-        .eq("id", teamId)
-
-      if (error) {
-        toast.error("Could not update team.", { description: error.message })
+        return
+      }
+      const startMs = new Date(dateInputToUtcStart(editForm.jam_start_date)).getTime()
+      const endMs = new Date(dateInputToUtcEnd(editForm.jam_end_date)).getTime()
+      if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || startMs >= endMs) {
+        toast.error("Invalid jam dates.", { description: "Jam end must be after jam start." })
         return
       }
 
+      const result = await updateTeamJamListing({
+        teamId,
+        teamName: editForm.team_name.trim(),
+        gameName: editForm.game_name.trim(),
+        description: editForm.description.trim(),
+        teamVibe: editForm.team_vibe || null,
+        experienceRequired:
+          editForm.experience_required && editForm.experience_required !== "any"
+            ? editForm.experience_required
+            : null,
+        jamId: editForm.jam_id || null,
+        jamStartDate: dateInputToUtcStart(editForm.jam_start_date),
+        jamEndDate: dateInputToUtcEnd(editForm.jam_end_date),
+      })
+
+      if (!result.success) {
+        toast.error("Could not update team.", { description: result.error })
+        return
+      }
+
+      const jamStartIso = dateInputToUtcStart(editForm.jam_start_date)
+      const jamEndIso = dateInputToUtcEnd(editForm.jam_end_date)
       setTeam((prev) =>
         prev
           ? {
@@ -362,6 +396,8 @@ export default function TeamManagePage() {
                   ? editForm.experience_required
                   : null,
               jam_id: editForm.jam_id || null,
+              jam_start_date: jamStartIso,
+              jam_end_date: jamEndIso,
             }
           : null
       )
@@ -503,7 +539,22 @@ export default function TeamManagePage() {
           <div className="mx-auto max-w-4xl space-y-8">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <h2 className="text-xl font-bold text-foreground">Edit Team Info</h2>
-              <Dialog open={editOpen} onOpenChange={setEditOpen}>
+              <Dialog
+                open={editOpen}
+                onOpenChange={(open) => {
+                  setEditOpen(open)
+                  if (open) {
+                    setEditJamRange(
+                      editForm.jam_start_date && editForm.jam_end_date
+                        ? {
+                            from: ymdToLocalDate(editForm.jam_start_date),
+                            to: ymdToLocalDate(editForm.jam_end_date),
+                          }
+                        : undefined,
+                    )
+                  }
+                }}
+              >
                 <DialogTrigger asChild>
                   <Button className="gap-2 rounded-xl">
                     <Pencil className="size-4" />
@@ -553,6 +604,27 @@ export default function TeamManagePage() {
                         activeOnly={true}
                       />
                     </div>
+                    <DateRangeField
+                      label="Jam date range"
+                      value={editJamRange}
+                      onChange={(r) => {
+                        setEditJamRange(r)
+                        setEditForm((p) => ({
+                          ...p,
+                          jam_start_date: r?.from ? format(r.from, "yyyy-MM-dd") : "",
+                          jam_end_date: r?.to
+                            ? format(r.to, "yyyy-MM-dd")
+                            : r?.from
+                              ? p.jam_end_date
+                              : "",
+                        }))
+                      }}
+                      placeholder="Choose jam start and end dates"
+                      drawerTitle="When does your jam run?"
+                      dateFormat="long"
+                      numberOfMonthsDesktop={1}
+                      helperText="Required for your listing to stay visible. End date controls when the squad is archived."
+                    />
                     <div className="space-y-2">
                       <Label htmlFor="description">Description</Label>
                       <Textarea

@@ -45,6 +45,10 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
+import {
+  getJamListingStatus,
+  isJamStartBackfilledWithCreatedAt,
+} from "@/lib/jam-calendar-status"
 
 export type TeamData = {
   id: string
@@ -61,6 +65,9 @@ export type TeamData = {
   level: { label: string; emoji: string; color: string }
   discord_link?: string | null
   isOwner: boolean
+  jamStartDate?: string | null
+  jamEndDate?: string | null
+  createdAt?: string | null
 }
 
 function roleLabel(key: string) {
@@ -260,6 +267,20 @@ export function DashboardMyTeams({
                     <p className="mt-0.5 text-xs font-medium text-primary truncate">
                       {team.jam}
                     </p>
+                    {(() => {
+                      const jamStatus = getJamListingStatus(team.jamStartDate, team.jamEndDate, {
+                        createdAtIso: team.createdAt,
+                      })
+                      if (!jamStatus) return null
+                      return (
+                        <Badge
+                          variant="outline"
+                          className={`mt-1.5 w-fit max-w-full rounded-full px-2 py-0.5 text-[10px] font-semibold ${jamStatus.badgeClassName}`}
+                        >
+                          {jamStatus.label}
+                        </Badge>
+                      )
+                    })()}
                   </div>
                   <div className="flex shrink-0 items-center gap-1.5">
                     <Badge
@@ -284,6 +305,20 @@ export function DashboardMyTeams({
               </CardHeader>
 
               <CardContent className="flex flex-1 flex-col gap-2.5 pt-3 px-4">
+                {team.isOwner &&
+                  isJamStartBackfilledWithCreatedAt(
+                    team.jamStartDate,
+                    team.createdAt,
+                  ) &&
+                  team.jamEndDate &&
+                  new Date(team.jamEndDate).getTime() > Date.now() && (
+                    <p
+                      className="rounded-lg border border-amber-500/30 bg-amber-500/5 px-2.5 py-1.5 text-[10px] leading-snug text-amber-900 dark:text-amber-100/90"
+                      role="status"
+                    >
+                      Please update your Jam dates to show your real progress.
+                    </p>
+                  )}
                 {/* Engine + language row */}
                 <div className="flex items-center gap-3 text-xs text-muted-foreground">
                   <span className="inline-flex items-center gap-1">

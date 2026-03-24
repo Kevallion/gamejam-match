@@ -2,11 +2,14 @@
 
 import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
+import { format } from "date-fns"
+import type { DateRange } from "react-day-picker"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
+import { DateRangeField } from "@/components/date-range-field"
 import { supabase } from "@/lib/supabase"
 import type { User } from "@supabase/supabase-js"
 import { Progress } from "@/components/ui/progress"
@@ -18,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Plus, X, Rocket, Sparkles, Loader2, AlertCircle } from "lucide-react"
+import { cn } from "@/lib/utils"
 import { SignInButton } from "@/components/sign-in-button"
 import { toast } from "sonner"
 import { track } from "@vercel/analytics"
@@ -26,6 +30,7 @@ import { JamSearchSelector } from "@/components/jam-search-selector"
 import { createTeam } from "@/app/actions/create-team-actions"
 import { showGamificationRewards } from "@/components/gamification-reward-toasts"
 import { gamificationRewardHasToast } from "@/lib/gamification-reward-types"
+import { dateInputToUtcEnd, dateInputToUtcStart } from "@/lib/jam-date-utc"
 
 type RoleEntry = {
   id: number
@@ -47,6 +52,15 @@ const LANGUAGE_OPTIONS = [
 const TEAM_FORM_ENGINE_VALUES = new Set<string>(ENGINE_OPTIONS.map((o) => o.value))
 const TEAM_FORM_LANGUAGE_VALUES = new Set<string>(LANGUAGE_OPTIONS.map((o) => o.value))
 
+/** Retourne les bornes YYYY-MM-DD si début et fin sont choisis. */
+function jamRangeToYmd(range: DateRange | undefined): { start: string; end: string } | null {
+  if (!range?.from || !range?.to) return null
+  return {
+    start: format(range.from, "yyyy-MM-dd"),
+    end: format(range.to, "yyyy-MM-dd"),
+  }
+}
+
 let roleIdCounter = 1
 
 export function CreateTeamForm() {
@@ -66,6 +80,7 @@ export function CreateTeamForm() {
   const [discordLinkError, setDiscordLinkError] = useState("")
   const [rolesError, setRolesError] = useState("")
   const [jamId, setJamId] = useState<string | null>(null)
+  const [jamDateRange, setJamDateRange] = useState<DateRange | undefined>(undefined)
   const [description, setDescription] = useState("")
 
   const [user, setUser] = useState<User | null>(null)
@@ -145,6 +160,21 @@ export function CreateTeamForm() {
       if (!teamName.trim() || !jamName.trim()) {
         toast.error("Please complete the required basics.", {
           description: "Team / Project Name and Game Jam Name are required.",
+        })
+        return false
+      }
+      const ymd = jamRangeToYmd(jamDateRange)
+      if (!ymd) {
+        toast.error("Jam dates required.", {
+          description: "Choose when your jam starts and ends so your listing stays accurate.",
+        })
+        return false
+      }
+      const startMs = new Date(dateInputToUtcStart(ymd.start)).getTime()
+      const endMs = new Date(dateInputToUtcEnd(ymd.end)).getTime()
+      if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || startMs >= endMs) {
+        toast.error("Invalid jam dates.", {
+          description: "Jam end must be after jam start.",
         })
         return false
       }
@@ -245,6 +275,15 @@ export function CreateTeamForm() {
       return
     }
 
+    const jamYmd = jamRangeToYmd(jamDateRange)
+    if (!jamYmd) {
+      setLoading(false)
+      toast.error("Jam dates required.", {
+        description: "Select a full date range (start and end) for your jam.",
+      })
+      return
+    }
+
     try {
       const result = await createTeam({
         teamName: teamName.trim(),
@@ -257,6 +296,8 @@ export function CreateTeamForm() {
         teamVibe: teamVibe || null,
         experienceRequired: experienceRequired || null,
         jamId: jamId || null,
+        jamStartDate: dateInputToUtcStart(jamYmd.start),
+        jamEndDate: dateInputToUtcEnd(jamYmd.end),
       })
       if (!result.success) {
         toast.error("Could not create the team.", { description: result.error })
@@ -274,6 +315,7 @@ export function CreateTeamForm() {
         setExperienceRequired("")
         setDiscordLink("")
         setJamId(null)
+        setJamDateRange(undefined)
         setDiscordLinkError("")
         setDescription("")
         setRoles([{ id: roleIdCounter++, role: "", level: "" }])
@@ -368,6 +410,17 @@ export function CreateTeamForm() {
                         activeOnly={true}
                       />
                     </div>
+
+                    <DateRangeField
+                      label="Jam date range"
+                      value={jamDateRange}
+                      onChange={setJamDateRange}
+                      placeholder="Choose your jam start and end dates"
+                      drawerTitle="When does your jam run?"
+                      dateFormat="long"
+                      numberOfMonthsDesktop={2}
+                      helperText="Your listing stays public until the jam end date (shown on your squad card). You can extend it later from the dashboard."
+                    />
                   </div>
                 )}
 
@@ -610,7 +663,13 @@ export function CreateTeamForm() {
                         </li>
                       </ul>
                       <p className="mt-3 text-xs text-muted-foreground">
-                        Your listing will be visible for 30 days.
+                        Listing visible until{" "}
+                        <span className="font-medium text-foreground">
+                          {jamDateRange?.to
+                            ? format(jamDateRange.to, "MMM d, yyyy")
+                            : "—"}
+                        </span>{" "}
+                        (jam end).
                       </p>
                     </div>
                   </div>

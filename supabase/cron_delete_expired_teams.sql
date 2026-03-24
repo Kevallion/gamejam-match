@@ -9,8 +9,10 @@
 --     can skip the CREATE EXTENSION line if it already exists.
 --
 -- Schedule: every day at 00:00 UTC —
---   - DELETE expired team rows (cascades to join_requests, team_members, team_messages).
---   - DELETE expired availability_posts (member announcements).
+--   - Team listings: cleanup is handled by the app (e-mail owner, then DELETE) via
+--     GET /api/cron/cleanup-expired-teams with Authorization: Bearer CRON_SECRET.
+--     Do not DELETE public.teams here or owners will not receive the archival e-mail.
+--   - DELETE expired availability_posts (member announcements) — still safe in SQL.
 -- =============================================================================
 
 -- 1) Enable pg_cron (Supabase: extension lives under schema "extensions")
@@ -65,7 +67,7 @@ $$;
 SELECT cron.schedule(
   'delete-expired-teams',
   '0 0 * * *',
-  $$DELETE FROM public.teams WHERE expires_at < now(); DELETE FROM public.availability_posts WHERE expires_at < now();$$
+  $$DELETE FROM public.availability_posts WHERE expires_at < now();$$
 );
 
 -- Verify:

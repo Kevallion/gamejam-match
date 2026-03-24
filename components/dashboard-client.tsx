@@ -81,6 +81,9 @@ type TeamRow = {
   description: string | null
   looking_for: unknown
   discord_link?: string | null
+  jam_start_date?: string | null
+  jam_end_date?: string | null
+  created_at?: string | null
   team_members?: { count?: number | null }[]
 }
 
@@ -435,6 +438,9 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
       level: LEVEL_STYLES[rawLevel] ?? FALLBACK_LEVEL,
       discord_link: t.discord_link ?? null,
       isOwner: t.user_id === authUserId,
+      jamStartDate: t.jam_start_date ?? null,
+      jamEndDate: t.jam_end_date ?? null,
+      createdAt: t.created_at ?? null,
     }
   }
 
@@ -726,14 +732,18 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
   }
 
   const handleRenewTeam = async (id: string) => {
-    const { error } = await supabase
-      .from("teams")
-      .update({ expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString() })
-      .eq("id", id)
+    const row = teams.find((t) => t.id === id)
+    const currentEndMs = row?.jamEndDate ? new Date(row.jamEndDate).getTime() : NaN
+    const baseMs = Number.isFinite(currentEndMs) ? Math.max(Date.now(), currentEndMs) : Date.now()
+    const newEnd = new Date(baseMs + 30 * 24 * 60 * 60 * 1000).toISOString()
+
+    const { error } = await supabase.from("teams").update({ jam_end_date: newEnd }).eq("id", id)
 
     if (error) throw new Error(error.message)
     loadData()
-    toast.success("Listing renewed.", { description: "Your listing is now visible for another 30 days." })
+    toast.success("Listing renewed.", {
+      description: "Your jam end date was extended by 30 days; the listing stays in sync.",
+    })
   }
 
   const handleLeaveTeam = async (id: string) => {

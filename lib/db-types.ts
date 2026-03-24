@@ -56,5 +56,8 @@ export interface TeamRow {
   experience_required?: ExperienceLevel | string | null
   created_at?: string
   expires_at?: string
+  /** Fenêtre du jam affichée sur les cartes ; `expires_at` est aligné sur `jam_end_date`. */
+  jam_start_date?: string
+  jam_end_date?: string
   jam_completion_xp_claimed?: boolean | null
 }

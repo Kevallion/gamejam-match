@@ -516,4 +516,34 @@ export async function notifyTeamDiscordUpdated(
   }
 }
 
+/**
+ * E-mail au propriétaire lorsque l’annonce d’équipe est archivée (fin du jam / suppression automatique).
+ */
+export async function notifyOwnerJamListingArchived(
+  ownerUserId: string,
+  teamName: string,
+): Promise<void> {
+  try {
+    const email = await getUserEmail(ownerUserId)
+    if (!email) return
+
+    const safeTeamName = escapeHtml(teamName)
+    const subject = "Your jam announcement has ended! 🏁 | GameJamCrew"
+    const contentHtml = `
+      <p style="${EMAIL_P}">Your listing for <strong style="${EMAIL_STRONG}">${safeTeamName}</strong> has reached its jam end date and is no longer visible on GameJamCrew.</p>
+      <p style="${EMAIL_P}">Your team data is safe — you can always create a new listing for your next jam from <a href="${DASHBOARD_URL}" style="${EMAIL_LINK}">your dashboard</a>.</p>
+      <p style="${EMAIL_SIGNOFF}">— The GameJamCrew team</p>
+    `
+
+    await sendEmailWithLayout(
+      email,
+      subject,
+      "Your Jam announcement has ended! 🏁",
+      contentHtml,
+    )
+  } catch {
+    /* best-effort */
+  }
+}
+
 

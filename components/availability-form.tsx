@@ -2,22 +2,16 @@
 
 import { useState, useEffect, useRef } from "react"
 import { format } from "date-fns"
-import { useIsMobile } from "@/hooks/use-mobile"
 import type { DateRange } from "react-day-picker"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
+import { DateRangeField } from "@/components/date-range-field"
 import { Progress } from "@/components/ui/progress"
 import { supabase } from "@/lib/supabase"
 import type { User } from "@supabase/supabase-js"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
 import {
   Select,
   SelectContent,
@@ -25,11 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import {
-  CalendarDays,
-  Loader2,
-  AlertCircle,
-} from "lucide-react"
+import { Loader2, AlertCircle } from "lucide-react"
 import { SignInButton } from "@/components/sign-in-button"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
@@ -38,15 +28,6 @@ import { JamSearchSelector } from "@/components/jam-search-selector"
 import { claimAvailabilityPostXp } from "@/app/actions/availability-actions"
 import { showGamificationRewards } from "@/components/gamification-reward-toasts"
 import { gamificationRewardHasToast } from "@/lib/gamification-reward-types"
-import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerTrigger,
-} from "@/components/ui/drawer"
 
 const LANGUAGE_OPTIONS = [
   { value: "english", label: "English" },
@@ -60,7 +41,6 @@ const LANGUAGE_OPTIONS = [
 ]
 
 export function AvailabilityForm() {
-  const isMobile = useIsMobile()
   const totalSteps = 3
   const [step, setStep] = useState(1)
   // Form state
@@ -589,81 +569,17 @@ export function AvailabilityForm() {
                       />
                     </div>
 
-                    {/* Dates */}
-                    <div className="flex flex-col gap-2.5">
-                      <Label className="text-sm font-bold text-foreground">Availability Date(s)</Label>
-                      {isMobile ? (
-                        <Drawer>
-                          <DrawerTrigger asChild>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "h-12 w-full justify-start gap-3 rounded-xl border-border/60 bg-secondary/50",
-                                !dateRange?.from && "text-muted-foreground",
-                              )}
-                            >
-                              <CalendarDays className="size-4 text-lavender" />
-                              {dateRange?.from ? (
-                                dateRange.to
-                                  ? `${format(dateRange.from, "MMM d")} - ${format(dateRange.to, "MMM d")}`
-                                  : format(dateRange.from, "MMM d")
-                              ) : "Pick your available dates"}
-                            </Button>
-                          </DrawerTrigger>
-                          <DrawerContent className="rounded-t-3xl border-border/60 bg-card">
-                            <DrawerHeader className="text-left">
-                              <DrawerTitle className="text-base font-semibold text-foreground">
-                                Choose your availability
-                              </DrawerTitle>
-                            </DrawerHeader>
-                            <div className="px-4 pb-4">
-                              <Calendar
-                                mode="range"
-                                selected={dateRange}
-                                onSelect={setDateRange}
-                                disabled={{ before: new Date() }}
-                                numberOfMonths={1}
-                              />
-                            </div>
-                            <DrawerFooter className="flex flex-row gap-3 px-4 pb-6 pt-0">
-                              <DrawerClose asChild>
-                                <Button className="flex-1 rounded-xl">
-                                  Done
-                                </Button>
-                              </DrawerClose>
-                            </DrawerFooter>
-                          </DrawerContent>
-                        </Drawer>
-                      ) : (
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "h-12 w-full justify-start gap-3 rounded-xl border-border/60 bg-secondary/50",
-                                !dateRange?.from && "text-muted-foreground",
-                              )}
-                            >
-                              <CalendarDays className="size-4 text-lavender" />
-                              {dateRange?.from ? (
-                                dateRange.to
-                                  ? `${format(dateRange.from, "MMM d")} - ${format(dateRange.to, "MMM d")}`
-                                  : format(dateRange.from, "MMM d")
-                              ) : "Pick your available dates"}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto rounded-2xl p-0">
-                            <Calendar
-                              mode="range"
-                              selected={dateRange}
-                              onSelect={setDateRange}
-                              disabled={{ before: new Date() }}
-                              numberOfMonths={isMobile === false ? 2 : 1}
-                            />
-                          </PopoverContent>
-                        </Popover>
-                      )}
-                    </div>
+                    <DateRangeField
+                      label="Availability Date(s)"
+                      value={dateRange}
+                      onChange={setDateRange}
+                      placeholder="Pick your available dates"
+                      drawerTitle="Choose your availability"
+                      dateFormat="short"
+                      rangeSeparator=" - "
+                      disabled={{ before: new Date() }}
+                      numberOfMonthsDesktop={2}
+                    />
                   </div>
                 )}
 

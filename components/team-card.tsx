@@ -27,6 +27,7 @@ import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
 import { JoinTeamModal } from "@/components/join-team-modal"
+import { getJamListingStatus } from "@/lib/jam-calendar-status"
 
 type RoleBadge = {
   label: string
@@ -56,6 +57,10 @@ export type TeamCardData = {
   level: LevelBadge
   teamVibe?: { label: string; emoji: string; color: string; badgeColor?: string }
   filledRoleKeys?: string[]
+  jamStartDate?: string | null
+  jamEndDate?: string | null
+  /** Listing creation time — used to detect backfilled jam_start_date (= created_at). */
+  createdAt?: string | null
 }
 
 export function TeamCard({
@@ -68,6 +73,9 @@ export function TeamCard({
 }) {
   const [detailsOpen, setDetailsOpen] = useState(false)
   const filledKeys = team.filledRoleKeys ?? []
+  const jamStatus = getJamListingStatus(team.jamStartDate, team.jamEndDate, {
+    createdAtIso: team.createdAt,
+  })
 
   // Count acceptances per role (e.g. 2 artists, 1 acceptance -> only first slot filled)
   const filledCountByKey: Record<string, number> = {}
@@ -142,6 +150,22 @@ export function TeamCard({
           {team.name}
         </DialogTitle>
         <p className="text-sm font-medium text-primary">{team.jam}</p>
+        {jamStatus && (
+          <Badge
+            variant="outline"
+            title={
+              jamStatus.phase === "dates_pending"
+                ? "Jam dates match listing creation — update them in Manage team for an accurate status."
+                : undefined
+            }
+            className={cn(
+              "mt-2 w-fit rounded-full px-2.5 py-0.5 text-xs font-semibold",
+              jamStatus.badgeClassName,
+            )}
+          >
+            {jamStatus.label}
+          </Badge>
+        )}
       </DialogHeader>
 
       <ScrollArea className="max-h-[60vh] px-6 py-4">
@@ -257,6 +281,22 @@ export function TeamCard({
           <p className="mt-0.5 min-w-0 max-w-full truncate text-sm font-medium text-primary">
             {team.jam}
           </p>
+          {jamStatus && (
+            <Badge
+              variant="outline"
+              title={
+                jamStatus.phase === "dates_pending"
+                  ? "Jam dates match listing creation — update them in Manage team for an accurate status."
+                  : undefined
+              }
+              className={cn(
+                "mt-1.5 w-fit max-w-full truncate rounded-full px-2.5 py-0.5 text-[10px] font-semibold",
+                jamStatus.badgeClassName,
+              )}
+            >
+              {jamStatus.label}
+            </Badge>
+          )}
         </div>
         <div className="flex min-w-0 max-w-full shrink-0 flex-wrap items-center justify-end gap-1.5">
           {isRecommended && (
