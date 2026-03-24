@@ -114,7 +114,7 @@ export function AvailabilityForm() {
     async function loadProfile() {
       const { data } = await supabase
         .from("profiles")
-        .select("username, role, experience, experience_level, jam_style, engine, language, bio, portfolio_link, jam_id, default_role, default_engine, default_language, portfolio_url")
+        .select("username, role, experience, experience_level, jam_style, engine, language, bio, portfolio_link, default_role, default_engine, default_language, portfolio_url")
         .eq("id", user!.id)
         .single()
       if (data) {
@@ -132,7 +132,6 @@ export function AvailabilityForm() {
         setLanguage(d.default_language?.trim() || data.language || "")
         setBio(data.bio || "")
         setPortfolioLink(d.portfolio_url?.trim() || data.portfolio_link || "")
-        setJamId((data as { jam_id?: string | null }).jam_id ?? null)
         setHasLoadedProfile(true)
       }
     }
@@ -225,6 +224,7 @@ export function AvailabilityForm() {
     setSubmitted(false)
     setStep(1)
     setDateRange(undefined)
+    setJamId(null)
     setErrors({})
   }
 
