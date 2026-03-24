@@ -101,7 +101,7 @@ export function TeamCard({
     e.stopPropagation()
     const title = team.name
     const openRoles = availableRoles.filter((r) => !r.filled).map((r) => r.label).join(", ") || "members"
-    const text = `Check out ${team.name} on GameJam Crew! They are looking for: ${openRoles}.`
+    const text = `Check out ${team.name} on GameJamCrew! They are looking for: ${openRoles}.`
     const url = `${typeof window !== "undefined" ? window.location.origin : ""}/teams/${team.id}`
     try {
       if (typeof navigator !== "undefined" && navigator.share) {

@@ -11,6 +11,7 @@ import {
   Globe,
   Hand,
   PenLine,
+  RotateCw,
   Target,
   Trash2,
 } from "lucide-react"
@@ -29,6 +30,7 @@ export type AvailabilityPostData = {
   id: string
   user_id: string
   availability: string
+  expires_at: string
   username?: string | null
   role?: string | null
   experience?: string | null
@@ -48,10 +50,12 @@ export type AvailabilityPostData = {
 interface AnnouncementCardProps {
   post: AvailabilityPostData
   onDelete: (postId: string) => void
+  onRenew: (postId: string) => void
+  isRenewing: boolean
   profileAvatarUrl?: string | null
 }
 
-function AnnouncementCard({ post, onDelete, profileAvatarUrl }: AnnouncementCardProps) {
+function AnnouncementCard({ post, onDelete, onRenew, isRenewing, profileAvatarUrl }: AnnouncementCardProps) {
   const rawRole = (post.role || "developer").toLowerCase()
   const rawLevel = (post.experience || "beginner").toLowerCase()
   const displayRole = ROLE_STYLES[rawRole] ?? { ...FALLBACK_ROLE, label: post.role || "Other" }
@@ -146,14 +150,26 @@ function AnnouncementCard({ post, onDelete, profileAvatarUrl }: AnnouncementCard
         </p>
       </CardContent>
 
-      <CardFooter>
+      <CardFooter className="flex flex-col gap-2 sm:flex-row">
         <Button
           variant="outline"
+          size="sm"
+          disabled={isRenewing}
+          onClick={() => onRenew(post.id)}
+          className="w-full gap-2 rounded-xl border-primary/30 text-primary hover:bg-primary/10 hover:text-primary sm:flex-1"
+        >
+          <RotateCw className={`size-4 ${isRenewing ? "animate-spin" : ""}`} />
+          {isRenewing ? "Renewing…" : "Renew"}
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
           onClick={() => onDelete(post.id)}
-          className="w-full gap-2 rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
+          disabled={isRenewing}
+          className="w-full gap-2 rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive sm:flex-1"
         >
           <Trash2 className="size-4" />
-          Remove announcement
+          Remove
         </Button>
       </CardFooter>
     </Card>
@@ -166,12 +182,16 @@ function AnnouncementCard({ post, onDelete, profileAvatarUrl }: AnnouncementCard
 interface DashboardMyAvailabilityProps {
   availabilityPosts: AvailabilityPostData[]
   onDeletePost: (postId: string) => void
+  onRenewPost: (postId: string) => void
+  renewingPostId: string | null
   profileAvatarUrl?: string | null
 }
 
 export function DashboardMyAvailability({
   availabilityPosts,
   onDeletePost,
+  onRenewPost,
+  renewingPostId,
   profileAvatarUrl,
 }: DashboardMyAvailabilityProps) {
   const canAddMore = availabilityPosts.length < 3
@@ -218,6 +238,8 @@ export function DashboardMyAvailability({
               key={post.id}
               post={post}
               onDelete={onDeletePost}
+              onRenew={onRenewPost}
+              isRenewing={renewingPostId === post.id}
               profileAvatarUrl={profileAvatarUrl}
             />
           ))}

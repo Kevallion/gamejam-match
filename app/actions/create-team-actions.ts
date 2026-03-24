@@ -10,6 +10,7 @@ import {
   LANGUAGE_OPTIONS,
   ROLE_OPTIONS,
 } from "@/lib/constants"
+import { enqueueSmartMatchEmailsForNewTeam } from "@/lib/smart-match-new-team-email"
 
 const ENGINE_VALUES = new Set<string>(ENGINE_OPTIONS.map((o) => o.value))
 const LANGUAGE_VALUES = new Set<string>(LANGUAGE_OPTIONS.map((o) => o.value))
@@ -114,6 +115,8 @@ export async function createTeam(input: CreateTeamInput): Promise<CreateTeamResu
   if (error || !data?.id) {
     return { success: false, error: error?.message ?? "Could not create the team." }
   }
+
+  enqueueSmartMatchEmailsForNewTeam(user.id, teamName, lookingFor)
 
   const gamification = await awardXP(user.id, "CREATE_TEAM")
   if (!gamification.ok) {

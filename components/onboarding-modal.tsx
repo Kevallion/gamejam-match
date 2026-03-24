@@ -227,7 +227,7 @@ export function OnboardingModal({ open, onOpenChange, profile }: OnboardingModal
 
   const STEP_CONTENT = {
     1: {
-      title: "Welcome to GameJam Crew! 👋",
+      title: "Welcome to GameJamCrew! 👋",
       description: "What brings you here today?",
     },
     2: {

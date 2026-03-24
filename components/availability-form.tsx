@@ -290,6 +290,7 @@ export function AvailabilityForm() {
           language: language,
           bio: bioValue,
           portfolio_link: portfolioLink.trim() || null,
+          expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
         })
         .select("id")
         .single()
@@ -355,7 +356,7 @@ export function AvailabilityForm() {
       {user && (
         <Card className="rounded-3xl border-border/50 bg-card shadow-xl shadow-lavender/5">
           <CardContent className="p-6 md:p-10">
-            <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+            <form ref={formRef} onSubmit={handleSubmit} className="flex flex-col gap-6">
               <div className="mb-2 flex flex-col gap-3">
                 <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   <span>Step {step} of {totalSteps}</span>

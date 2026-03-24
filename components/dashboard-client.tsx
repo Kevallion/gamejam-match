@@ -118,6 +118,7 @@ export type AvailabilityPostRow = {
   id: string
   user_id: string
   availability: string
+  expires_at: string
   username?: string | null
   role?: string | null
   experience?: string | null
@@ -378,6 +379,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
   const [hasShownAvailabilityPrompt, setHasShownAvailabilityPrompt] = useState(false)
   const [teamIdToDelete, setTeamIdToDelete] = useState<string | null>(null)
   const [availabilityPostIdToDelete, setAvailabilityPostIdToDelete] = useState<string | null>(null)
+  const [renewingAvailabilityPostId, setRenewingAvailabilityPostId] = useState<string | null>(null)
   const [recommendedTeams, setRecommendedTeams] = useState<SmartRecommendedTeam[]>([])
   const [showOnboardingModal, setShowOnboardingModal] = useState(false)
   const [profile, setProfile] = useState<{
@@ -509,7 +511,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
           .eq("type", "application"),
         supabase
           .from("availability_posts")
-          .select("id, user_id, availability, role, experience, jam_style, engine, language, bio, portfolio_link")
+          .select("id, user_id, availability, expires_at, role, experience, jam_style, engine, language, bio, portfolio_link")
           .eq("user_id", uid)
           .order("updated_at", { ascending: false }),
       ])
@@ -789,6 +791,40 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
 
   const handleDeleteAvailabilityPostClick = (postId: string) => {
     setAvailabilityPostIdToDelete(postId)
+  }
+
+  const handleRenewAvailabilityPost = async (postId: string) => {
+    if (!session?.user) {
+      toast.error("You must be logged in.")
+      return
+    }
+    const post = availabilityPosts.find((p) => p.id === postId)
+    const parsedExp = post?.expires_at ? new Date(post.expires_at).getTime() : NaN
+    const currentExpMs = Number.isFinite(parsedExp) ? parsedExp : Date.now()
+    const baseMs = Math.max(Date.now(), currentExpMs)
+    const newExpires = new Date(baseMs + 30 * 24 * 60 * 60 * 1000).toISOString()
+    setRenewingAvailabilityPostId(postId)
+    try {
+      const { error } = await supabase
+        .from("availability_posts")
+        .update({ expires_at: newExpires })
+        .eq("id", postId)
+        .eq("user_id", session.user.id)
+      if (error) {
+        toast.error("Could not renew announcement.", { description: error.message })
+        return
+      }
+      await loadData()
+      toast.success("Announcement renewed.", {
+        description: "Your post stays visible on Available Players for another 30 days.",
+      })
+    } catch (err) {
+      toast.error("An error occurred.", {
+        description: err instanceof Error ? err.message : "Please try again.",
+      })
+    } finally {
+      setRenewingAvailabilityPostId(null)
+    }
   }
 
   const handleAcceptApplication = async (id: string) => {
@@ -1125,6 +1161,8 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
                 <DashboardMyAvailability
                   availabilityPosts={availabilityPosts}
                   onDeletePost={handleDeleteAvailabilityPostClick}
+                  onRenewPost={handleRenewAvailabilityPost}
+                  renewingPostId={renewingAvailabilityPostId}
                   profileAvatarUrl={profile?.avatar_url ?? null}
                 />
               </TabsContent>

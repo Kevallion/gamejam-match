@@ -1,6 +1,6 @@
 /**
  * Types for Supabase tables (profiles, teams).
- * Aligned with schema and migrations.
+ * Keep in sync with `supabase/migrations` (e.g. `main_role` text nullable → `20260329120000_profiles_main_role.sql`).
  */
 
 export type ExperienceLevel =
@@ -30,6 +30,8 @@ export interface ProfileRow {
   onboarding_version?: number | null
   discord_username?: string | null
   default_role?: string | null
+  /** `public.profiles.main_role` — text, nullable (smart match / display ; sinon `default_role` / `role`). */
+  main_role?: string | null
   default_engine?: string | null
   default_language?: string | null
   portfolio_url?: string | null

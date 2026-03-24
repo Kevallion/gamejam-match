@@ -134,6 +134,7 @@ export async function getSuggestedPlayers(
     .from("availability_posts")
     .select("id, user_id, role, engine, experience, language, created_at, username, avatar_url")
     .in("role", roles)
+    .gt("expires_at", new Date().toISOString())
     .order("created_at", { ascending: false })
     .limit(SUGGESTED_PLAYERS_FETCH_WINDOW)
 

@@ -140,7 +140,7 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
     e.preventDefault()
     e.stopPropagation()
     const title = player.username
-    const text = `${player.username} is looking for a team as a ${player.role.label} using ${player.engine}! View their GameJam Crew profile:`
+    const text = `${player.username} is looking for a team as a ${player.role.label} using ${player.engine}! View their GameJamCrew profile:`
     const profileUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/jammer/${player.id}`
     const url = profileUrl
     try {

@@ -111,6 +111,7 @@ export function MembersGrid({
     const { data: postsData, error: postsError } = await supabase
       .from("availability_posts")
       .select("id, user_id, availability, role, experience, jam_style, engine, language, bio, portfolio_link")
+      .gt("expires_at", new Date().toISOString())
       .order("updated_at", { ascending: false })
       .range(from, from + PAGE_SIZE - 1)
 

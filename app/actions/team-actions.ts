@@ -1,7 +1,7 @@
 "use server"
 
 import { createAdminClient, getUserEmail } from "@/lib/supabase/admin"
-import { sendEmailNotification } from "@/lib/mail"
+import { sendEmailWithLayout } from "@/lib/mail"
 import { sendPushToUser } from "@/lib/push"
 import type { GamificationRewardSummary } from "@/lib/gamification-reward-types"
 import { gamificationRewardHasToast } from "@/lib/gamification-reward-types"
@@ -10,6 +10,15 @@ import { NOTIFICATION_TYPE_GAMIFICATION_SQUAD_COMPLETE } from "@/lib/notificatio
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://gamejamcrew.com"
 const DASHBOARD_URL = `${BASE_URL}/dashboard`
+
+const EMAIL_P =
+  "margin:0 0 14px;color:#4b5563;font-size:16px;line-height:1.65;"
+const EMAIL_LINK = "color:#14b8a6;text-decoration:underline;font-weight:600;"
+const EMAIL_SIGNOFF =
+  "margin:0;color:#9ca3af;font-size:14px;line-height:1.5;"
+const EMAIL_STRONG = "color:#1f2937;font-weight:700;"
+
+/* Smart Match e-mails : `lib/smart-match-new-team-email.ts` */
 
 async function insertNotification(
   userId: string,
@@ -85,13 +94,13 @@ export async function notifyOwnerNewApplication(
     if (!email) return
 
     const subject = "New application for your team! 🚀 | GameJamCrew"
-    const html = `
-      <p>Good news! Someone just applied to join your team.</p>
-      <p>Log in to <a href="${DASHBOARD_URL}">GameJamCrew</a> to check out their profile and accept or decline their application.</p>
-      <p>— The GameJamCrew team</p>
+    const contentHtml = `
+      <p style="${EMAIL_P}">Good news! Someone just applied to join your team.</p>
+      <p style="${EMAIL_P}">Log in to <a href="${DASHBOARD_URL}" style="${EMAIL_LINK}">GameJamCrew</a> to check out their profile and accept or decline their application.</p>
+      <p style="${EMAIL_SIGNOFF}">— The GameJamCrew team</p>
     `
 
-    void sendEmailNotification(email, subject, html)
+    void sendEmailWithLayout(email, subject, "New application!", contentHtml)
   } catch {
     // Silent error: don't crash the main action
   }
@@ -119,14 +128,14 @@ export async function notifyInviteeInvitation(
     if (!email) return
 
     const subject = "You've been invited to join a team! 🎮 | GameJamCrew"
-    const html = `
-      <p>Hi there! A team leader just invited you to join their squad for an upcoming Game Jam.</p>
-      <p>Log in to <a href="${DASHBOARD_URL}">GameJamCrew</a> to check out their team details and accept or decline the invitation.</p>
-      <p>Happy jamming!</p>
-      <p>— The GameJamCrew team</p>
+    const contentHtml = `
+      <p style="${EMAIL_P}">Hi there! A team leader just invited you to join their squad for an upcoming Game Jam.</p>
+      <p style="${EMAIL_P}">Log in to <a href="${DASHBOARD_URL}" style="${EMAIL_LINK}">GameJamCrew</a> to check out their team details and accept or decline the invitation.</p>
+      <p style="${EMAIL_P}">Happy jamming!</p>
+      <p style="${EMAIL_SIGNOFF}">— The GameJamCrew team</p>
     `
 
-    void sendEmailNotification(email, subject, html)
+    void sendEmailWithLayout(email, subject, "You're invited!", contentHtml)
   } catch {
     // Silent error: don't crash the main action
   }
@@ -152,15 +161,15 @@ export async function notifyApplicantDeclined(candidateUserId: string): Promise<
     if (!email) return
 
     const subject = "Update on your application 📢 | GameJamCrew"
-    const html = `
-      <p>Hi there. Thank you for applying!</p>
-      <p>Unfortunately, the team leader has decided to move forward with another candidate or the team is now full.</p>
-      <p>Don't give up! There are plenty of other great teams looking for your skills right now. Log in to <a href="${DASHBOARD_URL}">GameJamCrew</a> to find your perfect squad.</p>
-      <p>Keep jamming!</p>
-      <p>— The GameJamCrew team</p>
+    const contentHtml = `
+      <p style="${EMAIL_P}">Hi there. Thank you for applying!</p>
+      <p style="${EMAIL_P}">Unfortunately, the team leader has decided to move forward with another candidate or the team is now full.</p>
+      <p style="${EMAIL_P}">Don't give up! There are plenty of other great teams looking for your skills right now. Log in to <a href="${DASHBOARD_URL}" style="${EMAIL_LINK}">GameJamCrew</a> to find your perfect squad.</p>
+      <p style="${EMAIL_P}">Keep jamming!</p>
+      <p style="${EMAIL_SIGNOFF}">— The GameJamCrew team</p>
     `
 
-    void sendEmailNotification(email, subject, html)
+    void sendEmailWithLayout(email, subject, "Application update", contentHtml)
   } catch {
     // Silent error: don't crash the main action
   }
@@ -188,13 +197,13 @@ export async function notifyCandidateAccepted(
     if (!email) return
 
     const subject = "You've been accepted! 🎉 | GameJamCrew"
-    const html = `
-      <p>Congratulations! Your application to join the team has been accepted.</p>
-      <p>Jump into <a href="${DASHBOARD_URL}">GameJamCrew</a> to connect with your new teammates and start jamming!</p>
-      <p>— The GameJamCrew team</p>
+    const contentHtml = `
+      <p style="${EMAIL_P}">Congratulations! Your application to join the team has been accepted.</p>
+      <p style="${EMAIL_P}">Jump into <a href="${DASHBOARD_URL}" style="${EMAIL_LINK}">GameJamCrew</a> to connect with your new teammates and start jamming!</p>
+      <p style="${EMAIL_SIGNOFF}">— The GameJamCrew team</p>
     `
 
-    void sendEmailNotification(email, subject, html)
+    void sendEmailWithLayout(email, subject, "You're in!", contentHtml)
   } catch {
     // Silent error: don't crash the main action
   }
@@ -227,13 +236,13 @@ export async function notifyMemberDiscordLink(
     const safeDiscordLink = escapeHtml(discordLink)
 
     const subject = "Your team shared a Discord invite | GameJamCrew"
-    const html = `
-      <p>Good news! Your team <strong>${safeTeamName}</strong> just shared their Discord invite link with you.</p>
-      <p><a href="${safeDiscordLink}">Click here to join the team's Discord server</a> and start coordinating with your teammates.</p>
-      <p>— The GameJamCrew team</p>
+    const contentHtml = `
+      <p style="${EMAIL_P}">Good news! Your team <strong style="${EMAIL_STRONG}">${safeTeamName}</strong> just shared their Discord invite link with you.</p>
+      <p style="${EMAIL_P}"><a href="${safeDiscordLink}" style="${EMAIL_LINK}">Click here to join the team's Discord server</a> and start coordinating with your teammates.</p>
+      <p style="${EMAIL_SIGNOFF}">— The GameJamCrew team</p>
     `
 
-    void sendEmailNotification(email, subject, html)
+    void sendEmailWithLayout(email, subject, "Discord invite", contentHtml)
   } catch {
     // Silent error: don't crash the main action
   }
@@ -322,15 +331,15 @@ export async function notifyTeamChatNewMessage(
       if (!email) continue
 
       const subject = "New messages in team chat | GameJamCrew"
-      const html = `
-        <p>You have new unread messages in the team chat <strong>${escapeHtml(
+      const contentHtml = `
+        <p style="${EMAIL_P}">You have new unread messages in the team chat <strong style="${EMAIL_STRONG}">${escapeHtml(
           teamRow.team_name as string,
         )}</strong>.</p>
-        <p>Log in to <a href="${DASHBOARD_URL}">GameJamCrew</a> to reply!</p>
-        <p>— The GameJamCrew team</p>
+        <p style="${EMAIL_P}">Log in to <a href="${DASHBOARD_URL}" style="${EMAIL_LINK}">GameJamCrew</a> to reply!</p>
+        <p style="${EMAIL_SIGNOFF}">— The GameJamCrew team</p>
       `
 
-      void sendEmailNotification(email, subject, html)
+      void sendEmailWithLayout(email, subject, "New messages", contentHtml)
 
       try {
         await admin
@@ -423,13 +432,13 @@ export async function notifyPlayerKicked(
 
     const safeTeamName = escapeHtml(teamName)
     const subject = "You have been removed from a team | GameJamCrew"
-    const html = `
-      <p>You have been removed from the team <strong>${safeTeamName}</strong>.</p>
-      <p>You can keep looking for new teams or create your own on <a href="${DASHBOARD_URL}">GameJamCrew</a>.</p>
-      <p>— The GameJamCrew team</p>
+    const contentHtml = `
+      <p style="${EMAIL_P}">You have been removed from the team <strong style="${EMAIL_STRONG}">${safeTeamName}</strong>.</p>
+      <p style="${EMAIL_P}">You can keep looking for new teams or create your own on <a href="${DASHBOARD_URL}" style="${EMAIL_LINK}">GameJamCrew</a>.</p>
+      <p style="${EMAIL_SIGNOFF}">— The GameJamCrew team</p>
     `
 
-    void sendEmailNotification(email, subject, html)
+    void sendEmailWithLayout(email, subject, "Team update", contentHtml)
   } catch {
     // Silent error
   }
@@ -491,16 +500,16 @@ export async function notifyTeamDiscordUpdated(
 
     const safeTeamName = escapeHtml(teamName)
     const subject = "Your team's Discord link was updated | GameJamCrew"
-    const html = `
-      <p>The Discord link for your team <strong>${safeTeamName}</strong> has been updated.</p>
-      <p>Log in to <a href="${DASHBOARD_URL}">GameJamCrew</a> to grab the new link and join your squad on Discord.</p>
-      <p>— The GameJamCrew team</p>
+    const contentHtml = `
+      <p style="${EMAIL_P}">The Discord link for your team <strong style="${EMAIL_STRONG}">${safeTeamName}</strong> has been updated.</p>
+      <p style="${EMAIL_P}">Log in to <a href="${DASHBOARD_URL}" style="${EMAIL_LINK}">GameJamCrew</a> to grab the new link and join your squad on Discord.</p>
+      <p style="${EMAIL_SIGNOFF}">— The GameJamCrew team</p>
     `
 
     for (const id of allRecipientIds) {
       const email = await getUserEmail(id)
       if (!email) continue
-      void sendEmailNotification(email, subject, html)
+      void sendEmailWithLayout(email, subject, "Discord link updated", contentHtml)
     }
   } catch {
     // Silent error
