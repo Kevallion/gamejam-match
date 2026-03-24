@@ -3,15 +3,13 @@
 import { useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet"
 import {
   Globe,
   Cpu,
@@ -21,7 +19,7 @@ import {
   Share2,
   Sparkles,
   Flame,
-  Zap,
+  Clock,
 } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
@@ -68,16 +66,14 @@ export function TeamCard({
   isRecommended = false,
 }: {
   team: TeamCardData
-  /** Mise en avant « Perfect Match » (liste recommandée) : halo, badge, Apply direct. */
   isRecommended?: boolean
 }) {
-  const [detailsOpen, setDetailsOpen] = useState(false)
+  const [sheetOpen, setSheetOpen] = useState(false)
   const filledKeys = team.filledRoleKeys ?? []
   const jamStatus = getJamListingStatus(team.jamStartDate, team.jamEndDate, {
     createdAtIso: team.createdAt,
   })
 
-  // Count acceptances per role (e.g. 2 artists, 1 acceptance -> only first slot filled)
   const filledCountByKey: Record<string, number> = {}
   for (const key of filledKeys) {
     filledCountByKey[key] = (filledCountByKey[key] ?? 0) + 1
@@ -90,13 +86,7 @@ export function TeamCard({
     const consumed = consumedByKey[key] ?? 0
     const filled = consumed < filledForRole
     consumedByKey[key] = consumed + 1
-    return {
-      key,
-      label: role.label,
-      emoji: role.emoji,
-      color: role.color,
-      filled,
-    }
+    return { key, label: role.label, emoji: role.emoji, color: role.color, filled }
   })
 
   const isSquadFull =
@@ -136,20 +126,37 @@ export function TeamCard({
       ownerUserId={team.user_id}
       isRecommended={isRecommended}
     >
-      <Button className="w-full gap-2 rounded-xl bg-primary text-primary-foreground transition-all hover:bg-primary/85 hover:gap-3 sm:flex-1">
+      <Button className="w-full gap-2 rounded-xl bg-primary text-primary-foreground transition-all hover:bg-primary/85 hover:gap-3">
         Apply
         <ArrowRight className="size-4" />
       </Button>
     </JoinTeamModal>
   )
 
-  const dialogBody = (
-    <>
-      <DialogHeader className="space-y-1 border-b border-border/60 px-6 pt-6 pb-4 text-left">
-        <DialogTitle className="text-xl font-bold text-foreground">
-          {team.name}
-        </DialogTitle>
-        <p className="text-sm font-medium text-primary">{team.jam}</p>
+  /* ── Sheet body (slide-over detail panel) ────────────────────── */
+  const sheetBody = (
+    <div className="flex h-full flex-col">
+      <SheetHeader className="shrink-0 border-b border-border/60 px-5 pb-4 pt-5">
+        <div className="flex items-start justify-between gap-3 pr-6">
+          <div className="min-w-0 flex-1">
+            <SheetTitle className="truncate text-xl font-extrabold text-foreground">
+              {team.name}
+            </SheetTitle>
+            <p className="mt-0.5 truncate text-sm font-semibold text-primary">
+              {team.jam}
+            </p>
+          </div>
+          {isRecommended && (
+            <Badge
+              variant="outline"
+              className="shrink-0 gap-1 border-teal/20 bg-teal/10 text-xs font-semibold text-teal"
+            >
+              <Sparkles className="size-3" aria-hidden />
+              Perfect Match
+            </Badge>
+          )}
+        </div>
+
         {jamStatus && (
           <Badge
             variant="outline"
@@ -166,14 +173,15 @@ export function TeamCard({
             {jamStatus.label}
           </Badge>
         )}
-      </DialogHeader>
+      </SheetHeader>
 
-      <ScrollArea className="max-h-[60vh] px-6 py-4">
-        <div className="flex flex-col gap-4 pr-4">
-          <div className="flex flex-wrap items-center gap-2">
+      <ScrollArea className="flex-1 px-5 py-4">
+        <div className="flex flex-col gap-5 pr-1">
+          {/* Meta badges */}
+          <div className="flex flex-wrap gap-2">
             <Badge
               variant="outline"
-              className="inline-flex items-center gap-1.5 rounded-full border-border/60 bg-lavender px-3 py-1 text-xs font-semibold text-lavender-foreground"
+              className="inline-flex items-center gap-1.5 rounded-full border-border/60 bg-lavender/20 px-3 py-1 text-xs font-semibold text-lavender-foreground"
             >
               <Cpu className="size-3.5" />
               {team.engine}
@@ -197,286 +205,210 @@ export function TeamCard({
                 {team.teamVibe.emoji} {team.teamVibe.label}
               </span>
             )}
+            <Badge
+              variant="outline"
+              className="inline-flex items-center gap-1.5 rounded-full border-border/60 text-xs text-muted-foreground"
+            >
+              <Users className="size-3" />
+              {team.members}/{team.maxMembers} members
+            </Badge>
           </div>
 
+          {/* Description */}
           <div>
-            <h4 className="mb-2 text-sm font-semibold text-foreground">
-              Description
-            </h4>
+            <h4 className="mb-1.5 text-sm font-bold text-foreground">Description</h4>
             <p className="whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">
               {team.description}
             </p>
           </div>
 
+          {/* Roles */}
           <div>
-            <h4 className="mb-2 text-sm font-semibold text-foreground">
-              Roles sought
-            </h4>
-            <ul className="space-y-2">
+            <h4 className="mb-2 text-sm font-bold text-foreground">Roles sought</h4>
+            <ul className="flex flex-col gap-2">
               {availableRoles.map((role, index) => (
                 <li
                   key={`${role.key}-${index}`}
-                  className={[
-                    "flex items-center gap-2 rounded-lg border border-border/40 px-3 py-2 text-sm transition-colors",
-                    role.filled
-                      ? "bg-muted/50 opacity-60"
-                      : "bg-secondary/30",
-                  ].join(" ")}
+                  className={cn(
+                    "flex items-center gap-2 rounded-xl border border-border/40 px-3 py-2 text-sm transition-colors",
+                    role.filled ? "bg-muted/50 opacity-60" : "bg-secondary/30",
+                  )}
                 >
                   <span
-                    className={[
+                    className={cn(
                       "inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-semibold",
                       role.filled ? "opacity-40" : role.color,
-                    ].join(" ")}
+                    )}
                   >
                     {role.emoji} {role.label}
                   </span>
                   {role.filled && (
-                    <span className="ml-auto text-xs text-muted-foreground">
-                      Filled
-                    </span>
+                    <span className="ml-auto text-xs text-muted-foreground">Filled</span>
                   )}
                 </li>
               ))}
+              {availableRoles.length === 0 && (
+                <p className="text-sm italic text-muted-foreground">No role specified</p>
+              )}
             </ul>
-            {availableRoles.length === 0 && (
-              <p className="text-sm text-muted-foreground italic">
-                No role specified
-              </p>
-            )}
           </div>
         </div>
       </ScrollArea>
 
-      <div className="border-t border-border/60 bg-muted/20 px-6 py-4">
+      {/* Footer action */}
+      <div className="shrink-0 border-t border-border/60 bg-card/60 px-5 py-4">
         {isSquadFull ? (
-          <div className="flex items-center justify-center gap-2 rounded-xl border border-border/60 bg-muted/50 px-4 py-3 text-sm font-bold text-muted-foreground">
+          <div className="flex w-full items-center justify-center gap-2 rounded-xl border border-border/60 bg-muted/50 px-4 py-3 text-sm font-bold text-muted-foreground">
             <ShieldCheck className="size-4 text-primary" />
-            Team full
+            Squad full
           </div>
         ) : (
           applyButton
         )}
       </div>
-    </>
+    </div>
   )
 
-  const cardHeader = (
-    <CardHeader className="min-w-0 shrink-0 gap-3 pb-0">
-      <div className="flex w-full min-w-0 items-start justify-between gap-2">
-        <div className="min-w-0 flex-1 overflow-hidden">
-          <div className="flex min-w-0 flex-wrap items-center gap-2">
-            <h3 className="min-w-0 max-w-full truncate text-lg font-bold text-foreground">
-              {team.name}
-            </h3>
-            {team.teamVibe && (
-              <span
-                className={`max-w-full shrink-0 truncate inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-bold ${team.teamVibe.badgeColor ?? team.teamVibe.color}`}
-                title={team.teamVibe.label}
-              >
-                {team.teamVibe.emoji} {team.teamVibe.label}
-              </span>
-            )}
-          </div>
-          <p className="mt-0.5 min-w-0 max-w-full truncate text-sm font-medium text-primary">
-            {team.jam}
-          </p>
-          {jamStatus && (
-            <Badge
-              variant="outline"
-              title={
-                jamStatus.phase === "dates_pending"
-                  ? "Jam dates match listing creation — update them in Manage team for an accurate status."
-                  : undefined
-              }
-              className={cn(
-                "mt-1.5 w-fit max-w-full truncate rounded-full px-2.5 py-0.5 text-[10px] font-semibold",
-                jamStatus.badgeClassName,
-              )}
-            >
-              {jamStatus.label}
-            </Badge>
-          )}
-        </div>
-        <div className="flex min-w-0 max-w-full shrink-0 flex-wrap items-center justify-end gap-1.5">
-          {isRecommended && (
-            <Badge
-              variant="outline"
-              aria-label="Perfect match for your profile"
-              className="gap-1 border-teal/20 bg-teal/10 text-xs font-semibold text-teal"
-            >
-              <Sparkles className="size-3" aria-hidden />
-              Perfect Match
-            </Badge>
-          )}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-8 rounded-full"
-            onClick={handleShare}
-            aria-label="Share team"
-          >
-            <Share2 className="size-4" />
-          </Button>
-          <Badge
-            variant="outline"
-            className="rounded-full border-border/60 text-xs text-muted-foreground"
-          >
-            <Users className="mr-1 size-3" />
-            {team.members}/{team.maxMembers}
-          </Badge>
-        </div>
-      </div>
-    </CardHeader>
-  )
-
-  const cardContent = (
-    <CardContent className="flex min-h-0 min-w-0 flex-1 flex-col gap-4 pt-3">
-      <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
-        <span className="inline-flex min-w-0 max-w-full items-center gap-1.5 break-words">
-          <Cpu className="size-3.5 shrink-0 text-lavender" />
-          <span className="min-w-0">{team.engine}</span>
-        </span>
-        <span className="inline-flex min-w-0 max-w-full items-center gap-1.5 break-words">
-          <Globe className="size-3.5 shrink-0 text-teal" />
-          <span className="min-w-0">{team.language}</span>
-        </span>
-      </div>
-
-      <p className="line-clamp-3 min-h-0 overflow-hidden text-ellipsis break-words text-sm leading-relaxed text-muted-foreground">
-        {team.description}
-      </p>
-
-      <div className="flex min-w-0 flex-wrap gap-1.5">
-        <span
-          className={`inline-flex max-w-full min-w-0 items-center gap-1 break-words rounded-full px-2.5 py-1 text-xs font-semibold ${team.level.color}`}
-        >
-          {team.level.emoji} {team.level.label}
-        </span>
-        {availableRoles.map((role, index) => (
-          <span
-            key={`${role.key}-${index}`}
-            className={[
-              "inline-flex max-w-full min-w-0 items-center gap-1 break-words rounded-full px-2.5 py-1 text-xs font-semibold transition-opacity",
-              role.filled
-                ? "bg-muted text-muted-foreground line-through opacity-40"
-                : role.color,
-            ].join(" ")}
-            title={role.filled ? `${role.label} — Filled` : `${role.label} — Open`}
-          >
-            <span className="min-w-0">
-              {role.emoji} {role.label}
-            </span>
-          </span>
-        ))}
-      </div>
-
-      {!isSquadFull && remainingSpots === 1 ? (
-        <div
-          className="mt-auto flex min-w-0 max-w-full flex-wrap items-center gap-1.5 self-start rounded-md border border-orange-500/20 bg-orange-500/10 px-2 py-1 text-xs font-medium text-orange-500"
-          role="status"
-        >
-          <Flame className="size-3.5 shrink-0" aria-hidden />
-          <span className="min-w-0 break-words">Only 1 spot left!</span>
-        </div>
-      ) : !isSquadFull && team.members > 1 && remainingSpots > 1 ? (
-        <div
-          className="mt-auto flex min-w-0 max-w-full flex-wrap items-center gap-1.5 self-start rounded-md bg-muted/50 px-2 py-1 text-xs font-medium text-muted-foreground"
-          role="status"
-        >
-          <Zap className="size-3.5 shrink-0" aria-hidden />
-          <span className="min-w-0 break-words">Teams are filling fast</span>
-        </div>
-      ) : null}
-    </CardContent>
-  )
-
-  const defaultFooter = (
-    <CardFooter className="mt-auto shrink-0">
-      {isSquadFull ? (
-        <div className="flex w-full items-center justify-center gap-2 rounded-xl border border-border/60 bg-muted/50 px-4 py-2.5 text-sm font-bold text-muted-foreground">
-          <ShieldCheck className="size-4 text-primary" />
-          SQUAD FULL
-        </div>
-      ) : (
-        <div className="flex w-full items-center justify-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-4 py-2.5 text-sm font-semibold text-primary">
-          <ArrowRight className="size-4" />
-          View details
-        </div>
-      )}
-    </CardFooter>
-  )
-
-  const dialogContentClass =
-    "max-w-lg overflow-hidden rounded-2xl border-border/60 bg-card p-0 shadow-2xl shadow-teal/10"
-
-  if (!isRecommended) {
-    return (
-      <Dialog>
-        <DialogTrigger asChild>
-          <Card className="card-interactive group relative flex h-full min-h-0 min-w-0 cursor-pointer flex-col transition-all hover:ring-2 hover:ring-primary/50">
-            {cardHeader}
-            {cardContent}
-            {defaultFooter}
-          </Card>
-        </DialogTrigger>
-
-        <DialogContent className={dialogContentClass}>{dialogBody}</DialogContent>
-      </Dialog>
-    )
-  }
+  /* ── Compact Bento Card ──────────────────────────────────────── */
+  const openRolesForCard = availableRoles.filter((r) => !r.filled).slice(0, 4)
 
   return (
     <>
-      <Card
+      <article
+        role="button"
+        tabIndex={0}
+        aria-label={`View details for ${team.name}`}
+        onClick={() => setSheetOpen(true)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault()
+            setSheetOpen(true)
+          }
+        }}
         className={cn(
-          "group relative flex h-full min-h-0 min-w-0 flex-col overflow-hidden border-teal/50 bg-gradient-to-br from-card to-teal/5 shadow-[0_0_20px_-5px_rgba(20,184,166,0.15)] transition-all",
+          "card-interactive group relative flex h-full cursor-pointer flex-col rounded-xl border border-border/60 bg-card p-4 outline-none transition-all focus-visible:ring-2 focus-visible:ring-primary/50",
+          isRecommended && "border-teal/40 bg-gradient-to-br from-card to-teal/5 shadow-[0_0_18px_-4px_rgba(20,184,166,0.12)]",
         )}
       >
-        <div
-          role="button"
-          tabIndex={0}
-          className="flex min-h-0 min-w-0 flex-1 cursor-pointer flex-col rounded-t-xl text-left outline-none focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-card"
-          onClick={() => setDetailsOpen(true)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault()
-              setDetailsOpen(true)
-            }
-          }}
-        >
-          {cardHeader}
-          {cardContent}
+        {/* Top row: name + actions */}
+        <div className="mb-3 flex min-w-0 items-start justify-between gap-2">
+          <div className="min-w-0 flex-1">
+            <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+              <h3 className="truncate text-sm font-bold text-foreground">
+                {team.name}
+              </h3>
+              {isRecommended && (
+                <Badge
+                  variant="outline"
+                  className="shrink-0 gap-0.5 border-teal/20 bg-teal/10 px-1.5 py-0 text-[10px] font-semibold text-teal"
+                >
+                  <Sparkles className="size-2.5" aria-hidden />
+                  Match
+                </Badge>
+              )}
+            </div>
+            <p className="mt-0.5 truncate text-xs font-medium text-primary">
+              {team.jam}
+            </p>
+          </div>
+
+          <div className="flex shrink-0 items-center gap-1" onClick={(e) => e.stopPropagation()}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-7 rounded-full text-muted-foreground hover:text-foreground"
+              onClick={handleShare}
+              aria-label="Share team"
+            >
+              <Share2 className="size-3.5" />
+            </Button>
+          </div>
         </div>
 
-        <CardFooter
-          className="mt-auto shrink-0 flex flex-col gap-2 sm:flex-row sm:items-stretch"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {isSquadFull ? (
-            <div className="flex w-full items-center justify-center gap-2 rounded-xl border border-border/60 bg-muted/50 px-4 py-2.5 text-sm font-bold text-muted-foreground">
-              <ShieldCheck className="size-4 text-primary" />
-              SQUAD FULL
-            </div>
-          ) : (
-            <>
-              {applyButton}
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full shrink-0 rounded-xl border-border/60 sm:w-auto sm:min-w-[8.5rem]"
-                onClick={() => setDetailsOpen(true)}
-              >
-                View details
-              </Button>
-            </>
-          )}
-        </CardFooter>
-      </Card>
+        {/* Jam status badge */}
+        {jamStatus && (
+          <Badge
+            variant="outline"
+            className={cn(
+              "mb-3 w-fit rounded-full px-2 py-0.5 text-[10px] font-semibold",
+              jamStatus.badgeClassName,
+            )}
+          >
+            {jamStatus.label}
+          </Badge>
+        )}
 
-      <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
-        <DialogContent className={dialogContentClass}>{dialogBody}</DialogContent>
-      </Dialog>
+        {/* Role tags */}
+        <div className="mb-3 flex min-h-[1.75rem] flex-wrap gap-1">
+          {openRolesForCard.map((role, index) => (
+            <span
+              key={`${role.key}-${index}`}
+              className={cn(
+                "inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[10px] font-semibold",
+                role.color,
+              )}
+            >
+              {role.emoji} {role.label}
+            </span>
+          ))}
+          {availableRoles.filter((r) => !r.filled).length > 4 && (
+            <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+              +{availableRoles.filter((r) => !r.filled).length - 4} more
+            </span>
+          )}
+          {isSquadFull && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-muted/60 px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
+              <ShieldCheck className="size-2.5" />
+              Full
+            </span>
+          )}
+        </div>
+
+        {/* Footer: engine + language + members */}
+        <div className="mt-auto flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-t border-border/40 pt-3">
+          <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+            <span className="inline-flex items-center gap-1">
+              <Cpu className="size-3 text-lavender" aria-hidden />
+              {team.engine}
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <Globe className="size-3 text-teal" aria-hidden />
+              {team.language}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+            {!isSquadFull && remainingSpots === 1 && (
+              <span className="inline-flex items-center gap-0.5 text-orange-500">
+                <Flame className="size-3" aria-hidden />
+                1 spot left
+              </span>
+            )}
+            <span className="inline-flex items-center gap-1">
+              <Users className="size-3" aria-hidden />
+              {team.members}/{team.maxMembers}
+            </span>
+          </div>
+        </div>
+
+        {/* Subtle "click to view" cue */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-center rounded-b-xl py-1.5 opacity-0 transition-opacity group-hover:opacity-100">
+          <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-primary">
+            <Clock className="size-2.5" />
+            View details
+          </span>
+        </div>
+      </article>
+
+      {/* Slide-over Sheet */}
+      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+        <SheetContent
+          side="right"
+          className="w-full overflow-hidden border-border/60 bg-card p-0 shadow-2xl shadow-teal/10 sm:max-w-md"
+        >
+          {sheetBody}
+        </SheetContent>
+      </Sheet>
     </>
   )
 }

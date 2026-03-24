@@ -5,6 +5,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { TeamCard, type TeamCardData } from "@/components/team-card"
 import { Button } from "@/components/ui/button"
+import { Skeleton } from "@/components/ui/skeleton"
 import { getRecommendedTeams } from "@/lib/matchmaking"
 import { supabase } from "@/lib/supabase"
 import { Loader2 } from "lucide-react"
@@ -59,7 +60,7 @@ type GridFilterOpts = {
 function formatTeam(t: TeamRowDb): TeamWithMeta {
   const parsedRoles: RawRoleEntry[] = Array.isArray(t.looking_for) ? (t.looking_for as RawRoleEntry[]) : []
   const roleBadges = parsedRoles.map((r) => ({
-    ...(ROLE_STYLES[r.role ?? ""] ?? { label: r.role ?? "Other", emoji: "❓", color: "bg-gray-500/10 text-gray-500" }),
+    ...(ROLE_STYLES[r.role ?? ""] ?? { label: r.role ?? "Other", emoji: "?", color: "bg-gray-500/10 text-gray-500" }),
     key: r.role ?? undefined,
   }))
   const mainLevel = (parsedRoles.length > 0 ? parsedRoles[0].level : "beginner") ?? "beginner"
@@ -127,6 +128,38 @@ function teamPassesGridFilters(t: TeamWithMeta, o: GridFilterOpts): boolean {
   return matchSearch && matchEngine && matchLanguage && matchRole && matchLevel && matchStyle
 }
 
+/* ── Skeleton card for initial loading state ──────────────────── */
+function TeamCardSkeleton() {
+  return (
+    <div className="flex flex-col rounded-xl border border-border/60 bg-card p-4">
+      {/* Top row */}
+      <div className="mb-3 flex items-start justify-between gap-2">
+        <div className="flex-1 space-y-1.5">
+          <Skeleton className="h-3.5 w-2/3 rounded-full" />
+          <Skeleton className="h-3 w-1/2 rounded-full" />
+        </div>
+        <Skeleton className="size-7 shrink-0 rounded-full" />
+      </div>
+      {/* Status badge */}
+      <Skeleton className="mb-3 h-4 w-24 rounded-full" />
+      {/* Role tags */}
+      <div className="mb-3 flex gap-1.5">
+        <Skeleton className="h-4 w-16 rounded-full" />
+        <Skeleton className="h-4 w-20 rounded-full" />
+        <Skeleton className="h-4 w-14 rounded-full" />
+      </div>
+      {/* Footer */}
+      <div className="mt-auto flex items-center justify-between border-t border-border/40 pt-3">
+        <div className="flex gap-3">
+          <Skeleton className="h-3 w-16 rounded-full" />
+          <Skeleton className="h-3 w-12 rounded-full" />
+        </div>
+        <Skeleton className="h-3 w-10 rounded-full" />
+      </div>
+    </div>
+  )
+}
+
 export function TeamGrid({
   searchQuery = "",
   engineFilter = "all",
@@ -138,11 +171,11 @@ export function TeamGrid({
 }: TeamGridProps) {
   const [teams, setTeams] = useState<TeamWithMeta[]>([])
   const [recommendedTeams, setRecommendedTeams] = useState<TeamWithMeta[]>([])
+  const [initialLoading, setInitialLoading] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
   const [hasMore, setHasMore] = useState(true)
   const offsetRef = useRef(0)
 
-  // Debounced search query — updates 250ms after last keystroke
   const [debouncedSearch, setDebouncedSearch] = useState(searchQuery)
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(searchQuery), 250)
@@ -230,8 +263,10 @@ export function TeamGrid({
 
   useEffect(() => {
     offsetRef.current = 0
-    void fetchPage(0, false)
-    void loadRecommended()
+    setInitialLoading(true)
+    Promise.all([fetchPage(0, false), loadRecommended()]).finally(() => {
+      setInitialLoading(false)
+    })
   }, [fetchPage, loadRecommended])
 
   const handleLoadMore = async () => {
@@ -264,41 +299,54 @@ export function TeamGrid({
     onResultsCountChange?.(displayedTeams.length)
   }, [displayedTeams.length, onResultsCountChange])
 
-  if (!teams.length && hasMore)
-    return <div className="text-center py-20 text-muted-foreground">Loading teams...</div>
+  /* ── Skeleton state ──────────────────────────────────────────── */
+  if (initialLoading) {
+    return (
+      <section className="px-4 pb-16 pt-6 lg:px-6 lg:pb-24">
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-4">
+            <Skeleton className="h-4 w-28 rounded-full" />
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {Array.from({ length: 12 }).map((_, i) => (
+              <TeamCardSkeleton key={i} />
+            ))}
+          </div>
+        </div>
+      </section>
+    )
+  }
 
   return (
-    <section className="px-4 pb-16 pt-4 lg:px-6 lg:pb-24">
+    <section className="px-4 pb-16 pt-6 lg:px-6 lg:pb-24">
       <div className="mx-auto max-w-6xl">
-        <div className="mb-6 flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">
+        <div className="mb-4">
+          <p className="text-xs font-medium text-muted-foreground">
             Showing{" "}
-            <span className="font-semibold text-foreground">{displayedTeams.length}</span>{" "}
-            teams
+            <span className="font-bold text-foreground">{displayedTeams.length}</span>{" "}
+            {displayedTeams.length === 1 ? "team" : "teams"}
           </p>
         </div>
 
         {displayedTeams.length === 0 ? (
-          <div className="text-center py-10 bg-card/50 rounded-3xl border border-dashed border-border">
-            No teams found matching these filters. 😢
+          <div className="rounded-xl border border-dashed border-border/60 bg-card/50 py-16 text-center text-sm text-muted-foreground">
+            No teams found matching these filters.
           </div>
         ) : (
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {displayedTeams.map((team) => (
-              <div key={team.id} className="min-h-0 h-full">
-                <TeamCard team={team} isRecommended={!!team.isRecommended} />
-              </div>
+              <TeamCard key={team.id} team={team} isRecommended={!!team.isRecommended} />
             ))}
           </div>
         )}
 
         {hasMore && (
-          <div className="mt-10 flex justify-center">
+          <div className="mt-8 flex justify-center">
             <Button
               variant="outline"
               onClick={handleLoadMore}
               disabled={loadingMore}
-              className="gap-2 rounded-xl"
+              className="gap-2 rounded-xl border-border/60"
             >
               {loadingMore ? (
                 <>

@@ -4,11 +4,13 @@
 
 import { useCallback, useEffect, useState } from "react"
 import { useSearchParams } from "next/navigation"
-import { Hero } from "@/components/hero"
 import { Search } from "@/components/search"
 import { Filters } from "@/components/filters"
 import { TeamGrid } from "@/components/team-grid"
 import { ENGINE_OPTIONS, EXPERIENCE_OPTIONS, JAM_STYLE_OPTIONS, LANGUAGE_OPTIONS, ROLE_OPTIONS } from "@/lib/constants"
+import { Users, Sparkles } from "lucide-react"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
 
 export function HomeShell() {
   const searchParams = useSearchParams()
@@ -127,20 +129,46 @@ export function HomeShell() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col bg-background">
       <main className="flex-1">
-        {/* Hero — top of page */}
-        <Hero />
+        {/* ── Page Header ─────────────────────────────────────────────── */}
+        <header className="border-b border-border/60 bg-background px-4 pb-6 pt-8 lg:px-6 lg:pt-10">
+          <div className="mx-auto max-w-6xl">
+            {/* Title row */}
+            <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <div className="mb-1.5 inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+                  <Sparkles className="size-3" aria-hidden />
+                  GameJamCrew
+                </div>
+                <h1 className="text-balance text-2xl font-extrabold tracking-tight text-foreground lg:text-3xl">
+                  Explore Teams
+                </h1>
+                <p className="mt-1 text-pretty text-sm leading-relaxed text-muted-foreground">
+                  {resultsCount !== null
+                    ? `${resultsCount} open squad${resultsCount === 1 ? "" : "s"} looking for members`
+                    : "Browse open squads looking for developers, artists, audio designers and more."}
+                </p>
+              </div>
 
-        {/* Search + filters (in document flow — avoids covering team cards while scrolling) */}
-        <div className="border-b border-border/50 bg-background/95 backdrop-blur-md">
-          <div className="mx-auto max-w-6xl flex flex-col gap-4 px-4 py-4 sm:gap-6 sm:py-6 lg:px-6 lg:py-6">
-            <div className="w-full max-w-xl">
-              <Search
-                value={searchQuery}
-                onChange={handleSearchChange}
-              />
+              <Button
+                asChild
+                size="sm"
+                className="w-fit gap-2 rounded-xl bg-primary font-semibold text-primary-foreground shadow-sm shadow-primary/20 transition-all hover:bg-primary/90"
+              >
+                <Link href="/create-team">
+                  <Users className="size-4" />
+                  Create a Squad
+                </Link>
+              </Button>
             </div>
+
+            {/* Search bar */}
+            <div className="mb-4 w-full max-w-xl">
+              <Search value={searchQuery} onChange={handleSearchChange} />
+            </div>
+
+            {/* Filter row */}
             <Filters
               engine={engineFilter}
               role={roleFilter}
@@ -157,27 +185,26 @@ export function HomeShell() {
               onStyleChange={handleStyleChange}
               onReset={handleResetFilters}
             />
+
             {activeFilterLabels.length > 0 && (
-              <p className="text-xs text-muted-foreground">
+              <p className="mt-3 text-xs text-muted-foreground">
                 <span className="font-semibold text-foreground">Active filters:</span>{" "}
-                {activeFilterLabels.join(" • ")}
+                {activeFilterLabels.join(" \u2022 ")}
               </p>
             )}
           </div>
-        </div>
+        </header>
 
-        {/* Results — team grid (includes personalized matches when logged in) */}
-        <div className="pt-12 lg:pt-16">
-          <TeamGrid
-            searchQuery={searchQuery}
-            engineFilter={engineFilter}
-            roleFilter={roleFilter}
-            levelFilter={levelFilter}
-            languageFilter={languageFilter}
-            styleFilter={styleFilter}
-            onResultsCountChange={setResultsCount}
-          />
-        </div>
+        {/* ── Team Grid ────────────────────────────────────────────────── */}
+        <TeamGrid
+          searchQuery={searchQuery}
+          engineFilter={engineFilter}
+          roleFilter={roleFilter}
+          levelFilter={levelFilter}
+          languageFilter={languageFilter}
+          styleFilter={styleFilter}
+          onResultsCountChange={setResultsCount}
+        />
       </main>
     </div>
   )
