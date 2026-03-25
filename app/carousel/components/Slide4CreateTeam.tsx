@@ -1,47 +1,191 @@
 "use client"
 
-import {
-  Rocket,
-  Plus,
-  X,
-  ChevronDown,
-  CalendarRange,
-  Upload,
-  CheckCircle2,
-  AlertCircle,
-  Sparkles,
-  Search,
-  ExternalLink,
-} from "lucide-react"
+import { Plus, Calendar, Users, Sparkles, Check } from "lucide-react"
 
-function NavIcon({ type, active }: { type: string; active?: boolean }) {
-  const cls = `w-5 h-5 ${active ? "text-teal-600" : "text-slate-400"}`
-  if (type === "compass") return <svg className={cls} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><circle cx={12} cy={12} r={10} /><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" /></svg>
-  if (type === "users") return <svg className={cls} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx={9} cy={7} r={4} /><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg>
-  if (type === "layout") return <svg className={cls} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><rect x={3} y={3} width={7} height={7} rx={1} /><rect x={14} y={3} width={7} height={7} rx={1} /><rect x={14} y={14} width={7} height={7} rx={1} /><rect x={3} y={14} width={7} height={7} rx={1} /></svg>
-  if (type === "book") return <svg className={cls} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" /></svg>
-  if (type === "message") return <svg className={cls} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
-  return null
+export function Slide4CreateTeam() {
+  return (
+    <div className="w-[1080px] h-[1080px] bg-[#f8fafc] flex overflow-hidden font-sans relative">
+      {/* Sidebar */}
+      <aside className="w-[56px] bg-white border-r border-slate-200/50 flex flex-col items-center py-4 gap-1 shrink-0">
+        <div className="w-8 h-8 rounded-lg bg-teal-500 flex items-center justify-center mb-3">
+          <span className="text-white font-bold text-xs">GJ</span>
+        </div>
+        <div className="w-9 h-9 rounded-lg bg-teal-500/10 flex items-center justify-center text-teal-600">
+          <Plus className="w-4 h-4" />
+        </div>
+      </aside>
+
+      {/* Main */}
+      <main className="flex-1 flex overflow-hidden">
+        {/* Left: Form */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Header */}
+          <div className="px-5 py-4 border-b border-slate-200/50 bg-white">
+            <h1 className="text-sm font-bold text-slate-900">Launch Your Squad</h1>
+            <p className="text-xs text-slate-500 mt-0.5">Create a team listing for an upcoming jam</p>
+          </div>
+
+          {/* Form content */}
+          <div className="flex-1 overflow-y-auto p-5 flex flex-col gap-5">
+            {/* Step indicator */}
+            <div className="flex gap-1">
+              <div className="w-8 h-8 rounded-lg bg-teal-500 text-white flex items-center justify-center text-xs font-bold">1</div>
+              <div className="w-8 h-8 rounded-lg bg-teal-500 text-white flex items-center justify-center text-xs font-bold">2</div>
+              <div className="w-8 h-8 rounded-lg bg-slate-200 text-slate-600 flex items-center justify-center text-xs font-bold">3</div>
+              <span className="text-xs font-semibold text-slate-600 ml-auto">Step 2 of 3</span>
+            </div>
+
+            {/* Team basics (collapsed from step 1) */}
+            <div className="bg-slate-50 rounded-lg border border-slate-200 p-3">
+              <p className="text-xs font-semibold text-slate-700">
+                <span className="inline-block w-5 h-5 rounded-full bg-teal-500 text-white text-[8px] flex items-center justify-center mr-1.5">✓</span>
+                RetroRush • Ludum Dare 57
+              </p>
+            </div>
+
+            {/* Roles needed (Step 2 focus) */}
+            <div>
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-2">Select Required Roles</label>
+              <div className="flex flex-col gap-2">
+                {[
+                  { role: "Developer", emoji: "💻", checked: false },
+                  { role: "2D Artist", emoji: "🎨", checked: true },
+                  { role: "Audio / Music", emoji: "🎵", checked: true },
+                  { role: "3D Artist", emoji: "🗿", checked: false },
+                  { role: "Game Designer", emoji: "🎯", checked: false },
+                ].map((r) => (
+                  <div key={r.role} className="flex items-center gap-2 p-2.5 bg-white rounded-lg border border-slate-200">
+                    <div className={`w-4 h-4 rounded border-2 flex items-center justify-center ${r.checked ? "border-teal-500 bg-teal-500" : "border-slate-300"}`}>
+                      {r.checked && <Check className="w-2.5 h-2.5 text-white" />}
+                    </div>
+                    <span className="text-xs font-semibold text-slate-700">{r.emoji} {r.role}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Jam date range */}
+            <div>
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-2">Jam Dates</label>
+              <div className="flex items-center gap-2 p-3 bg-white rounded-lg border border-slate-200">
+                <Calendar className="w-4 h-4 text-slate-400" />
+                <span className="text-sm font-semibold text-slate-900">Apr 1 — Apr 3, 2026</span>
+              </div>
+            </div>
+
+            {/* Experience level */}
+            <div>
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-2">Experience Required</label>
+              <select className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm font-semibold text-slate-900 outline-none">
+                <option>Any level</option>
+                <option defaultChecked>Junior & above</option>
+                <option>Regular & above</option>
+              </select>
+            </div>
+
+            {/* Engine */}
+            <div>
+              <label className="text-xs font-bold text-slate-700 uppercase tracking-wider block mb-2">Engine</label>
+              <select className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm font-semibold text-slate-900 outline-none">
+                <option>Godot</option>
+                <option>Unity</option>
+                <option defaultChecked>Unreal Engine</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Navigation */}
+          <div className="px-5 py-4 border-t border-slate-200/50 bg-white flex gap-2">
+            <button className="flex-1 px-4 py-2 rounded-lg border border-slate-200 text-slate-900 font-semibold text-xs hover:bg-slate-50">
+              Back
+            </button>
+            <button className="flex-1 px-4 py-2 rounded-lg bg-teal-500 hover:bg-teal-600 text-white font-semibold text-xs">
+              Continue
+            </button>
+          </div>
+        </div>
+
+        {/* Right: Preview */}
+        <div className="w-[300px] bg-white border-l border-slate-200/50 flex flex-col overflow-hidden">
+          <div className="px-4 py-3 border-b border-slate-100 bg-slate-50">
+            <p className="text-xs font-bold text-slate-700 uppercase tracking-wider">Team Preview</p>
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
+            {/* Team card preview */}
+            <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl border border-slate-200 p-3">
+              <h4 className="text-xs font-bold text-slate-900 mb-1">RetroRush</h4>
+              <p className="text-[9px] text-slate-600 mb-2">Ludum Dare 57 • Godot</p>
+
+              {/* Roles preview */}
+              <div className="flex flex-wrap gap-1 mb-3">
+                <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-pink-100 text-pink-700">🎨 2D Artist</span>
+                <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-full bg-violet-100 text-violet-700">🎵 Audio</span>
+              </div>
+
+              <div className="flex items-center gap-1 text-[9px] text-slate-600 border-t border-slate-200 pt-2">
+                <Users className="w-3 h-3" />
+                <span>3/5 members</span>
+              </div>
+            </div>
+
+            {/* Checklist */}
+            <div className="space-y-2">
+              <div className="flex items-start gap-2">
+                <Check className="w-4 h-4 text-teal-500 flex-shrink-0 mt-0.5" />
+                <span className="text-[10px] text-slate-700">
+                  <span className="font-semibold">Team name</span> set
+                </span>
+              </div>
+              <div className="flex items-start gap-2">
+                <Check className="w-4 h-4 text-teal-500 flex-shrink-0 mt-0.5" />
+                <span className="text-[10px] text-slate-700">
+                  <span className="font-semibold">Roles</span> selected
+                </span>
+              </div>
+              <div className="flex items-start gap-2">
+                <Check className="w-4 h-4 text-teal-500 flex-shrink-0 mt-0.5" />
+                <span className="text-[10px] text-slate-700">
+                  <span className="font-semibold">Jam dates</span> configured
+                </span>
+              </div>
+              <div className="flex items-start gap-2">
+                <div className="w-4 h-4 rounded border-2 border-slate-300 flex-shrink-0 mt-0.5" />
+                <span className="text-[10px] text-slate-500">
+                  <span className="font-semibold">Description & perks</span> (Step 3)
+                </span>
+              </div>
+            </div>
+
+            {/* Tips */}
+            <div className="mt-auto pt-4 border-t border-slate-100">
+              <p className="text-[9px] font-semibold text-slate-700 mb-2 flex items-center gap-1">
+                <Sparkles className="w-3 h-3 text-teal-500" />
+                Pro Tips
+              </p>
+              <ul className="text-[9px] text-slate-600 space-y-1">
+                <li>• Be clear about role needs</li>
+                <li>• Set realistic dates</li>
+                <li>• Add a welcoming description</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      {/* Slide indicator */}
+      <div className="absolute bottom-4 right-5 flex items-center gap-2">
+        <span className="text-[9px] font-bold text-slate-400 uppercase">4/5</span>
+        <div className="flex gap-1">
+          {[0, 1, 2, 3, 4].map((i) => (
+            <div key={i} className={`w-1.5 h-1.5 rounded-full ${i === 3 ? "bg-teal-500" : "bg-slate-300"}`} />
+          ))}
+        </div>
+      </div>
+    </div>
+  )
 }
 
-const navItems = [
-  { icon: "compass", label: "Explore" },
-  { icon: "users", label: "Members" },
-  { icon: "layout", label: "Dashboard", active: true },
-  { icon: "book", label: "Resources" },
-  { icon: "message", label: "Messages" },
-]
-
-// Mini calendar grid for April 2026
-const calDays = [
-  { d: 30, prev: true }, { d: 31, prev: true },
-  ...Array.from({ length: 30 }, (_, i) => ({ d: i + 1 })),
-  { d: 1, next: true }, { d: 2, next: true }, { d: 3, next: true },
-]
-const jamStart = 1
-const jamEnd = 3
-
-export default function Slide4CreateTeam() {
   return (
     <div className="w-[1080px] h-[1080px] bg-[#f8fafc] flex overflow-hidden font-sans">
       {/* Sidebar */}

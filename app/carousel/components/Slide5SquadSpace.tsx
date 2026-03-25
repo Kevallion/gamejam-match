@@ -1,102 +1,202 @@
 "use client"
 
-import {
-  Send,
-  Paperclip,
-  Hash,
-  Users,
-  Circle,
-  CheckCircle2,
-  Plus,
-  MoreHorizontal,
-  Image,
-  File,
-  Smile,
-  ArrowRight,
-  Rocket,
-  Star,
-} from "lucide-react"
+import { MessageCircle, FileText, CheckSquare, Users, AlertCircle } from "lucide-react"
 
-function NavIcon({ type, active }: { type: string; active?: boolean }) {
-  const cls = `w-5 h-5 ${active ? "text-teal-600" : "text-slate-400"}`
-  if (type === "compass") return <svg className={cls} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><circle cx={12} cy={12} r={10} /><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" /></svg>
-  if (type === "users") return <svg className={cls} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx={9} cy={7} r={4} /><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg>
-  if (type === "layout") return <svg className={cls} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><rect x={3} y={3} width={7} height={7} rx={1} /><rect x={14} y={3} width={7} height={7} rx={1} /><rect x={14} y={14} width={7} height={7} rx={1} /><rect x={3} y={14} width={7} height={7} rx={1} /></svg>
-  if (type === "book") return <svg className={cls} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" /></svg>
-  if (type === "message") return <svg className={cls} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
-  return null
+export function Slide5SquadSpace() {
+  return (
+    <div className="w-[1080px] h-[1080px] bg-[#f8fafc] flex overflow-hidden font-sans relative">
+      {/* Sidebar */}
+      <aside className="w-[56px] bg-white border-r border-slate-200/50 flex flex-col items-center py-4 gap-1 shrink-0">
+        <div className="w-8 h-8 rounded-lg bg-teal-500 flex items-center justify-center mb-3">
+          <span className="text-white font-bold text-xs">GJ</span>
+        </div>
+        <div className="w-9 h-9 rounded-lg bg-teal-500/10 flex items-center justify-center text-teal-600">
+          <MessageCircle className="w-4 h-4" />
+        </div>
+      </aside>
+
+      {/* Main */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Channels sidebar */}
+        <aside className="w-[160px] bg-white border-r border-slate-200/50 flex flex-col overflow-hidden">
+          <div className="px-3 py-3 border-b border-slate-100">
+            <p className="text-xs font-bold text-slate-700">RetroRush</p>
+          </div>
+          <div className="flex-1 overflow-y-auto px-2 py-2 flex flex-col gap-1">
+            {[
+              { name: "#general", emoji: "💬", active: true },
+              { name: "#assets", emoji: "🎨" },
+              { name: "#builds", emoji: "🔨" },
+              { name: "#ld57-rules", emoji: "📋" },
+            ].map((ch) => (
+              <button
+                key={ch.name}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-semibold transition-colors ${
+                  ch.active ? "bg-teal-500/10 text-teal-700" : "text-slate-600 hover:bg-slate-100"
+                }`}
+              >
+                <span>{ch.emoji}</span>
+                <span className="truncate">{ch.name}</span>
+              </button>
+            ))}
+          </div>
+          <div className="px-3 py-3 border-t border-slate-100 bg-slate-50">
+            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Uploads</p>
+            <div className="flex flex-col gap-1">
+              {["Assets.zip", "Build_v2.exe", "Music_loops.zip"].map((f) => (
+                <div key={f} className="flex items-center gap-2 p-1.5 bg-white rounded border border-slate-200 hover:border-teal-300">
+                  <FileText className="w-3 h-3 text-slate-400 flex-shrink-0" />
+                  <span className="text-[9px] text-slate-600 truncate">{f}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </aside>
+
+        {/* Chat area */}
+        <div className="flex-1 flex flex-col overflow-hidden bg-white">
+          {/* Header */}
+          <div className="px-4 py-3 border-b border-slate-200/50 bg-white flex items-center justify-between">
+            <div>
+              <h2 className="text-xs font-bold text-slate-900">#general</h2>
+              <p className="text-[9px] text-slate-500">Squad coordination & quick questions</p>
+            </div>
+            <div className="flex items-center gap-1">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="w-6 h-6 rounded-full bg-gradient-to-br from-teal-400 to-blue-500 flex items-center justify-center text-white text-[9px] font-bold">
+                  {String.fromCharCode(64 + i)}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Messages */}
+          <div className="flex-1 overflow-y-auto px-4 py-4 flex flex-col gap-3">
+            {/* Welcome message */}
+            <div className="flex gap-2">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-red-400 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                GA
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-baseline gap-2 mb-0.5">
+                  <span className="text-[10px] font-bold text-slate-900">GameArchitect</span>
+                  <span className="text-[9px] text-slate-500">today 11:42 AM</span>
+                </div>
+                <p className="text-[10px] text-slate-700 leading-tight">
+                  🎮 Welcome to the squad! This is our command center for LD57. Let&apos;s ship something amazing together. No crunch, just good vibes!
+                </p>
+              </div>
+            </div>
+
+            {/* Assets message with attachments */}
+            <div className="flex gap-2">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-400 to-rose-400 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                NB
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-baseline gap-2 mb-0.5">
+                  <span className="text-[10px] font-bold text-slate-900">NeonBrush</span>
+                  <span className="text-[9px] text-slate-500">today 2:15 PM</span>
+                </div>
+                <p className="text-[10px] text-slate-700 mb-2">
+                  Uploaded the sprite sheets and tileset. Check the Assets channel!
+                </p>
+                <div className="flex gap-1 flex-wrap">
+                  {["sprites.png", "tileset_16x16.aseprite"].map((f) => (
+                    <div key={f} className="flex items-center gap-1 px-2 py-1 bg-slate-100 rounded border border-slate-200 text-[9px] text-slate-700">
+                      <FileText className="w-3 h-3" />
+                      {f}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Status update */}
+            <div className="flex gap-2">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-teal-400 to-emerald-400 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                PK
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-baseline gap-2 mb-0.5">
+                  <span className="text-[10px] font-bold text-slate-900">PixelKnight</span>
+                  <span className="text-[9px] text-slate-500">today 5:30 PM</span>
+                </div>
+                <div className="flex items-center gap-2 p-2 bg-teal-50 rounded-lg border border-teal-200 text-[10px] text-teal-700 font-semibold">
+                  <AlertCircle className="w-3 h-3 flex-shrink-0" />
+                  Core loop merged. Playtesting at 7 PM tonight!
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Input */}
+          <div className="px-4 py-3 border-t border-slate-200/50 bg-white flex gap-2">
+            <input readOnly placeholder="Send message..." className="flex-1 px-3 py-2 rounded-lg border border-slate-200 bg-slate-50 text-sm text-slate-700 placeholder:text-slate-400" />
+            <button className="px-4 py-2 rounded-lg bg-teal-500 hover:bg-teal-600 text-white font-semibold text-xs">
+              Send
+            </button>
+          </div>
+        </div>
+
+        {/* Right sidebar - Kanban */}
+        <aside className="w-[220px] bg-white border-l border-slate-200/50 flex flex-col overflow-hidden">
+          <div className="px-3 py-3 border-b border-slate-100">
+            <p className="text-xs font-bold text-slate-700">Task Board</p>
+          </div>
+          <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-2">
+            {/* Kanban columns preview */}
+            {[
+              { title: "📋 Backlog", tasks: ["Cutscenes", "Main menu UI"] },
+              { title: "🔨 In Progress", tasks: ["Level 2", "Boss mechanics"] },
+              { title: "✅ Done", tasks: ["Core loop", "Asset pipeline"] },
+            ].map((col) => (
+              <div key={col.title} className="flex flex-col gap-1.5">
+                <p className="text-[10px] font-bold text-slate-700">{col.title}</p>
+                {col.tasks.map((task) => (
+                  <div key={task} className="p-2 bg-slate-50 rounded-lg border border-slate-200 text-[9px] text-slate-700 font-semibold">
+                    {task}
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+
+          {/* Squad members */}
+          <div className="px-3 py-3 border-t border-slate-100 bg-slate-50">
+            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1">
+              <Users className="w-3 h-3" />
+              Squad (3)
+            </p>
+            <div className="flex flex-col gap-1.5">
+              {[
+                { name: "PixelKnight", status: "🟢 Online" },
+                { name: "NeonBrush", status: "🟢 Online" },
+                { name: "SoundSculptor", status: "🟡 Away" },
+              ].map((m) => (
+                <div key={m.name} className="flex items-center justify-between p-2 bg-white rounded border border-slate-200">
+                  <span className="text-[9px] font-semibold text-slate-900 truncate">{m.name}</span>
+                  <span className="text-[8px] text-slate-500 whitespace-nowrap">{m.status}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      {/* Slide indicator */}
+      <div className="absolute bottom-4 right-5 flex items-center gap-2">
+        <span className="text-[9px] font-bold text-slate-400 uppercase">5/5</span>
+        <div className="flex gap-1">
+          {[0, 1, 2, 3, 4].map((i) => (
+            <div key={i} className={`w-1.5 h-1.5 rounded-full ${i === 4 ? "bg-teal-500" : "bg-slate-300"}`} />
+          ))}
+        </div>
+      </div>
+    </div>
+  )
 }
 
-const navItems = [
-  { icon: "compass", label: "Explore" },
-  { icon: "users", label: "Members" },
-  { icon: "layout", label: "Dashboard" },
-  { icon: "book", label: "Resources" },
-  { icon: "message", label: "Messages", active: true },
-]
-
-const messages = [
-  {
-    user: "PixelKnight", avatar: "PK", avatarColor: "bg-teal-500", mine: false,
-    text: "Hey squad! Welcome to Pixel Storm's space. This is where we coordinate for Ludum Dare 57. Happy Jamming! 🎮",
-    time: "9:00 AM", special: true,
-  },
-  {
-    user: "NeonBrush", avatar: "NB", avatarColor: "bg-pink-500", mine: false,
-    text: "Looking forward to this! I've already started sketching character concepts. Will drop them in #assets.",
-    time: "9:12 AM",
-  },
-  {
-    user: "SoundSculptor", avatar: "SS", avatarColor: "bg-violet-500", mine: false,
-    text: "Audio loops ready for review — chiptune main theme draft uploaded 🎵",
-    time: "9:45 AM",
-    file: { name: "main_theme_v1.mp3", size: "2.1 MB", icon: "🎵" },
-  },
-  {
-    user: "You", avatar: "PK", avatarColor: "bg-teal-500", mine: true,
-    text: "Great work everyone! I've pushed the first prototype build. Core gameplay loop is in — platformer with procedural levels.",
-    time: "10:03 AM",
-  },
-  {
-    user: "NeonBrush", avatar: "NB", avatarColor: "bg-pink-500", mine: false,
-    text: "Love the feel! Movement is super crisp. Added the player spritesheet to the repo.",
-    time: "10:15 AM",
-    file: { name: "player_sprites_v2.png", size: "512 KB", icon: "🎨" },
-  },
-]
-
-const taskCols = [
-  {
-    label: "Backlog", color: "text-slate-500", border: "border-slate-200",
-    tasks: [
-      { label: "Game over screen", tags: ["Developer"] },
-      { label: "Title screen art", tags: ["2D Artist"] },
-    ],
-  },
-  {
-    label: "In Progress", color: "text-amber-600", border: "border-amber-300/50",
-    tasks: [
-      { label: "Level generator logic", tags: ["Developer"], assignee: "PK", bg: "bg-teal-500" },
-      { label: "SFX sound design", tags: ["Audio"], assignee: "SS", bg: "bg-violet-500" },
-    ],
-  },
-  {
-    label: "Done", color: "text-teal-600", border: "border-teal-300/50",
-    tasks: [
-      { label: "Player controller", tags: ["Developer"], done: true },
-      { label: "Main theme music", tags: ["Audio"], done: true },
-      { label: "Color palette chosen", tags: ["2D Artist"], done: true },
-    ],
-  },
-]
-
-const squadMembers = [
-  { name: "PixelKnight", role: "Developer", title: "Pixel Knight", avatar: "PK", color: "bg-teal-500", online: true, leader: true },
-  { name: "NeonBrush", role: "2D Artist", title: "Pixel Artist", avatar: "NB", color: "bg-pink-500", online: true },
-  { name: "SoundSculptor", role: "Audio", title: "Audio Wizard", avatar: "SS", color: "bg-violet-500", online: false },
-]
-
-export default function Slide5SquadSpace() {
   return (
     <div className="w-[1080px] h-[1080px] bg-[#f8fafc] flex overflow-hidden font-sans">
       {/* Main sidebar */}
