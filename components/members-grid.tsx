@@ -41,6 +41,14 @@ type ProfileWithUser = {
   jam_id: string | null
   xp?: number | null
   current_title?: string | null
+  role?: string | null
+  experience?: string | null
+  experience_level?: string | null
+  jam_style?: string | null
+  engine?: string | null
+  language?: string | null
+  bio?: string | null
+  portfolio_link?: string | null
 }
 
 interface MembersGridProps {
@@ -58,29 +66,49 @@ function formatMember(
   profile: ProfileWithUser | null,
   kudosCounts?: KudosCounts | null,
 ): JammerWithFilters {
-  const jamStyle = m.jam_style ? JAM_STYLE_STYLES[m.jam_style] : undefined
+  const roleRaw = (m.role ?? profile?.role ?? "").trim()
+  const roleKey = roleRaw.toLowerCase()
+  const expRaw = (
+    m.experience ??
+    m.experience_level ??
+    profile?.experience ??
+    profile?.experience_level ??
+    ""
+  ).trim()
+  const expKey = expRaw.toLowerCase()
+  const jamStyleKey = (m.jam_style ?? profile?.jam_style ?? "").trim().toLowerCase()
+  const jamStyle = jamStyleKey ? JAM_STYLE_STYLES[jamStyleKey] : undefined
   const xp = typeof profile?.xp === "number" ? profile.xp : 0
   const jammerTitle = profile?.current_title?.trim() || "Rookie Jammer"
+  const engineVal = (m.engine ?? profile?.engine ?? "").trim()
+  const languageVal = (m.language ?? profile?.language ?? "").trim()
+  const bioVal = (m.bio ?? profile?.bio ?? "").trim()
+  const portfolioVal = (m.portfolio_link ?? profile?.portfolio_link ?? "").trim()
   return {
     id: m.id as string,
     username: profile?.username?.trim() || "Anonymous",
     avatar_url: profile?.avatar_url?.trim() || null,
     jammerTitle,
     jammerLevel: levelFromTotalXp(xp),
-    rawRole: m.role || "",
-    rawLevel: m.experience || m.experience_level || "",
-    rawEngine: m.engine || "",
-    role: ROLE_STYLES[m.role ?? ""] || { label: m.role ?? "", emoji: "❓", color: "bg-gray-500/10 text-gray-500" },
-    level: EXPERIENCE_STYLES[m.experience ?? m.experience_level ?? ""] || {
-      label: m.experience ?? m.experience_level ?? "",
+    rawRole: roleRaw,
+    rawLevel: expRaw,
+    rawEngine: engineVal,
+    role:
+      ROLE_STYLES[roleKey] || {
+        label: roleRaw || "—",
+        emoji: "❓",
+        color: "bg-gray-500/10 text-gray-500",
+      },
+    level: EXPERIENCE_STYLES[expKey] || {
+      label: expRaw || "—",
       emoji: "⭐",
       color: "bg-gray-500/10 text-gray-500",
     },
     jamStyle: jamStyle ?? undefined,
-    engine: m.engine ?? "",
-    language: m.language ?? "",
-    bio: m.bio ?? "",
-    portfolio_link: m.portfolio_link || "",
+    engine: engineVal,
+    language: languageVal,
+    bio: bioVal,
+    portfolio_link: portfolioVal,
     availability: m.availability || undefined,
     kudosCounts: kudosCounts ?? undefined,
   }
@@ -129,7 +157,9 @@ export function MembersGrid({
     const userIds = [...new Set((postsData as AvailabilityPostRowDb[]).map((r) => r.user_id).filter(Boolean))]
     const { data: profilesData } = await supabase
       .from("profiles")
-      .select("id, username, avatar_url, jam_id, xp, current_title")
+      .select(
+        "id, username, avatar_url, jam_id, xp, current_title, role, experience, experience_level, jam_style, engine, language, bio, portfolio_link",
+      )
       .in("id", userIds)
     const profilesByUserId = new Map<string, ProfileWithUser>()
     for (const p of (profilesData ?? []) as ProfileWithUser[]) {

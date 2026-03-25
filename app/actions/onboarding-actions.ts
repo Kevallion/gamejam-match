@@ -27,6 +27,14 @@ export type CompleteOnboardingInput = {
   publishImmediately?: boolean
 }
 
+/** First non-empty trimmed string, or null — used so "None / No default" does not wipe existing profile data. */
+function firstNonEmpty(...parts: (string | null | undefined)[]): string | null {
+  for (const p of parts) {
+    if (typeof p === "string" && p.trim()) return p.trim()
+  }
+  return null
+}
+
 export async function completeOnboarding(
   input: CompleteOnboardingInput
 ): Promise<{ success: boolean; error?: string; warning?: string; gamification?: OnboardingGamificationStep[] }> {
@@ -49,20 +57,52 @@ export async function completeOnboarding(
     return { success: false, error: "Username must be at least 3 characters." }
   }
 
-  const defaultRole = input.defaultRole?.trim() || null
-  const defaultEngine = input.defaultEngine?.trim() || null
-  const defaultLanguage = input.defaultLanguage?.trim() || null
-  const discordUsername = input.discordUsername?.trim() || null
-  const portfolioUrl = input.portfolioUrl?.trim() || null
+  const pickedDefaultRole = input.defaultRole?.trim() || null
+  const pickedDefaultEngine = input.defaultEngine?.trim() || null
+  const pickedDefaultLanguage = input.defaultLanguage?.trim() || null
+  const pickedDiscord = input.discordUsername?.trim() || null
+  const pickedPortfolio = input.portfolioUrl?.trim() || null
   const publishImmediately = input.publishImmediately !== false
 
-  const { data: profileBefore } = await supabase
+  const { data: existingProfile } = await supabase
     .from("profiles")
-    .select("has_completed_onboarding")
+    .select(
+      "has_completed_onboarding, role, engine, language, default_role, default_engine, default_language, main_role, experience, experience_level, jam_style, bio, portfolio_link, portfolio_url, discord_username",
+    )
     .eq("id", user.id)
     .maybeSingle()
 
-  const firstTimeCompletingOnboarding = profileBefore?.has_completed_onboarding !== true
+  const firstTimeCompletingOnboarding = existingProfile?.has_completed_onboarding !== true
+
+  // default_* = what the user chose in onboarding (may be null = "no default" for forms).
+  // role / engine / language = public profile: keep existing values when user picks "None / No default".
+  const mergedRole = firstNonEmpty(
+    pickedDefaultRole,
+    existingProfile?.role,
+    existingProfile?.default_role,
+    existingProfile?.main_role,
+  )
+  const mergedEngine = firstNonEmpty(
+    pickedDefaultEngine,
+    existingProfile?.engine,
+    existingProfile?.default_engine,
+  )
+  const mergedLanguage = firstNonEmpty(
+    pickedDefaultLanguage,
+    existingProfile?.language,
+    existingProfile?.default_language,
+  )
+  const mergedDiscord = firstNonEmpty(pickedDiscord, existingProfile?.discord_username)
+  const mergedPortfolio = firstNonEmpty(
+    pickedPortfolio,
+    existingProfile?.portfolio_link,
+    existingProfile?.portfolio_url,
+  )
+  const mergedExperience = firstNonEmpty(
+    existingProfile?.experience,
+    existingProfile?.experience_level,
+  )
+  const mergedBio = firstNonEmpty(existingProfile?.bio)
 
   // Ensure the profile row exists and keep onboarding data in sync
   // with both the default_* fields and the base profile fields.
@@ -72,15 +112,15 @@ export async function completeOnboarding(
       {
         id: user.id,
         username: chosenUsername,
-        default_role: defaultRole,
-        default_engine: defaultEngine,
-        default_language: defaultLanguage,
-        role: defaultRole,
-        engine: defaultEngine,
-        language: defaultLanguage,
-        discord_username: discordUsername,
-        portfolio_url: portfolioUrl,
-        portfolio_link: portfolioUrl,
+        default_role: pickedDefaultRole,
+        default_engine: pickedDefaultEngine,
+        default_language: pickedDefaultLanguage,
+        role: mergedRole,
+        engine: mergedEngine,
+        language: mergedLanguage,
+        discord_username: mergedDiscord,
+        portfolio_url: mergedPortfolio,
+        portfolio_link: mergedPortfolio,
         has_completed_onboarding: true,
         onboarding_version: CURRENT_ONBOARDING_VERSION,
       },
@@ -107,7 +147,7 @@ export async function completeOnboarding(
     const to = user.email
     if (to) {
       const displayName =
-        discordUsername ||
+        mergedDiscord ||
         chosenUsername ||
         (to ? to.split("@")[0]?.trim() : "") ||
         "there"
@@ -159,14 +199,14 @@ export async function completeOnboarding(
       .from("availability_posts")
       .insert({
         user_id: user.id,
-        role: defaultRole,
-        engine: defaultEngine,
-        language: defaultLanguage,
-        portfolio_link: portfolioUrl,
+        role: mergedRole,
+        engine: mergedEngine,
+        language: mergedLanguage,
+        portfolio_link: mergedPortfolio,
         availability: "Ready for upcoming game jams!",
-        jam_style: null,
-        experience: "regular",
-        bio: "Open to joining upcoming game jams.",
+        jam_style: existingProfile?.jam_style?.trim() || null,
+        experience: mergedExperience ?? "regular",
+        bio: mergedBio ?? "Open to joining upcoming game jams.",
         expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
       })
       .select("id")

@@ -53,6 +53,21 @@ import { showGamificationRewards } from "@/components/gamification-reward-toasts
 import { gamificationRewardHasToast } from "@/lib/gamification-reward-types"
 import { KudosBadgeRow } from "@/components/kudos-badges"
 import type { KudosCounts } from "@/lib/kudos"
+import { ENGINE_OPTIONS_WITH_ANY, LANGUAGE_OPTIONS } from "@/lib/constants"
+
+function languageDisplayLabel(value: string | undefined): string {
+  const raw = (value ?? "").trim()
+  if (!raw) return ""
+  const key = raw.toLowerCase()
+  return LANGUAGE_OPTIONS.find((o) => o.value === key)?.label ?? raw
+}
+
+function engineDisplayLabel(value: string | undefined): string {
+  const raw = (value ?? "").trim()
+  if (!raw) return ""
+  const key = raw.toLowerCase()
+  return ENGINE_OPTIONS_WITH_ANY.find((o) => o.value === key)?.label ?? raw
+}
 
 export type JammerCardData = {
   id: string
@@ -135,12 +150,15 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
   const [statusMsg, setStatusMsg] = useState<{ type: "error" | "success"; text: string } | null>(null)
 
   const maxChars = 500
+  const languageLabel = languageDisplayLabel(player.language)
+  const engineLabel = engineDisplayLabel(player.engine)
 
   async function handleShare(e: React.MouseEvent) {
     e.preventDefault()
     e.stopPropagation()
     const title = player.username
-    const text = `${player.username} is looking for a team as a ${player.role.label} using ${player.engine}! View their GameJamCrew profile:`
+    const enginePart = engineLabel ? ` using ${engineLabel}` : ""
+    const text = `${player.username} is looking for a team as a ${player.role.label}${enginePart}! View their GameJamCrew profile:`
     const profileUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/jammer/${player.id}`
     const url = profileUrl
     try {
@@ -269,10 +287,12 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
                   {player.jammerTitle?.trim() ? (
                     <JammerTitleBadge title={player.jammerTitle.trim()} className="text-xs" />
                   ) : null}
-                  <div className="flex min-w-0 items-center gap-1.5 text-sm text-muted-foreground">
-                    <Globe className="size-3.5 shrink-0 text-teal" />
-                    <span className="truncate">{player.language}</span>
-                  </div>
+                  {languageLabel ? (
+                    <div className="flex min-w-0 items-center gap-1.5 text-sm text-muted-foreground">
+                      <Globe className="size-3.5 shrink-0 text-teal" />
+                      <span className="truncate">{languageLabel}</span>
+                    </div>
+                  ) : null}
                 </div>
                 <Button
                   variant="ghost"
@@ -319,12 +339,14 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
               <KudosBadgeRow counts={player.kudosCounts} className="gap-1.5" size="xs" />
 
               {/* Engine */}
-              <div className="flex min-w-0 items-center gap-1.5 text-sm text-muted-foreground">
-                <Cpu className="size-3.5 shrink-0 text-lavender" />
-                <span className="min-w-0 truncate" title={player.engine}>
-                  {player.engine}
-                </span>
-              </div>
+              {engineLabel ? (
+                <div className="flex min-w-0 items-center gap-1.5 text-sm text-muted-foreground">
+                  <Cpu className="size-3.5 shrink-0 text-lavender" />
+                  <span className="min-w-0 truncate" title={engineLabel}>
+                    {engineLabel}
+                  </span>
+                </div>
+              ) : null}
 
               {/* Availability */}
               {availabilityInfo && (
@@ -407,10 +429,12 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
                 {player.jammerTitle?.trim() ? (
                   <JammerTitleBadge title={player.jammerTitle.trim()} className="mt-1 text-sm" />
                 ) : null}
-                <div className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
-                  <Globe className="size-3.5 text-teal" />
-                  {player.language}
-                </div>
+                {languageLabel ? (
+                  <div className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
+                    <Globe className="size-3.5 text-teal" />
+                    {languageLabel}
+                  </div>
+                ) : null}
               </div>
             </div>
           </DialogHeader>
@@ -446,14 +470,16 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
                     </span>
                   </span>
                 )}
-                <Badge
-                  variant="outline"
-                  className="inline-flex min-w-0 max-w-full shrink items-center gap-1.5 truncate rounded-full border-border/60 bg-lavender px-3 py-1 text-xs font-semibold text-lavender-foreground"
-                  title={player.engine}
-                >
-                  <Cpu className="size-3.5 shrink-0" />
-                  <span className="min-w-0 truncate">{player.engine}</span>
-                </Badge>
+                {engineLabel ? (
+                  <Badge
+                    variant="outline"
+                    className="inline-flex min-w-0 max-w-full shrink items-center gap-1.5 truncate rounded-full border-border/60 bg-lavender px-3 py-1 text-xs font-semibold text-lavender-foreground"
+                    title={engineLabel}
+                  >
+                    <Cpu className="size-3.5 shrink-0" />
+                    <span className="min-w-0 truncate">{engineLabel}</span>
+                  </Badge>
+                ) : null}
               </div>
 
               {/* Availability */}
