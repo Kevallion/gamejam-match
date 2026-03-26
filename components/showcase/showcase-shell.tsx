@@ -9,7 +9,11 @@ import { MockDashboard } from "@/components/showcase/mock-dashboard"
 import { MockPlayers } from "@/components/showcase/mock-players"
 import { MockNotifications } from "@/components/showcase/mock-notifications"
 import { MockInviteModal } from "@/components/showcase/mock-invite-modal"
-import { Gamepad2, Sparkles, Users, PenLine, LayoutDashboard, Bell, Mail, UserSearch } from "lucide-react"
+import { MockSidebarNav } from "@/components/showcase/mock-sidebar-nav"
+import { MockDropdownMenu } from "@/components/showcase/mock-dropdown-menu"
+import { MockBreadcrumbTabs } from "@/components/showcase/mock-breadcrumb-tabs"
+import { MockMobileNav } from "@/components/showcase/mock-mobile-nav"
+import { Gamepad2, Sparkles, Users, PenLine, LayoutDashboard, Bell, Mail, UserSearch, PanelLeft, Filter, Navigation, Smartphone } from "lucide-react"
 import Link from "next/link"
 
 const SHOWCASE_SECTIONS = [
@@ -111,6 +115,62 @@ const SHOWCASE_SECTIONS = [
     component: MockInviteModal,
     align: "left" as const,
   },
+  {
+    id: "sidebar",
+    badge: "Sidebar Navigation",
+    badgeIcon: PanelLeft,
+    badgeColor: "border-teal/30 bg-teal text-teal-foreground",
+    title: "Expanded Sidebar with Quick Access",
+    description:
+      "A rich sidebar navigation showcases the full menu structure with user profile dropdown expanded, activity badges, XP progress tracking, and organized navigation sections for quick access to all platform features.",
+    url: "gamejamcrew.com/find-members",
+    cursorPosition: { x: "18%", y: "28%" },
+    cursorLabel: "Profile menu open",
+    component: MockSidebarNav,
+    align: "right" as const,
+  },
+  {
+    id: "filters",
+    badge: "Filter Dropdowns",
+    badgeIcon: Filter,
+    badgeColor: "border-pink/30 bg-pink text-pink-foreground",
+    title: "Interactive Filter Menus",
+    description:
+      "Powerful filtering system with expandable dropdown menus. Select engines, roles, and experience levels with visual feedback showing active filters as removable chips for easy refinement.",
+    url: "gamejamcrew.com",
+    cursorPosition: { x: "22%", y: "48%" },
+    cursorLabel: "Selecting Godot",
+    component: MockDropdownMenu,
+    align: "left" as const,
+  },
+  {
+    id: "breadcrumbs",
+    badge: "Breadcrumb & Tabs",
+    badgeIcon: Navigation,
+    badgeColor: "border-peach/30 bg-peach text-peach-foreground",
+    title: "Contextual Navigation System",
+    description:
+      "Clear hierarchical breadcrumbs combined with tabbed navigation inside team pages. Users always know where they are and can quickly switch between chat, members, schedule, and settings.",
+    url: "gamejamcrew.com/teams/neon-runners",
+    cursorPosition: { x: "35%", y: "28%" },
+    cursorLabel: "Viewing members",
+    component: MockBreadcrumbTabs,
+    align: "right" as const,
+  },
+  {
+    id: "mobile",
+    badge: "Mobile Menu",
+    badgeIcon: Smartphone,
+    badgeColor: "border-mint/30 bg-mint text-mint-foreground",
+    title: "Touch-Friendly Mobile Navigation",
+    description:
+      "A beautifully designed mobile drawer menu slides in from the right with full navigation, user profile card with XP progress, activity badges, and quick actions -- optimized for touch interactions.",
+    url: "gamejamcrew.com (mobile)",
+    cursorPosition: { x: "72%", y: "38%" },
+    cursorLabel: "Find Members selected",
+    component: MockMobileNav,
+    align: "left" as const,
+  },
 ]
 
 export function ShowcaseShell() {
@@ -137,7 +197,7 @@ export function ShowcaseShell() {
             </h1>
 
             <p className="mx-auto mt-4 max-w-xl text-pretty text-lg leading-relaxed text-muted-foreground">
-              Explore every feature of the platform -- from finding your squad to managing applications. Each screenshot captures real user interactions across the entire experience.
+              Explore every feature of the platform through simulated user interactions. Each screenshot showcases navigation menus, dropdowns, sidebars, and tabs as real users would experience them.
             </p>
           </div>
         </section>
