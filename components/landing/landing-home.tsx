@@ -1,42 +1,16 @@
-"use client"
-
-import dynamic from "next/dynamic"
-import { Navbar } from "@/components/navbar"
-import { LandingHero } from "@/components/landing/landing-hero"
-import { cn } from "@/lib/utils"
-
-function BelowFoldSkeleton({ className }: { className?: string }) {
-  return (
-    <div
-      className={cn("w-full space-y-1", className)}
-      aria-hidden
-    >
-      <div className="h-[min(520px,85vh)] animate-pulse rounded-none bg-muted/25" />
-      <div className="h-80 animate-pulse bg-muted/20" />
-      <div className="h-96 animate-pulse bg-muted/25" />
-      <div className="h-72 animate-pulse bg-muted/20" />
-    </div>
-  )
-}
-
-const LandingBelowFold = dynamic(
-  () =>
-    import("@/components/landing/landing-below-fold").then((m) => ({
-      default: m.LandingBelowFold,
-    })),
-  {
-    ssr: true,
-    loading: () => <BelowFoldSkeleton />,
-  },
-)
+import { LandingNavbar } from "@/components/landing/landing-navbar"
+import { HeroSection } from "@/components/landing/hero-section"
+import { MakerSection } from "@/components/landing/maker-section"
+import { FeaturesSection } from "@/components/landing/features-section"
 
 export function LandingHome() {
   return (
-    <div className="flex min-h-screen flex-col">
-      <Navbar />
+    <div className="flex min-h-screen flex-col bg-[#f8fafc]">
+      <LandingNavbar />
       <main className="flex-1">
-        <LandingHero />
-        <LandingBelowFold />
+        <HeroSection />
+        <MakerSection />
+        <FeaturesSection />
       </main>
     </div>
   )

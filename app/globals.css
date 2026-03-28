@@ -1,10 +1,40 @@
 @import 'tailwindcss';
-/* @import 'tailwindcss-animate'; */
 
 @custom-variant dark (&:is(.dark *));
 
-/* Warm indie dark mode - itch.io / GDQuest inspired (défaut et .dark) */
-:root,
+/* ─── Landing page: Indie / Cozy light theme ─────────────────────────────── */
+:root {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+  --primary: #14b8a6;
+  --primary-foreground: #ffffff;
+  --secondary: #f1f5f9;
+  --secondary-foreground: #334155;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --accent: #fb923c;
+  --accent-foreground: #ffffff;
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.97 0.01 27);
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #14b8a6;
+  --radius: 0.75rem;
+
+  /* Landing palette */
+  --teal: #14b8a6;
+  --teal-foreground: #ffffff;
+  --coral: #fb923c;
+  --coral-foreground: #ffffff;
+  --lavender: #a78bfa;
+  --lavender-foreground: #ffffff;
+}
+
+/* Warm indie dark mode - itch.io / GDQuest inspired */
 .dark {
   /* Deep purple-grey background */
   --background: oklch(0.18 0.02 280);
@@ -144,7 +174,6 @@
 }
 
 @theme inline {
-  /* Aligne Tailwind font-sans avec next/font (variable injectée sur <body>) pour éviter FOUT / CLS */
   --font-sans: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, monospace;
   --color-background: var(--background);
@@ -163,42 +192,43 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
-  --color-success: var(--success);
-  --color-success-foreground: var(--success-foreground);
-  --color-warning: var(--warning);
-  --color-warning-foreground: var(--warning-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-pink: var(--pink);
-  --color-pink-foreground: var(--pink-foreground);
-  --color-teal: var(--teal);
-  --color-teal-foreground: var(--teal-foreground);
-  --color-lavender: var(--lavender);
-  --color-lavender-foreground: var(--lavender-foreground);
-  --color-peach: var(--peach);
-  --color-peach-foreground: var(--peach-foreground);
-  --color-mint: var(--mint);
-  --color-mint-foreground: var(--mint-foreground);
-  --color-card-hover-border: var(--card-hover-border);
-  --color-card-glow: var(--card-glow);
+
+  /* ── Landing palette — hex so Tailwind v4 generates full scale utilities ── */
+  --color-teal-50: #f0fdfa;
+  --color-teal-100: #ccfbf1;
+  --color-teal-200: #99f6e4;
+  --color-teal-300: #5eead4;
+  --color-teal-400: #2dd4bf;
+  --color-teal-500: #14b8a6;
+  --color-teal-600: #0d9488;
+  --color-teal-700: #0f766e;
+  --color-teal-800: #115e59;
+  --color-teal-900: #134e4a;
+
+  --color-coral-50: #fff7ed;
+  --color-coral-100: #ffedd5;
+  --color-coral-200: #fed7aa;
+  --color-coral-300: #fdba74;
+  --color-coral-400: #fb923c;
+  --color-coral-500: #f97316;
+  --color-coral-600: #ea580c;
+  --color-coral-700: #c2410c;
+
+  --color-lavender-50: #f5f3ff;
+  --color-lavender-100: #ede9fe;
+  --color-lavender-200: #ddd6fe;
+  --color-lavender-300: #c4b5fd;
+  --color-lavender-400: #a78bfa;
+  --color-lavender-500: #8b5cf6;
+  --color-lavender-600: #7c3aed;
+  --color-lavender-700: #6d28d9;
 }
 
 @layer base {
@@ -207,6 +237,15 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  /* Subtle dot grid — game design document aesthetic */
+  .dot-pattern {
+    background-image: radial-gradient(circle, #cbd5e1 1px, transparent 1px);
+    background-size: 24px 24px;
+    background-color: #f8fafc;
   }
 }
 
