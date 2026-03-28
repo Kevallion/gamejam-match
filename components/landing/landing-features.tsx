@@ -10,8 +10,8 @@ const features = [
     number: "01",
     title: "Assemble your Party.",
     description:
-      "Find the missing piece for your game. Filter by engine, role, and timezone to build the perfect crew before the jam clock starts.",
-    tags: ["By Engine", "By Role", "By Timezone"],
+      "Find the missing piece for your game. Filter by engine, role, and language to build the perfect crew before the jam clock starts.",
+    tags: ["By Engine", "By Role", "By Language"],
     accent: "border-teal",
     iconBg: "bg-teal/10 border-teal/30",
     iconColor: "text-teal",
@@ -23,7 +23,7 @@ const features = [
     number: "02",
     title: "The Squad Hideout.",
     description:
-      "A private space for your team to share ideas, post assets, and stay organized from kickoff to submission — whether the jam is 3 days or a whole month.",
+      "A private space for your team to share ideas, post assets, and stay organized from kickoff to submission, whether the jam is 3 days or a whole month.",
     tags: ["Asset Sharing", "Team Chat", "Progress Board"],
     accent: "border-lavender",
     iconBg: "bg-lavender/10 border-lavender/30",

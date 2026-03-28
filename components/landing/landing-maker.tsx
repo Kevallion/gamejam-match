@@ -1,6 +1,9 @@
 "use client"
 
+import Image from "next/image"
 import { Coffee, Code2 } from "lucide-react"
+
+import makerAvatar from "@/app/avataaar.png"
 
 const DOT_PATTERN = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Ccircle cx='2' cy='2' r='1.2' fill='%2394a3b8' fill-opacity='0.35'/%3E%3C/svg%3E")`
 
@@ -23,15 +26,16 @@ export function LandingMaker() {
             {/* Photo frame */}
             <div className="relative">
               {/* Offset shadow layer */}
-              <div className="absolute inset-0 translate-x-2 translate-y-2 rounded-2xl border-2 border-foreground bg-teal/20" />
-              <div className="relative flex size-52 items-center justify-center rounded-2xl border-2 border-foreground bg-card shadow-none overflow-hidden">
-                {/* Placeholder avatar illustration */}
-                <div className="flex flex-col items-center gap-3 text-muted-foreground">
-                  <div className="flex size-20 items-center justify-center rounded-full border-2 border-dashed border-slate-300 bg-muted text-4xl">
-                    🧑‍💻
-                  </div>
-                  <p className="text-xs font-medium text-muted-foreground">Your photo here</p>
-                </div>
+              <div className="absolute inset-0 translate-x-2 translate-y-2 rounded-full bg-teal/20" />
+              <div className="relative size-52 overflow-hidden rounded-full border-2 border-dotted border-foreground bg-card shadow-none">
+                <Image
+                  src={makerAvatar}
+                  alt="Wisllor"
+                  fill
+                  className="object-cover object-top"
+                  sizes="208px"
+                  priority
+                />
               </div>
             </div>
 
@@ -56,7 +60,7 @@ export function LandingMaker() {
             <h2 className="text-balance text-3xl font-extrabold tracking-tight text-foreground md:text-4xl">
               Hey, I&apos;m{" "}
               <span className="relative inline-block">
-                <span className="relative z-10 text-teal">[Your Name].</span>
+                <span className="relative z-10 text-teal">Wisllor.</span>
                 <span className="absolute inset-x-0 bottom-0 h-3 -z-0 bg-teal/10 rounded" />
               </span>{" "}
               I built this.

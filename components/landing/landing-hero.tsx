@@ -13,7 +13,7 @@ const roleCards = [
     emoji: "💻",
     role: "Godot Developer",
     engine: "Godot 4",
-    timezone: "UTC-5",
+    language: "English",
     badges: ["GDScript", "2D Physics"],
     accent: "border-teal bg-teal/5",
     badgeColor: "bg-teal/10 text-teal border-teal/30",
@@ -23,7 +23,7 @@ const roleCards = [
     emoji: "🎨",
     role: "2D Pixel Artist",
     engine: "Aseprite",
-    timezone: "UTC+1",
+    language: "Français",
     badges: ["Pixel Art", "Animation"],
     accent: "border-pink bg-pink/5",
     badgeColor: "bg-pink/10 text-pink border-pink/30",
@@ -33,7 +33,7 @@ const roleCards = [
     emoji: "🎵",
     role: "Audio Wizard",
     engine: "FMOD",
-    timezone: "UTC+0",
+    language: "Español",
     badges: ["SFX", "Music"],
     accent: "border-lavender bg-lavender/5",
     badgeColor: "bg-lavender/10 text-lavender border-lavender/30",
@@ -147,7 +147,7 @@ function RoleCard({ card }: { card: (typeof roleCards)[number] }) {
           <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
             <span>{card.engine}</span>
             <span>&bull;</span>
-            <span>{card.timezone}</span>
+            <span>{card.language}</span>
           </div>
           <div className="mt-2 flex flex-wrap gap-1.5">
             {card.badges.map((b) => (
