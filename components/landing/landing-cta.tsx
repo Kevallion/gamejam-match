@@ -1,191 +1,110 @@
 "use client"
 
-import { motion, useInView } from "framer-motion"
-import { useRef, useState } from "react"
 import { Gamepad2, LogIn, Zap, Star, Sparkles } from "lucide-react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { AuthModal } from "@/components/auth-modal"
 
+/**
+ * LandingCTA - Neo-brutalist final call-to-action with chunky card and offset shadows.
+ * Encourages users to join and find their gaming squad.
+ */
 export function LandingCTA() {
-  const ref = useRef(null)
-  const isInView = useInView(ref, { once: true, margin: "-100px" })
   const [authModalOpen, setAuthModalOpen] = useState(false)
 
   return (
-    <section ref={ref} className="relative overflow-hidden px-4 py-20 lg:px-6 lg:py-32">
-      {/* Animated background */}
-      <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-        <motion.div
-          className="absolute left-1/2 top-1/2 size-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-teal/10 blur-[150px]"
-          animate={{
-            scale: [1, 1.1, 1],
-            opacity: [0.3, 0.4, 0.3],
-          }}
-          transition={{
-            duration: 6,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-        <motion.div
-          className="absolute left-1/4 top-1/2 size-[400px] -translate-y-1/2 rounded-full bg-peach/10 blur-[100px]"
-          animate={{
-            scale: [1, 1.15, 1],
-            x: ["0%", "10%", "0%"],
-          }}
-          transition={{
-            duration: 8,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: 1,
-          }}
-        />
-        <motion.div
-          className="absolute right-1/4 top-1/2 size-[400px] -translate-y-1/2 rounded-full bg-lavender/10 blur-[100px]"
-          animate={{
-            scale: [1, 1.15, 1],
-            x: ["0%", "-10%", "0%"],
-          }}
-          transition={{
-            duration: 8,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: 2,
-          }}
-        />
+    <section className="relative w-full py-20 px-4 md:px-8 bg-background overflow-hidden">
+      {/* Decorative dot pattern background */}
+      <div className="absolute inset-0 opacity-20 pointer-events-none">
+        <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="dots-cta" x="40" y="40" width="40" height="40" patternUnits="userSpaceOnUse">
+              <circle cx="2" cy="2" r="1" fill="currentColor" className="text-muted-foreground/40" />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#dots-cta)" />
+        </svg>
       </div>
 
-      <div className="relative mx-auto max-w-4xl">
-        {/* Main CTA card */}
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.7 }}
-          className="relative"
-        >
-          {/* Card glow */}
-          <div className="absolute -inset-1 rounded-3xl bg-gradient-to-r from-teal/30 via-primary/20 to-peach/30 blur-xl opacity-50" />
-          
-          {/* Card */}
-          <div className="relative rounded-3xl border border-border/60 bg-card/80 backdrop-blur-xl p-8 md:p-12 lg:p-16 text-center">
+      <div className="max-w-4xl mx-auto relative z-10">
+        {/* Main CTA card - neo-brutalist chunky */}
+        <div className="relative">
+          {/* Main card with thick borders */}
+          <div className="border-4 border-foreground p-8 md:p-12 bg-card">
             {/* Floating badge */}
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              className="absolute -top-4 left-1/2 -translate-x-1/2"
-            >
-              <div className="flex items-center gap-2 rounded-full border border-teal/40 bg-card px-4 py-2 shadow-lg">
-                <Sparkles className="size-4 text-teal" />
+            <div className="absolute -top-5 left-8 md:left-12">
+              <div className="inline-flex items-center gap-2 px-4 py-2 border-2 border-foreground bg-background">
+                <Sparkles className="w-4 h-4 text-primary" />
                 <span className="text-sm font-semibold text-foreground">Your next jam awaits</span>
               </div>
-            </motion.div>
+            </div>
 
-            {/* Icon */}
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={isInView ? { scale: 1 } : {}}
-              transition={{ duration: 0.5, delay: 0.2, type: "spring" }}
-              className="mx-auto mb-6 flex size-20 items-center justify-center rounded-2xl bg-gradient-to-br from-teal/20 to-primary/20 border border-teal/30"
-            >
-              <Gamepad2 className="size-10 text-teal" />
-            </motion.div>
+            {/* Content wrapper */}
+            <div className="text-center">
+              {/* Icon */}
+              <div className="inline-flex items-center justify-center w-20 h-20 border-3 border-foreground bg-muted mb-8 mx-auto">
+                <Gamepad2 className="w-10 h-10 text-primary" />
+              </div>
 
-            {/* Headline */}
-            <motion.h2
-              initial={{ opacity: 0, y: 20 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              className="text-balance text-3xl font-extrabold tracking-tight text-foreground md:text-4xl lg:text-5xl"
-            >
-              Ready to find your
-              <br />
-              <span className="bg-gradient-to-r from-teal via-primary to-lavender bg-clip-text text-transparent">
-                dream squad?
-              </span>
-            </motion.h2>
+              {/* Headline */}
+              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+                Ready to find your
+                <br />
+                <span className="text-primary">dream squad?</span>
+              </h2>
 
-            {/* Description */}
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.6, delay: 0.4 }}
-              className="mx-auto mt-4 max-w-xl text-pretty text-lg leading-relaxed text-muted-foreground"
-            >
-              Stop searching Discord servers and Reddit threads. Join the platform built specifically for game jam team building.
-            </motion.p>
+              {/* Description */}
+              <p className="text-muted-foreground max-w-xl mx-auto mb-8">
+                Stop searching Discord servers and Reddit threads. Join the platform built specifically for game jam team building.
+              </p>
 
-            {/* CTA Buttons */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ duration: 0.6, delay: 0.5 }}
-              className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row"
-            >
-              <Button
-                type="button"
-                size="lg"
+              {/* CTA Button */}
+              <button
                 onClick={() => setAuthModalOpen(true)}
-                className="h-14 min-w-[220px] gap-2 rounded-2xl bg-teal px-8 text-base font-semibold text-teal-foreground shadow-xl shadow-teal/25 transition-all hover:bg-teal/90 hover:shadow-teal/35 hover:scale-[1.02]"
+                className="inline-flex items-center gap-2 px-8 py-3 border-2 border-foreground bg-primary text-primary-foreground font-bold text-base hover:bg-primary/90 transition-colors shadow-[4px_4px_0px_var(--neo-shadow)]"
               >
-                <LogIn className="size-5" />
+                <LogIn className="w-5 h-5" />
                 Sign In
-              </Button>
-            </motion.div>
+              </button>
+            </div>
 
             {/* Trust badges */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={isInView ? { opacity: 1 } : {}}
-              transition={{ duration: 0.8, delay: 0.7 }}
-              className="mt-10 flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground"
-            >
-              <div className="flex items-center gap-2">
-                <Zap className="size-4 text-teal" />
-                <span>Free to use</span>
+            <div className="mt-12 pt-8 border-t-2 border-foreground grid grid-cols-3 gap-4 md:gap-8">
+              <div className="flex flex-col items-center">
+                <Zap className="w-5 h-5 text-primary mb-2" />
+                <span className="text-xs md:text-sm font-semibold text-foreground">Free to use</span>
               </div>
-              <div className="h-4 w-px bg-border" />
-              <div className="flex items-center gap-2">
-                <Star className="size-4 text-peach" />
-                <span>No credit card</span>
+              <div className="flex flex-col items-center">
+                <Star className="w-5 h-5 text-accent mb-2" />
+                <span className="text-xs md:text-sm font-semibold text-foreground">No credit card</span>
               </div>
-              <div className="h-4 w-px bg-border" />
-              <div className="flex items-center gap-2">
-                <Sparkles className="size-4 text-lavender" />
-                <span>Instant setup</span>
+              <div className="flex flex-col items-center">
+                <Sparkles className="w-5 h-5 text-lavender mb-2" />
+                <span className="text-xs md:text-sm font-semibold text-foreground">Instant setup</span>
               </div>
-            </motion.div>
-
-            {/* Corner decorations */}
-            <div className="absolute left-4 top-4 size-20 rounded-full bg-teal/5 blur-2xl" />
-            <div className="absolute right-4 bottom-4 size-20 rounded-full bg-peach/5 blur-2xl" />
+            </div>
           </div>
-        </motion.div>
 
-        {/* Bottom pattern */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={isInView ? { opacity: 1 } : {}}
-          transition={{ duration: 1, delay: 0.8 }}
-          className="mt-16 flex justify-center gap-3"
-        >
+          {/* Offset shadow layer 1 */}
+          <div className="absolute -bottom-3 -right-3 w-full h-full border-3 border-foreground -z-10 opacity-50" />
+
+          {/* Offset shadow layer 2 */}
+          <div className="absolute -bottom-6 -right-6 w-full h-full border-2 border-foreground/30 -z-20 opacity-30" />
+        </div>
+
+        {/* Bottom decorative element */}
+        <div className="mt-16 flex justify-center gap-3">
           {[...Array(5)].map((_, i) => (
-            <motion.div
+            <div
               key={i}
-              className="size-2 rounded-full bg-primary/20"
-              animate={{
-                scale: [1, 1.5, 1],
-                opacity: [0.3, 0.6, 0.3],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                delay: i * 0.2,
-                ease: "easeInOut",
+              className="w-2 h-2 border-2 border-foreground/60 rounded-full"
+              style={{
+                animation: `pulse 2s ease-in-out ${i * 0.2}s infinite`,
+                opacity: 0.4 + (i * 0.1)
               }}
             />
           ))}
-        </motion.div>
+        </div>
       </div>
 
       <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
