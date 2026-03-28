@@ -1,7 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { Sword, Gamepad2, Palette, Music, Code2, Sparkles } from "lucide-react"
+import Link from "next/link"
+import { Sword, Gamepad2, Code2, Sparkles, BookOpen } from "lucide-react"
 import { AuthModal } from "@/components/auth-modal"
 import { Button } from "@/components/ui/button"
 
@@ -88,6 +89,15 @@ export function LandingHero() {
               >
                 <Sparkles className="mr-2 size-5" />
                 Find your Squad 🚀
+              </Button>
+              <Button
+                asChild
+                className="h-14 min-w-[220px] rounded-lg border-2 border-foreground bg-card px-8 text-base font-extrabold text-foreground shadow-[4px_4px_0px_0px_var(--neo-shadow)] transition-all hover:-translate-y-0.5 hover:shadow-[5px_5px_0px_0px_var(--neo-shadow)] active:translate-y-0 active:shadow-[2px_2px_0px_0px_var(--neo-shadow)]"
+              >
+                <Link href="/showcase">
+                  <BookOpen className="size-5" />
+                  How it works
+                </Link>
               </Button>
             </div>
 

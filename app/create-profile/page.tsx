@@ -1,5 +1,5 @@
 import { Navbar } from "@/components/navbar"
-import { AvailabilityForm } from "@/components/availability-form"
+import { CreateProfileAvailabilitySection } from "@/components/create-profile-availability-section"
 import { UserCheck } from "lucide-react"
 import type { Metadata } from "next"
 
@@ -54,7 +54,7 @@ export default function AvailabilityPage() {
         {/* Form */}
         <section className="px-4 pb-16 pt-4 lg:px-6 lg:pb-24">
           <div className="mx-auto max-w-2xl">
-            <AvailabilityForm />
+            <CreateProfileAvailabilitySection />
           </div>
         </section>
       </main>

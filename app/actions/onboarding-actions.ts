@@ -62,7 +62,8 @@ export async function completeOnboarding(
   const pickedDefaultLanguage = input.defaultLanguage?.trim() || null
   const pickedDiscord = input.discordUsername?.trim() || null
   const pickedPortfolio = input.portfolioUrl?.trim() || null
-  const publishImmediately = input.publishImmediately !== false
+  // Only insert when the client explicitly sends true (avoids accidental defaults).
+  const publishImmediately = input.publishImmediately === true
 
   const { data: existingProfile } = await supabase
     .from("profiles")

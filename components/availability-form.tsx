@@ -234,6 +234,7 @@ export function AvailabilityForm() {
         .from("availability_posts")
         .select("*", { count: "exact", head: true })
         .eq("user_id", user.id)
+        .gte("expires_at", new Date().toISOString())
 
       if (countError) {
         toast.error("Could not check your announcements.", { description: countError.message })

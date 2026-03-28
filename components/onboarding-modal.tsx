@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Progress } from "@/components/ui/progress"
 import { Switch } from "@/components/ui/switch"
+import { Card, CardContent } from "@/components/ui/card"
 import {
   Select,
   SelectContent,
@@ -40,6 +41,7 @@ import {
   Search,
   User,
   UserSearch,
+  Users,
 } from "lucide-react"
 
 interface OnboardingModalProps {
@@ -99,7 +101,7 @@ export function OnboardingModal({ open, onOpenChange, profile }: OnboardingModal
   const [defaultLanguage, setDefaultLanguage] = useState("")
   const [discordUsername, setDiscordUsername] = useState("")
   const [portfolioUrl, setPortfolioUrl] = useState("")
-  const [publishImmediately, setPublishImmediately] = useState(true)
+  const [publishImmediately, setPublishImmediately] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
@@ -114,7 +116,7 @@ export function OnboardingModal({ open, onOpenChange, profile }: OnboardingModal
     setDefaultLanguage(profile?.default_language?.trim() ?? "")
     setDiscordUsername(profile?.discord_username?.trim() ?? "")
     setPortfolioUrl(profile?.portfolio_url?.trim() ?? "")
-    setPublishImmediately(true)
+    setPublishImmediately(false)
     setIsSubmitting(false)
   }, [
     open,
@@ -431,22 +433,48 @@ export function OnboardingModal({ open, onOpenChange, profile }: OnboardingModal
                 </div>
               </div>
 
-              <div className="flex items-start justify-between gap-4 rounded-2xl border border-lavender/20 bg-lavender/5 p-4">
-                <div className="space-y-1">
-                  <Label htmlFor="publish-immediately" className="cursor-pointer text-sm font-medium text-foreground">
-                    Publish my profile to the Find Members page immediately
-                  </Label>
-                  <p className="text-sm text-muted-foreground">
-                    Get discovered by teams looking for your skills right now.
-                  </p>
-                </div>
-                <Switch
-                  id="publish-immediately"
-                  checked={publishImmediately}
-                  onCheckedChange={setPublishImmediately}
-                  className="mt-1 data-[state=checked]:bg-lavender"
-                />
-              </div>
+              <Card
+                className={cn(
+                  "overflow-hidden rounded-2xl border-2 shadow-sm transition-colors",
+                  publishImmediately
+                    ? "border-lavender/50 bg-lavender/10 shadow-lavender/10"
+                    : "border-border/80 bg-muted/40",
+                )}
+              >
+                <CardContent className="p-4 sm:p-5">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+                    <div className="min-w-0 flex-1 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-lavender/15 text-lavender">
+                          <Users className="size-4" />
+                        </div>
+                        <Label
+                          htmlFor="publish-immediately"
+                          className="cursor-pointer text-base font-semibold leading-snug text-foreground"
+                        >
+                          Publish my profile to the &apos;Members&apos; list immediately
+                        </Label>
+                      </div>
+                      <p
+                        id="publish-immediately-description"
+                        className="text-sm leading-relaxed text-muted-foreground pl-0 sm:pl-11"
+                      >
+                        If active, we will automatically create an availability post for you so teams can start
+                        recruiting you right away. You can manage or delete this later in your Dashboard.
+                      </p>
+                    </div>
+                    <div className="flex shrink-0 items-center justify-end sm:pt-1">
+                      <Switch
+                        id="publish-immediately"
+                        checked={publishImmediately}
+                        onCheckedChange={setPublishImmediately}
+                        className="data-[state=checked]:bg-lavender"
+                        aria-describedby="publish-immediately-description"
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           )}
 
