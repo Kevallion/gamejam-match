@@ -1,132 +1,184 @@
 "use client"
 
-import { Users, MessageCircle, Trophy } from "lucide-react"
+import { motion, useInView } from "framer-motion"
+import { useRef } from "react"
+import type { LucideIcon } from "lucide-react"
+import { UserCircle, Search, Rocket, ArrowRight, Check, Sparkles } from "lucide-react"
 
-/**
- * LandingHowItWorks - Neo-brutalist 3-step process with solid borders and dashed connectors.
- * Shows how GameJamCrew works: Find → Connect → Create → Win.
- */
+const STEP_COLOR_CLASSES = {
+  teal: {
+    bg: "bg-teal/10",
+    text: "text-teal",
+    border: "border-teal/30",
+    glow: "shadow-teal/20",
+  },
+  peach: {
+    bg: "bg-peach/10",
+    text: "text-peach",
+    border: "border-peach/30",
+    glow: "shadow-peach/20",
+  },
+  lavender: {
+    bg: "bg-lavender/10",
+    text: "text-lavender",
+    border: "border-lavender/30",
+    glow: "shadow-lavender/20",
+  },
+} as const
+
+type StepColor = keyof typeof STEP_COLOR_CLASSES
+
+type HowItWorksStep = {
+  number: string
+  icon: LucideIcon
+  title: string
+  description: string
+  color: StepColor
+  details: string[]
+}
+
+const steps: HowItWorksStep[] = [
+  {
+    number: "01",
+    icon: UserCircle,
+    title: "Create Your Profile",
+    description: "Set up your jammer profile with your skills, preferred engines, experience level, and the roles you want to play or are seeking.",
+    color: "teal",
+    details: ["Showcase your skills", "Set your availability", "Choose preferred engines"],
+  },
+  {
+    number: "02",
+    icon: Search,
+    title: "Find Your Team",
+    description: "Browse teams looking for members or post your own squad. Use filters to find the perfect match for your playstyle and goals.",
+    color: "peach",
+    details: ["Browse open teams", "Filter by role & engine", "Send direct invites"],
+  },
+  {
+    number: "03",
+    icon: Rocket,
+    title: "Jam Together",
+    description: "Connect with your teammates, coordinate your jam strategy, and ship an amazing game. Level up and earn XP along the way!",
+    color: "lavender",
+    details: ["Real-time coordination", "Track your progress", "Earn XP rewards"],
+  },
+]
+
 export function LandingHowItWorks() {
-  const steps = [
-    {
-      number: "01",
-      title: "Find Your Match",
-      description: "Browse talented creators and apply to squads that match your skills and vibe.",
-      icon: Users,
-      color: "text-teal"
-    },
-    {
-      number: "02",
-      title: "Connect & Collaborate",
-      description: "Chat with teammates, share ideas, and build something epic together in real-time.",
-      icon: MessageCircle,
-      color: "text-accent"
-    },
-    {
-      number: "03",
-      title: "Ship & Earn Badges",
-      description: "Submit your game, celebrate your victory, and unlock badges for your crew.",
-      icon: Trophy,
-      color: "text-primary"
-    }
-  ]
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, margin: "-100px" })
 
   return (
-    <section className="relative w-full py-20 px-4 md:px-8 bg-background overflow-hidden">
-      {/* Decorative dot pattern background */}
-      <div className="absolute inset-0 opacity-25 pointer-events-none">
-        <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <pattern id="dots-steps" x="40" y="40" width="40" height="40" patternUnits="userSpaceOnUse">
-              <circle cx="2" cy="2" r="1" fill="currentColor" className="text-muted-foreground/40" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#dots-steps)" />
-        </svg>
+    <section ref={ref} className="relative overflow-hidden px-4 py-20 lg:px-6 lg:py-32 bg-muted/30">
+      {/* Background pattern */}
+      <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+        <div 
+          className="absolute inset-0 opacity-[0.015]"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          }}
+        />
       </div>
 
-      <div className="max-w-6xl mx-auto relative z-10">
+      <div className="relative mx-auto max-w-6xl">
         {/* Section header */}
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 px-4 py-2 border-2 border-foreground bg-background mb-6">
-            <span className="text-sm font-semibold text-foreground">How It Works</span>
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6 }}
+          className="mx-auto max-w-3xl text-center mb-16"
+        >
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-teal/30 bg-teal/10 px-4 py-1.5 text-sm font-medium text-teal">
+            <Sparkles className="size-4" />
+            Simple Process
           </div>
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-            Your Path to Gaming Glory
+          <h2 className="text-balance text-3xl font-extrabold tracking-tight text-foreground md:text-4xl lg:text-5xl">
+            From solo to squad
+            <br />
+            <span className="text-primary">in three steps</span>
           </h2>
-          <p className="text-muted-foreground max-w-xl mx-auto">
-            Four simple steps to assemble your squad and create unforgettable games.
+          <p className="mx-auto mt-4 max-w-xl text-pretty text-lg leading-relaxed text-muted-foreground">
+            Getting started is easy. Create a profile, find your perfect team, and start jamming.
           </p>
-        </div>
+        </motion.div>
 
-        {/* Steps grid */}
+        {/* Steps */}
         <div className="relative">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-4 mb-12">
+          {/* Connection line - desktop */}
+          <div className="absolute left-1/2 top-[60px] hidden h-[calc(100%-120px)] w-px -translate-x-1/2 bg-gradient-to-b from-teal via-peach to-lavender opacity-30 lg:block" />
+
+          <div className="flex flex-col gap-12 lg:gap-0">
             {steps.map((step, index) => {
-              const Icon = step.icon
+              const colorClasses = STEP_COLOR_CLASSES[step.color]
+
+              const isEven = index % 2 === 0
+
               return (
-                <div key={index} className="relative">
-                  {/* Dashed connector line (hidden on mobile, shown on md+) */}
-                  {index < steps.length - 1 && (
-                    <div className="hidden md:block absolute top-12 -right-4 w-8 h-0.5">
-                      <svg className="w-full h-full" viewBox="0 0 32 2" preserveAspectRatio="none">
-                        <line
-                          x1="0"
-                          y1="1"
-                          x2="32"
-                          y2="1"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeDasharray="4,4"
-                          className="text-border"
-                        />
-                      </svg>
-                    </div>
-                  )}
+                <motion.div
+                  key={step.number}
+                  initial={{ opacity: 0, x: isEven ? -30 : 30 }}
+                  animate={isInView ? { opacity: 1, x: 0 } : {}}
+                  transition={{ duration: 0.6, delay: index * 0.2 }}
+                  className={`relative flex flex-col items-center gap-6 lg:flex-row lg:gap-12 ${
+                    !isEven ? "lg:flex-row-reverse" : ""
+                  }`}
+                >
+                  {/* Content card */}
+                  <div className={`flex-1 ${isEven ? "lg:text-right" : "lg:text-left"}`}>
+                    <div className={`inline-block rounded-2xl border ${colorClasses.border} bg-card p-6 shadow-xl ${colorClasses.glow} max-w-md ${isEven ? "lg:ml-auto" : ""}`}>
+                      {/* Step number */}
+                      <span className={`text-5xl font-extrabold ${colorClasses.text} opacity-20`}>
+                        {step.number}
+                      </span>
+                      
+                      <h3 className="mt-2 text-xl font-bold text-foreground">
+                        {step.title}
+                      </h3>
+                      <p className="mt-2 text-muted-foreground leading-relaxed">
+                        {step.description}
+                      </p>
 
-                  {/* Step card */}
-                  <div className="border-2 border-foreground p-6 bg-card relative group">
-                    {/* Step number label */}
-                    <div className="absolute -top-4 -left-4 w-12 h-12 border-2 border-foreground bg-background flex items-center justify-center">
-                      <span className="text-xs font-bold text-foreground font-mono">{step.number}</span>
+                      {/* Details list */}
+                      <ul className={`mt-4 space-y-2 ${isEven ? "lg:ml-auto lg:text-right" : ""}`}>
+                        {step.details.map((detail) => (
+                          <li
+                            key={detail}
+                            className={`flex items-center gap-2 text-sm text-muted-foreground ${
+                              isEven ? "lg:flex-row-reverse" : ""
+                            }`}
+                          >
+                            <Check className={`size-4 ${colorClasses.text}`} />
+                            {detail}
+                          </li>
+                        ))}
+                      </ul>
                     </div>
-
-                    {/* Icon circle */}
-                    <div className="w-16 h-16 border-2 border-foreground mb-4 flex items-center justify-center bg-muted">
-                      <Icon className={`w-8 h-8 ${step.color}`} />
-                    </div>
-
-                    {/* Content */}
-                    <h3 className="text-lg font-bold text-foreground mb-2">{step.title}</h3>
-                    <p className="text-sm text-muted-foreground">{step.description}</p>
                   </div>
 
-                  {/* Offset shadow */}
-                  <div className="absolute -bottom-2 -right-2 w-full h-full border-2 border-foreground -z-10 opacity-30" />
-                </div>
+                  {/* Center icon */}
+                  <div className="relative z-10 flex flex-col items-center">
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={isInView ? { scale: 1 } : {}}
+                      transition={{ duration: 0.4, delay: index * 0.2 + 0.3 }}
+                      className={`flex size-20 items-center justify-center rounded-2xl border-2 ${colorClasses.border} ${colorClasses.bg} shadow-xl ${colorClasses.glow}`}
+                    >
+                      <step.icon className={`size-9 ${colorClasses.text}`} />
+                    </motion.div>
+                    
+                    {/* Arrow to next step */}
+                    {index < steps.length - 1 && (
+                      <div className="mt-4 lg:hidden">
+                        <ArrowRight className="size-6 rotate-90 text-muted-foreground/40" />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Spacer for alignment */}
+                  <div className="hidden flex-1 lg:block" />
+                </motion.div>
               )
             })}
-          </div>
-
-          {/* Final step - "Your Next Jam Awaits" */}
-          <div className="relative mt-12 md:mt-20">
-            <div className="border-2 border-foreground p-8 bg-gradient-to-br from-primary/10 to-accent/10">
-              <div className="flex items-start gap-6">
-                <div className="w-20 h-20 border-2 border-foreground flex items-center justify-center bg-background flex-shrink-0">
-                  <span className="text-2xl font-bold text-primary">✓</span>
-                </div>
-                <div>
-                  <h3 className="text-2xl font-bold text-foreground mb-2">Your next jam awaits</h3>
-                  <p className="text-muted-foreground mb-4">
-                    Every game jam is an opportunity to grow, connect, and create something incredible. Ready to level up?
-                  </p>
-                  <button className="px-6 py-2 border-2 border-foreground bg-primary text-primary-foreground font-bold text-sm hover:bg-primary/90 transition-colors">
-                    Start Your Journey
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div className="absolute -bottom-3 -right-3 w-full h-full border-2 border-foreground -z-10 opacity-40" />
           </div>
         </div>
       </div>
