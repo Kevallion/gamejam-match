@@ -71,7 +71,7 @@ export function TeamCard({
   isRecommended = false,
 }: {
   team: TeamCardData
-  /** Mise en avant Perfect Match (liste recommandee). */
+  /** Mise en avant « Perfect Match » (liste recommandée). */
   isRecommended?: boolean
 }) {
   const [detailsOpen, setDetailsOpen] = useState(false)
@@ -140,7 +140,7 @@ export function TeamCard({
       ownerUserId={team.user_id}
       isRecommended={isRecommended}
     >
-      <Button className="w-full gap-2 rounded-lg border-2 border-foreground bg-teal font-bold text-white shadow-[3px_3px_0px_0px_var(--neo-shadow)] transition-all hover:-translate-y-0.5 hover:bg-teal/90 hover:shadow-[4px_4px_0px_0px_var(--neo-shadow)]">
+      <Button className="w-full gap-2 rounded-xl bg-primary text-primary-foreground transition-all hover:bg-primary/85 hover:gap-3">
         Apply
         <ArrowRight className="size-4" />
       </Button>
@@ -149,20 +149,20 @@ export function TeamCard({
 
   const dialogBody = (
     <div className="flex max-h-[min(90vh,720px)] flex-col">
-      <DialogHeader className="shrink-0 space-y-0 border-b-2 border-dashed border-slate-300 px-6 pb-4 pt-6 text-left">
+      <DialogHeader className="shrink-0 space-y-0 border-b border-border/60 px-6 pb-4 pt-6 text-left">
         <div className="flex items-start justify-between gap-3 pr-10">
           <div className="min-w-0 flex-1">
             <DialogTitle className="truncate text-xl font-extrabold text-foreground">
               {team.name}
             </DialogTitle>
-            <p className="mt-0.5 truncate text-sm font-bold text-teal">{team.jam}</p>
+            <p className="mt-0.5 truncate text-sm font-semibold text-primary">{team.jam}</p>
           </div>
           <div className="flex shrink-0 flex-col items-end gap-2">
             {isRecommended && (
               <Badge
                 variant="outline"
                 aria-label="Perfect match for your profile"
-                className="shrink-0 gap-1 rounded-lg border-2 border-foreground bg-teal/10 px-2 py-0.5 text-xs font-bold text-teal shadow-[2px_2px_0px_0px_var(--neo-shadow)]"
+                className="shrink-0 gap-1 border-teal/20 bg-teal/10 text-xs font-semibold text-teal"
               >
                 <Sparkles className="size-3" aria-hidden />
                 Perfect Match
@@ -171,7 +171,7 @@ export function TeamCard({
             {team.user_id && team.ownerProfileExists !== false && (
               <Link
                 href={`/jammer/${team.user_id}`}
-                className="inline-flex max-w-[12rem] items-center gap-2 rounded-lg border-2 border-foreground bg-card px-2.5 py-1.5 transition-all hover:-translate-y-0.5 hover:shadow-[2px_2px_0px_0px_var(--neo-shadow)]"
+                className="inline-flex max-w-[12rem] items-center gap-2 rounded-lg border border-border/60 bg-card/70 px-2.5 py-1.5 transition-colors hover:bg-muted/50"
               >
                 <UserAvatar
                   src={team.ownerAvatarUrl ?? null}
@@ -179,7 +179,7 @@ export function TeamCard({
                   size="sm"
                 />
                 <div className="min-w-0 text-left">
-                  <p className="truncate text-xs font-bold text-foreground">
+                  <p className="truncate text-xs font-semibold text-foreground">
                     {team.ownerUsername || "Team owner"}
                   </p>
                   <p className="truncate text-[10px] text-muted-foreground">
@@ -196,7 +196,7 @@ export function TeamCard({
             variant="outline"
             title={jamPendingTitle}
             className={cn(
-              "mt-2 w-fit rounded-lg border-2 border-foreground px-2.5 py-0.5 text-xs font-bold",
+              "mt-2 w-fit rounded-full px-2.5 py-0.5 text-xs font-semibold",
               jamStatus.badgeClassName,
             )}
           >
@@ -210,33 +210,33 @@ export function TeamCard({
           <div className="flex flex-wrap gap-2">
             <Badge
               variant="outline"
-              className="inline-flex items-center gap-1.5 rounded-lg border-2 border-foreground bg-lavender/20 px-3 py-1 text-xs font-bold text-lavender-foreground"
+              className="inline-flex items-center gap-1.5 rounded-full border-border/60 bg-lavender/20 px-3 py-1 text-xs font-semibold text-lavender-foreground"
             >
               <Cpu className="size-3.5" />
               {team.engine}
             </Badge>
             <Badge
               variant="outline"
-              className="inline-flex items-center gap-1.5 rounded-lg border-2 border-foreground bg-teal/10 px-3 py-1 text-xs font-bold text-teal"
+              className="inline-flex items-center gap-1.5 rounded-full border-border/60 bg-teal/10 px-3 py-1 text-xs font-semibold text-teal"
             >
               <Globe className="size-3.5" />
               {team.language}
             </Badge>
             <span
-              className={`inline-flex items-center gap-1 rounded-lg border-2 border-foreground px-3 py-1 text-xs font-bold ${team.level.color}`}
+              className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold ${team.level.color}`}
             >
               {team.level.emoji} {team.level.label}
             </span>
             {team.teamVibe && (
               <span
-                className={`inline-flex items-center gap-1 rounded-lg border-2 border-foreground px-3 py-1 text-xs font-bold ${team.teamVibe.color}`}
+                className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold ${team.teamVibe.color}`}
               >
                 {team.teamVibe.emoji} {team.teamVibe.label}
               </span>
             )}
             <Badge
               variant="outline"
-              className="inline-flex items-center gap-1.5 rounded-lg border-2 border-foreground text-xs font-bold text-muted-foreground"
+              className="inline-flex items-center gap-1.5 rounded-full border-border/60 text-xs text-muted-foreground"
             >
               <Users className="size-3" />
               {team.members}/{team.maxMembers} members
@@ -257,20 +257,20 @@ export function TeamCard({
                 <li
                   key={`${role.key}-${index}`}
                   className={cn(
-                    "flex items-center gap-2 rounded-lg border-2 border-foreground px-3 py-2 text-sm transition-colors",
-                    role.filled ? "bg-muted/50 opacity-60" : "bg-card",
+                    "flex items-center gap-2 rounded-xl border border-border/40 px-3 py-2 text-sm transition-colors",
+                    role.filled ? "bg-muted/50 opacity-60" : "bg-secondary/30",
                   )}
                 >
                   <span
                     className={cn(
-                      "inline-flex items-center gap-1.5 rounded-lg px-2 py-0.5 text-xs font-bold",
+                      "inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-semibold",
                       role.filled ? "opacity-40" : role.color,
                     )}
                   >
                     {role.emoji} {role.label}
                   </span>
                   {role.filled && (
-                    <span className="ml-auto text-xs font-bold text-muted-foreground">Filled</span>
+                    <span className="ml-auto text-xs text-muted-foreground">Filled</span>
                   )}
                 </li>
               ))}
@@ -282,10 +282,10 @@ export function TeamCard({
         </div>
       </ScrollArea>
 
-      <div className="shrink-0 border-t-2 border-dashed border-slate-300 bg-muted/20 px-6 py-4">
+      <div className="shrink-0 border-t border-border/60 bg-muted/20 px-6 py-4">
         {isSquadFull ? (
-          <div className="flex w-full items-center justify-center gap-2 rounded-lg border-2 border-foreground bg-muted/50 px-4 py-3 text-sm font-bold text-muted-foreground">
-            <ShieldCheck className="size-4 text-teal" />
+          <div className="flex w-full items-center justify-center gap-2 rounded-xl border border-border/60 bg-muted/50 px-4 py-3 text-sm font-bold text-muted-foreground">
+            <ShieldCheck className="size-4 text-primary" />
             Squad full
           </div>
         ) : (
@@ -310,27 +310,27 @@ export function TeamCard({
           }
         }}
         className={cn(
-          "group relative flex h-full cursor-pointer flex-col rounded-xl border-2 border-foreground bg-card p-5 outline-none shadow-[4px_4px_0px_0px_var(--neo-shadow)] transition-all hover:-translate-y-1 hover:shadow-[6px_6px_0px_0px_var(--neo-shadow)] focus-visible:ring-2 focus-visible:ring-teal focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+          "card-interactive group relative flex h-full cursor-pointer flex-col rounded-xl border border-border/60 bg-card p-5 outline-none transition-all focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
           isRecommended &&
-            "border-teal bg-teal/5",
+            "border-teal/40 bg-gradient-to-br from-card to-teal/5 shadow-[0_0_18px_-4px_rgba(20,184,166,0.12)]",
         )}
       >
         <div className="mb-3.5 flex min-w-0 items-start justify-between gap-2.5">
           <div className="min-w-0 flex-1">
             <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-              <h3 className="truncate text-base font-extrabold text-foreground">{team.name}</h3>
+              <h3 className="truncate text-base font-bold text-foreground">{team.name}</h3>
               {isRecommended && (
                 <Badge
                   variant="outline"
                   aria-label="Perfect match for your profile"
-                  className="shrink-0 gap-0.5 rounded-lg border-2 border-foreground bg-teal/10 px-1.5 py-0 text-[10px] font-bold text-teal"
+                  className="shrink-0 gap-0.5 border-teal/20 bg-teal/10 px-1.5 py-0 text-[10px] font-semibold text-teal"
                 >
                   <Sparkles className="size-2.5" aria-hidden />
                   Match
                 </Badge>
               )}
             </div>
-            <p className="mt-0.5 truncate text-sm font-bold text-teal">{team.jam}</p>
+            <p className="mt-0.5 truncate text-sm font-medium text-primary">{team.jam}</p>
           </div>
 
           <div
@@ -340,7 +340,7 @@ export function TeamCard({
             <Button
               variant="ghost"
               size="icon"
-              className="size-8 rounded-lg border-2 border-transparent text-muted-foreground hover:border-foreground hover:text-foreground"
+              className="size-8 rounded-full text-muted-foreground hover:text-foreground"
               onClick={handleShare}
               aria-label="Share team"
             >
@@ -354,7 +354,7 @@ export function TeamCard({
             variant="outline"
             title={jamPendingTitle}
             className={cn(
-              "mb-3.5 w-fit rounded-lg border-2 border-foreground px-2.5 py-0.5 text-xs font-bold",
+              "mb-3.5 w-fit rounded-full px-2.5 py-0.5 text-xs font-semibold",
               jamStatus.badgeClassName,
             )}
           >
@@ -365,7 +365,7 @@ export function TeamCard({
         <div className="mb-3.5 flex min-h-[2rem] flex-wrap gap-1.5">
           <span
             className={cn(
-              "inline-flex items-center gap-1 rounded-lg border-2 border-foreground px-2.5 py-0.5 text-xs font-bold",
+              "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold",
               team.level.color,
             )}
           >
@@ -375,7 +375,7 @@ export function TeamCard({
             <span
               key={`${role.key}-${index}`}
               className={cn(
-                "inline-flex items-center gap-1 rounded-lg border-2 border-foreground px-2.5 py-0.5 text-xs font-bold",
+                "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold",
                 role.color,
               )}
             >
@@ -383,20 +383,20 @@ export function TeamCard({
             </span>
           ))}
           {openRolesOverflow > 0 && (
-            <span className="inline-flex items-center rounded-lg border-2 border-foreground bg-muted px-2.5 py-0.5 text-xs font-bold text-muted-foreground">
+            <span className="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
               +{openRolesOverflow} more
             </span>
           )}
           {isSquadFull && (
-            <span className="inline-flex items-center gap-1 rounded-lg border-2 border-foreground bg-muted/60 px-2.5 py-0.5 text-xs font-bold text-muted-foreground">
+            <span className="inline-flex items-center gap-1 rounded-full bg-muted/60 px-2.5 py-0.5 text-xs font-semibold text-muted-foreground">
               <ShieldCheck className="size-3" />
               Full
             </span>
           )}
         </div>
 
-        <div className="mt-auto flex flex-wrap items-center justify-between gap-x-4 gap-y-1.5 border-t-2 border-dashed border-slate-300 pt-3.5">
-          <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground">
+        <div className="mt-auto flex flex-wrap items-center justify-between gap-x-4 gap-y-1.5 border-t border-border/40 pt-3.5">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <span className="inline-flex items-center gap-1">
               <Cpu className="size-3.5 text-lavender" aria-hidden />
               {team.engine}
@@ -407,7 +407,7 @@ export function TeamCard({
             </span>
           </div>
 
-          <div className="flex items-center gap-2 text-xs font-bold text-muted-foreground">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
             {!isSquadFull && remainingSpots === 1 && (
               <span className="inline-flex items-center gap-0.5 text-orange-500">
                 <Flame className="size-3.5" aria-hidden />
@@ -422,7 +422,7 @@ export function TeamCard({
         </div>
 
         <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-center rounded-b-xl py-2 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
-          <span className="inline-flex items-center gap-1.5 rounded-lg border-2 border-foreground bg-card px-3 py-1 text-xs font-bold text-teal shadow-[2px_2px_0px_0px_var(--neo-shadow)]">
+          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary">
             <Clock className="size-3" aria-hidden />
             View details
           </span>
@@ -430,7 +430,7 @@ export function TeamCard({
       </article>
 
       <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
-        <DialogContent className="max-h-[min(90vh,720px)] w-full max-w-lg gap-0 overflow-hidden rounded-xl border-2 border-foreground bg-card p-0 shadow-[6px_6px_0px_0px_var(--neo-shadow)]">
+        <DialogContent className="max-h-[min(90vh,720px)] w-full max-w-lg gap-0 overflow-hidden rounded-2xl border-border/60 bg-card p-0 shadow-2xl shadow-teal/10">
           {dialogBody}
         </DialogContent>
       </Dialog>

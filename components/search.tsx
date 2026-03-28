@@ -11,7 +11,7 @@ interface SearchProps {
 
 export function Search({ value, onChange, placeholder = "Search by team, jam name, or description..." }: SearchProps) {
   return (
-    <div className="relative flex w-full min-w-0 flex-1 items-center overflow-hidden rounded-lg border-2 border-foreground bg-card shadow-[4px_4px_0px_0px_var(--neo-shadow)]">
+    <div className="relative flex w-full min-w-0 flex-1 items-center overflow-hidden rounded-xl border-2 border-primary/30 bg-card shadow-md shadow-primary/5">
       <SearchIcon className="ml-4 size-5 shrink-0 text-muted-foreground" />
       <Input
         type="text"

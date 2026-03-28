@@ -79,7 +79,7 @@ export function Filters({
           <div className="mb-3 flex items-center justify-between gap-3 sm:mb-4">
             <div className="flex items-center gap-3">
               <SlidersHorizontal className="size-4 text-muted-foreground" />
-              <span className="text-sm font-bold text-foreground uppercase tracking-wider">
+              <span className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                 Filter teams
               </span>
             </div>
@@ -94,11 +94,11 @@ export function Filters({
             <DrawerTrigger asChild>
               <Button
                 variant="outline"
-                className="flex w-full items-center justify-between gap-2 rounded-lg border-2 border-foreground bg-card px-4 py-3 text-sm shadow-[3px_3px_0px_0px_var(--neo-shadow)] transition-all hover:-translate-y-0.5 hover:shadow-[4px_4px_0px_0px_var(--neo-shadow)]"
+                className="card-interactive flex w-full items-center justify-between gap-2 rounded-2xl border-border/60 bg-card px-4 py-3 text-sm"
               >
                 <span className="flex items-center gap-2">
                   <SlidersHorizontal className="size-4 text-muted-foreground" />
-                  <span className="font-bold text-foreground">
+                  <span className="font-semibold text-foreground">
                     Filters{activeCount > 0 ? ` (${activeCount})` : ""}
                   </span>
                 </span>
@@ -109,18 +109,18 @@ export function Filters({
                 )}
               </Button>
             </DrawerTrigger>
-            <DrawerContent className="rounded-t-xl border-2 border-foreground bg-card">
+            <DrawerContent className="rounded-t-3xl border-border/60 bg-card">
               <DrawerHeader className="text-left">
-                <DrawerTitle className="text-base font-bold text-foreground">
+                <DrawerTitle className="text-base font-semibold text-foreground">
                   Filters
                 </DrawerTitle>
               </DrawerHeader>
               <div className="px-4 pb-4 pt-1 space-y-4">
                 <Select onValueChange={onEngineChange} value={engine}>
-                  <SelectTrigger className="h-12 w-full rounded-lg border-2 border-foreground bg-card text-card-foreground transition-colors hover:bg-muted/50">
+                  <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40">
                     <SelectValue placeholder="Engine" />
                   </SelectTrigger>
-                  <SelectContent className="rounded-lg border-2 border-foreground">
+                  <SelectContent className="rounded-xl">
                     <SelectItem value="all">Any Engine</SelectItem>
                     {ENGINE_OPTIONS.map((opt) => (
                       <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
@@ -129,10 +129,10 @@ export function Filters({
                 </Select>
 
                 <Select onValueChange={onRoleChange} value={role}>
-                  <SelectTrigger className="h-12 w-full rounded-lg border-2 border-foreground bg-card text-card-foreground transition-colors hover:bg-muted/50">
+                  <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40">
                     <SelectValue placeholder="Role Needed" />
                   </SelectTrigger>
-                  <SelectContent className="rounded-lg border-2 border-foreground">
+                  <SelectContent className="rounded-xl">
                     <SelectItem value="all">Any Role</SelectItem>
                     {ROLE_OPTIONS.map((opt) => (
                       <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
@@ -141,10 +141,10 @@ export function Filters({
                 </Select>
 
                 <Select onValueChange={onLevelChange} value={level}>
-                  <SelectTrigger className="h-12 w-full rounded-lg border-2 border-foreground bg-card text-card-foreground transition-colors hover:bg-muted/50">
+                  <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40">
                     <SelectValue placeholder="Experience" />
                   </SelectTrigger>
-                  <SelectContent className="rounded-lg border-2 border-foreground">
+                  <SelectContent className="rounded-xl">
                     <SelectItem value="all">Any Experience</SelectItem>
                     {EXPERIENCE_OPTIONS.map((opt) => (
                       <SelectItem key={opt.value} value={opt.value}>
@@ -157,10 +157,10 @@ export function Filters({
                 </Select>
 
                 <Select onValueChange={onLanguageChange} value={language}>
-                  <SelectTrigger className="h-12 w-full rounded-lg border-2 border-foreground bg-card text-card-foreground transition-colors hover:bg-muted/50">
+                  <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40">
                     <SelectValue placeholder="Language" />
                   </SelectTrigger>
-                  <SelectContent className="rounded-lg border-2 border-foreground">
+                  <SelectContent className="rounded-xl">
                     <SelectItem value="all">Any Language</SelectItem>
                     {LANGUAGE_OPTIONS.map((opt) => (
                       <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
@@ -170,10 +170,10 @@ export function Filters({
 
                 {onStyleChange && (
                   <Select onValueChange={onStyleChange} value={style}>
-                    <SelectTrigger className="h-12 w-full rounded-lg border-2 border-foreground bg-card text-card-foreground transition-colors hover:bg-muted/50">
+                    <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40">
                       <SelectValue placeholder="Jam Style" />
                     </SelectTrigger>
-                    <SelectContent className="rounded-lg border-2 border-foreground">
+                    <SelectContent className="rounded-xl">
                       <SelectItem value="all">Any Style</SelectItem>
                       {JAM_STYLE_OPTIONS.map((opt) => (
                         <SelectItem key={opt.value} value={opt.value}>
@@ -193,14 +193,14 @@ export function Filters({
                     variant="outline"
                     size="sm"
                     onClick={onReset}
-                    className="flex-1 gap-2 rounded-lg border-2 border-foreground text-muted-foreground hover:text-foreground"
+                    className="flex-1 gap-2 rounded-xl text-muted-foreground hover:text-foreground"
                   >
                     <RotateCcw className="size-4" />
                     Reset
                   </Button>
                 )}
                 <DrawerClose asChild>
-                  <Button className="flex-1 rounded-lg border-2 border-foreground bg-teal text-white font-bold shadow-[3px_3px_0px_0px_var(--neo-shadow)]">
+                  <Button className="flex-1 rounded-xl">
                     Show {resultsLabel ?? "results"}
                   </Button>
                 </DrawerClose>
@@ -218,7 +218,7 @@ export function Filters({
         <div className="mb-3 flex items-center justify-between gap-3 sm:mb-4">
           <div className="flex items-center gap-3">
             <SlidersHorizontal className="size-4 text-muted-foreground" />
-            <span className="text-sm font-bold text-foreground uppercase tracking-wider">
+            <span className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">
               Filter teams
             </span>
           </div>
@@ -231,10 +231,10 @@ export function Filters({
         <div className="flex flex-wrap items-center gap-3">
           
           <Select onValueChange={onEngineChange} value={engine}>
-            <SelectTrigger className="h-12 w-full rounded-lg border-2 border-foreground bg-card text-card-foreground transition-all hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_0px_var(--neo-shadow)] sm:w-[160px]">
+            <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40 sm:w-[160px]">
               <SelectValue placeholder="Engine" />
             </SelectTrigger>
-            <SelectContent className="rounded-lg border-2 border-foreground">
+            <SelectContent className="rounded-xl">
               <SelectItem value="all">Any Engine</SelectItem>
               {ENGINE_OPTIONS.map((opt) => (
                 <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
@@ -243,10 +243,10 @@ export function Filters({
           </Select>
 
           <Select onValueChange={onRoleChange} value={role}>
-            <SelectTrigger className="h-12 w-full rounded-lg border-2 border-foreground bg-card text-card-foreground transition-all hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_0px_var(--neo-shadow)] sm:w-[180px]">
+            <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40 sm:w-[180px]">
               <SelectValue placeholder="Role Needed" />
             </SelectTrigger>
-            <SelectContent className="rounded-lg border-2 border-foreground">
+            <SelectContent className="rounded-xl">
               <SelectItem value="all">Any Role</SelectItem>
               {ROLE_OPTIONS.map((opt) => (
                 <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
@@ -255,10 +255,10 @@ export function Filters({
           </Select>
 
           <Select onValueChange={onLevelChange} value={level}>
-            <SelectTrigger className="h-12 w-full rounded-lg border-2 border-foreground bg-card text-card-foreground transition-all hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_0px_var(--neo-shadow)] sm:w-[180px]">
+            <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40 sm:w-[180px]">
               <SelectValue placeholder="Experience" />
             </SelectTrigger>
-            <SelectContent className="rounded-lg border-2 border-foreground">
+            <SelectContent className="rounded-xl">
               <SelectItem value="all">Any Experience</SelectItem>
               {EXPERIENCE_OPTIONS.map((opt) => (
                 <SelectItem key={opt.value} value={opt.value}>
@@ -271,10 +271,10 @@ export function Filters({
           </Select>
 
           <Select onValueChange={onLanguageChange} value={language}>
-            <SelectTrigger className="h-12 w-full rounded-lg border-2 border-foreground bg-card text-card-foreground transition-all hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_0px_var(--neo-shadow)] sm:w-[160px]">
+            <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40 sm:w-[160px]">
               <SelectValue placeholder="Language" />
             </SelectTrigger>
-            <SelectContent className="rounded-lg border-2 border-foreground">
+            <SelectContent className="rounded-xl">
               <SelectItem value="all">Any Language</SelectItem>
               {LANGUAGE_OPTIONS.map((opt) => (
                 <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
@@ -284,10 +284,10 @@ export function Filters({
 
           {onStyleChange && (
             <Select onValueChange={onStyleChange} value={style}>
-              <SelectTrigger className="h-12 w-full rounded-lg border-2 border-foreground bg-card text-card-foreground transition-all hover:-translate-y-0.5 hover:shadow-[3px_3px_0px_0px_var(--neo-shadow)] sm:w-[180px]">
+              <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40 sm:w-[180px]">
                 <SelectValue placeholder="Jam Style" />
               </SelectTrigger>
-              <SelectContent className="rounded-lg border-2 border-foreground">
+              <SelectContent className="rounded-xl">
                 <SelectItem value="all">Any Style</SelectItem>
                 {JAM_STYLE_OPTIONS.map((opt) => (
                   <SelectItem key={opt.value} value={opt.value}>
@@ -301,7 +301,7 @@ export function Filters({
           )}
 
           {hasActiveFilters && onReset && (
-            <Button variant="ghost" size="sm" onClick={onReset} className="gap-2 rounded-lg font-bold text-muted-foreground hover:text-foreground">
+            <Button variant="ghost" size="sm" onClick={onReset} className="gap-2 rounded-xl text-muted-foreground hover:text-foreground">
               <RotateCcw className="size-4" />
               Reset Filters
             </Button>

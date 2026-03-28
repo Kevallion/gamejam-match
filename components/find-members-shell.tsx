@@ -4,12 +4,9 @@ import { useState } from "react"
 import { Navbar } from "@/components/navbar"
 import { MemberFilters } from "@/components/member-filters"
 import { MembersGrid } from "@/components/members-grid"
-import { Search, UserSearch, Sword } from "lucide-react"
+import { Search, UserSearch } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { ENGINE_OPTIONS, EXPERIENCE_OPTIONS, ROLE_OPTIONS } from "@/lib/constants"
-
-// Dot-pattern background (same as landing-hero)
-const DOT_PATTERN = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Ccircle cx='2' cy='2' r='1.2' fill='%2394a3b8' fill-opacity='0.35'/%3E%3C/svg%3E")`
 
 export function FindMembersShell() {
   const [searchQuery, setSearchQuery] = useState("")
@@ -49,15 +46,15 @@ export function FindMembersShell() {
     <div className="flex min-h-screen flex-col">
       <Navbar />
       <main className="flex-1">
-        {/* Hero section - neo-brutalist style */}
-        <section
-          className="relative overflow-hidden px-4 pb-8 pt-16 sm:px-6 lg:pt-24 lg:pb-12"
-          style={{ backgroundImage: DOT_PATTERN, backgroundColor: "var(--background)" }}
-        >
+        <section className="relative overflow-hidden px-4 pb-8 pt-16 sm:px-6 lg:pt-24 lg:pb-12">
+          <div className="pointer-events-none absolute inset-0 opacity-30" aria-hidden="true">
+            <div className="absolute left-1/2 top-0 size-[600px] -translate-x-1/2 -translate-y-1/3 rounded-full bg-lavender/20 blur-[120px]" />
+            <div className="absolute right-0 top-1/2 size-[400px] -translate-y-1/2 rounded-full bg-pink/15 blur-[100px]" />
+          </div>
+
           <div className="relative mx-auto max-w-2xl text-center">
-            {/* Neo-brutalist badge */}
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border-2 border-foreground bg-card px-4 py-1.5 text-sm font-bold text-foreground shadow-[3px_3px_0px_0px_var(--neo-shadow)]">
-              <Sword className="size-4 text-lavender" />
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-lavender/30 bg-lavender px-4 py-1.5 text-sm font-medium text-lavender-foreground">
+              <UserSearch className="size-4" />
               Browse available jammers
             </div>
 
@@ -69,9 +66,9 @@ export function FindMembersShell() {
               Discover talented jammers ready to join your squad. Filter by role, engine, and experience to find the perfect match.
             </p>
 
-            {/* Neo-brutalist search bar */}
             <div className="relative mx-auto mt-10 max-w-xl">
-              <div className="relative flex items-center overflow-hidden rounded-lg border-2 border-foreground bg-card shadow-[4px_4px_0px_0px_var(--neo-shadow)]">
+              <div className="absolute inset-0 -m-1 rounded-[1.25rem] bg-lavender/20 blur-md" />
+              <div className="relative flex items-center overflow-hidden rounded-2xl border-2 border-lavender/30 bg-card shadow-lg shadow-lavender/5">
                 <Search className="ml-5 size-5 shrink-0 text-muted-foreground" />
                 <Input
                   type="text"
