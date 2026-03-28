@@ -1,175 +1,175 @@
 "use client"
 
 import { useState } from "react"
-import { motion } from "framer-motion"
-import { ArrowRight, Sparkles, Gamepad2 } from "lucide-react"
+import { Sword, Gamepad2, Palette, Music, Code2, Sparkles } from "lucide-react"
 import { AuthModal } from "@/components/auth-modal"
 import { Button } from "@/components/ui/button"
-import Link from "next/link"
+
+// ────────────────────────────────────────────────────────────
+// Player / Role card data
+// ────────────────────────────────────────────────────────────
+const roleCards = [
+  {
+    emoji: "💻",
+    role: "Godot Developer",
+    engine: "Godot 4",
+    timezone: "UTC-5",
+    badges: ["GDScript", "2D Physics"],
+    accent: "border-teal bg-teal/5",
+    badgeColor: "bg-teal/10 text-teal border-teal/30",
+    rotate: "-rotate-2",
+  },
+  {
+    emoji: "🎨",
+    role: "2D Pixel Artist",
+    engine: "Aseprite",
+    timezone: "UTC+1",
+    badges: ["Pixel Art", "Animation"],
+    accent: "border-pink bg-pink/5",
+    badgeColor: "bg-pink/10 text-pink border-pink/30",
+    rotate: "rotate-1",
+  },
+  {
+    emoji: "🎵",
+    role: "Audio Wizard",
+    engine: "FMOD",
+    timezone: "UTC+0",
+    badges: ["SFX", "Music"],
+    accent: "border-lavender bg-lavender/5",
+    badgeColor: "bg-lavender/10 text-lavender border-lavender/30",
+    rotate: "-rotate-1",
+  },
+]
+
+// ────────────────────────────────────────────────────────────
+// Dot-pattern background (inline SVG)
+// ────────────────────────────────────────────────────────────
+const DOT_PATTERN = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Ccircle cx='2' cy='2' r='1.2' fill='%2394a3b8' fill-opacity='0.35'/%3E%3C/svg%3E")`
 
 export function LandingHero() {
   const [authModalOpen, setAuthModalOpen] = useState(false)
 
   return (
-    <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden px-4 pt-24 pb-12 lg:px-6 lg:pt-32 lg:pb-20">
-      {/* Animated mesh gradient background */}
-      <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-        {/* Main gradient blob - teal */}
-        <motion.div
-          className="absolute left-1/2 top-1/4 size-[700px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-teal/20 blur-[140px]"
-          animate={{
-            scale: [1, 1.1, 1],
-            x: ["-50%", "-45%", "-50%"],
-            y: ["-50%", "-55%", "-50%"],
-          }}
-          transition={{
-            duration: 8,
-            repeat: Infinity,
-            ease: "easeInOut",
-          }}
-        />
-        {/* Secondary blob - peach */}
-        <motion.div
-          className="absolute right-0 top-1/3 size-[500px] rounded-full bg-peach/15 blur-[120px]"
-          animate={{
-            scale: [1, 1.15, 1],
-            x: ["0%", "5%", "0%"],
-            y: ["0%", "-5%", "0%"],
-          }}
-          transition={{
-            duration: 10,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: 1,
-          }}
-        />
-        {/* Tertiary blob - lavender */}
-        <motion.div
-          className="absolute left-0 bottom-1/4 size-[400px] rounded-full bg-lavender/10 blur-[100px]"
-          animate={{
-            scale: [1, 1.2, 1],
-            x: ["0%", "-5%", "0%"],
-            y: ["0%", "5%", "0%"],
-          }}
-          transition={{
-            duration: 12,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: 2,
-          }}
-        />
-        {/* Grid overlay for texture */}
-        <div 
-          className="absolute inset-0 opacity-[0.02]"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-          }}
-        />
-      </div>
+    <section
+      className="relative min-h-[90vh] flex items-center overflow-hidden px-4 pt-24 pb-16 lg:px-8 lg:pt-32 lg:pb-24"
+      style={{ backgroundImage: DOT_PATTERN, backgroundColor: "var(--background)" }}
+    >
+      <div className="relative z-10 mx-auto w-full max-w-6xl">
+        <div className="flex flex-col items-center gap-12 lg:flex-row lg:items-center lg:gap-16">
 
-      {/* Content */}
-      <div className="relative z-10 mx-auto max-w-4xl text-center">
-        {/* Badge */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="mb-6 inline-flex items-center gap-2 rounded-full border border-teal/30 bg-teal/10 px-4 py-1.5 text-sm font-medium text-teal"
-        >
-          <Sparkles className="size-4" />
-          <span>The ultimate game jam team builder</span>
-        </motion.div>
-
-        {/* Headline */}
-        <motion.h1
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="text-balance text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl md:text-6xl lg:text-7xl"
-        >
-          Build Games Together.
-          <br />
-          <span className="bg-gradient-to-r from-teal via-primary to-lavender bg-clip-text text-transparent">
-            Ship Faster.
-          </span>
-        </motion.h1>
-
-        {/* Subheadline */}
-        <motion.p
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="mx-auto mt-6 max-w-2xl text-pretty text-lg leading-relaxed text-muted-foreground md:text-xl"
-        >
-          Find your perfect game jam squad. Connect with developers, artists, and composers 
-          who share your vision and complement your skills.
-        </motion.p>
-
-        {/* CTA Buttons */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
-          className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row"
-        >
-          <Button
-            type="button"
-            size="lg"
-            className="group h-14 min-w-[200px] rounded-2xl bg-teal px-8 text-base font-semibold text-teal-foreground shadow-xl shadow-teal/25 transition-all hover:bg-teal/90 hover:shadow-teal/35 hover:scale-[1.02]"
-            onClick={() => setAuthModalOpen(true)}
-          >
-            Get Started
-            <ArrowRight className="size-5 transition-transform group-hover:translate-x-1" />
-          </Button>
-          <Button
-            asChild
-            variant="outline"
-            size="lg"
-            className="h-14 min-w-[200px] rounded-2xl border-border/60 bg-card/50 px-8 text-base font-semibold backdrop-blur-sm transition-all hover:border-teal/40 hover:bg-card/80"
-          >
-            <Link href="/showcase">
-              See How It Works
-            </Link>
-          </Button>
-        </motion.div>
-
-        {/* Social proof - aspirational, no specific numbers */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.5 }}
-          className="mt-16 flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground"
-        >
-          <div className="flex items-center gap-3">
-            <div className="flex -space-x-2">
-              {[
-                { gradient: "from-teal/70 to-primary/70", initials: "PX" },
-                { gradient: "from-peach/70 to-pink/70", initials: "KR" },
-                { gradient: "from-lavender/70 to-primary/70", initials: "SW" },
-                { gradient: "from-mint/70 to-teal/70", initials: "NB" },
-              ].map(({ gradient, initials }, i) => (
-                <div
-                  key={i}
-                  className={`flex size-9 items-center justify-center rounded-full border-2 border-background bg-gradient-to-br ${gradient} text-[10px] font-bold text-white`}
-                >
-                  {initials}
-                </div>
-              ))}
+          {/* ── Left column: copy ── */}
+          <div className="flex-1 text-center lg:text-left">
+            {/* Badge */}
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border-2 border-foreground bg-card px-4 py-1.5 text-sm font-bold text-foreground shadow-[3px_3px_0px_0px_var(--neo-shadow)]">
+              <Sword className="size-4 text-teal" />
+              <span>{"It's dangerous to go alone!"} 🗡️</span>
             </div>
-            <span className="font-medium text-foreground">Join the community</span>
-          </div>
-          <div className="hidden h-5 w-px bg-border sm:block" />
-          <div className="flex items-center gap-2">
-            <Gamepad2 className="size-4 text-teal" />
-            <span>Ludum Dare, GMTK, Game Off & more</span>
-          </div>
-        </motion.div>
-      </div>
 
-      {/* Bottom gradient fade */}
-      <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent" />
+            {/* Headline */}
+            <h1 className="text-balance text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl md:text-6xl">
+              Assemble your crew.
+              <br />
+              <span className="text-teal">Finish the game.</span>
+            </h1>
+
+            {/* Subheadline */}
+            <p className="mx-auto mt-5 max-w-xl text-pretty text-lg leading-relaxed text-muted-foreground lg:mx-0">
+              No corporate networking. Just a cozy community of indie devs, pixel
+              artists, and audio wizards teaming up for their next game jam adventure.
+            </p>
+
+            {/* CTA */}
+            <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row lg:items-start">
+              <Button
+                type="button"
+                size="lg"
+                className="h-14 min-w-[220px] rounded-lg border-2 border-foreground bg-teal px-8 text-base font-extrabold text-white shadow-[4px_4px_0px_0px_var(--neo-shadow)] transition-all hover:-translate-y-0.5 hover:shadow-[5px_5px_0px_0px_var(--neo-shadow)] active:translate-y-0 active:shadow-[2px_2px_0px_0px_var(--neo-shadow)]"
+                onClick={() => setAuthModalOpen(true)}
+              >
+                <Sparkles className="mr-2 size-5" />
+                Find your Squad 🚀
+              </Button>
+            </div>
+
+            {/* Social proof row */}
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-4 text-sm text-muted-foreground lg:justify-start">
+              <div className="flex items-center gap-2">
+                <Gamepad2 className="size-4 text-teal" />
+                <span>Ludum Dare &bull; GMTK &bull; Game Off</span>
+              </div>
+              <div className="hidden h-4 w-px bg-border sm:block" />
+              <div className="flex items-center gap-2">
+                <Code2 className="size-4 text-lavender" />
+                <span>Godot &bull; Unity &bull; Pygame &bull; more</span>
+              </div>
+            </div>
+          </div>
+
+          {/* ── Right column: role cards ── */}
+          <div className="relative flex-shrink-0 w-full max-w-sm lg:max-w-md">
+            <div className="relative flex flex-col gap-4">
+              {roleCards.map((card) => (
+                <RoleCard key={card.role} card={card} />
+              ))}
+
+              {/* Connecting line decoration */}
+              <div className="pointer-events-none absolute left-6 top-12 bottom-12 w-0.5 border-l-2 border-dashed border-slate-300" />
+            </div>
+          </div>
+
+        </div>
+      </div>
 
       <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
     </section>
+  )
+}
+
+// ────────────────────────────────────────────────────────────
+// Role Card sub-component
+// ────────────────────────────────────────────────────────────
+function RoleCard({ card }: { card: (typeof roleCards)[number] }) {
+  return (
+    <div
+      className={`relative z-10 rounded-xl border-2 border-foreground bg-card p-4 shadow-[4px_4px_0px_0px_var(--neo-shadow)] transition-transform hover:-translate-y-0.5 ${card.rotate}`}
+    >
+      <div className="flex items-start gap-3">
+        {/* Avatar */}
+        <div
+          className={`flex size-12 flex-shrink-0 items-center justify-center rounded-lg border-2 border-foreground text-2xl ${card.accent}`}
+        >
+          {card.emoji}
+        </div>
+
+        {/* Info */}
+        <div className="min-w-0 flex-1">
+          <p className="font-extrabold text-foreground leading-tight">{card.role}</p>
+          <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+            <span>{card.engine}</span>
+            <span>&bull;</span>
+            <span>{card.timezone}</span>
+          </div>
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {card.badges.map((b) => (
+              <span
+                key={b}
+                className={`rounded-md border px-2 py-0.5 text-xs font-semibold ${card.badgeColor}`}
+              >
+                {b}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* Status dot */}
+        <div className="flex-shrink-0 flex items-center gap-1.5 mt-0.5">
+          <span className="relative flex size-2.5">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-teal opacity-60" />
+            <span className="relative inline-flex size-2.5 rounded-full bg-teal" />
+          </span>
+          <span className="text-xs font-medium text-teal">Open</span>
+        </div>
+      </div>
+    </div>
   )
 }

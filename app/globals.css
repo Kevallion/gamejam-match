@@ -73,6 +73,9 @@
   --sidebar-border: oklch(0.30 0.03 280);
   --sidebar-ring: oklch(0.72 0.12 185);
 
+  /* Neo-brutalist shadow */
+  --neo-shadow: oklch(0.12 0.01 280);
+
   /* Custom pastel palette tokens */
   --pink: oklch(0.78 0.10 330);
   --pink-foreground: oklch(0.22 0.04 330);
@@ -86,22 +89,25 @@
   --mint-foreground: oklch(0.20 0.04 160);
 }
 
-/* Light mode - clair et doux (doit être après pour override) */
+/* Light mode - off-white game design document aesthetic */
 .light {
-  --background: oklch(0.98 0.005 280);
-  --foreground: oklch(0.20 0.02 280);
+  /* Off-white #f8fafc background */
+  --background: oklch(0.985 0.004 220);
+  --foreground: oklch(0.18 0.02 220);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.20 0.02 280);
+  --card-foreground: oklch(0.18 0.02 220);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.20 0.02 280);
-  --primary: oklch(0.55 0.15 185);
-  --primary-foreground: oklch(0.98 0.005 280);
-  --secondary: oklch(0.94 0.02 280);
-  --secondary-foreground: oklch(0.25 0.03 280);
-  --muted: oklch(0.94 0.02 280);
-  --muted-foreground: oklch(0.45 0.02 280);
-  --accent: oklch(0.94 0.03 330);
-  --accent-foreground: oklch(0.25 0.04 330);
+  --popover-foreground: oklch(0.18 0.02 220);
+  /* Teal #14b8a6 */
+  --primary: oklch(0.70 0.14 185);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.94 0.015 220);
+  --secondary-foreground: oklch(0.25 0.02 220);
+  --muted: oklch(0.94 0.015 220);
+  --muted-foreground: oklch(0.48 0.02 220);
+  /* Coral accent */
+  --accent: oklch(0.72 0.16 30);
+  --accent-foreground: oklch(1 0 0);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.97 0.01 27);
 
@@ -111,36 +117,43 @@
   --warning: oklch(0.65 0.15 78);
   --warning-foreground: oklch(0.97 0.01 78);
 
-  --border: oklch(0.90 0.02 280);
+  /* slate-300 equivalent */
+  --border: oklch(0.82 0.01 220);
 
-  --card-hover-border: oklch(0.55 0.15 185 / 0.35);
-  --card-glow: oklch(0.55 0.15 185 / 0.05);
-  --input: oklch(0.92 0.02 280);
-  --ring: oklch(0.55 0.15 185);
-  --chart-1: oklch(0.55 0.15 185);
-  --chart-2: oklch(0.60 0.12 330);
-  --chart-3: oklch(0.58 0.14 290);
+  --card-hover-border: oklch(0.70 0.14 185 / 0.50);
+  --card-glow: oklch(0.70 0.14 185 / 0.08);
+  --input: oklch(0.90 0.01 220);
+  --ring: oklch(0.70 0.14 185);
+  --chart-1: oklch(0.70 0.14 185);
+  --chart-2: oklch(0.72 0.16 30);
+  --chart-3: oklch(0.63 0.12 290);
   --chart-4: oklch(0.65 0.14 90);
   --chart-5: oklch(0.60 0.15 150);
-  --sidebar: oklch(0.96 0.01 280);
-  --sidebar-foreground: oklch(0.20 0.02 280);
-  --sidebar-primary: oklch(0.55 0.15 185);
-  --sidebar-primary-foreground: oklch(0.98 0.005 280);
-  --sidebar-accent: oklch(0.92 0.02 280);
-  --sidebar-accent-foreground: oklch(0.25 0.03 280);
-  --sidebar-border: oklch(0.90 0.02 280);
-  --sidebar-ring: oklch(0.55 0.15 185);
-  --radius: 1rem;
-  --pink: oklch(0.65 0.12 330);
-  --pink-foreground: oklch(0.25 0.04 330);
-  --teal: oklch(0.55 0.15 185);
-  --teal-foreground: oklch(0.98 0.02 185);
-  --lavender: oklch(0.58 0.12 290);
-  --lavender-foreground: oklch(0.25 0.04 290);
-  --peach: oklch(0.72 0.12 60);
-  --peach-foreground: oklch(0.25 0.04 60);
-  --mint: oklch(0.65 0.10 160);
-  --mint-foreground: oklch(0.22 0.04 160);
+  --sidebar: oklch(0.96 0.008 220);
+  --sidebar-foreground: oklch(0.18 0.02 220);
+  --sidebar-primary: oklch(0.70 0.14 185);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.92 0.01 220);
+  --sidebar-accent-foreground: oklch(0.25 0.02 220);
+  --sidebar-border: oklch(0.82 0.01 220);
+  --sidebar-ring: oklch(0.70 0.14 185);
+  --radius: 0.5rem;
+  /* Coral #f97316 */
+  --pink: oklch(0.72 0.16 30);
+  --pink-foreground: oklch(1 0 0);
+  /* Teal */
+  --teal: oklch(0.70 0.14 185);
+  --teal-foreground: oklch(1 0 0);
+  /* Lavender */
+  --lavender: oklch(0.63 0.12 290);
+  --lavender-foreground: oklch(1 0 0);
+  --peach: oklch(0.82 0.10 65);
+  --peach-foreground: oklch(0.22 0.04 65);
+  --mint: oklch(0.72 0.10 160);
+  --mint-foreground: oklch(0.20 0.04 160);
+
+  /* Neo-brutalist shadow color */
+  --neo-shadow: oklch(0.18 0.02 220);
 }
 
 @theme inline {
