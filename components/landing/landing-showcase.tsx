@@ -1,110 +1,90 @@
 "use client"
 
-import { motion, useInView } from "framer-motion"
-import { useRef } from "react"
-import { 
-  Sparkles,
-  Zap,
-  Users
-} from "lucide-react"
+import { Code2Icon, MessageSquareIcon, UsersIcon } from "lucide-react"
 import { MockDashboard } from "@/components/showcase/mock-dashboard"
 
+/**
+ * LandingShowcase - Neo-brutalist dashboard preview with solid borders and offset shadows.
+ * Shows the GameJamCrew command center with notifications and squad status.
+ */
 export function LandingShowcase() {
-  const ref = useRef(null)
-  const isInView = useInView(ref, { once: true, margin: "-100px" })
-
   return (
-    <section ref={ref} className="relative overflow-hidden px-4 py-20 lg:px-6 lg:py-32">
-      {/* Section header */}
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={isInView ? { opacity: 1, y: 0 } : {}}
-        transition={{ duration: 0.6 }}
-        className="mx-auto max-w-3xl text-center mb-16"
-      >
-        <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-peach/30 bg-peach/10 px-4 py-1.5 text-sm font-medium text-peach">
-          <Sparkles className="size-4" />
-          Your Command Center
-        </div>
-        <h2 className="text-balance text-3xl font-extrabold tracking-tight text-foreground md:text-4xl lg:text-5xl">
-          Manage your teams
-          <br />
-          <span className="text-primary">in one place</span>
-        </h2>
-        <p className="mx-auto mt-4 max-w-xl text-pretty text-lg leading-relaxed text-muted-foreground">
-          Track applications, communicate with teammates, and level up your jam experience.
-        </p>
-      </motion.div>
+    <section className="relative w-full py-20 px-4 md:px-8 bg-background overflow-hidden">
+      {/* Decorative dot pattern background */}
+      <div className="absolute inset-0 opacity-30 pointer-events-none">
+        <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern id="dots-showcase" x="40" y="40" width="40" height="40" patternUnits="userSpaceOnUse">
+              <circle cx="2" cy="2" r="1" fill="currentColor" className="text-muted-foreground/50" />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#dots-showcase)" />
+        </svg>
+      </div>
 
-      {/* Browser Frame with real Dashboard design */}
-      <motion.div
-        initial={{ opacity: 0, y: 50 }}
-        animate={isInView ? { opacity: 1, y: 0 } : {}}
-        transition={{ duration: 0.8, delay: 0.2 }}
-        className="relative mx-auto max-w-5xl"
-      >
-        {/* Glow effect behind */}
-        <div className="absolute -inset-8 rounded-[2.5rem] bg-gradient-to-r from-teal/15 via-primary/10 to-peach/15 blur-3xl opacity-60" />
-        
-        {/* Browser chrome */}
-        <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-card shadow-2xl shadow-primary/10">
-          {/* Browser header */}
-          <div className="flex items-center gap-2 border-b border-border/50 bg-muted/50 px-4 py-3">
-            <div className="flex items-center gap-1.5">
-              <div className="size-3 rounded-full bg-destructive/60" />
-              <div className="size-3 rounded-full bg-warning/60" />
-              <div className="size-3 rounded-full bg-success/60" />
-            </div>
-            <div className="mx-4 flex-1">
-              <div className="mx-auto max-w-sm rounded-lg bg-background/80 px-4 py-1.5 text-center text-xs font-medium text-muted-foreground">
-                gamejamcrew.com/dashboard
-              </div>
-            </div>
-            <div className="w-[52px]" />
-          </div>
-
-          {/* Dashboard content - using real MockDashboard */}
-          <div className="bg-background">
-            <MockDashboard />
+      <div className="max-w-6xl mx-auto relative z-10">
+        {/* Section badge */}
+        <div className="flex justify-center mb-12">
+          <div className="inline-flex items-center gap-2 px-4 py-2 border-2 border-foreground bg-background">
+            <Code2Icon className="w-4 h-4 text-primary" />
+            <span className="text-sm font-semibold text-foreground">Your Command Center</span>
           </div>
         </div>
 
-        {/* Floating XP notification */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={isInView ? { opacity: 1, scale: 1 } : {}}
-          transition={{ duration: 0.5, delay: 1 }}
-          className="absolute -right-4 top-20 hidden lg:block"
-        >
-          <div className="flex items-center gap-2 rounded-full bg-teal/20 border border-teal/30 px-4 py-2 shadow-lg backdrop-blur-sm">
-            <Zap className="size-4 text-teal" />
-            <span className="text-sm font-bold text-teal">+50 XP</span>
-            <span className="text-xs text-muted-foreground">Team joined!</span>
-          </div>
-        </motion.div>
+        {/* Main browser frame - neo-brutalist */}
+        <div className="relative">
+          {/* Browser frame header */}
+          <div className="border-2 border-foreground bg-card">
+            <div className="flex items-center gap-3 px-4 py-3 border-b-2 border-foreground bg-muted">
+              <div className="flex gap-2">
+                <div className="w-3 h-3 border border-foreground" />
+                <div className="w-3 h-3 border border-foreground" />
+                <div className="w-3 h-3 border border-foreground" />
+              </div>
+              <span className="text-xs font-mono text-foreground ml-2">gamejamcrew.local</span>
+            </div>
 
-        {/* Floating team invite */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={isInView ? { opacity: 1, scale: 1 } : {}}
-          transition={{ duration: 0.5, delay: 1.2 }}
-          className="absolute -left-4 bottom-24 hidden lg:block"
-        >
-          <div className="rounded-xl bg-card/95 border border-peach/30 p-3 shadow-lg backdrop-blur-sm max-w-[180px]">
-            <div className="flex items-start gap-2">
-              <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-peach/15 text-peach">
-                <Users className="size-4" />
-              </div>
-              <div>
-                <p className="text-[11px] font-bold text-foreground">New Invite</p>
-                <p className="text-[10px] text-muted-foreground">
-                  Neon Runners wants you!
-                </p>
-              </div>
+            {/* Dashboard content area */}
+            <div className="bg-background">
+              <MockDashboard />
             </div>
           </div>
-        </motion.div>
-      </motion.div>
+
+          {/* Offset shadow (neo-brutalist) */}
+          <div className="absolute -bottom-4 -right-4 w-full h-full border-2 border-foreground -z-10 opacity-60" />
+        </div>
+
+        {/* Floating notification cards */}
+        <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Notification 1 - Squad Status */}
+          <div className="relative">
+            <div className="border-2 border-foreground p-4 bg-accent/5">
+              <div className="flex items-start gap-3">
+                <UsersIcon className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-bold text-foreground text-sm">Squad Assembled!</p>
+                  <p className="text-xs text-muted-foreground mt-1">Your team is ready to jam. 3 members online.</p>
+                </div>
+              </div>
+            </div>
+            <div className="absolute -bottom-2 -right-2 w-full h-full border-2 border-foreground -z-10 opacity-40" />
+          </div>
+
+          {/* Notification 2 - Game Jam Started */}
+          <div className="relative">
+            <div className="border-2 border-foreground p-4 bg-primary/5">
+              <div className="flex items-start gap-3">
+                <Code2Icon className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-bold text-foreground text-sm">Game Jam Started</p>
+                  <p className="text-xs text-muted-foreground mt-1">48 hours to create magic. You got this!</p>
+                </div>
+              </div>
+            </div>
+            <div className="absolute -bottom-2 -right-2 w-full h-full border-2 border-foreground -z-10 opacity-40" />
+          </div>
+        </div>
+      </div>
     </section>
   )
 }
