@@ -49,7 +49,7 @@ const features = [
 export function LandingFeatures() {
   return (
     <section
-      className="relative overflow-hidden px-4 py-20 lg:px-8 lg:py-28"
+      className="relative overflow-hidden px-4 py-20 lg:px-8 lg:py-28 border-t-2 border-b-2 border-dashed border-slate-300"
       style={{ backgroundImage: DOT_PATTERN, backgroundColor: "var(--background)" }}
     >
       <div className="relative mx-auto max-w-6xl">

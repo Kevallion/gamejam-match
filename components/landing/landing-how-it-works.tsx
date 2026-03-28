@@ -32,7 +32,7 @@ export function LandingHowItWorks() {
   ]
 
   return (
-    <section className="relative w-full py-20 px-4 md:px-8 bg-background overflow-hidden">
+    <section className="relative w-full py-20 px-4 md:px-8 bg-background overflow-hidden border-t-2 border-b-2 border-dashed border-slate-300">
       {/* Decorative dot pattern background */}
       <div className="absolute inset-0 opacity-25 pointer-events-none">
         <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
