@@ -1,89 +1,105 @@
 "use client"
 
-import { Code2Icon, MessageSquareIcon, UsersIcon } from "lucide-react"
+import { Gamepad2, Users, Zap } from "lucide-react"
 import { MockDashboard } from "@/components/showcase/mock-dashboard"
 
-/**
- * LandingShowcase - Neo-brutalist dashboard preview with solid borders and offset shadows.
- * Shows the GameJamCrew command center with notifications and squad status.
- */
+const DOT_PATTERN = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Ccircle cx='2' cy='2' r='1.2' fill='%2394a3b8' fill-opacity='0.35'/%3E%3C/svg%3E")`
+
 export function LandingShowcase() {
   return (
-    <section className="relative w-full py-20 px-4 md:px-8 bg-background overflow-hidden">
-      {/* Decorative dot pattern background */}
-      <div className="absolute inset-0 opacity-30 pointer-events-none">
-        <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <pattern id="dots-showcase" x="40" y="40" width="40" height="40" patternUnits="userSpaceOnUse">
-              <circle cx="2" cy="2" r="1" fill="currentColor" className="text-muted-foreground/50" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#dots-showcase)" />
-        </svg>
+    <section
+      className="relative overflow-hidden px-4 py-20 lg:px-8 lg:py-28"
+      style={{ backgroundImage: DOT_PATTERN, backgroundColor: "var(--background)" }}
+    >
+      {/* Top divider */}
+      <div className="mx-auto mb-16 max-w-6xl">
+        <div className="h-0.5 w-full border-t-2 border-dashed border-slate-300" />
       </div>
 
-      <div className="max-w-6xl mx-auto relative z-10">
-        {/* Section badge */}
-        <div className="flex justify-center mb-12">
-          <div className="inline-flex items-center gap-2 px-4 py-2 border-2 border-foreground bg-background">
-            <Code2Icon className="w-4 h-4 text-primary" />
-            <span className="text-sm font-semibold text-foreground">Your Command Center</span>
+      <div className="relative mx-auto max-w-6xl">
+        {/* Section header */}
+        <div className="mb-14 flex flex-col items-center text-center">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border-2 border-foreground bg-card px-4 py-1.5 text-sm font-bold text-foreground shadow-[3px_3px_0px_0px_var(--neo-shadow)]">
+            <Gamepad2 className="size-4 text-teal" />
+            Your Command Center
           </div>
+          <h2 className="text-balance text-3xl font-extrabold tracking-tight text-foreground md:text-4xl lg:text-5xl">
+            Manage your teams{" "}
+            <span className="text-teal">in one place.</span>
+          </h2>
+          <p className="mx-auto mt-4 max-w-lg text-pretty text-lg leading-relaxed text-muted-foreground">
+            Track applications, communicate with teammates, and level up your jam experience.
+          </p>
         </div>
 
-        {/* Main browser frame - neo-brutalist */}
+        {/* Browser Frame */}
         <div className="relative">
-          {/* Browser frame header */}
-          <div className="border-2 border-foreground bg-card">
-            <div className="flex items-center gap-3 px-4 py-3 border-b-2 border-foreground bg-muted">
-              <div className="flex gap-2">
-                <div className="w-3 h-3 border border-foreground" />
-                <div className="w-3 h-3 border border-foreground" />
-                <div className="w-3 h-3 border border-foreground" />
+          {/* Neo-brutalist offset shadow */}
+          <div className="absolute inset-0 translate-x-3 translate-y-3 rounded-xl border-2 border-teal opacity-40" />
+
+          {/* Browser chrome */}
+          <div className="relative rounded-xl border-2 border-foreground bg-card overflow-hidden">
+            {/* Browser header */}
+            <div className="flex items-center gap-2 border-b-2 border-foreground bg-muted px-4 py-3">
+              <div className="flex items-center gap-1.5">
+                <div className="size-3 rounded-full border-2 border-foreground bg-pink/30" />
+                <div className="size-3 rounded-full border-2 border-foreground bg-peach/30" />
+                <div className="size-3 rounded-full border-2 border-foreground bg-teal/30" />
               </div>
-              <span className="text-xs font-mono text-foreground ml-2">gamejamcrew.local</span>
+              <div className="mx-4 flex-1">
+                <div className="mx-auto max-w-sm rounded-lg border border-slate-300 bg-background px-4 py-1.5 text-center text-xs font-mono text-muted-foreground">
+                  gamejamcrew.com/dashboard
+                </div>
+              </div>
+              <div className="w-[52px]" />
             </div>
 
-            {/* Dashboard content area */}
+            {/* Dashboard content */}
             <div className="bg-background">
               <MockDashboard />
             </div>
           </div>
-
-          {/* Offset shadow (neo-brutalist) */}
-          <div className="absolute -bottom-4 -right-4 w-full h-full border-2 border-foreground -z-10 opacity-60" />
         </div>
 
         {/* Floating notification cards */}
-        <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8">
-          {/* Notification 1 - Squad Status */}
-          <div className="relative">
-            <div className="border-2 border-foreground p-4 bg-accent/5">
+        <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2">
+          {/* Notification 1 */}
+          <div className="group relative">
+            <div className="absolute inset-0 translate-x-1.5 translate-y-1.5 rounded-xl border-2 border-teal opacity-40" />
+            <div className="relative rounded-xl border-2 border-foreground bg-card p-4">
               <div className="flex items-start gap-3">
-                <UsersIcon className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                <div className="flex size-10 flex-shrink-0 items-center justify-center rounded-lg border-2 border-teal/30 bg-teal/10">
+                  <Zap className="size-5 text-teal" />
+                </div>
                 <div>
-                  <p className="font-bold text-foreground text-sm">Squad Assembled!</p>
-                  <p className="text-xs text-muted-foreground mt-1">Your team is ready to jam. 3 members online.</p>
+                  <p className="font-extrabold text-foreground text-sm">+50 XP Earned!</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">Your team just joined a new jam.</p>
                 </div>
               </div>
             </div>
-            <div className="absolute -bottom-2 -right-2 w-full h-full border-2 border-foreground -z-10 opacity-40" />
           </div>
 
-          {/* Notification 2 - Game Jam Started */}
-          <div className="relative">
-            <div className="border-2 border-foreground p-4 bg-primary/5">
+          {/* Notification 2 */}
+          <div className="group relative">
+            <div className="absolute inset-0 translate-x-1.5 translate-y-1.5 rounded-xl border-2 border-pink opacity-40" />
+            <div className="relative rounded-xl border-2 border-foreground bg-card p-4">
               <div className="flex items-start gap-3">
-                <Code2Icon className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                <div className="flex size-10 flex-shrink-0 items-center justify-center rounded-lg border-2 border-pink/30 bg-pink/10">
+                  <Users className="size-5 text-pink" />
+                </div>
                 <div>
-                  <p className="font-bold text-foreground text-sm">Game Jam Started</p>
-                  <p className="text-xs text-muted-foreground mt-1">48 hours to create magic. You got this!</p>
+                  <p className="font-extrabold text-foreground text-sm">New Invite!</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">Neon Runners wants you on their squad.</p>
                 </div>
               </div>
             </div>
-            <div className="absolute -bottom-2 -right-2 w-full h-full border-2 border-foreground -z-10 opacity-40" />
           </div>
         </div>
+      </div>
+
+      {/* Bottom divider */}
+      <div className="mx-auto mt-16 max-w-6xl">
+        <div className="h-0.5 w-full border-t-2 border-dashed border-slate-300" />
       </div>
     </section>
   )

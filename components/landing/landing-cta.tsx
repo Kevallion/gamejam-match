@@ -1,110 +1,105 @@
 "use client"
 
-import { Gamepad2, LogIn, Zap, Star, Sparkles } from "lucide-react"
 import { useState } from "react"
+import { Sword, Sparkles, Zap, Star, Gamepad2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { AuthModal } from "@/components/auth-modal"
 
-/**
- * LandingCTA - Neo-brutalist final call-to-action with chunky card and offset shadows.
- * Encourages users to join and find their gaming squad.
- */
+const DOT_PATTERN = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Ccircle cx='2' cy='2' r='1.2' fill='%2394a3b8' fill-opacity='0.35'/%3E%3C/svg%3E")`
+
 export function LandingCTA() {
   const [authModalOpen, setAuthModalOpen] = useState(false)
 
   return (
-    <section className="relative w-full py-20 px-4 md:px-8 bg-background overflow-hidden">
-      {/* Decorative dot pattern background */}
-      <div className="absolute inset-0 opacity-20 pointer-events-none">
-        <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <pattern id="dots-cta" x="40" y="40" width="40" height="40" patternUnits="userSpaceOnUse">
-              <circle cx="2" cy="2" r="1" fill="currentColor" className="text-muted-foreground/40" />
-            </pattern>
-          </defs>
-          <rect width="100%" height="100%" fill="url(#dots-cta)" />
-        </svg>
+    <section
+      className="relative overflow-hidden px-4 py-20 lg:px-8 lg:py-28"
+      style={{ backgroundImage: DOT_PATTERN, backgroundColor: "var(--background)" }}
+    >
+      {/* Top divider */}
+      <div className="mx-auto mb-16 max-w-6xl">
+        <div className="h-0.5 w-full border-t-2 border-dashed border-slate-300" />
       </div>
 
-      <div className="max-w-4xl mx-auto relative z-10">
-        {/* Main CTA card - neo-brutalist chunky */}
+      <div className="relative mx-auto max-w-4xl">
+        {/* Main CTA card */}
         <div className="relative">
-          {/* Main card with thick borders */}
-          <div className="border-4 border-foreground p-8 md:p-12 bg-card">
+          {/* Neo-brutalist offset shadow */}
+          <div className="absolute inset-0 translate-x-3 translate-y-3 rounded-2xl border-2 border-teal opacity-50" />
+
+          {/* Card */}
+          <div className="relative rounded-2xl border-2 border-foreground bg-card p-8 md:p-12 lg:p-16 text-center">
             {/* Floating badge */}
-            <div className="absolute -top-5 left-8 md:left-12">
-              <div className="inline-flex items-center gap-2 px-4 py-2 border-2 border-foreground bg-background">
-                <Sparkles className="w-4 h-4 text-primary" />
-                <span className="text-sm font-semibold text-foreground">Your next jam awaits</span>
+            <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+              <div className="inline-flex items-center gap-2 rounded-full border-2 border-foreground bg-card px-4 py-1.5 text-sm font-bold text-foreground shadow-[3px_3px_0px_0px_var(--neo-shadow)]">
+                <Sword className="size-4 text-teal" />
+                Your next jam awaits
               </div>
             </div>
 
-            {/* Content wrapper */}
-            <div className="text-center">
-              {/* Icon */}
-              <div className="inline-flex items-center justify-center w-20 h-20 border-3 border-foreground bg-muted mb-8 mx-auto">
-                <Gamepad2 className="w-10 h-10 text-primary" />
-              </div>
+            {/* Icon */}
+            <div className="mx-auto mb-6 flex size-20 items-center justify-center rounded-xl border-2 border-teal/30 bg-teal/10">
+              <Gamepad2 className="size-10 text-teal" />
+            </div>
 
-              {/* Headline */}
-              <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-                Ready to find your
-                <br />
-                <span className="text-primary">dream squad?</span>
-              </h2>
+            {/* Headline */}
+            <h2 className="text-balance text-3xl font-extrabold tracking-tight text-foreground md:text-4xl lg:text-5xl">
+              Ready to find your
+              <br />
+              <span className="text-teal">dream squad?</span>
+            </h2>
 
-              {/* Description */}
-              <p className="text-muted-foreground max-w-xl mx-auto mb-8">
-                Stop searching Discord servers and Reddit threads. Join the platform built specifically for game jam team building.
-              </p>
+            {/* Description */}
+            <p className="mx-auto mt-4 max-w-xl text-pretty text-lg leading-relaxed text-muted-foreground">
+              Stop searching Discord servers and Reddit threads. Join the platform built specifically for game jam team building.
+            </p>
 
-              {/* CTA Button */}
-              <button
+            {/* CTA Button */}
+            <div className="mt-8">
+              <Button
+                type="button"
+                size="lg"
+                className="h-14 min-w-[220px] rounded-lg border-2 border-foreground bg-teal px-8 text-base font-extrabold text-white shadow-[4px_4px_0px_0px_var(--neo-shadow)] transition-all hover:-translate-y-0.5 hover:shadow-[5px_5px_0px_0px_var(--neo-shadow)] active:translate-y-0 active:shadow-[2px_2px_0px_0px_var(--neo-shadow)]"
                 onClick={() => setAuthModalOpen(true)}
-                className="inline-flex items-center gap-2 px-8 py-3 border-2 border-foreground bg-primary text-primary-foreground font-bold text-base hover:bg-primary/90 transition-colors shadow-[4px_4px_0px_var(--neo-shadow)]"
               >
-                <LogIn className="w-5 h-5" />
-                Sign In
-              </button>
+                <Sparkles className="mr-2 size-5" />
+                Join the Crew
+              </Button>
             </div>
 
             {/* Trust badges */}
-            <div className="mt-12 pt-8 border-t-2 border-foreground grid grid-cols-3 gap-4 md:gap-8">
-              <div className="flex flex-col items-center">
-                <Zap className="w-5 h-5 text-primary mb-2" />
-                <span className="text-xs md:text-sm font-semibold text-foreground">Free to use</span>
+            <div className="mt-10 flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <Zap className="size-4 text-teal" />
+                <span>Free to use</span>
               </div>
-              <div className="flex flex-col items-center">
-                <Star className="w-5 h-5 text-accent mb-2" />
-                <span className="text-xs md:text-sm font-semibold text-foreground">No credit card</span>
+              <div className="hidden h-4 w-px bg-slate-300 sm:block" />
+              <div className="flex items-center gap-2">
+                <Star className="size-4 text-pink" />
+                <span>No credit card</span>
               </div>
-              <div className="flex flex-col items-center">
-                <Sparkles className="w-5 h-5 text-lavender mb-2" />
-                <span className="text-xs md:text-sm font-semibold text-foreground">Instant setup</span>
+              <div className="hidden h-4 w-px bg-slate-300 sm:block" />
+              <div className="flex items-center gap-2">
+                <Sparkles className="size-4 text-lavender" />
+                <span>Instant setup</span>
               </div>
             </div>
           </div>
-
-          {/* Offset shadow layer 1 */}
-          <div className="absolute -bottom-3 -right-3 w-full h-full border-3 border-foreground -z-10 opacity-50" />
-
-          {/* Offset shadow layer 2 */}
-          <div className="absolute -bottom-6 -right-6 w-full h-full border-2 border-foreground/30 -z-20 opacity-30" />
         </div>
 
         {/* Bottom decorative element */}
-        <div className="mt-16 flex justify-center gap-3">
+        <div className="mt-12 flex justify-center gap-2">
           {[...Array(5)].map((_, i) => (
             <div
               key={i}
-              className="w-2 h-2 border-2 border-foreground/60 rounded-full"
-              style={{
-                animation: `pulse 2s ease-in-out ${i * 0.2}s infinite`,
-                opacity: 0.4 + (i * 0.1)
-              }}
+              className="size-2 rounded-full border border-slate-300 bg-muted"
             />
           ))}
         </div>
+      </div>
+
+      {/* Bottom divider */}
+      <div className="mx-auto mt-16 max-w-6xl">
+        <div className="h-0.5 w-full border-t-2 border-dashed border-slate-300" />
       </div>
 
       <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
