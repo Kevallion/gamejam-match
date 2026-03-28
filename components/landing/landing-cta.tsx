@@ -13,7 +13,7 @@ export function LandingCTA() {
   const [authModalOpen, setAuthModalOpen] = useState(false)
 
   return (
-    <section className="relative w-full py-20 px-4 md:px-8 bg-background overflow-hidden border-t-2 border-b-2 border-dashed border-slate-300">
+    <section className="relative w-full py-20 px-4 md:px-8 bg-background overflow-hidden">
       {/* Decorative dot pattern background */}
       <div className="absolute inset-0 opacity-20 pointer-events-none">
         <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
