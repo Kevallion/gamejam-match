@@ -1,25 +1,27 @@
 "use client"
 
-import { Sparkles, Users } from "lucide-react"
+import { Sparkles, Users, Sword } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
+// Dot-pattern background (same as landing-hero)
+const DOT_PATTERN = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Ccircle cx='2' cy='2' r='1.2' fill='%2394a3b8' fill-opacity='0.35'/%3E%3C/svg%3E")`
+
 export function Hero() {
   return (
-    <section className="relative overflow-hidden px-4 pb-8 pt-16 lg:px-6 lg:pt-24 lg:pb-12">
-      <div className="pointer-events-none absolute inset-0 opacity-30" aria-hidden="true">
-        <div className="absolute left-1/2 top-0 size-[600px] -translate-x-1/2 -translate-y-1/3 rounded-full bg-primary/20 blur-[120px]" />
-        <div className="absolute right-0 top-1/2 size-[400px] -translate-y-1/2 rounded-full bg-accent/20 blur-[100px]" />
-      </div>
-
+    <section
+      className="relative overflow-hidden px-4 pb-8 pt-16 lg:px-6 lg:pt-24 lg:pb-12"
+      style={{ backgroundImage: DOT_PATTERN, backgroundColor: "var(--background)" }}
+    >
       <div className="relative mx-auto max-w-2xl text-center">
-        <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary">
-          <Sparkles className="size-4" />
+        {/* Neo-brutalist badge */}
+        <div className="mb-6 inline-flex items-center gap-2 rounded-full border-2 border-foreground bg-card px-4 py-1.5 text-sm font-bold text-foreground shadow-[3px_3px_0px_0px_var(--neo-shadow)]">
+          <Sword className="size-4 text-teal" />
           Browse teams looking for members
         </div>
 
         <h1 className="text-balance text-4xl font-extrabold tracking-tight text-foreground md:text-5xl lg:text-6xl">
-          Find Your Game Jam <span className="text-primary">Squad</span>
+          Find Your Game Jam <span className="text-teal">Squad</span>
         </h1>
 
         <p className="mx-auto mt-4 max-w-lg text-pretty text-lg leading-relaxed text-muted-foreground">
@@ -30,10 +32,10 @@ export function Hero() {
           <Button
             asChild
             size="lg"
-            className="h-12 rounded-xl bg-primary px-8 text-base font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-all hover:bg-primary/90 hover:shadow-primary/30"
+            className="h-14 min-w-[220px] rounded-lg border-2 border-foreground bg-teal px-8 text-base font-extrabold text-white shadow-[4px_4px_0px_0px_var(--neo-shadow)] transition-all hover:-translate-y-0.5 hover:shadow-[5px_5px_0px_0px_var(--neo-shadow)] active:translate-y-0 active:shadow-[2px_2px_0px_0px_var(--neo-shadow)]"
           >
             <Link href="/create-team">
-              <Users className="size-5" />
+              <Users className="mr-2 size-5" />
               Create a Squad
             </Link>
           </Button>
