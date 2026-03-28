@@ -49,22 +49,22 @@ const features = [
 export function LandingFeatures() {
   return (
     <section
-      className="relative overflow-hidden px-4 py-20 lg:px-8 lg:py-28"
+      className="relative overflow-hidden px-4 py-20 md:px-6 lg:px-8 lg:py-28 border-t-2 border-b-2 border-dashed border-slate-300"
       style={{ backgroundImage: DOT_PATTERN, backgroundColor: "var(--background)" }}
     >
       <div className="relative mx-auto max-w-6xl">
 
         {/* Section header */}
         <div className="mb-14 flex flex-col items-center text-center">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border-2 border-foreground bg-card px-4 py-1.5 text-sm font-bold text-foreground shadow-[3px_3px_0px_0px_var(--neo-shadow)]">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border-2 border-foreground bg-card px-4 py-1.5 text-sm font-bold text-slate-900 shadow-[3px_3px_0px_0px_var(--neo-shadow)]">
             <span className="text-pink">⚔️</span>
             Your Quest Toolkit
           </div>
-          <h2 className="text-balance text-3xl font-extrabold tracking-tight text-foreground md:text-4xl lg:text-5xl">
+          <h2 className="text-balance text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl lg:text-5xl">
             Three features. One{" "}
             <span className="text-teal">finished game.</span>
           </h2>
-          <p className="mx-auto mt-4 max-w-lg text-pretty text-lg leading-relaxed text-muted-foreground">
+          <p className="mx-auto mt-4 max-w-lg text-pretty text-lg leading-relaxed text-slate-700">
             Everything your team needs, from the party board to the victory screen.
           </p>
         </div>
@@ -77,9 +77,9 @@ export function LandingFeatures() {
         </div>
 
         {/* Bottom tagline */}
-        <p className="mt-14 text-center text-sm font-medium text-muted-foreground">
+        <p className="mt-14 text-center text-sm font-medium text-slate-700">
           Built by jammers, for jammers.{" "}
-          <span className="font-bold text-foreground">
+          <span className="font-bold text-slate-900">
             No endless scrolling through Discord servers.
           </span>
         </p>
@@ -96,7 +96,7 @@ function FeatureCard({ feature }: { feature: (typeof features)[number] }) {
     <div className="group relative">
       {/* Neo-brutalist offset shadow */}
       <div
-        className={`absolute inset-0 translate-x-1.5 translate-y-1.5 rounded-xl border-2 ${feature.accent} opacity-40`}
+        className={`absolute inset-0 translate-x-1.5 translate-y-1.5 rounded-xl border-2 ${feature.accent} opacity-50`}
       />
       {/* Card */}
       <div
@@ -117,10 +117,10 @@ function FeatureCard({ feature }: { feature: (typeof features)[number] }) {
         </div>
 
         {/* Text */}
-        <h3 className="mb-2 text-xl font-extrabold text-foreground leading-snug">
+        <h3 className="mb-2 text-xl font-extrabold text-slate-900 leading-snug">
           {feature.title}
         </h3>
-        <p className="mb-5 text-sm leading-relaxed text-muted-foreground">
+        <p className="mb-5 text-sm leading-relaxed text-slate-700">
           {feature.description}
         </p>
 

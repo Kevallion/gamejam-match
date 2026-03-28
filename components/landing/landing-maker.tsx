@@ -7,14 +7,9 @@ const DOT_PATTERN = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/200
 export function LandingMaker() {
   return (
     <section
-      className="relative overflow-hidden px-4 py-20 lg:px-8 lg:py-28"
+      className="relative overflow-hidden px-4 py-20 md:px-6 lg:px-8 lg:py-28 border-t-2 border-b-2 border-dashed border-slate-300"
       style={{ backgroundImage: DOT_PATTERN, backgroundColor: "var(--background)" }}
     >
-      {/* Top divider */}
-      <div className="mx-auto mb-16 max-w-6xl">
-        <div className="h-0.5 w-full border-t-2 border-dashed border-slate-300" />
-      </div>
-
       <div className="relative mx-auto max-w-6xl">
         <div className="flex flex-col items-center gap-10 lg:flex-row lg:items-start lg:gap-16">
 
@@ -48,12 +43,12 @@ export function LandingMaker() {
           {/* ── Right: text ── */}
           <div className="flex-1 max-w-xl">
             {/* Section label chip */}
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border-2 border-foreground bg-card px-3 py-1 text-xs font-bold text-foreground shadow-[2px_2px_0px_0px_var(--neo-shadow)]">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border-2 border-foreground bg-card px-3 py-1 text-xs font-bold text-slate-900 shadow-[2px_2px_0px_0px_var(--neo-shadow)]">
               <span className="text-teal">✦</span>
               Meet the Maker
             </div>
 
-            <h2 className="text-balance text-3xl font-extrabold tracking-tight text-foreground md:text-4xl">
+            <h2 className="text-balance text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl">
               Hey, I&apos;m{" "}
               <span className="relative inline-block">
                 <span className="relative z-10 text-teal">[Your Name].</span>
@@ -63,11 +58,11 @@ export function LandingMaker() {
             </h2>
 
             {/* Story */}
-            <div className="mt-5 space-y-4 text-base leading-relaxed text-muted-foreground">
+            <div className="mt-5 space-y-4 text-base leading-relaxed text-slate-700">
               <p>
                 {"I've done my share of intense game jams. I got tired of dead teams, abandoned forums, and ghosting mid-project, so I built GameJamCrew to help us connect and actually finish our games."}
               </p>
-              <p className="font-semibold text-foreground">
+              <p className="font-semibold text-slate-900">
                 No VC money, no corporate hidden agenda. Just a passion for game dev.
               </p>
               <p>See you on the next one!</p>
@@ -76,16 +71,11 @@ export function LandingMaker() {
             {/* Signature */}
             <div className="mt-6 inline-flex items-center gap-3 rounded-xl border-2 border-foreground bg-card px-5 py-3 shadow-[3px_3px_0px_0px_var(--neo-shadow)]">
               <span className="text-2xl">⚔️</span>
-              <p className="font-extrabold text-foreground">— Happy Jamming!</p>
+              <p className="font-extrabold text-slate-900">— Happy Jamming!</p>
             </div>
           </div>
 
         </div>
-      </div>
-
-      {/* Bottom divider */}
-      <div className="mx-auto mt-16 max-w-6xl">
-        <div className="h-0.5 w-full border-t-2 border-dashed border-slate-300" />
       </div>
     </section>
   )
