@@ -5,7 +5,7 @@ import { FeaturesSection } from "@/components/landing/features-section"
 
 export function LandingHome() {
   return (
-    <div className="flex min-h-screen flex-col bg-[#f8fafc]">
+    <div className="flex min-h-screen flex-col bg-slate-50">
       <LandingNavbar />
       <main className="flex-1">
         <HeroSection />

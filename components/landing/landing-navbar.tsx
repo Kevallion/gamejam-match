@@ -2,7 +2,7 @@ import { Gamepad2 } from "lucide-react"
 
 export function LandingNavbar() {
   return (
-    <header className="sticky top-0 z-50 border-b-2 border-slate-200 bg-[#f8fafc]">
+    <header className="sticky top-0 z-50 border-b-2 border-slate-200 bg-slate-50">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
         {/* Logo */}
         <a href="/" className="flex items-center gap-2 font-extrabold text-slate-900">
