@@ -58,18 +58,24 @@ export function LandingMaker() {
             </div>
 
             <h2 className="text-balance text-3xl font-extrabold tracking-tight text-foreground md:text-4xl">
-              Hey, I&apos;m{" "}
+              Hello, I&apos;m{" "}
               <span className="relative inline-block">
-                <span className="relative z-10 text-teal">Wisllor.</span>
+                <span className="relative z-10 text-teal">Wisllor</span>
                 <span className="absolute inset-x-0 bottom-0 h-3 -z-0 bg-teal/10 rounded" />
-              </span>{" "}
-              I built this.
+              </span>
+              , the founder.
             </h2>
 
             {/* Story */}
             <div className="mt-5 space-y-4 text-base leading-relaxed text-muted-foreground">
               <p>
-                {"I've done my share of intense game jams. I got tired of dead teams, abandoned forums, and ghosting mid-project, so I built GameJamCrew to help us connect and actually finish our games."}
+                I&apos;ve participated in several game jams, and I realized that finding a team online
+                isn&apos;t that simple. Everything is decentralized, you have to post across multiple
+                forums and scattered Discord communities.
+              </p>
+              <p>
+                So, I decided to create GameJamCrew to centralize the search, help matching profiles
+                connect faster, and focus on creating games.
               </p>
               <p className="font-semibold text-foreground">
                 No VC money, no corporate hidden agenda. Just a passion for game dev.

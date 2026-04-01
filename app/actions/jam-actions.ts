@@ -1,5 +1,6 @@
 "use server"
 
+import { headers } from "next/headers"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
 
@@ -152,6 +153,7 @@ export type ExternalJam = {
   title: string | null
   url: string | null
   thumbnail_url: string | null
+  starts_at: string | null
   ends_at: string | null
 }
 
@@ -166,7 +168,7 @@ export async function getExternalJams(options?: {
     const supabase = await createClient()
     let query = supabase
       .from("external_jams")
-      .select("id, itch_id, title, url, thumbnail_url, ends_at")
+      .select("id, itch_id, title, url, thumbnail_url, starts_at, ends_at")
       .order("ends_at", { ascending: true, nullsFirst: false })
 
     if (options?.activeOnly) {
@@ -184,5 +186,37 @@ export async function getExternalJams(options?: {
   } catch (e) {
     const message = e instanceof Error ? e.message : "Unknown error"
     return { data: [], error: message }
+  }
+}
+
+/**
+ * Importe une jam depuis une URL Itch.io (même logique que POST /api/jams/import-by-url).
+ * À utiliser depuis le client comme Server Action.
+ */
+export async function importJamByUrl(
+  url: string
+): Promise<{ success: true; jam: ExternalJam } | { success: false; error: string }> {
+  try {
+    const h = await headers()
+    const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3000"
+    const proto = h.get("x-forwarded-proto") ?? (host.includes("localhost") ? "http" : "https")
+    const res = await fetch(`${proto}://${host}/api/jams/import-by-url`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url }),
+      cache: "no-store",
+    })
+    const data = (await res.json()) as {
+      success?: boolean
+      error?: string
+      jam?: ExternalJam
+    }
+    if (!data.success || !data.jam) {
+      return { success: false, error: data.error ?? `Import failed (${res.status})` }
+    }
+    return { success: true, jam: data.jam }
+  } catch (e) {
+    const message = e instanceof Error ? e.message : "Unknown error"
+    return { success: false, error: message }
   }
 }

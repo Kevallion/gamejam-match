@@ -36,14 +36,14 @@ type ShowcaseSection = {
 const SHOWCASE_SECTIONS: ShowcaseSection[] = [
   {
     id: "hero",
-    badge: "Homepage",
+    badge: "Step 1: Search & filters",
     badgeIcon: Sparkles,
     frameAccent: "border-teal",
     iconColor: "text-teal",
     numberColor: "text-teal",
-    title: "Discover Your Next Jam Squad",
+    title: "One place to start looking",
     description:
-      "The homepage welcomes jammers with a bold hero section, live search with auto-suggestions, and advanced filters to narrow down the perfect team by engine, role, experience level, and language.",
+      "Instead of hopping between forums and random Discord servers, you land here: search by jam, then filter teams by engine, role, experience, and language so the list matches what you actually need.",
     url: "gamejamcrew.com",
     cursorPosition: { x: "62%", y: "68%" },
     cursorLabel: "Filtering by English",
@@ -52,15 +52,15 @@ const SHOWCASE_SECTIONS: ShowcaseSection[] = [
   },
   {
     id: "teams",
-    badge: "Browse Teams",
+    badge: "Step 2: Team listings",
     badgeIcon: Users,
     frameAccent: "border-pink",
     iconColor: "text-pink",
     numberColor: "text-pink",
-    title: "Interactive Team Cards",
+    title: "See who is recruiting",
     description:
-      "Each team card displays the jam name, engine, open roles with color-coded badges, and member count at a glance. Hover to highlight, click to expand full details and apply instantly.",
-    url: "gamejamcrew.com",
+      "Each card surfaces the jam, engine, open roles, and how full the roster is. Dig into the full pitch when something fits, then apply from the same flow, with no wall of unstructured posts to parse.",
+    url: "gamejamcrew.com/teams",
     cursorPosition: { x: "70%", y: "18%" },
     cursorLabel: "Viewing Neon Runners",
     component: MockTeamGrid,
@@ -68,14 +68,14 @@ const SHOWCASE_SECTIONS: ShowcaseSection[] = [
   },
   {
     id: "create",
-    badge: "Post a Team",
+    badge: "Step 3: Post a team",
     badgeIcon: PenLine,
     frameAccent: "border-lavender",
     iconColor: "text-lavender",
     numberColor: "text-lavender",
-    title: "Create Your Squad in Seconds",
+    title: "Publish a squad listing",
     description:
-      "A clean, guided form lets you post your team with engine selection, role requirements, experience preferences, and an optional Discord link. The dropdown is open and ready for selection.",
+      "Need teammates? Walk through engine, roles to fill, experience level, jam timing, optional Discord, and a short brief. One structured post reaches people already searching for a team.",
     url: "gamejamcrew.com/create-team",
     cursorPosition: { x: "28%", y: "42%" },
     cursorLabel: "Selecting Godot",
@@ -84,14 +84,14 @@ const SHOWCASE_SECTIONS: ShowcaseSection[] = [
   },
   {
     id: "members",
-    badge: "Find Members",
+    badge: "Step 4: Find members",
     badgeIcon: UserSearch,
     frameAccent: "border-teal",
     iconColor: "text-teal",
     numberColor: "text-teal",
-    title: "Scout Available Jammers",
+    title: "Scout available jammers",
     description:
-      "Browse player profiles with role badges, experience levels, preferred engines, and short bios. Each card is a gateway to invite talented members directly to your squad.",
+      "Turn it around: browse profiles from devs, artists, and audio folks who marked themselves available, with roles, engines, and bios. Invite the right person to a specific seat instead of cold-DMing strangers.",
     url: "gamejamcrew.com/find-members",
     cursorPosition: { x: "78%", y: "55%" },
     cursorLabel: "Checking out BeatMaker99",
@@ -100,14 +100,14 @@ const SHOWCASE_SECTIONS: ShowcaseSection[] = [
   },
   {
     id: "dashboard",
-    badge: "Dashboard",
+    badge: "Step 5: Dashboard",
     badgeIcon: LayoutDashboard,
     frameAccent: "border-peach",
     iconColor: "text-peach",
     numberColor: "text-peach",
-    title: "Your Command Center",
+    title: "Squads and applications together",
     description:
-      "Manage all your teams, review incoming applications with accept/decline actions, track your sent applications, and monitor your availability profiles -- all from one unified dashboard with tab navigation.",
+      "Everything you join or manage lives in one hub: your teams, incoming applications, what you have sent, and your availability post. Accept or decline from the same tabs you use to track the jam.",
     url: "gamejamcrew.com/dashboard",
     cursorPosition: { x: "72%", y: "56%" },
     cursorLabel: "Accepting SynthWave_Alex",
@@ -116,14 +116,14 @@ const SHOWCASE_SECTIONS: ShowcaseSection[] = [
   },
   {
     id: "notifications",
-    badge: "Notifications",
+    badge: "Step 6: Alerts",
     badgeIcon: Bell,
     frameAccent: "border-pink",
     iconColor: "text-pink",
     numberColor: "text-pink",
-    title: "Real-Time Alerts",
+    title: "Don't miss a match",
     description:
-      "A notification bell with an unread badge and dropdown shows new applications and squad invitations in real-time. Never miss a message from a potential teammate.",
+      "The notification bell pulls invites and applications into one list with an unread count, which helps when you are mid-crunch and do not want to lose a teammate because a ping got buried.",
     url: "gamejamcrew.com/dashboard",
     cursorPosition: { x: "82%", y: "8%" },
     cursorLabel: "3 new notifications",
@@ -132,14 +132,14 @@ const SHOWCASE_SECTIONS: ShowcaseSection[] = [
   },
   {
     id: "invite",
-    badge: "Invite Flow",
+    badge: "Step 7: Invite",
     badgeIcon: Mail,
     frameAccent: "border-lavender",
     iconColor: "text-lavender",
     numberColor: "text-lavender",
-    title: "Seamless Invitation System",
+    title: "Invite with a clear ask",
     description:
-      "Invite jammers with a polished modal: pick the role, write a personalized message, and send. The recipient sees the invitation in their dashboard and can accept or decline with one click.",
+      "Choose the role, add a short personal note, send. They get a proper invitation in their dashboard and can accept or decline in one step, which is clearer than a vague @everyone in a server nobody reads.",
     url: "gamejamcrew.com/find-members",
     cursorPosition: { x: "75%", y: "72%" },
     cursorLabel: "Sending invite",
@@ -154,7 +154,7 @@ export function ShowcaseShell() {
       <Navbar />
 
       <main className="flex-1">
-        {/* Page hero — landing-style */}
+        {/* Page hero */}
         <section
           className="relative overflow-hidden px-4 pb-16 pt-20 lg:px-8 lg:pb-20 lg:pt-24"
           style={{ backgroundImage: DOT_PATTERN, backgroundColor: "var(--background)" }}
@@ -167,16 +167,22 @@ export function ShowcaseShell() {
             <div className="flex flex-col items-center text-center">
               <div className="mb-5 inline-flex items-center gap-2 rounded-full border-2 border-foreground bg-card px-4 py-1.5 text-sm font-bold text-foreground shadow-[3px_3px_0px_0px_var(--neo-shadow)]">
                 <Gamepad2 className="size-4 text-teal" />
-                Product Showcase
+                How it works
               </div>
 
               <h1 className="text-balance text-4xl font-extrabold tracking-tight text-foreground md:text-5xl lg:text-6xl">
                 See <span className="text-teal">GameJamCrew</span> in Action
               </h1>
 
-              <p className="mx-auto mt-5 max-w-xl text-pretty text-lg leading-relaxed text-muted-foreground">
-                Explore every feature of the platform -- from finding your squad to managing applications. Each
-                screenshot captures real user interactions across the entire experience.
+              <p className="mx-auto mt-5 max-w-2xl text-pretty text-lg leading-relaxed text-muted-foreground">
+                GameJamCrew centralizes team search, recruiting, and follow-up: browse or post listings, scout
+                available jammers, then handle applications, invites, and notifications from one dashboard
+                instead of scattered forums and Discord servers.
+              </p>
+
+              <p className="mx-auto mt-4 max-w-2xl text-pretty text-base leading-relaxed text-muted-foreground">
+                Below, seven previews walk the same journey end to end. Each mock matches a real screen in the
+                app so you know exactly what you are signing up for.
               </p>
             </div>
           </div>
@@ -246,7 +252,7 @@ export function ShowcaseShell() {
           </div>
         </section>
 
-        {/* Bottom CTA — landing-cta style, links preserved */}
+        {/* Bottom CTA */}
         <section
           className="relative overflow-hidden px-4 py-20 lg:px-8 lg:py-28"
           style={{ backgroundImage: DOT_PATTERN, backgroundColor: "var(--background)" }}
@@ -278,8 +284,8 @@ export function ShowcaseShell() {
                 </h2>
 
                 <p className="mx-auto mt-4 max-w-xl text-pretty text-lg leading-relaxed text-muted-foreground">
-                  Join hundreds of indie developers, artists, and designers already building games together on
-                  GameJamCrew.
+                  Skip the forum hop: sign in, find or post a squad, and keep every application and invite in one
+                  place with the rest of the indie devs, artists, and audio folks on GameJamCrew.
                 </p>
 
                 <div className="mt-8 flex flex-wrap items-center justify-center gap-4">

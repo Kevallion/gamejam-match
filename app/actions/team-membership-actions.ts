@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server"
 import { awardXP, tryAwardCaptainBadgeForFullRoster } from "@/lib/gamification"
 import type { GamificationRewardSummary } from "@/lib/gamification-reward-types"
 import {
+  markNotificationsReadForJoinRequest,
   notifyCandidateAccepted,
   notifyOwnerPlayerJoined,
   notifyOwnerSquadRosterComplete,
@@ -113,11 +114,12 @@ export async function acceptJoinApplication(joinRequestId: string): Promise<Memb
 
   const teamName = teamMeta.team_name ?? undefined
   if (teamName) {
-    void notifyCandidateAccepted(senderId, teamName)
+    void notifyCandidateAccepted(senderId, teamName, teamId)
   }
   if (request.sender_name) {
-    void notifyOwnerPlayerJoined(teamId, request.sender_name as string)
+    void notifyOwnerPlayerJoined(teamId, request.sender_name as string, senderId)
   }
+  void markNotificationsReadForJoinRequest(joinRequestId)
 
   let ownerGamification: GamificationRewardSummary | undefined
   if (!duplicateMember) {
@@ -205,8 +207,9 @@ export async function acceptTeamInvitation(invitationId: string): Promise<Member
     (user.email ? user.email.split("@")[0] : null)
 
   if (currentUserName) {
-    void notifyOwnerPlayerJoined(teamId, currentUserName)
+    void notifyOwnerPlayerJoined(teamId, currentUserName, user.id)
   }
+  void markNotificationsReadForJoinRequest(invitationId)
 
   let joinGamification: GamificationRewardSummary | undefined
   let ownerGamification: GamificationRewardSummary | undefined

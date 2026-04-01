@@ -1,0 +1,123 @@
+---
+description: Contexte complet de l'application Gamejam Match — architecture, fonctionnalités, tables DB et règles métier. À utiliser comme mémoire de référence pour tout agent intervenant sur ce projet.
+alwaysApply: true
+---
+
+# Gamejam Match — Contexte Agent
+
+## Stack technique
+
+- **Next.js 16** App Router : RSC + Server Actions (`app/actions/`) + Route Handlers (`app/api/`)
+- **Supabase** : Postgres + RLS + Realtime (auth, données, temps réel)
+- **UI** : Tailwind 4 + shadcn/ui (Radix) dans `components/ui/`
+- **Emails** : Resend via `lib/mail.ts`
+- **Push** : Web Push API + `public/sw.js` (Service Worker)
+- **Scraping jams** : cheerio — itch.io
+- **Gamification** : logique applicative dans `lib/gamification.ts`
+
+## Clients Supabase
+
+- `lib/supabase/client.ts` — navigateur (`createBrowserClient`)
+- `lib/supabase/server.ts` — serveur SSR (`createServerClient` + cookies)
+- `lib/supabase/admin.ts` — service role (bypass RLS, mutations sensibles)
+- `lib/supabase/middleware.ts` — refresh session (`getUser`)
+
+## Routes & pages clés
+
+| URL | Fichier | Rôle |
+|-----|---------|------|
+| `/` | `app/page.tsx` | Landing ou redirect `/dashboard` si connecté |
+| `/dashboard` | `app/dashboard/page.tsx` | Dashboard principal (auth requise) |
+| `/teams` | `app/teams/page.tsx` | Liste/recherche d'équipes |
+| `/teams/[id]` | `app/teams/[id]/page.tsx` | Page publique d'équipe |
+| `/teams/[id]/manage` | `app/teams/[id]/manage/page.tsx` | Gestion équipe (owner only) |
+| `/find-members` | `app/find-members/page.tsx` | Liste des joueurs disponibles |
+| `/create-profile` | `app/create-profile/page.tsx` | Formulaire disponibilité/profil |
+| `/create-team` | `app/create-team/page.tsx` | Formulaire création d'équipe |
+| `/jammer/[userId]` | `app/jammer/[userId]/page.tsx` | Profil public d'un joueur |
+| `/sync-jams` | `app/sync-jams/page.tsx` | Admin : sync jams itch.io (noindex) |
+| `GET /auth/callback` | `app/auth/callback/route.ts` | Échange OAuth, sync avatar, redirect |
+| `GET /api/cron/cleanup-expired-teams` | route.ts | Vercel Cron — supprime équipes expirées |
+| `POST /api/webhooks/buymeacoffee` | route.ts | Webhook HMAC — badges supporters |
+| `POST /api/import-jam` | route.ts | Import jam itch.io par URL |
+| `POST /api/jams/import-by-url` | route.ts | Import jam (version allégée) |
+| `GET /api/auth-url` | route.ts | OAuth Discord pour deep link mobile |
+
+## Tables DB — rôles et colonnes importantes
+
+| Table | Rôle | Colonnes clés |
+|-------|------|---------------|
+| `profiles` | Données publiques + prefs + gamification | `id` (→ auth.users), `username`, `default_role`, `default_engine`, `default_language`, `discord_username`, `portfolio_url`, `bio`, `experience`, `avatar_url`, `has_completed_onboarding`, `onboarding_version`, `xp`, `level`, `unlocked_titles`, `current_title`, `role_stats`, `daily_login_streak`, `last_daily_xp_at`, `invitations_sent_count`, `last_chat_email_sent`, `main_role`, `jam_id` |
+| `teams` | Annonces d'équipes | `user_id`, `team_name`, `game_name`, `engine`, `language`, `looking_for` (JSON), `discord_link`, `team_vibe`, `experience_required`, `description`, `jam_id`, `jam_start_date`, `jam_end_date`, `expires_at`, `jam_completion_xp_claimed` |
+| `team_members` | Membres acceptés | `team_id`, `user_id`, `role` |
+| `join_requests` | Candidatures et invitations | `team_id`, `sender_id`, `type` (`application`\|`invitation`), `status` (`pending`\|`accepted`\|`declined`), `target_role`, `message` |
+| `availability_posts` | Joueurs disponibles | `user_id`, `availability`, `role`, `experience_level`, `jam_style`, `engine`, `language`, `portfolio_link`, `username`, `bio`, `jam_id`, `expires_at` (+30j auto) |
+| `external_jams` | Jams importées itch.io | `itch_id` (unique), `title`, `url`, `thumbnail_url`, `ends_at` |
+| `team_messages` | Chat d'équipe | `team_id`, `sender_id`, `content`, `created_at` |
+| `notifications` | Notifs in-app | `user_id`, `type`, `message`, `link`, `is_read`, `created_at` |
+| `push_subscriptions` | Abonnements Web Push | `user_id`, `endpoint` (unique), `p256dh`, `auth` |
+| `user_badges` | Badges débloqués | `user_id`, `badge_id`, `earned_at` — unique `(user_id, badge_id)` |
+| `kudos` | Kudos entre coéquipiers | `sender_id`, `receiver_id`, `category` — unique `(sender_id, receiver_id, category)` |
+
+## Triggers DB importants
+
+- `teams_sync_expires_from_jam_end_trg` : `expires_at` ← `jam_end_date` automatiquement
+- `profiles_gamification_columns_protect` : bloque la modif de `xp`, `level`, `unlocked_titles`, etc. côté client (SECURITY DEFINER) — mutations via **admin client** obligatoires
+- `handle_new_user` : crée un profil à la création d'un utilisateur
+
+## Server Actions (`app/actions/`)
+
+| Fichier | Fonctions principales |
+|---------|----------------------|
+| `create-team-actions.ts` | `createTeam`, `updateTeamJamListing` |
+| `team-actions.ts` | Notifications (email + in-app + push) liées aux équipes |
+| `team-membership-actions.ts` | `acceptJoinApplication`, `acceptTeamInvitation` |
+| `invite-actions.ts` | `sendTeamInvitation` |
+| `availability-actions.ts` | `claimAvailabilityPostXp` |
+| `gamification-actions.ts` | `claimDailyLoginXp`, `updateCurrentTitle` |
+| `kudos-actions.ts` | `giveKudos` |
+| `onboarding-actions.ts` | `completeOnboarding` |
+| `push-actions.ts` | `savePushSubscription` |
+| `auth-actions.ts` | Suppression de compte (admin API) |
+| `jam-actions.ts` | `getExternalJams`, `syncItchJams` |
+
+## Gamification — actions et récompenses
+
+| Action | XP | Badge | Titre |
+|--------|----|-------|-------|
+| `COMPLETE_PROFILE` | oui | — | — |
+| `POST_ANNOUNCEMENT` | oui | — | — |
+| `CREATE_TEAM` | oui | `founder` (1ère équipe) | — |
+| `JOIN_TEAM` | oui | `multi_tool` (3 rôles+) | Titres par rôle (`role_stats`) |
+| `INVITE_MEMBER` | oui | `recruiter` (5 invitations) | — |
+| `DAILY_LOGIN` | oui | `stalwart` (5j streak) | — |
+| `TEAM_ROSTER_COMPLETE` | 0 | `captain` | — |
+| Kudos reçus ≥5/catégorie | — | — | Titre par catégorie |
+
+Mutations gamification → toujours via **`lib/supabase/admin.ts`** (bypass trigger RLS).
+
+## Matchmaking (`lib/matchmaking.ts` + `lib/queries.ts`)
+
+- `getRecommendedTeams(profile)` : top 3 équipes actives matchant le rôle + boost moteur
+- `getSuggestedPlayers(roles, engine)` : top 3 joueurs disponibles matchant rôle + moteur
+- Moteur `any`/`none`/vide = matche tout
+
+## Authentification
+
+- OAuth Discord / Google + Magic link email
+- Callback : `GET /auth/callback` → sync `profiles.avatar_url`, redirect `/dashboard?from_auth=1`
+- Mobile Discord : `GET /api/auth-url` → deep link `discord://`
+- Erreur refresh token → `signOut` automatique (middleware)
+
+## Nettoyage automatique
+
+- **Équipes expirées** : Vercel Cron → `GET /api/cron/cleanup-expired-teams` (auth Bearer `CRON_SECRET`) → email owner + delete `teams` (cascade)
+- **Availability posts expirés** : pg_cron Supabase → delete `availability_posts` où `expires_at < now()`
+
+## RLS — règles générales
+
+- `profiles`, `teams`, `availability_posts` : SELECT public ; INSERT/UPDATE/DELETE limité à `auth.uid() = user_id`
+- `external_jams` : SELECT public ; écriture service role uniquement
+- `notifications`, `push_subscriptions` : CRUD limité à son `user_id`
+- `kudos` : INSERT si `sender_id = auth.uid()` et `sender_id ≠ receiver_id`
+- Mutations inter-utilisateurs (notifications, gamification) → via **admin client**

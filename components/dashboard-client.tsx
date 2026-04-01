@@ -6,13 +6,16 @@ import { Navbar } from "@/components/navbar"
 import { DashboardMyTeams, type TeamData } from "@/components/dashboard-my-teams"
 import { DashboardRecommendedTeams } from "@/components/dashboard-recommended-teams"
 import { DashboardMyAvailability } from "@/components/dashboard-my-availability"
-import { DashboardIncomingApplications, type ApplicationData } from "@/components/dashboard-incoming-applications"
-import { DashboardSquadInvitations, type InvitationData } from "@/components/dashboard-squad-invitations"
+import { DashboardInboxHub } from "@/components/dashboard-inbox-hub"
+import type { ApplicationData } from "@/components/dashboard-incoming-applications"
+import type { InvitationData } from "@/components/dashboard-squad-invitations"
+import type {
+  SentApplicationOutboxItem,
+  SentInvitationOutboxItem,
+} from "@/components/dashboard-sent-outbox"
 import {
   Info,
   Inbox,
-  MessageCircle,
-  Send,
   Settings2,
   Trash2,
   Trophy,
@@ -36,7 +39,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { supabase } from "@/lib/supabase"
+import { cancelJoinRequest } from "@/app/actions/join-request-actions"
 import {
+  markNotificationsReadForJoinRequest,
   notifyApplicantDeclined,
   notifyOwnerInvitationDeclined,
 } from "@/app/actions/team-actions"
@@ -58,18 +63,26 @@ import type { Session } from "@supabase/supabase-js"
 import { showGamificationRewards } from "@/components/gamification-reward-toasts"
 import { gamificationRewardHasToast } from "@/lib/gamification-reward-types"
 import { toast } from "sonner"
-import { EXPERIENCE_STYLES, ROLE_STYLES } from "@/lib/constants"
+import { ENGINE_OPTIONS, EXPERIENCE_STYLES, ROLE_STYLES } from "@/lib/constants"
 import { UserAvatar } from "@/components/user-avatar"
 import { JammerTitleBadge, JammerLevelBadge } from "@/components/profile-card"
 import { levelFromTotalXp, gamificationLevelProgress } from "@/lib/gamification-level"
-import { getRecommendedTeams, type SmartRecommendedTeam } from "@/lib/queries"
+import {
+  fetchDashboardJoinRequests,
+  getRecommendedTeams,
+  type SmartRecommendedTeam,
+} from "@/lib/queries"
 import { kudosCountsMapFromRpcRows, type KudosCounts } from "@/lib/kudos"
+import {
+  NOTIFICATION_ENRICHED_SELECT,
+  fetchNotificationsAsNormalized,
+  type EnrichedNotificationRow,
+  type NormalizedNotificationFeedItem,
+} from "@/lib/notifications-enriched"
 
 const LEVEL_STYLES = EXPERIENCE_STYLES
 const FALLBACK_ROLE = { label: "Other", emoji: "?", color: "bg-muted text-muted-foreground" }
 const FALLBACK_LEVEL = EXPERIENCE_STYLES["beginner"]
-
-type SentApp = { id: string; status: string; target_role?: string; teams?: { team_name?: string; discord_link?: string } }
 
 type TeamRow = {
   id: string
@@ -101,18 +114,21 @@ type InvitationRow = {
   id: string
   team_id: string
   target_role?: string | null
-  teams?: { team_name?: string | null; game_name?: string | null; discord_link?: string | null }
+  message?: string | null
+  teams?: {
+    team_name?: string | null
+    game_name?: string | null
+    discord_link?: string | null
+    engine?: string | null
+    description?: string | null
+    team_vibe?: string | null
+    experience_required?: string | null
+    external_jams?: { title?: string | null } | { title?: string | null }[] | null
+  } | null
 }
 
 type MembershipRow = {
   team_id: string | null
-}
-
-type SentApplicationRow = {
-  id: string
-  status: string
-  target_role?: string | null
-  teams: { team_name?: string | null; discord_link?: string | null } | { team_name?: string | null; discord_link?: string | null }[] | null
 }
 
 export type JamInfo = { id: string; title: string | null; url: string | null }
@@ -133,79 +149,6 @@ export type AvailabilityPostRow = {
   avatar_url?: string | null
   jam?: JamInfo | null
   kudosCounts?: KudosCounts | null
-}
-
-function SentApplicationsSection({ sentApplications }: { sentApplications: SentApp[] }) {
-  return (
-    <div className="glass-card rounded-2xl p-4 md:p-6">
-      <div className="mb-4 flex items-center gap-3 md:mb-6">
-        <div className="flex size-10 items-center justify-center rounded-xl bg-teal/15">
-          <Send className="size-5 text-teal" />
-        </div>
-        <div>
-          <h2 className="text-lg font-semibold tracking-tight md:text-xl">My sent applications</h2>
-          <p className="text-sm text-muted-foreground">Track your applications to join a team.</p>
-        </div>
-      </div>
-
-      {sentApplications.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-border/50 p-6 text-center text-sm text-muted-foreground md:p-8">
-          You haven&apos;t sent any applications to join a team yet.
-        </div>
-      ) : (
-        <div className="flex flex-col gap-2 md:gap-3">
-          {sentApplications.map(app => {
-            const roleStyle = app.target_role
-              ? (ROLE_STYLES[app.target_role] ?? { label: app.target_role, emoji: "?", color: "bg-muted text-muted-foreground" })
-              : null
-            return (
-              <div key={app.id} className="flex items-center justify-between rounded-xl border border-border/40 bg-background/50 px-3 py-2.5 gap-2 md:px-4 md:py-3">
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="font-medium text-foreground truncate">
-                    {app.teams?.team_name || "Unknown team"}
-                  </span>
-                  {roleStyle && (
-                    <span className={cn("shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold", roleStyle.color)}>
-                      {roleStyle.emoji} {roleStyle.label}
-                    </span>
-                  )}
-                </div>
-
-                <div className="flex shrink-0 items-center gap-2 md:gap-3">
-                  {app.status === "pending" && (
-                    <span className="rounded-lg bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
-                      Pending
-                    </span>
-                  )}
-                  {app.status === "rejected" && (
-                    <span className="rounded-lg bg-destructive/10 px-2 py-1 text-xs font-medium text-destructive">
-                      Declined
-                    </span>
-                  )}
-                  {app.status === "accepted" && (
-                    <span className="rounded-lg bg-success/10 px-2 py-1 text-xs font-medium text-success">
-                      Accepted
-                    </span>
-                  )}
-                  {app.status === "accepted" && app.teams?.discord_link && (
-                    <a
-                      href={app.teams.discord_link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 rounded-lg bg-[#5865F2]/90 px-2.5 py-1.5 text-xs font-medium text-white shadow-sm transition-colors hover:bg-[#5865F2]"
-                    >
-                      <MessageCircle className="size-3.5" />
-                      Join Discord
-                    </a>
-                  )}
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      )}
-    </div>
-  )
 }
 
 type DashboardClientProps = {
@@ -344,6 +287,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
   const router = useRouter()
   const searchParams = useSearchParams()
   const tabFromUrl = searchParams.get("tab")
+  const highlightRequestId = searchParams.get("highlightRequest")
 
   const activeTab = useMemo(() => {
     const raw = (tabFromUrl ?? defaultTabProp ?? "").trim().toLowerCase()
@@ -375,12 +319,14 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
   const [availabilityPosts, setAvailabilityPosts] = useState<AvailabilityPostRow[]>([])
   const [applications, setApplications] = useState<ApplicationData[]>([])
   const [invitations, setInvitations] = useState<InvitationData[]>([])
-  const [sentApplications, setSentApplications] = useState<SentApp[]>([])
+  const [sentApplications, setSentApplications] = useState<SentApplicationOutboxItem[]>([])
+  const [sentInvitationsOutbox, setSentInvitationsOutbox] = useState<SentInvitationOutboxItem[]>([])
+  const [cancellingSentRequestId, setCancellingSentRequestId] = useState<string | null>(null)
+  const [activityNotifications, setActivityNotifications] = useState<NormalizedNotificationFeedItem[]>([])
   const [loading, setLoading] = useState(true)
   const [showAvailabilityModal, setShowAvailabilityModal] = useState(false)
   const [availabilityModalContext, setAvailabilityModalContext] = useState<string | null>(null)
   const [hasShownAvailabilityPrompt, setHasShownAvailabilityPrompt] = useState(false)
-  const [teamIdToDelete, setTeamIdToDelete] = useState<string | null>(null)
   const [availabilityPostIdToDelete, setAvailabilityPostIdToDelete] = useState<string | null>(null)
   const [renewingAvailabilityPostId, setRenewingAvailabilityPostId] = useState<string | null>(null)
   const [recommendedTeams, setRecommendedTeams] = useState<SmartRecommendedTeam[]>([])
@@ -461,14 +407,32 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
     }
   }
 
-  const mapInvitationRow = (r: InvitationRow): InvitationData => ({
-    id: r.id,
-    team_id: r.team_id,
-    squadName: r.teams?.team_name || "Unknown Squad",
-    gameName: r.teams?.game_name ?? null,
-    discordLink: r.teams?.discord_link ?? null,
-    targetRole: r.target_role ?? null,
-  })
+  const mapInvitationRow = (r: InvitationRow): InvitationData => {
+    const eng = r.teams?.engine?.trim()
+    const engineLabel = eng
+      ? (ENGINE_OPTIONS.find((o) => o.value === eng)?.label ?? eng)
+      : null
+    const jamRaw = r.teams?.external_jams
+    const jamRow = Array.isArray(jamRaw) ? jamRaw[0] : jamRaw
+    const expKey = r.teams?.experience_required?.trim().toLowerCase()
+    const expLabel = expKey
+      ? (EXPERIENCE_STYLES[expKey]?.label ?? r.teams?.experience_required ?? null)
+      : null
+    return {
+      id: r.id,
+      team_id: r.team_id,
+      squadName: r.teams?.team_name || "Unknown Squad",
+      gameName: r.teams?.game_name ?? null,
+      discordLink: r.teams?.discord_link ?? null,
+      targetRole: r.target_role ?? null,
+      captainMessage: r.message ?? null,
+      engineLabel,
+      jamTitle: jamRow?.title ?? null,
+      description: r.teams?.description ?? null,
+      teamVibe: r.teams?.team_vibe ?? null,
+      experienceRequired: expLabel,
+    }
+  }
 
   const loadData = useCallback(async () => {
     try {
@@ -485,10 +449,9 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
       const [
         { data: membershipRows },
         { data: profileData },
-        { data: appsData },
-        { data: rawInvitesData },
-        { data: sentAppsData },
+        joinBundleResult,
         { data: postsData },
+        { data: notifRaw, error: notifErr },
       ] = await Promise.all([
         supabase.from("team_members").select("team_id").eq("user_id", uid),
         supabase
@@ -498,29 +461,44 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
           )
           .eq("id", uid)
           .maybeSingle(),
-        supabase
-          .from("join_requests")
-          .select("*, target_role, teams!inner(team_name, user_id)")
-          .eq("teams.user_id", uid)
-          .eq("status", "pending")
-          .eq("type", "application"),
-        supabase
-          .from("join_requests")
-          .select("id, team_id, status, target_role, teams(team_name, game_name, discord_link)")
-          .eq("sender_id", uid)
-          .eq("status", "pending")
-          .eq("type", "invitation"),
-        supabase
-          .from("join_requests")
-          .select("id, status, target_role, teams(team_name, discord_link)")
-          .eq("sender_id", uid)
-          .eq("type", "application"),
+        fetchDashboardJoinRequests(uid, supabase),
         supabase
           .from("availability_posts")
           .select("id, user_id, availability, expires_at, role, experience, jam_style, engine, language, bio, portfolio_link")
           .eq("user_id", uid)
           .order("updated_at", { ascending: false }),
+        supabase
+          .from("notifications")
+          .select(NOTIFICATION_ENRICHED_SELECT)
+          .eq("user_id", uid)
+          .order("created_at", { ascending: false })
+          .limit(40),
       ])
+
+      if (!notifErr && notifRaw) {
+        const normalized = await fetchNotificationsAsNormalized(
+          supabase,
+          notifRaw as EnrichedNotificationRow[],
+        )
+        setActivityNotifications(normalized)
+      } else {
+        setActivityNotifications([])
+      }
+
+      if (joinBundleResult.error) {
+        toast.error("Could not load inbox data.", { description: joinBundleResult.error })
+      }
+
+      const bundle = joinBundleResult.data ?? {
+        incomingApplications: [],
+        incomingInvitations: [],
+        sentApplications: [],
+        sentInvitations: [],
+      }
+
+      const appsData = bundle.incomingApplications
+      const rawInvitesData = bundle.incomingInvitations
+      const sentAppsData = bundle.sentApplications
 
       const memberTeamIds = [
         ...new Set((membershipRows as MembershipRow[] | null)?.map((m) => m.team_id).filter(Boolean) ?? []),
@@ -540,13 +518,17 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
       }
       setTeams(Array.from(merged.values()))
 
+      const inviteeIdsForSent = [
+        ...new Set(bundle.sentInvitations.map((s) => s.sender_id).filter(Boolean)),
+      ] as string[]
       const senderIds = [...new Set(((appsData || []) as ApplicationRow[]).map((a) => a.sender_id).filter(Boolean))]
+      const profileIds = [...new Set([...senderIds, ...inviteeIdsForSent])]
       const profileMap: Record<string, { username?: string; avatar_url?: string }> = {}
-      if (senderIds.length > 0) {
+      if (profileIds.length > 0) {
         const { data: profilesData } = await supabase
           .from("profiles")
           .select("id, username, avatar_url")
-          .in("id", senderIds)
+          .in("id", profileIds)
         for (const p of profilesData || []) {
           profileMap[p.id] = { username: p.username, avatar_url: p.avatar_url ?? undefined }
         }
@@ -646,21 +628,37 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
       setAvailabilityPosts(postsWithJam)
       if (appsData) setApplications((appsData as ApplicationRow[]).map((r) => mapApplicationRow(r, profileMap)))
       if (rawInvitesData) setInvitations((rawInvitesData as InvitationRow[]).map(mapInvitationRow))
-      if (sentAppsData) {
-        setSentApplications(
-          (sentAppsData as SentApplicationRow[]).map((a) => {
-            const t = Array.isArray(a.teams) ? a.teams[0] ?? undefined : a.teams ?? undefined
-            return {
-              id: a.id,
-              status: a.status,
-              target_role: a.target_role ?? undefined,
-              teams: t
-                ? { team_name: t.team_name ?? undefined, discord_link: t.discord_link ?? undefined }
-                : undefined,
-            }
-          }),
-        )
-      }
+
+      setSentApplications(
+        sentAppsData.map((a) => {
+          const t = Array.isArray(a.teams) ? a.teams[0] ?? undefined : a.teams ?? undefined
+          return {
+            id: a.id,
+            status: a.status,
+            target_role: a.target_role ?? null,
+            teamName: t?.team_name || "Unknown team",
+            discord_link: t?.discord_link ?? null,
+          } satisfies SentApplicationOutboxItem
+        }),
+      )
+
+      setSentInvitationsOutbox(
+        bundle.sentInvitations.map((row) => {
+          const inviteeId = row.sender_id ?? ""
+          const prof = inviteeId ? profileMap[inviteeId] : undefined
+          const tm = row.teams
+          const teamMeta = Array.isArray(tm) ? tm[0] : tm
+          return {
+            id: row.id,
+            status: row.status,
+            target_role: row.target_role ?? null,
+            teamName: teamMeta?.team_name || "Unknown squad",
+            inviteeUserId: inviteeId,
+            inviteeUsername: prof?.username?.trim() || row.sender_name?.trim() || "Jammer",
+            inviteeAvatarUrl: prof?.avatar_url ?? null,
+          } satisfies SentInvitationOutboxItem
+        }),
+      )
 
       if (authSession.user && !dailyXpClaimRef.current) {
         dailyXpClaimRef.current = true
@@ -685,6 +683,21 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
   useEffect(() => {
     void loadData()
   }, [loadData])
+
+  useEffect(() => {
+    if (loading || activeTab !== "inbox" || !highlightRequestId?.trim()) return
+    const rid = highlightRequestId.trim()
+    const frame = requestAnimationFrame(() => {
+      const el = document.getElementById(`inbox-request-${rid}`)
+      if (!el) return
+      el.scrollIntoView({ behavior: "smooth", block: "center" })
+      el.classList.add("ring-2", "ring-teal/50", "ring-offset-2", "ring-offset-background", "rounded-2xl")
+      window.setTimeout(() => {
+        el.classList.remove("ring-2", "ring-teal/50", "ring-offset-2", "ring-offset-background", "rounded-2xl")
+      }, 3200)
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [loading, activeTab, highlightRequestId, applications.length, invitations.length])
 
   // Offer to disable availability when user has joined a team (application accepted)
   // Persist in localStorage so the prompt is not shown again after the user has responded (e.g. on refresh)
@@ -712,38 +725,29 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
     }
   }, [loading, session?.user?.id, sentApplications, availabilityPosts, hasShownAvailabilityPrompt])
 
-  const handleDeleteTeam = async (id: string) => {
+  const handleCancelPendingSentRequest = async (id: string) => {
+    setCancellingSentRequestId(id)
+    setSentApplications((prev) => prev.filter((a) => a.id !== id))
+    setSentInvitationsOutbox((prev) => prev.filter((i) => i.id !== id))
+
     try {
-      const { error } = await supabase.from("teams").delete().eq("id", id)
-      if (error) {
-        toast.error("Could not delete the team.", { description: error.message })
+      const result = await cancelJoinRequest(id)
+      if (!result.success) {
+        toast.error("Could not cancel this request.", { description: result.error })
+        void loadData()
         return
       }
-      setTeams((prev) => prev.filter((t) => t.id !== id))
-      setTeamIdToDelete(null)
-      toast.success("Team deleted.")
+      toast.success("Request cancelled", {
+        description: "Your pending application or invitation has been removed.",
+      })
     } catch (err) {
-      toast.error("An error occurred.", { description: err instanceof Error ? err.message : "Please try again." })
+      toast.error("An error occurred.", {
+        description: err instanceof Error ? err.message : "Please try again.",
+      })
+      void loadData()
+    } finally {
+      setCancellingSentRequestId(null)
     }
-  }
-
-  const handleDeleteTeamClick = (id: string) => {
-    setTeamIdToDelete(id)
-  }
-
-  const handleRenewTeam = async (id: string) => {
-    const row = teams.find((t) => t.id === id)
-    const currentEndMs = row?.jamEndDate ? new Date(row.jamEndDate).getTime() : NaN
-    const baseMs = Number.isFinite(currentEndMs) ? Math.max(Date.now(), currentEndMs) : Date.now()
-    const newEnd = new Date(baseMs + 30 * 24 * 60 * 60 * 1000).toISOString()
-
-    const { error } = await supabase.from("teams").update({ jam_end_date: newEnd }).eq("id", id)
-
-    if (error) throw new Error(error.message)
-    loadData()
-    toast.success("Listing renewed.", {
-      description: "Your jam end date was extended by 30 days; the listing stays in sync.",
-    })
   }
 
   const handleLeaveTeam = async (id: string) => {
@@ -863,7 +867,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
     try {
       const { data: request } = await supabase
         .from("join_requests")
-        .select("sender_id")
+        .select("sender_id, team_id")
         .eq("id", id)
         .single()
 
@@ -873,9 +877,11 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
         return
       }
 
+      void markNotificationsReadForJoinRequest(id)
+
       // Email notification to the declined applicant (async, non-blocking)
       if (request?.sender_id) {
-        void notifyApplicantDeclined(request.sender_id)
+        void notifyApplicantDeclined(request.sender_id as string, (request.team_id as string | null) ?? null)
       }
 
       setApplications((prev) => prev.filter((a) => a.id !== id))
@@ -966,8 +972,14 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
         session?.user?.user_metadata?.name ??
         (session?.user?.email ? session.user.email.split("@")[0] : null)
 
+      void markNotificationsReadForJoinRequest(id)
+
       if (request?.team_id && currentUserName) {
-        void notifyOwnerInvitationDeclined(request.team_id, currentUserName)
+        void notifyOwnerInvitationDeclined(
+          request.team_id,
+          currentUserName,
+          session?.user?.id ?? null,
+        )
       }
 
       setInvitations((prev) => prev.filter((i) => i.id !== id))
@@ -982,7 +994,9 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
   }
 
   const toActionCount = applications.length + invitations.length
-  const waitingResponseCount = sentApplications.filter((s) => s.status === "pending").length
+  const waitingResponseCount =
+    sentApplications.filter((s) => s.status === "pending").length +
+    sentInvitationsOutbox.filter((s) => s.status === "pending").length
   const activityTotal = toActionCount + waitingResponseCount
 
   const meta = session?.user?.user_metadata as Record<string, string> | undefined
@@ -1142,28 +1156,26 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
                 {teams.length === 0 && availabilityPosts.length === 0 ? (
                   <DashboardEmptyState />
                 ) : (
-                  <DashboardMyTeams
-                    teams={teams}
-                    onDelete={handleDeleteTeamClick}
-                    onRenew={handleRenewTeam}
-                    onLeave={handleLeaveTeam}
-                  />
+                  <DashboardMyTeams teams={teams} onLeave={handleLeaveTeam} />
                 )}
               </TabsContent>
 
               <TabsContent value="inbox" className="mt-0 flex flex-col gap-4 md:gap-6">
                 <PushNotificationBanner />
-                <DashboardIncomingApplications
+                <DashboardInboxHub
                   applications={applications}
-                  onAccept={handleAcceptApplication}
-                  onDecline={handleDeclineApplication}
-                />
-                <DashboardSquadInvitations
                   invitations={invitations}
-                  onAccept={handleAcceptInvitation}
-                  onDecline={handleDeclineInvitation}
+                  sentApplications={sentApplications}
+                  sentInvitations={sentInvitationsOutbox}
+                  activityNotifications={activityNotifications}
+                  onInboxActivityChanged={() => void loadData()}
+                  cancellingSentRequestId={cancellingSentRequestId}
+                  onAcceptApplication={handleAcceptApplication}
+                  onDeclineApplication={handleDeclineApplication}
+                  onAcceptInvitation={handleAcceptInvitation}
+                  onDeclineInvitation={handleDeclineInvitation}
+                  onCancelPendingSentRequest={handleCancelPendingSentRequest}
                 />
-                <SentApplicationsSection sentApplications={sentApplications} />
               </TabsContent>
 
               <TabsContent value="availability" className="mt-0 flex flex-col gap-4 md:gap-6">
@@ -1237,31 +1249,6 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
             </AlertDialogCancel>
             <AlertDialogAction onClick={handleAvailabilityModalConfirm} className="rounded-xl bg-primary">
               Yes, remove me
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <AlertDialog open={teamIdToDelete !== null} onOpenChange={(open) => !open && setTeamIdToDelete(null)}>
-        <AlertDialogContent className="glass-card rounded-2xl border-border/40">
-          <AlertDialogHeader>
-            <div className="flex items-center gap-3">
-              <div className="flex size-10 items-center justify-center rounded-xl bg-destructive/15">
-                <Trash2 className="size-5 text-destructive" />
-              </div>
-              <AlertDialogTitle className="text-left">Delete this team?</AlertDialogTitle>
-            </div>
-            <AlertDialogDescription className="text-left">
-              This action cannot be undone. The team listing will be permanently removed.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="flex-row gap-2 sm:justify-end">
-            <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => teamIdToDelete && handleDeleteTeam(teamIdToDelete)}
-              className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

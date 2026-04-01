@@ -31,10 +31,13 @@ import { supabase } from "@/lib/supabase"
 import { fetchProfilesMap } from "@/lib/profiles"
 import {
   ArrowLeft,
+  CalendarClock,
   Loader2,
   Settings,
   UserMinus,
   Pencil,
+  RotateCw,
+  Trash2,
   Users,
   ShieldAlert,
   MessageCircle,
@@ -55,6 +58,16 @@ import { showGamificationRewards } from "@/components/gamification-reward-toasts
 import { gamificationRewardHasToast } from "@/lib/gamification-reward-types"
 import { EXPERIENCE_OPTIONS, JAM_STYLE_OPTIONS, ROLE_STYLES } from "@/lib/constants"
 import { DateRangeField } from "@/components/date-range-field"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 const DISCORD_LINK_REGEX = /^https:\/\/(discord\.gg\/|discord\.com\/invite\/)/i
 
@@ -115,6 +128,9 @@ export default function TeamManagePage() {
   const [discordError, setDiscordError] = useState<string | null>(null)
   const [jamXpClaimBusy, setJamXpClaimBusy] = useState(false)
   const [editJamRange, setEditJamRange] = useState<DateRange | undefined>(undefined)
+  const [renewListingBusy, setRenewListingBusy] = useState(false)
+  const [deleteTeamDialogOpen, setDeleteTeamDialogOpen] = useState(false)
+  const [deleteTeamBusy, setDeleteTeamBusy] = useState(false)
 
   const loadTeam = useCallback(async () => {
     if (!teamId) return
@@ -409,6 +425,53 @@ export default function TeamManagePage() {
       })
     } finally {
       setEditSaving(false)
+    }
+  }
+
+  const handleRenewListing = async () => {
+    if (!team) return
+    const currentEndMs = team.jam_end_date ? new Date(team.jam_end_date).getTime() : NaN
+    const baseMs = Number.isFinite(currentEndMs) ? Math.max(Date.now(), currentEndMs) : Date.now()
+    const newEnd = new Date(baseMs + 30 * 24 * 60 * 60 * 1000).toISOString()
+    setRenewListingBusy(true)
+    try {
+      const { error } = await supabase.from("teams").update({ jam_end_date: newEnd }).eq("id", teamId)
+      if (error) {
+        toast.error("Could not renew listing.", { description: error.message })
+        return
+      }
+      const dateInputEnd = isoTimestampToDateInput(newEnd)
+      setTeam((prev) => (prev ? { ...prev, jam_end_date: newEnd } : null))
+      setEditForm((p) => ({ ...p, jam_end_date: dateInputEnd }))
+      toast.success("Listing renewed.", {
+        description: "Your jam end date was extended by 30 days; the listing stays in sync.",
+      })
+    } catch (err) {
+      toast.error("An error occurred.", {
+        description: err instanceof Error ? err.message : "Please try again.",
+      })
+    } finally {
+      setRenewListingBusy(false)
+    }
+  }
+
+  const handleConfirmDeleteTeam = async () => {
+    setDeleteTeamBusy(true)
+    try {
+      const { error } = await supabase.from("teams").delete().eq("id", teamId)
+      if (error) {
+        toast.error("Could not delete the team.", { description: error.message })
+        return
+      }
+      setDeleteTeamDialogOpen(false)
+      toast.success("Team deleted.")
+      router.push("/dashboard")
+    } catch (err) {
+      toast.error("An error occurred.", {
+        description: err instanceof Error ? err.message : "Please try again.",
+      })
+    } finally {
+      setDeleteTeamBusy(false)
     }
   }
 
@@ -834,6 +897,42 @@ export default function TeamManagePage() {
             <Card className="rounded-2xl border-border/50">
               <CardHeader>
                 <h3 className="flex items-center gap-2 text-lg font-bold text-foreground">
+                  <CalendarClock className="size-5 text-primary" />
+                  Listing visibility
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  Extend your jam end date to keep the squad discoverable, or delete the listing
+                  permanently.
+                </p>
+              </CardHeader>
+              <CardContent className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5 rounded-xl border-primary/30 text-primary hover:bg-primary/10 hover:text-primary sm:flex-1"
+                  disabled={renewListingBusy}
+                  onClick={() => void handleRenewListing()}
+                >
+                  <RotateCw className={`size-3.5 ${renewListingBusy ? "animate-spin" : ""}`} />
+                  {renewListingBusy ? "Renewing…" : "Renew listing"}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="gap-1.5 rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive sm:flex-1"
+                  onClick={() => setDeleteTeamDialogOpen(true)}
+                >
+                  <Trash2 className="size-3.5" />
+                  Delete team
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="rounded-2xl border-border/50">
+              <CardHeader>
+                <h3 className="flex items-center gap-2 text-lg font-bold text-foreground">
                   <Link2 className="size-5" />
                   Discord Link
                 </h3>
@@ -883,6 +982,44 @@ export default function TeamManagePage() {
           </div>
         </section>
       </main>
+
+      <AlertDialog open={deleteTeamDialogOpen} onOpenChange={setDeleteTeamDialogOpen}>
+        <AlertDialogContent className="glass-card rounded-2xl border-border/40">
+          <AlertDialogHeader>
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 items-center justify-center rounded-xl bg-destructive/15">
+                <Trash2 className="size-5 text-destructive" />
+              </div>
+              <AlertDialogTitle className="text-left">Delete this team?</AlertDialogTitle>
+            </div>
+            <AlertDialogDescription className="text-left">
+              This action cannot be undone. The team listing will be permanently removed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-row gap-2 sm:justify-end">
+            <AlertDialogCancel className="rounded-xl" disabled={deleteTeamBusy}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="inline-flex gap-2 rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={deleteTeamBusy}
+              onClick={(e) => {
+                e.preventDefault()
+                void handleConfirmDeleteTeam()
+              }}
+            >
+              {deleteTeamBusy ? (
+                <>
+                  <Loader2 className="size-4 shrink-0 animate-spin" />
+                  Deleting…
+                </>
+              ) : (
+                "Delete"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

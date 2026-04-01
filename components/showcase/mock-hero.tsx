@@ -1,6 +1,6 @@
 "use client"
 
-import { Sparkles, Users, Gamepad2, Search, SlidersHorizontal } from "lucide-react"
+import { Sparkles, Users, Gamepad2, Search, SlidersHorizontal, LogIn } from "lucide-react"
 
 export function MockHero() {
   return (
@@ -19,8 +19,9 @@ export function MockHero() {
           <span className="text-[10px] text-muted-foreground">Post a Team</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="rounded-lg bg-[#5865F2] px-3 py-1 text-[10px] font-semibold text-white">
-            Sign in with Discord
+          <div className="inline-flex items-center gap-1 rounded-xl bg-teal px-2.5 py-1 text-[10px] font-semibold text-teal-foreground">
+            <LogIn className="size-3 shrink-0" />
+            Sign In
           </div>
         </div>
       </header>

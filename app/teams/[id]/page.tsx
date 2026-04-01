@@ -88,7 +88,21 @@ export default function TeamPage() {
         return
       }
 
-      const cardData = formatTeamToCardData(teamRow as TeamRowDb)
+      let cardData = formatTeamToCardData(teamRow as TeamRowDb)
+      const linkedJamId = (teamRow as { jam_id?: string | null }).jam_id
+      if (linkedJamId) {
+        const { data: jamRow } = await supabase
+          .from("external_jams")
+          .select("title, url")
+          .eq("id", linkedJamId)
+          .maybeSingle()
+        if (jamRow) {
+          cardData = {
+            ...cardData,
+            itchJam: { title: jamRow.title ?? null, url: jamRow.url ?? null },
+          }
+        }
+      }
       setTeamCardData(cardData)
 
       const {

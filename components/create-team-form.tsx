@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { format } from "date-fns"
 import type { DateRange } from "react-day-picker"
@@ -31,6 +31,8 @@ import { createTeam } from "@/app/actions/create-team-actions"
 import { showGamificationRewards } from "@/components/gamification-reward-toasts"
 import { gamificationRewardHasToast } from "@/lib/gamification-reward-types"
 import { dateInputToUtcEnd, dateInputToUtcStart } from "@/lib/jam-date-utc"
+import { dateRangeFromExternalJam } from "@/lib/jam-dates-from-external"
+import type { ExternalJam } from "@/app/actions/jam-actions"
 
 type RoleEntry = {
   id: number
@@ -81,6 +83,14 @@ export function CreateTeamForm() {
   const [rolesError, setRolesError] = useState("")
   const [jamId, setJamId] = useState<string | null>(null)
   const [jamDateRange, setJamDateRange] = useState<DateRange | undefined>(undefined)
+
+  const handleJamMetaChange = useCallback((jam: ExternalJam | null) => {
+    if (!jam) return
+    const title = jam.title?.trim()
+    if (title) setJamName(title)
+    const range = dateRangeFromExternalJam(jam)
+    if (range) setJamDateRange(range)
+  }, [])
   const [description, setDescription] = useState("")
 
   const [user, setUser] = useState<User | null>(null)
@@ -405,6 +415,7 @@ export function CreateTeamForm() {
                       <JamSearchSelector
                         value={jamId}
                         onValueChange={setJamId}
+                        onJamMetaChange={handleJamMetaChange}
                         placeholder="Choose an Itch.io jam…"
                         syncOnOpen={true}
                         activeOnly={true}

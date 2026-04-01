@@ -44,22 +44,39 @@ export async function sendTeamInvitation(input: SendTeamInvitationInput): Promis
   const msg = input.message?.trim() || "You've been invited to join our squad!"
   const name = input.inviteeUsername?.trim() || "A Jammer"
 
-  const { error: insertError } = await supabase.from("join_requests").insert({
-    team_id: input.teamId,
-    sender_id: input.inviteeUserId,
-    sender_name: name,
-    message: msg,
-    status: "pending",
-    type: "invitation",
-    target_role: input.targetRole,
-  })
+  const { data: inserted, error: insertError } = await supabase
+    .from("join_requests")
+    .insert({
+      team_id: input.teamId,
+      sender_id: input.inviteeUserId,
+      sender_name: name,
+      message: msg,
+      status: "pending",
+      type: "invitation",
+      target_role: input.targetRole,
+    })
+    .select("id")
+    .single()
 
   if (insertError) {
+    if (insertError.code === "23505") {
+      return {
+        success: false,
+        error: "An invitation is already pending for this player on this team.",
+      }
+    }
     return { success: false, error: insertError.message }
   }
 
   const teamName = (team.team_name as string) || "your squad"
-  void notifyInviteeInvitation(input.inviteeUserId, teamName)
+  const requestId = inserted?.id as string | undefined
+  if (requestId) {
+    void notifyInviteeInvitation(input.inviteeUserId, teamName, {
+      teamId: input.teamId,
+      joinRequestId: requestId,
+      inviterUserId: user.id,
+    })
+  }
 
   let gamification: GamificationRewardSummary | undefined
   try {

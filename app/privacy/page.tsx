@@ -40,7 +40,7 @@ export default function PrivacyPage() {
               Privacy Policy
             </h1>
             <p className="mt-2 text-muted-foreground">
-              Last updated: March 2025
+              Last updated: April 2026
             </p>
           </header>
 
@@ -74,21 +74,84 @@ export default function PrivacyPage() {
               </p>
               <ul className="mt-4 list-disc space-y-2 pl-6 text-muted-foreground">
                 <li>
-                  <strong className="text-foreground">Email and profile:</strong>{" "}
-                  Managed via Supabase (authentication and database) and Discord
-                  OAuth (connection). We receive from Discord: identifier, user
-                  name, avatar, and optionally your email.
+                  <strong className="text-foreground">Account and sign-in:</strong>{" "}
+                  Authentication is handled by Supabase. You may sign in with Discord
+                  or Google OAuth, or with a magic link sent to your email. Depending
+                  on the provider, we may receive an account identifier, display name,
+                  avatar URL, and email address.
                 </li>
                 <li>
-                  <strong className="text-foreground">Profile data:</strong>{" "}
-                  Skills, roles, game engines, and availability information that
-                  you voluntarily provide to find or join a squad.
+                  <strong className="text-foreground">Public profile:</strong>{" "}
+                  Information you choose to add (for example username, bio, skills,
+                  default role and engine, languages, portfolio link, Discord
+                  username, experience level, and jam-related preferences) to be
+                  discoverable by other jammers.
                 </li>
                 <li>
-                  <strong className="text-foreground">Team and application
-                  data:</strong>{" "}
-                  Descriptions of teams looking for members and applications sent
-                  to join them.
+                  <strong className="text-foreground">Gamification:</strong>{" "}
+                  Progress data stored on your profile such as experience points,
+                  level, unlocked titles and badges, and related statistics used only
+                  to reward engagement on the platform.
+                </li>
+                <li>
+                  <strong className="text-foreground">Teams and recruiting:</strong>{" "}
+                  Content you publish when creating or managing a team (name, game
+                  concept, roles sought, description, engine, language, Discord
+                  invite link when provided, jam association, dates).
+                </li>
+                <li>
+                  <strong className="text-foreground">Join requests and invitations:</strong>{" "}
+                  When you apply to a team or receive or send an invitation, we store
+                  the request type, status, targeted role, and any message you attach,
+                  plus identifiers needed to connect the request to your account and
+                  the team.
+                </li>
+                <li>
+                  <strong className="text-foreground">Team chat:</strong>{" "}
+                  Messages you post in a team&apos;s chat are stored so members can
+                  see the conversation history for that team.
+                </li>
+                <li>
+                  <strong className="text-foreground">Availability posts:</strong>{" "}
+                  Optional listings when you advertise yourself as available for a jam,
+                  including role, engine, and similar fields you submit; these
+                  listings can expire automatically.
+                </li>
+                <li>
+                  <strong className="text-foreground">In-app notifications:</strong>{" "}
+                  We store notification records (type, message, link, read state) so
+                  you can see updates about applications, invitations, team activity,
+                  and similar events in the product.
+                </li>
+                <li>
+                  <strong className="text-foreground">Optional browser push:</strong>{" "}
+                  If you enable push notifications, we store subscription data
+                  (endpoint and encryption keys) required for your browser to receive
+                  alerts. You can disable this at any time from your device or
+                  browser settings and we stop using that subscription once removed.
+                </li>
+                <li>
+                  <strong className="text-foreground">Transactional email:</strong>{" "}
+                  We send service-related emails (for example sign-in links, smart
+                  match alerts, application and invitation updates, team changes,
+                  and periodic alerts for new team chat messages subject to rate
+                  limits) to the address associated with your
+                  account. Sending is done through our email provider; we do not use
+                  these emails for advertising.
+                </li>
+                <li>
+                  <strong className="text-foreground">Imported jam metadata:</strong>{" "}
+                  When someone submits an Itch.io jam URL, our servers fetch the
+                  public jam page to extract non-sensitive catalog information (such
+                  as title, link, dates, and imagery) so jams can be selected in the
+                  product. This does not include your Itch account credentials.
+                </li>
+                <li>
+                  <strong className="text-foreground">Supporter matching (optional):</strong>{" "}
+                  If you support the project through Buy Me a Coffee and use the same
+                  email as your GameJamCrew account, their systems may share that
+                  email with us via webhook so we can grant optional supporter badges.
+                  We only use it to match your existing account, not for marketing.
                 </li>
               </ul>
             </section>
@@ -102,7 +165,10 @@ export default function PrivacyPage() {
                 availability announcements expire automatically after a defined
                 period. Inactive data is not kept indefinitely. You can delete
                 your profile and associated data at any time from your
-                dashboard.
+                dashboard. Pending join requests you withdraw may be deleted;
+                historical team membership and messages may remain visible to
+                former teammates according to product behavior until teams or
+                content are removed by owners or by automated cleanup.
               </p>
             </section>
 
@@ -122,7 +188,24 @@ export default function PrivacyPage() {
 
             <section>
               <h2 className="mb-4 text-xl font-semibold text-foreground">
-                5. Your rights
+                5. Subprocessors and sharing
+              </h2>
+              <p className="leading-relaxed text-muted-foreground">
+                We rely on trusted infrastructure and service providers to run
+                GameJamCrew. They process data on our instructions only:
+                Supabase (authentication and database), Vercel (hosting),
+                Resend (transactional email), and when you use them, Discord or
+                Google (OAuth login). Public jam pages may be retrieved from
+                Itch.io when importing a jam. We do not sell personal data.
+                Other users can see information you publish on the platform
+                (profiles, teams, availability) according to the product&apos;s
+                visibility rules.
+              </p>
+            </section>
+
+            <section>
+              <h2 className="mb-4 text-xl font-semibold text-foreground">
+                6. Your rights
               </h2>
               <p className="leading-relaxed text-muted-foreground">
                 In accordance with the GDPR, you have the right to access,
@@ -136,7 +219,7 @@ export default function PrivacyPage() {
 
             <section>
               <h2 className="mb-4 text-xl font-semibold text-foreground">
-                6. Data security
+                7. Data security
               </h2>
               <p className="leading-relaxed text-muted-foreground">
                 Data is hosted and processed by Supabase and Vercel, providers

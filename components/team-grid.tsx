@@ -40,12 +40,15 @@ type TeamRowDb = {
   jam_start_date?: string | null
   jam_end_date?: string | null
   created_at?: string | null
+  jam_id?: string | null
 }
 
 type TeamWithMeta = TeamCardData & {
   rawRoles: RawRoleEntry[]
   rawTeamVibe: string | null
   isRecommended?: boolean
+  /** Internal until enrichTeamsWithItchJam merges into itchJam */
+  jam_id?: string | null
 }
 
 type GridFilterOpts = {
@@ -107,17 +110,39 @@ function formatTeam(t: TeamRowDb): TeamWithMeta {
     jamStartDate: t.jam_start_date ?? null,
     jamEndDate: t.jam_end_date ?? null,
     createdAt: t.created_at ?? null,
+    jam_id: t.jam_id ?? null,
   }
+}
+
+async function enrichTeamsWithItchJam(teams: TeamWithMeta[]): Promise<TeamWithMeta[]> {
+  const jamIds = [...new Set(teams.map((t) => t.jam_id).filter(Boolean))] as string[]
+  if (jamIds.length === 0) {
+    return teams.map(({ jam_id: _j, ...rest }) => rest)
+  }
+  const { data: jamsData } = await supabase
+    .from("external_jams")
+    .select("id, title, url")
+    .in("id", jamIds)
+  const map: Record<string, { title: string | null; url: string | null }> = {}
+  for (const j of jamsData ?? []) {
+    map[j.id] = { title: j.title ?? null, url: j.url ?? null }
+  }
+  return teams.map(({ jam_id, ...rest }) => ({
+    ...rest,
+    itchJam: jam_id && map[jam_id] ? map[jam_id] : null,
+  }))
 }
 
 function teamPassesGridFilters(t: TeamWithMeta, o: GridFilterOpts): boolean {
   if (t.rawRoles.length > 0 && t.members >= t.maxMembers) return false
 
   const searchLower = o.debouncedSearch.toLowerCase()
+  const itchTitle = t.itchJam?.title?.toLowerCase() ?? ""
   const matchSearch =
     !searchLower ||
     t.name.toLowerCase().includes(searchLower) ||
     t.jam.toLowerCase().includes(searchLower) ||
+    itchTitle.includes(searchLower) ||
     t.description.toLowerCase().includes(searchLower)
 
   const matchEngine =
@@ -177,7 +202,8 @@ export function TeamGrid({
 
     if (!error && data) {
       const formatted = data.map(formatTeam)
-      const formattedWithOwners = await attachOwnerProfiles(formatted)
+      const withJams = await enrichTeamsWithItchJam(formatted)
+      const formattedWithOwners = await attachOwnerProfiles(withJams)
       setTeams((prev) => (append ? [...prev, ...formattedWithOwners] : formattedWithOwners))
       setHasMore(data.length === PAGE_SIZE)
       offsetRef.current = from + data.length
@@ -244,7 +270,8 @@ export function TeamGrid({
       ordered.push({ ...meta, isRecommended: true })
       if (ordered.length >= 3) break
     }
-    setRecommendedTeams(await attachOwnerProfiles(ordered))
+    const withJams = await enrichTeamsWithItchJam(ordered)
+    setRecommendedTeams(await attachOwnerProfiles(withJams))
   }, [])
 
   useEffect(() => {

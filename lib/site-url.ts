@@ -24,3 +24,13 @@ export function getPublicSiteUrl(): string {
 export function getPublicDashboardUrl(): string {
   return `${getPublicSiteUrl()}/dashboard`
 }
+
+/** Profil public jammer (route `[userId]` = UUID). */
+export function getPublicJammerProfileUrl(userId: string): string {
+  return `${getPublicSiteUrl()}/jammer/${userId}`
+}
+
+/** Page dédiée invitation (contexte équipe + moteur). */
+export function getPublicInvitationUrl(joinRequestId: string): string {
+  return `${getPublicSiteUrl()}/invitation/${joinRequestId}`
+}

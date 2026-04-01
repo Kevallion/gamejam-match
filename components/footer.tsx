@@ -60,7 +60,7 @@ export function Footer({ tagline, className }: FooterProps) {
                 href="/showcase"
                 className="text-muted-foreground transition-colors hover:text-foreground"
               >
-                Discover
+                How it works
               </Link>
               <Link
                 href="/privacy"

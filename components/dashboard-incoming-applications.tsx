@@ -105,7 +105,8 @@ export function DashboardIncomingApplications({
           {applications.map((app) => (
             <Card
               key={app.id}
-              className="group relative overflow-hidden rounded-2xl border-border/50 bg-card transition-all duration-300 hover:border-mint/30 hover:shadow-lg hover:shadow-mint/5"
+              id={`inbox-request-${app.id}`}
+              className="group relative overflow-hidden rounded-2xl border-border/50 bg-card transition-all duration-300 hover:border-mint/30 hover:shadow-lg hover:shadow-mint/5 scroll-mt-24"
             >
               {/* Subtle top accent line */}
               <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-mint/60 via-teal/40 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />

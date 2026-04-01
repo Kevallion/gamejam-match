@@ -64,6 +64,34 @@ export type TeamCardData = {
   jamEndDate?: string | null
   /** Listing creation time — used to detect backfilled jam_start_date (= created_at). */
   createdAt?: string | null
+  /** Linked row in external_jams — jam name links to itch.io when url is set */
+  itchJam?: { title: string | null; url: string | null } | null
+}
+
+export function JamTitleBlock({
+  team,
+  className,
+}: {
+  team: TeamCardData
+  className: string
+}) {
+  const label = (team.itchJam?.title?.trim() || team.jam || "").trim()
+  if (!label) return null
+  const url = team.itchJam?.url?.trim()
+  if (url) {
+    return (
+      <a
+        href={url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={cn(className, "text-primary hover:underline")}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {label}
+      </a>
+    )
+  }
+  return <p className={className}>{label}</p>
 }
 
 export function TeamCard({
@@ -155,7 +183,10 @@ export function TeamCard({
             <DialogTitle className="truncate text-xl font-extrabold text-foreground">
               {team.name}
             </DialogTitle>
-            <p className="mt-0.5 truncate text-sm font-semibold text-primary">{team.jam}</p>
+            <JamTitleBlock
+              team={team}
+              className="mt-0.5 truncate text-sm font-semibold text-primary"
+            />
           </div>
           <div className="flex shrink-0 flex-col items-end gap-2">
             {isRecommended && (
@@ -330,7 +361,10 @@ export function TeamCard({
                 </Badge>
               )}
             </div>
-            <p className="mt-0.5 truncate text-sm font-medium text-primary">{team.jam}</p>
+            <JamTitleBlock
+              team={team}
+              className="mt-0.5 truncate text-sm font-medium text-primary"
+            />
           </div>
 
           <div
@@ -430,7 +464,7 @@ export function TeamCard({
       </article>
 
       <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
-        <DialogContent className="max-h-[min(90vh,720px)] w-full max-w-lg gap-0 overflow-hidden rounded-2xl border-border/60 bg-card p-0 shadow-2xl shadow-teal/10">
+        <DialogContent className="max-h-[min(90vh,720px)] w-[calc(100%-2rem)] max-w-lg min-w-0 gap-0 overflow-hidden rounded-2xl border-border/60 bg-card p-0 shadow-2xl shadow-teal/10">
           {dialogBody}
         </DialogContent>
       </Dialog>

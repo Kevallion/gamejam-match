@@ -6,6 +6,7 @@
 
 import { createClient } from "@supabase/supabase-js"
 import { NextResponse } from "next/server"
+import { extractItchJamMetadataFromHtml } from "@/lib/itch-jam-html-metadata"
 
 const BROWSER_HEADERS = {
   "User-Agent":
@@ -26,24 +27,6 @@ function hashSlug(slug: string): number {
   return n > 0 ? n : 1
 }
 
-function extractOgFromHtml(html: string): { title: string | null; image: string | null } {
-  let title: string | null = null
-  let image: string | null = null
-  const ogTitleMatch = html.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["']/i)
-  if (ogTitleMatch) title = ogTitleMatch[1].trim()
-  const ogImageMatch = html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)
-  if (ogImageMatch) image = ogImageMatch[1].trim()
-  if (!title) {
-    const contentFirst = html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:title["']/i)
-    if (contentFirst) title = contentFirst[1].trim()
-  }
-  if (!image) {
-    const contentFirst = html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i)
-    if (contentFirst) image = contentFirst[1].trim()
-  }
-  return { title, image }
-}
-
 export async function POST(request: Request) {
   let body: { url?: string }
   try {
@@ -59,6 +42,16 @@ export async function POST(request: Request) {
   if (!rawUrl) {
     return NextResponse.json(
       { success: false, error: "Missing or empty url. Send { \"url\": \"https://itch.io/jam/...\" }" },
+      { status: 400 }
+    )
+  }
+
+  if (!rawUrl.toLowerCase().startsWith("https://itch.io/jam/")) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: "URL must start with https://itch.io/jam/ (e.g. https://itch.io/jam/ludum-dare-55)",
+      },
       { status: 400 }
     )
   }
@@ -98,14 +91,15 @@ export async function POST(request: Request) {
     )
   }
 
-  const { title, image } = extractOgFromHtml(html)
+  const meta = extractItchJamMetadataFromHtml(html)
   const itchId = hashSlug(slug)
   const row = {
     itch_id: itchId,
-    title: title || slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+    title: meta.title || slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
     url: canonicalUrl,
-    thumbnail_url: image || null,
-    ends_at: null as string | null,
+    thumbnail_url: meta.image || null,
+    starts_at: meta.startsAt,
+    ends_at: meta.endsAt,
   }
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -121,7 +115,7 @@ export async function POST(request: Request) {
   const { data: inserted, error } = await supabase
     .from("external_jams")
     .upsert(row, { onConflict: "itch_id" })
-    .select("id, itch_id, title, url, thumbnail_url, ends_at")
+    .select("id, itch_id, title, url, thumbnail_url, starts_at, ends_at")
     .single()
 
   if (error) {
@@ -139,6 +133,7 @@ export async function POST(request: Request) {
       title: string | null
       url: string | null
       thumbnail_url: string | null
+      starts_at: string | null
       ends_at: string | null
     },
   })

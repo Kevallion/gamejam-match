@@ -68,15 +68,16 @@ export function LandingHero() {
 
             {/* Headline */}
             <h1 className="text-balance text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl md:text-6xl">
-              Assemble your crew.
-              <br />
-              <span className="text-teal">Finish the game.</span>
+              Find your Game Jam team in{" "}
+              <span className="text-teal">3 clicks.</span>
             </h1>
 
             {/* Subheadline */}
-            <p className="mx-auto mt-5 max-w-xl text-pretty text-lg leading-relaxed text-muted-foreground lg:mx-0">
-              No corporate networking. Just a cozy community of indie devs, pixel
-              artists, and audio wizards teaming up for their next game jam adventure.
+            <p className="mx-auto mt-5 max-w-2xl text-pretty text-lg leading-relaxed text-muted-foreground lg:mx-0">
+              No more digging through scattered Discord servers or forums. GameJamCrew
+              helps developers, artists, and audio creators find their perfect team.
+              Whether you&apos;re a beginner gaining XP or a veteran building a portfolio,
+              stop jamming alone and join our cozy community of passionate creators.
             </p>
 
             {/* CTA */}

@@ -1,5 +1,172 @@
+import { createClient } from "@/lib/supabase/client"
 import { supabase } from "@/lib/supabase"
 import { ENGINE_OPTIONS, ROLE_STYLES } from "@/lib/constants"
+
+/** Client navigateur Supabase (même type que `supabase` exporté par `@/lib/supabase`). */
+export type GamejamSupabaseClient = ReturnType<typeof createClient>
+
+/** Lignes brutes `join_requests` + `teams` pour le dashboard Inbox / Sent. */
+export type DashboardIncomingApplicationRow = {
+  id: string
+  sender_id: string | null
+  sender_name: string | null
+  target_role: string | null
+  message: string | null
+  created_at: string
+  teams?: { team_name?: string | null; user_id?: string | null }
+}
+
+export type DashboardIncomingInvitationRow = {
+  id: string
+  team_id: string
+  target_role?: string | null
+  message?: string | null
+  teams?: {
+    team_name?: string | null
+    game_name?: string | null
+    discord_link?: string | null
+    engine?: string | null
+    description?: string | null
+    team_vibe?: string | null
+    experience_required?: string | null
+    external_jams?: { title?: string | null } | { title?: string | null }[] | null
+  } | null
+}
+
+export type DashboardSentApplicationRow = {
+  id: string
+  status: string
+  target_role?: string | null
+  created_at?: string | null
+  teams: { team_name?: string | null; discord_link?: string | null } | { team_name?: string | null; discord_link?: string | null }[] | null
+}
+
+/** Invitations envoyées par le propriétaire : `sender_id` en base = joueur invité. */
+export type DashboardSentInvitationRow = {
+  id: string
+  status: string
+  target_role?: string | null
+  sender_id: string | null
+  sender_name: string | null
+  team_id: string
+  created_at?: string | null
+  teams?: { team_name?: string | null; discord_link?: string | null; user_id?: string | null }
+}
+
+export type DashboardJoinRequestsBundle = {
+  incomingApplications: DashboardIncomingApplicationRow[]
+  incomingInvitations: DashboardIncomingInvitationRow[]
+  sentApplications: DashboardSentApplicationRow[]
+  sentInvitations: DashboardSentInvitationRow[]
+}
+
+/**
+ * Charge candidatures entrantes, invitations reçues, candidatures envoyées et invitations envoyées.
+ * Les invitations utilisent `sender_id` = id du joueur invité ; les lignes « envoyées » par le capitaine
+ * sont filtrées via `teams.user_id`.
+ */
+export async function fetchDashboardJoinRequests(
+  userId: string,
+  client: GamejamSupabaseClient = supabase,
+): Promise<{ data: DashboardJoinRequestsBundle | null; error: string | null }> {
+  const [
+    incomingApplicationsRes,
+    incomingInvitationsRes,
+    sentApplicationsRes,
+    sentInvitationsRes,
+  ] = await Promise.all([
+    client
+      .from("join_requests")
+      .select("*, target_role, teams!inner(team_name, user_id)")
+      .eq("teams.user_id", userId)
+      .eq("status", "pending")
+      .eq("type", "application"),
+    client
+      .from("join_requests")
+      .select(
+        "id, team_id, status, target_role, message, teams(team_name, game_name, discord_link, engine, description, team_vibe, experience_required, external_jams(title))",
+      )
+      .eq("sender_id", userId)
+      .eq("status", "pending")
+      .eq("type", "invitation"),
+    client
+      .from("join_requests")
+      .select("id, status, target_role, created_at, teams(team_name, discord_link)")
+      .eq("sender_id", userId)
+      .eq("type", "application")
+      .order("created_at", { ascending: false }),
+    client
+      .from("join_requests")
+      .select(
+        "id, status, target_role, sender_id, sender_name, team_id, created_at, teams!inner(team_name, discord_link, user_id)",
+      )
+      .eq("type", "invitation")
+      .eq("teams.user_id", userId)
+      .order("created_at", { ascending: false }),
+  ])
+
+  const firstErr =
+    incomingApplicationsRes.error?.message ||
+    incomingInvitationsRes.error?.message ||
+    sentApplicationsRes.error?.message ||
+    sentInvitationsRes.error?.message
+
+  if (firstErr) {
+    console.error("[fetchDashboardJoinRequests]", firstErr)
+    return { data: null, error: firstErr }
+  }
+
+  return {
+    data: {
+      incomingApplications: (incomingApplicationsRes.data ?? []) as DashboardIncomingApplicationRow[],
+      incomingInvitations: (incomingInvitationsRes.data ?? []) as DashboardIncomingInvitationRow[],
+      sentApplications: (sentApplicationsRes.data ?? []) as DashboardSentApplicationRow[],
+      sentInvitations: (sentInvitationsRes.data ?? []) as DashboardSentInvitationRow[],
+    },
+    error: null,
+  }
+}
+
+/** `team_id` où une invitation squad est déjà en attente pour ce joueur (`sender_id` = invité). */
+export async function fetchPendingInvitationTeamIdsForInvitee(
+  inviteeUserId: string,
+  teamIds: string[],
+  client: GamejamSupabaseClient = supabase,
+): Promise<Set<string>> {
+  if (teamIds.length === 0) return new Set()
+  const { data, error } = await client
+    .from("join_requests")
+    .select("team_id")
+    .eq("type", "invitation")
+    .eq("sender_id", inviteeUserId)
+    .eq("status", "pending")
+    .in("team_id", teamIds)
+  if (error) {
+    console.error("[fetchPendingInvitationTeamIdsForInvitee]", error.message)
+    return new Set()
+  }
+  return new Set((data ?? []).map((r) => r.team_id).filter(Boolean) as string[])
+}
+
+export async function hasPendingApplicationToTeam(
+  applicantUserId: string,
+  teamId: string,
+  client: GamejamSupabaseClient = supabase,
+): Promise<boolean> {
+  const { data, error } = await client
+    .from("join_requests")
+    .select("id")
+    .eq("team_id", teamId)
+    .eq("sender_id", applicantUserId)
+    .eq("type", "application")
+    .eq("status", "pending")
+    .limit(1)
+  if (error) {
+    console.error("[hasPendingApplicationToTeam]", error.message)
+    return false
+  }
+  return (data?.length ?? 0) > 0
+}
 
 const SMART_MATCH_FETCH_LIMIT = 80
 const SMART_MATCH_RESULT_CAP = 3

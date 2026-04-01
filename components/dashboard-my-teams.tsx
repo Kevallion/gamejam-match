@@ -35,11 +35,9 @@ import {
   MessageCircle,
   PenLine,
   Rocket,
-  RotateCw,
   Send,
   Settings,
   Sparkles,
-  Trash2,
   UserMinus,
   Users,
 } from "lucide-react"
@@ -91,23 +89,20 @@ type SuggestionCacheEntry = { players: SuggestedPlayer[]; loading: boolean }
 
 interface DashboardMyTeamsProps {
   teams: TeamData[]
-  onDelete: (id: string) => void
-  onRenew?: (id: string) => Promise<void>
   onLeave?: (id: string) => Promise<void> | void
 }
 
 export function DashboardMyTeams({
   teams,
-  onDelete,
-  onRenew,
   onLeave,
 }: DashboardMyTeamsProps) {
-  const [renewingTeamId, setRenewingTeamId] = useState<string | null>(null)
   const [leavingTeamId, setLeavingTeamId] = useState<string | null>(null)
   const [teamMatchesContext, setTeamMatchesContext] = useState<TeamData | null>(null)
   const [suggestionCache, setSuggestionCache] = useState<Record<string, SuggestionCacheEntry>>({})
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [inviteBusyUserId, setInviteBusyUserId] = useState<string | null>(null)
+  /** `teamId:inviteeUserId` for pending squad invitations (invitation rows store invitee in `sender_id`). */
+  const [pendingInvitePairKeys, setPendingInvitePairKeys] = useState<Set<string>>(new Set())
 
   const suggestionsFetchKey = useMemo(
     () =>
@@ -139,6 +134,21 @@ export function DashboardMyTeams({
           return next
         })
       }
+
+      let pendingKeys = new Set<string>()
+      if (eligible.length > 0) {
+        const ownedIds = eligible.map((t) => t.id)
+        const { data: pendRows } = await supabase
+          .from("join_requests")
+          .select("team_id, sender_id")
+          .eq("type", "invitation")
+          .eq("status", "pending")
+          .in("team_id", ownedIds)
+        for (const r of pendRows ?? []) {
+          if (r.team_id && r.sender_id) pendingKeys.add(`${r.team_id}:${r.sender_id}`)
+        }
+      }
+      if (!cancelled) setPendingInvitePairKeys(pendingKeys)
 
       await Promise.all(
         eligible.map(async (team) => {
@@ -191,17 +201,7 @@ export function DashboardMyTeams({
 
       toast.success("Invitation sent!")
 
-      setSuggestionCache((prev) => {
-        const entry = prev[team.id]
-        if (!entry) return prev
-        return {
-          ...prev,
-          [team.id]: {
-            ...entry,
-            players: entry.players.filter((p) => p.userId !== player.userId),
-          },
-        }
-      })
+      setPendingInvitePairKeys((prev) => new Set(prev).add(`${team.id}:${player.userId}`))
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Could not send invitation."
       toast.error("Invitation failed", { description: msg })
@@ -400,37 +400,6 @@ export function DashboardMyTeams({
                         </Link>
                       </Button>
                     </div>
-                    {/* Secondary actions row */}
-                    <div className="flex w-full gap-1.5">
-                      {onRenew && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="flex-1 gap-1.5 rounded-xl border-primary/30 text-primary hover:bg-primary/10 hover:text-primary text-xs"
-                          onClick={async () => {
-                            setRenewingTeamId(team.id)
-                            try {
-                              await onRenew(team.id)
-                            } finally {
-                              setRenewingTeamId(null)
-                            }
-                          }}
-                          disabled={renewingTeamId === team.id}
-                        >
-                          <RotateCw className={`size-3.5 ${renewingTeamId === team.id ? "animate-spin" : ""}`} />
-                          {renewingTeamId === team.id ? "Renewing…" : "Renew"}
-                        </Button>
-                      )}
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => onDelete(team.id)}
-                        className="flex-1 gap-1.5 rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive text-xs"
-                      >
-                        <Trash2 className="size-3.5" />
-                        Delete
-                      </Button>
-                    </div>
                   </>
                 ) : (
                   <>
@@ -549,6 +518,9 @@ export function DashboardMyTeams({
                     EXPERIENCE_STYLES[expKey] ?? EXPERIENCE_STYLES["beginner"]
                   const langLine =
                     spokenLanguageLabel(p.language) ?? "Language not specified"
+                  const inviteKey =
+                    teamMatchesContext ? `${teamMatchesContext.id}:${p.userId}` : ""
+                  const inviteAlreadyPending = inviteKey && pendingInvitePairKeys.has(inviteKey)
                   return (
                     <li
                       key={`${teamMatchesContext!.id}-${p.availabilityPostId}`}
@@ -593,11 +565,17 @@ export function DashboardMyTeams({
                       <Button
                         type="button"
                         size="sm"
-                        className="shrink-0 gap-1.5 rounded-lg bg-teal px-3 text-teal-foreground hover:bg-teal/90"
+                        variant={inviteAlreadyPending ? "secondary" : "default"}
+                        className={
+                          inviteAlreadyPending
+                            ? "shrink-0 gap-1.5 rounded-lg"
+                            : "shrink-0 gap-1.5 rounded-lg bg-teal px-3 text-teal-foreground hover:bg-teal/90"
+                        }
                         disabled={
                           inviteBusyUserId === p.userId ||
                           p.userId === currentUserId ||
-                          !teamMatchesContext
+                          !teamMatchesContext ||
+                          Boolean(inviteAlreadyPending)
                         }
                         onClick={() => {
                           if (teamMatchesContext) {
@@ -607,6 +585,8 @@ export function DashboardMyTeams({
                       >
                         {inviteBusyUserId === p.userId ? (
                           <Loader2 className="size-3.5 animate-spin" />
+                        ) : inviteAlreadyPending ? (
+                          "Invitation sent"
                         ) : (
                           <>
                             <Send className="size-3.5" aria-hidden />

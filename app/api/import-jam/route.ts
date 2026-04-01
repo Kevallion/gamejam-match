@@ -5,9 +5,9 @@
  * Security: only URLs from itch.io (or www.itch.io) are accepted.
  */
 
-import * as cheerio from "cheerio"
 import { createClient } from "@supabase/supabase-js"
 import { NextResponse } from "next/server"
+import { extractItchJamMetadataFromHtml } from "@/lib/itch-jam-html-metadata"
 
 const BROWSER_HEADERS = {
   "User-Agent":
@@ -44,66 +44,6 @@ function hashSlug(slug: string): number {
   }
   const n = Math.abs(h)
   return n > 0 ? n : 1
-}
-
-function extractWithCheerio(html: string): {
-  title: string | null
-  url: string | null
-  image: string | null
-  endsAt: string | null
-} {
-  const $ = cheerio.load(html)
-  let title: string | null = null
-  let url: string | null = null
-  let image: string | null = null
-  let endsAt: string | null = null
-
-  $('meta[property="og:title"]').each((_, el) => {
-    const c = $(el).attr("content")
-    if (c && !title) title = c.trim()
-  })
-  $('meta[property="og:url"]').each((_, el) => {
-    const c = $(el).attr("content")
-    if (c && !url) url = c.trim()
-  })
-  $('meta[property="og:image"]').each((_, el) => {
-    const c = $(el).attr("content")
-    if (c && !image) image = c.trim()
-  })
-
-  $('script[type="application/ld+json"]').each((_, el) => {
-    const text = $(el).html()
-    if (!text) return
-    try {
-      const data = JSON.parse(text) as unknown
-      const arr = Array.isArray(data) ? data : [data]
-      for (const item of arr) {
-        if (item && typeof item === "object") {
-          const obj = item as Record<string, unknown>
-          if (obj.endDate && typeof obj.endDate === "string") {
-            const d = new Date(obj.endDate)
-            if (!Number.isNaN(d.getTime())) endsAt = d.toISOString()
-          }
-          if (obj["@type"] === "Event" && obj.endDate && typeof obj.endDate === "string") {
-            const d = new Date(obj.endDate)
-            if (!Number.isNaN(d.getTime())) endsAt = d.toISOString()
-          }
-        }
-      }
-    } catch {
-      // ignore invalid JSON
-    }
-  })
-
-  $("[data-end_time]").each((_, el) => {
-    const v = $(el).attr("data-end_time")
-    if (v && !endsAt) {
-      const d = new Date(v)
-      if (!Number.isNaN(d.getTime())) endsAt = d.toISOString()
-    }
-  })
-
-  return { title, url, image, endsAt }
 }
 
 export async function POST(request: Request) {
@@ -149,15 +89,16 @@ export async function POST(request: Request) {
     )
   }
 
-  const { title, image, endsAt } = extractWithCheerio(html)
+  const meta = extractItchJamMetadataFromHtml(html)
   const itchId = hashSlug(slug)
   const fallbackTitle = slug.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())
   const row = {
     itch_id: itchId,
-    title: title || fallbackTitle,
+    title: meta.title || fallbackTitle,
     url: canonical,
-    thumbnail_url: image || null,
-    ends_at: endsAt,
+    thumbnail_url: meta.image || null,
+    starts_at: meta.startsAt,
+    ends_at: meta.endsAt,
   }
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -173,7 +114,7 @@ export async function POST(request: Request) {
   const { data: inserted, error } = await supabase
     .from("external_jams")
     .upsert(row, { onConflict: "itch_id" })
-    .select("id, itch_id, title, url, thumbnail_url, ends_at")
+    .select("id, itch_id, title, url, thumbnail_url, starts_at, ends_at")
     .single()
 
   if (error) {
@@ -191,6 +132,7 @@ export async function POST(request: Request) {
       title: string | null
       url: string | null
       thumbnail_url: string | null
+      starts_at: string | null
       ends_at: string | null
     },
   })

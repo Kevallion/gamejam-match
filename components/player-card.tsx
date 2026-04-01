@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { UserAvatar } from "@/components/user-avatar"
 import { JammerLevelBadge, JammerTitleBadge } from "@/components/profile-card"
 import { Badge } from "@/components/ui/badge"
@@ -54,6 +54,7 @@ import { gamificationRewardHasToast } from "@/lib/gamification-reward-types"
 import { KudosBadgeRow } from "@/components/kudos-badges"
 import type { KudosCounts } from "@/lib/kudos"
 import { ENGINE_OPTIONS_WITH_ANY, LANGUAGE_OPTIONS } from "@/lib/constants"
+import { fetchPendingInvitationTeamIdsForInvitee } from "@/lib/queries"
 
 function languageDisplayLabel(value: string | undefined): string {
   const raw = (value ?? "").trim()
@@ -93,8 +94,8 @@ export type JammerCardData = {
   language: string
   portfolio_link?: string
   availability?: string
-  /** Linked game jam (from profile) */
-  jam?: { title: string; url?: string }
+  /** Linked game jam (from external_jams via profile) — title links to url when set */
+  jam?: { title: string; url?: string | null }
   /** RPG display title (profiles.current_title) */
   jammerTitle?: string | null
   /** RPG level from XP (not experience tier) */
@@ -147,7 +148,29 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
   const [message, setMessage] = useState("")
   const [loading, setLoading] = useState(false)
   const [sentSquadIds, setSentSquadIds] = useState<Set<string>>(new Set())
+  const [pendingInviteTeamIds, setPendingInviteTeamIds] = useState<Set<string>>(new Set())
   const [statusMsg, setStatusMsg] = useState<{ type: "error" | "success"; text: string } | null>(null)
+
+  const mySquadIdsKey = mySquads
+    .map((s) => s.id)
+    .sort()
+    .join(",")
+
+  useEffect(() => {
+    let cancelled = false
+    const teamIds = mySquadIdsKey ? mySquadIdsKey.split(",") : []
+    if (teamIds.length === 0) {
+      setPendingInviteTeamIds(new Set())
+      return
+    }
+    void (async () => {
+      const pending = await fetchPendingInvitationTeamIdsForInvitee(player.id, teamIds, supabase)
+      if (!cancelled) setPendingInviteTeamIds(pending)
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [player.id, mySquadIdsKey])
 
   const maxChars = 500
   const languageLabel = languageDisplayLabel(player.language)
@@ -245,7 +268,15 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
         setStatusMsg(null)
       }, 2000)
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "An error occurred. Please try again."
+      const code = err && typeof err === "object" && "message" in err ? String((err as Error).message) : ""
+      const isDup =
+        (err && typeof err === "object" && "code" in err && (err as { code?: string }).code === "23505") ||
+        code.includes("already pending")
+      const msg = isDup
+        ? "An invitation is already pending for this player on this team."
+        : err instanceof Error
+          ? err.message
+          : "An error occurred. Please try again."
       setStatusMsg({ type: "error", text: msg })
       toast.error("Could not send the invitation.", { description: msg })
     } finally {
@@ -253,7 +284,9 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
     }
   }
 
-  const allSent = mySquads.length > 0 && mySquads.every((s) => sentSquadIds.has(s.id))
+  const inviteLockedForSquad = (squadId: string) =>
+    sentSquadIds.has(squadId) || pendingInviteTeamIds.has(squadId)
+  const allSent = mySquads.length > 0 && mySquads.every((s) => inviteLockedForSquad(s.id))
   const availabilityInfo = parseAvailability(player.availability)
 
   return (
@@ -374,9 +407,11 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
                       href={player.jam.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="min-w-0 truncate text-lavender hover:underline"
+                      className="inline-flex min-w-0 max-w-full items-center gap-1 truncate font-medium text-lavender hover:underline"
+                      onClick={(e) => e.stopPropagation()}
                     >
-                      {player.jam.title}
+                      <span className="truncate">{player.jam.title}</span>
+                      <ExternalLink className="size-3 shrink-0 opacity-70" aria-hidden />
                     </a>
                   ) : (
                     <span className="min-w-0 truncate">{player.jam.title}</span>
@@ -502,8 +537,14 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
                 <div className="flex items-center gap-2 rounded-xl border border-border/60 bg-muted/30 px-3 py-2 text-sm">
                   <Target className="size-4 shrink-0 text-lavender" />
                   {player.jam.url ? (
-                    <a href={player.jam.url} target="_blank" rel="noopener noreferrer" className="font-medium text-lavender hover:underline">
+                    <a
+                      href={player.jam.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 font-medium text-lavender hover:underline"
+                    >
                       {player.jam.title}
+                      <ExternalLink className="size-3.5 shrink-0 opacity-70" aria-hidden />
                     </a>
                   ) : (
                     <span className="font-medium text-foreground">{player.jam.title}</span>
@@ -562,18 +603,20 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     {mySquads.map((squad) => {
-                      const sent = sentSquadIds.has(squad.id)
+                      const locked = inviteLockedForSquad(squad.id)
                       return (
                         <DropdownMenuItem
                           key={squad.id}
-                          disabled={sent}
+                          disabled={locked}
                           onSelect={() => openInviteDialog(squad)}
                           className="cursor-pointer"
                         >
-                          {sent && <span className="mr-2">✓</span>}
+                          {locked && <span className="mr-2">✓</span>}
                           {squad.team_name}
-                          {sent && (
-                            <span className="ml-auto text-xs text-muted-foreground">Sent</span>
+                          {locked && (
+                            <span className="ml-auto text-xs text-muted-foreground">
+                              Invitation sent
+                            </span>
                           )}
                         </DropdownMenuItem>
                       )

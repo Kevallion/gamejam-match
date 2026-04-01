@@ -50,7 +50,8 @@ export function LandingCTA() {
 
             {/* Description */}
             <p className="mx-auto mt-4 max-w-xl text-pretty text-lg leading-relaxed text-muted-foreground">
-              Stop searching Discord servers and Reddit threads. Join the platform built specifically for game jam team building.
+              Join hundreds of indie developers, artists, and designers already building games together on
+              GameJamCrew.
             </p>
 
             {/* CTA Button */}

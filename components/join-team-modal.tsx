@@ -34,6 +34,7 @@ import { toast } from "sonner"
 import { track } from "@vercel/analytics"
 import { notifyOwnerNewApplication } from "@/app/actions/team-actions"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { hasPendingApplicationToTeam } from "@/lib/queries"
 
 const MOTIVATION_MAX_CHARS = 500
 
@@ -100,6 +101,7 @@ export function JoinTeamModal({
     type: "error" | "success"
     text: string
   } | null>(null)
+  const [hasPendingApplication, setHasPendingApplication] = useState(false)
   const isMobile = useIsMobile()
   const userEditedMessageRef = useRef(false)
 
@@ -112,6 +114,25 @@ export function JoinTeamModal({
       setIsOwnTeam(false)
     }
   }, [open, ownerUserId])
+
+  useEffect(() => {
+    if (!open) {
+      setHasPendingApplication(false)
+      return
+    }
+    let cancelled = false
+    void (async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      if (!session?.user || cancelled) return
+      const pending = await hasPendingApplicationToTeam(session.user.id, teamId, supabase)
+      if (!cancelled) setHasPendingApplication(pending)
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [open, teamId])
 
   useEffect(() => {
     if (!open) return
@@ -208,6 +229,17 @@ export function JoinTeamModal({
         return
       }
 
+      const alreadyPending = await hasPendingApplicationToTeam(session.user.id, teamId, supabase)
+      if (alreadyPending) {
+        setStatusMsg({
+          type: "error",
+          text: "You already have a pending application for this team.",
+        })
+        setHasPendingApplication(true)
+        setLoading(false)
+        return
+      }
+
       // Prefer profile username, then Discord metadata
       const { data: profile } = await supabase
         .from("profiles")
@@ -223,17 +255,32 @@ export function JoinTeamModal({
         meta?.username ||
         "A Jammer"
 
-      const { error } = await supabase.from("join_requests").insert({
-        team_id: teamId,
-        sender_id: session.user.id,
-        sender_name: senderName,
-        message: message.trim(),
-        status: "pending",
-        type: "application",
-        target_role: selectedRole.key,
-      })
+      const { data: insertedRequest, error } = await supabase
+        .from("join_requests")
+        .insert({
+          team_id: teamId,
+          sender_id: session.user.id,
+          sender_name: senderName,
+          message: message.trim(),
+          status: "pending",
+          type: "application",
+          target_role: selectedRole.key,
+        })
+        .select("id")
+        .single()
 
-      if (error) throw error
+      if (error) {
+        if (error.code === "23505") {
+          setStatusMsg({
+            type: "error",
+            text: "You already have a pending application for this team.",
+          })
+          setHasPendingApplication(true)
+          setLoading(false)
+          return
+        }
+        throw error
+      }
 
       track("Applied to Team", {
         smart_match: isRecommended ? "true" : "false",
@@ -241,8 +288,12 @@ export function JoinTeamModal({
       })
 
       // Notification e-mail au propriétaire de l'équipe (asynchrone, non bloquant)
-      if (ownerUserId) {
-        void notifyOwnerNewApplication(ownerUserId, senderName, teamName)
+      if (ownerUserId && insertedRequest?.id) {
+        void notifyOwnerNewApplication(ownerUserId, senderName, teamName, {
+          candidateUserId: session.user.id,
+          teamId,
+          joinRequestId: insertedRequest.id,
+        })
       }
 
       setStatusMsg({
@@ -313,6 +364,16 @@ export function JoinTeamModal({
             </div>
           )}
 
+          {hasPendingApplication && !isOwnTeam && (
+            <div
+              aria-live="polite"
+              className="flex items-center gap-2.5 rounded-xl border border-mint/30 bg-mint/10 px-3.5 py-2.5 text-sm font-medium text-mint"
+            >
+              <CheckCircle2 className="size-4 shrink-0" />
+              <p className="leading-snug">Application already sent — check your dashboard (Sent) for status.</p>
+            </div>
+          )}
+
           {/* Role selector */}
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2">
@@ -379,7 +440,7 @@ export function JoinTeamModal({
                   if (e.target.value.length <= maxChars) setMessage(e.target.value)
                 }}
                 className="min-h-[120px] resize-none rounded-xl border-border/60 bg-secondary/50 text-sm leading-relaxed text-foreground placeholder:text-muted-foreground/60 transition-colors focus-visible:border-teal/40 focus-visible:ring-2 focus-visible:ring-teal/20 focus-visible:ring-offset-0"
-                disabled={loading || statusMsg?.type === "success" || isOwnTeam}
+                disabled={loading || statusMsg?.type === "success" || isOwnTeam || hasPendingApplication}
               />
               <span className="absolute right-3 bottom-2.5 text-xs tabular-nums text-muted-foreground/50">
                 {charCount}/{maxChars}
@@ -426,7 +487,8 @@ export function JoinTeamModal({
             !selectedRole ||
             charCount === 0 ||
             openRoles.length === 0 ||
-            isOwnTeam
+            isOwnTeam ||
+            hasPendingApplication
           }
           className="gap-2 rounded-xl bg-primary font-bold text-primary-foreground transition-all hover:bg-primary/90 disabled:opacity-50 sm:h-11"
         >

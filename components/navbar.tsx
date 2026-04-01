@@ -29,6 +29,7 @@ import { supabase } from "@/lib/supabase"
 import { useEffect, useState } from "react"
 import type { User } from "@supabase/supabase-js"
 import { useNotifications } from "@/hooks/use-notifications"
+import { NavbarNotificationRow } from "@/components/navbar-notification-row"
 import { JammerLevelBadge, JammerTitleBadge } from "@/components/profile-card"
 import { levelFromTotalXp } from "@/lib/gamification-level"
 
@@ -214,7 +215,10 @@ export function Navbar() {
 
             {/* Notifications */}
             {mounted && user && (
-              <DropdownMenu onOpenChange={(open) => open && refetchNotifications()}>
+              <DropdownMenu
+                modal={false}
+                onOpenChange={(open) => open && refetchNotifications()}
+              >
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="relative size-8 rounded-xl hover:bg-white/10">
                     <Bell className="size-4" />
@@ -247,28 +251,16 @@ export function Navbar() {
                       No new notifications
                     </p>
                   ) : (
-                    <div className="flex flex-col gap-0.5 max-h-64 overflow-y-auto">
+                    <div className="flex max-h-72 flex-col gap-1 overflow-y-auto pr-0.5">
                       {notifications
                         .filter((n) => !n.is_read)
                         .map((notif) => (
-                        <DropdownMenuItem key={notif.id} asChild>
-                          <Link
-                            href={notif.link || "/dashboard"}
-                            onClick={() => dismissNotification(notif.id)}
-                            className="flex cursor-pointer items-start gap-3 rounded-xl px-3 py-2.5 text-left focus:bg-accent"
-                          >
-                            <div className="mt-1 h-2 w-2 shrink-0 rounded-full bg-teal" />
-                            <div className="min-w-0 flex-1">
-                              <p className="text-sm font-medium leading-snug text-foreground line-clamp-2">
-                                {notif.message}
-                              </p>
-                              <p className="mt-0.5 text-xs uppercase tracking-wide text-muted-foreground">
-                                {notif.type}
-                              </p>
-                            </div>
-                          </Link>
-                        </DropdownMenuItem>
-                      ))}
+                          <NavbarNotificationRow
+                            key={notif.id}
+                            notification={notif}
+                            onMarkRead={(id) => void dismissNotification(id)}
+                          />
+                        ))}
                     </div>
                   )}
 
@@ -282,13 +274,16 @@ export function Navbar() {
                     >
                       Mark all as read
                     </button>
-                    <Link
-                      href={unreadCount > 0 ? "/dashboard?tab=inbox" : "/dashboard"}
+                    <button
+                      type="button"
+                      onClick={() =>
+                        router.push(unreadCount > 0 ? "/dashboard?tab=inbox" : "/dashboard")
+                      }
                       className="flex cursor-pointer items-center gap-1.5 rounded-xl px-2 py-1 text-xs font-semibold text-primary hover:text-primary/90"
                     >
                       <LayoutDashboard className="size-3.5" />
                       View all
-                    </Link>
+                    </button>
                   </div>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -383,7 +378,10 @@ export function Navbar() {
 
             {/* Notifications */}
             {mounted && user && (
-              <DropdownMenu onOpenChange={(open) => open && refetchNotifications()}>
+              <DropdownMenu
+                modal={false}
+                onOpenChange={(open) => open && refetchNotifications()}
+              >
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="relative size-9 rounded-xl">
                     <Bell className="size-4" />
@@ -409,28 +407,28 @@ export function Navbar() {
                       No new notifications
                     </p>
                   ) : (
-                    <div className="flex flex-col gap-0.5 max-h-48 overflow-y-auto">
-                      {notifications.filter((n) => !n.is_read).slice(0, 5).map((notif) => (
-                        <DropdownMenuItem key={notif.id} asChild>
-                          <Link
-                            href={notif.link || "/dashboard"}
-                            onClick={() => dismissNotification(notif.id)}
-                            className="flex items-start gap-2 rounded-xl px-2 py-2"
-                          >
-                            <div className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-teal" />
-                            <p className="text-sm line-clamp-2">{notif.message}</p>
-                          </Link>
-                        </DropdownMenuItem>
-                      ))}
+                    <div className="flex max-h-64 flex-col gap-1 overflow-y-auto">
+                      {notifications
+                        .filter((n) => !n.is_read)
+                        .slice(0, 5)
+                        .map((notif) => (
+                          <NavbarNotificationRow
+                            key={notif.id}
+                            notification={notif}
+                            onMarkRead={(id) => void dismissNotification(id)}
+                            compact
+                          />
+                        ))}
                     </div>
                   )}
                   <DropdownMenuSeparator />
-                  <Link
-                    href="/dashboard?tab=inbox"
-                    className="flex items-center justify-center gap-1.5 py-2 text-xs font-semibold text-primary"
+                  <button
+                    type="button"
+                    onClick={() => router.push("/dashboard?tab=inbox")}
+                    className="flex w-full items-center justify-center gap-1.5 py-2 text-xs font-semibold text-primary"
                   >
                     View all notifications
-                  </Link>
+                  </button>
                 </DropdownMenuContent>
               </DropdownMenu>
             )}

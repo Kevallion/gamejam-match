@@ -30,6 +30,10 @@ export type TeamRowDb = {
   team_vibe: string | null
   looking_for: unknown
   team_members: { id: string; role?: string | null }[] | null
+  jam_id?: string | null
+  jam_start_date?: string | null
+  jam_end_date?: string | null
+  created_at?: string | null
 }
 
 export function formatTeamToCardData(t: TeamRowDb): TeamCardData {
@@ -67,5 +71,8 @@ export function formatTeamToCardData(t: TeamRowDb): TeamCardData {
     level: levelBadge,
     teamVibe: teamVibe ?? undefined,
     filledRoleKeys: acceptedRoleKeys,
+    jamStartDate: t.jam_start_date ?? null,
+    jamEndDate: t.jam_end_date ?? null,
+    createdAt: t.created_at ?? null,
   }
 }

@@ -5,18 +5,17 @@ import { Trophy } from "lucide-react"
 import { toast } from "sonner"
 import { supabase } from "@/lib/supabase"
 import { NOTIFICATION_TYPE_GAMIFICATION_SQUAD_COMPLETE } from "@/lib/notification-constants"
+import {
+  NOTIFICATION_ENRICHED_SELECT,
+  fetchNotificationsAsNormalized,
+  type EnrichedNotificationRow,
+  type NormalizedNotificationFeedItem,
+} from "@/lib/notifications-enriched"
 
-export type NotificationItem = {
-  id: string
-  type: string
-  message: string
-  link: string | null
-  is_read: boolean
-  created_at: string
-}
+export type NormalizedNotificationRow = NormalizedNotificationFeedItem
 
 export function useNotifications(userId: string | null) {
-  const [notifications, setNotifications] = useState<NotificationItem[]>([])
+  const [notifications, setNotifications] = useState<NormalizedNotificationFeedItem[]>([])
   const [loading, setLoading] = useState(false)
 
   const fetchNotifications = useCallback(async () => {
@@ -28,27 +27,31 @@ export function useNotifications(userId: string | null) {
     try {
       const { data, error } = await supabase
         .from("notifications")
-        .select("id, type, message, link, is_read, created_at")
+        .select(NOTIFICATION_ENRICHED_SELECT)
         .eq("user_id", userId)
         .order("created_at", { ascending: false })
-        .limit(10)
+        .limit(12)
 
       if (error) {
+        console.warn("[notifications]", error.message)
         setNotifications([])
         return
       }
 
-      setNotifications((data ?? []) as NotificationItem[])
+      const normalized = await fetchNotificationsAsNormalized(
+        supabase,
+        (data ?? []) as EnrichedNotificationRow[],
+      )
+      setNotifications(normalized)
     } finally {
       setLoading(false)
     }
   }, [userId])
 
   useEffect(() => {
-    fetchNotifications()
+    void fetchNotifications()
   }, [fetchNotifications])
 
-  // Realtime: refetch when new notifications arrive
   useEffect(() => {
     if (!userId) return
     const channel = supabase

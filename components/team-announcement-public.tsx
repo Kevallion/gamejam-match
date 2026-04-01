@@ -5,7 +5,7 @@ import { Navbar } from "@/components/navbar"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { JoinTeamModal } from "@/components/join-team-modal"
-import type { TeamCardData } from "@/components/team-card"
+import { JamTitleBlock, type TeamCardData } from "@/components/team-card"
 import { ArrowLeft, ArrowRight, Cpu, Globe, ShieldCheck } from "lucide-react"
 
 type RoleOption = { key: string; label: string; emoji: string; color: string; filled?: boolean }
@@ -62,7 +62,7 @@ export function TeamAnnouncementPublic({ team, isLoggedIn }: TeamAnnouncementPub
           <div className="rounded-2xl border border-border/60 bg-card shadow-xl shadow-teal/10 overflow-hidden">
             <div className="border-b border-border/60 px-6 pt-6 pb-4 space-y-1">
               <h1 className="text-xl font-bold text-foreground">{team.name}</h1>
-              <p className="text-sm font-medium text-primary">{team.jam}</p>
+              <JamTitleBlock team={team} className="text-sm font-medium text-primary" />
             </div>
 
             <div className="flex flex-col gap-4 px-6 py-4">

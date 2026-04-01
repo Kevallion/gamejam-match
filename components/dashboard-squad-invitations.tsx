@@ -24,6 +24,12 @@ export type InvitationData = {
   gameName?: string | null
   discordLink: string | null
   targetRole?: string | null
+  captainMessage?: string | null
+  engineLabel?: string | null
+  jamTitle?: string | null
+  description?: string | null
+  teamVibe?: string | null
+  experienceRequired?: string | null
 }
 
 interface DashboardSquadInvitationsProps {
@@ -87,12 +93,24 @@ export function DashboardSquadInvitations({
             return (
               <Card
                 key={inv.id}
-                className="group relative overflow-hidden rounded-2xl border-border/50 bg-card transition-all duration-300 hover:border-lavender/30 hover:shadow-lg hover:shadow-lavender/5"
+                id={`inbox-request-${inv.id}`}
+                className="group relative overflow-hidden rounded-2xl border-border/50 bg-card transition-all duration-300 hover:border-lavender/30 hover:shadow-lg hover:shadow-lavender/5 scroll-mt-24"
               >
                 {/* Subtle top accent line */}
                 <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-lavender/60 via-pink/40 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
 
                 <CardContent className="flex flex-col gap-4 px-6 py-5 sm:px-8 sm:py-6">
+                  {inv.captainMessage?.trim() ? (
+                    <div className="rounded-xl border border-lavender/25 bg-secondary/40 px-4 py-3">
+                      <p className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-lavender">
+                        <Mail className="size-3.5" aria-hidden />
+                        Message from the captain
+                      </p>
+                      <p className="text-sm leading-relaxed text-foreground whitespace-pre-wrap">
+                        {inv.captainMessage.trim()}
+                      </p>
+                    </div>
+                  ) : null}
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     {/* Squad info */}
                     <div className="flex items-center gap-4">
@@ -118,7 +136,17 @@ export function DashboardSquadInvitations({
                               {inv.gameName}
                             </span>
                           )}
-                          {!roleStyle && !inv.gameName && (
+                          {inv.engineLabel && (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-teal/10 px-2.5 py-0.5 text-xs font-semibold text-teal">
+                              {inv.engineLabel}
+                            </span>
+                          )}
+                          {inv.jamTitle && (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-mint/15 px-2.5 py-0.5 text-xs font-semibold text-mint">
+                              {inv.jamTitle}
+                            </span>
+                          )}
+                          {!roleStyle && !inv.gameName && !inv.engineLabel && !inv.jamTitle && (
                             <span>You&apos;ve been invited to join this squad</span>
                           )}
                         </div>
@@ -144,6 +172,28 @@ export function DashboardSquadInvitations({
                       </Button>
                     </div>
                   </div>
+                  {(inv.description?.trim() || inv.teamVibe?.trim() || inv.experienceRequired?.trim()) && (
+                    <div className="space-y-2 border-t border-border/40 pt-4 text-sm text-muted-foreground">
+                      {inv.description?.trim() ? (
+                        <p>
+                          <span className="font-semibold text-foreground">Pitch: </span>
+                          {inv.description.trim()}
+                        </p>
+                      ) : null}
+                      {inv.teamVibe?.trim() ? (
+                        <p>
+                          <span className="font-semibold text-foreground">Vibe: </span>
+                          {inv.teamVibe.trim()}
+                        </p>
+                      ) : null}
+                      {inv.experienceRequired?.trim() ? (
+                        <p>
+                          <span className="font-semibold text-foreground">Looking for: </span>
+                          {inv.experienceRequired.trim()}
+                        </p>
+                      ) : null}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             )
