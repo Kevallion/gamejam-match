@@ -13,6 +13,10 @@ import {
   Send,
   Clock,
   MessageSquareText,
+  Sparkles,
+  Star,
+  TrendingUp,
+  Zap,
 } from "lucide-react"
 
 const AVATAR_COLORS: Record<string, string> = {
@@ -20,7 +24,7 @@ const AVATAR_COLORS: Record<string, string> = {
   "SynthWave_Alex": "from-mint/70 to-teal/70",
 }
 
-function InitialsAvatar({ name, className }: { name: string; className?: string }) {
+function InitialsAvatar({ name, className, showOnline = false }: { name: string; className?: string; showOnline?: boolean }) {
   const initials = name
     .replace(/_/g, " ")
     .split(/[\s_]/)
@@ -30,11 +34,16 @@ function InitialsAvatar({ name, className }: { name: string; className?: string 
     .join("")
   const gradient = AVATAR_COLORS[name] ?? "from-lavender/70 to-primary/70"
   return (
-    <div
-      aria-label={name}
-      className={`flex items-center justify-center rounded-full bg-gradient-to-br text-[10px] font-bold text-white ${gradient} ${className ?? ""}`}
-    >
-      {initials}
+    <div className="relative">
+      <div
+        aria-label={name}
+        className={`flex items-center justify-center rounded-full bg-gradient-to-br text-[10px] font-bold text-white ${gradient} ${className ?? ""}`}
+      >
+        {initials}
+      </div>
+      {showOnline && (
+        <span className="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full border-2 border-card bg-success" />
+      )}
     </div>
   )
 }
@@ -66,29 +75,50 @@ export function MockDashboard() {
       <section className="px-4 pt-4">
         <div className="overflow-hidden rounded-2xl border border-border/50 bg-card/80 backdrop-blur-sm">
           {/* XP Progress bar */}
-          <div className="h-1 w-full bg-muted/50">
+          <div className="relative h-1.5 w-full bg-muted/50">
             <div
-              className="h-full bg-gradient-to-r from-teal to-peach"
+              className="h-full bg-gradient-to-r from-teal via-primary to-peach transition-all duration-1000"
               style={{ width: "68%" }}
+            />
+            {/* XP glow effect */}
+            <div 
+              className="absolute right-0 top-0 h-full w-4 bg-gradient-to-l from-peach/50 to-transparent blur-sm animate-pulse"
+              style={{ right: "32%" }}
             />
           </div>
           <div className="flex items-center gap-3 p-4">
-            <InitialsAvatar
-              name="PixelDev42"
-              className="size-12 shrink-0 rounded-xl ring-2 ring-border/30 text-sm"
-            />
+            <div className="relative">
+              <InitialsAvatar
+                name="PixelDev42"
+                className="size-12 shrink-0 rounded-xl ring-2 ring-border/30 text-sm"
+              />
+              {/* Level badge on avatar */}
+              <span className="absolute -bottom-1 -right-1 flex size-5 items-center justify-center rounded-full border-2 border-card bg-amber-500 text-[8px] font-black text-white">
+                7
+              </span>
+            </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
                 <p className="truncate text-sm font-semibold tracking-tight text-foreground">
                   PixelDev42
                 </p>
-                <span className="shrink-0 rounded-full border border-amber-500/40 bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-bold text-amber-600 dark:text-amber-400">
+                <span className="inline-flex items-center gap-0.5 shrink-0 rounded-full border border-amber-500/40 bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-bold text-amber-600 dark:text-amber-400">
+                  <Star className="size-2.5 fill-current" />
                   Lv. 7
                 </span>
               </div>
-              <p className="mt-0.5 text-[10px] text-muted-foreground">
-                Seasoned Jammer
+              <p className="mt-0.5 flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                <span>Seasoned Jammer</span>
+                <span className="inline-flex items-center gap-0.5 text-teal">
+                  <TrendingUp className="size-2.5" />
+                  +240 XP this week
+                </span>
               </p>
+            </div>
+            {/* Quick action */}
+            <div className="flex items-center gap-1 rounded-lg bg-primary/10 px-2 py-1 text-[9px] font-medium text-primary">
+              <Zap className="size-3" />
+              1 quest
             </div>
           </div>
         </div>
@@ -165,43 +195,50 @@ export function MockDashboard() {
       <div className="px-4 pt-4">
         <div className="rounded-2xl border border-border/50 bg-card/50 p-4">
           <div className="mb-3 flex items-center gap-3">
-            <div className="flex size-8 items-center justify-center rounded-xl bg-mint/15">
+            <div className="relative flex size-8 items-center justify-center rounded-xl bg-mint/15">
               <Inbox className="size-4 text-mint" />
+              {/* Notification pulse */}
+              <span className="absolute -right-1 -top-1 flex size-3">
+                <span className="absolute inline-flex size-full animate-ping rounded-full bg-mint opacity-75" />
+                <span className="relative inline-flex size-3 rounded-full bg-mint text-[7px] font-bold text-mint-foreground flex items-center justify-center">1</span>
+              </span>
             </div>
             <div>
               <h2 className="text-xs font-bold text-foreground">Incoming Applications</h2>
               <p className="text-[9px] text-muted-foreground">Players who want to join your teams</p>
             </div>
-            <span className="ml-auto rounded-full bg-mint px-2 py-0.5 text-[9px] font-bold text-mint-foreground">
-              1 pending
+            <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-mint px-2 py-0.5 text-[9px] font-bold text-mint-foreground">
+              <Sparkles className="size-2.5" />
+              1 new
             </span>
           </div>
 
           <div className="flex flex-col gap-2">
             {[
-              { name: "SynthWave_Alex", team: "Neon Runners", role: "Developer", roleEmoji: "< >", roleColor: "bg-teal/15 text-teal", time: "2h ago" },
+              { name: "SynthWave_Alex", team: "Neon Runners", role: "Developer", roleEmoji: "💻", roleColor: "bg-teal/15 text-teal", time: "2h ago", xp: 2400, level: 5 },
             ].map((app, i) => (
               <div
                 key={i}
-                className="group relative overflow-hidden rounded-xl border border-border/50 bg-card transition-all hover:border-mint/30"
+                className="group relative overflow-hidden rounded-xl border-2 border-mint/40 bg-card shadow-lg shadow-mint/5 transition-all"
               >
-                {/* Top accent line on hover */}
-                <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-mint/60 via-teal/40 to-transparent opacity-0 transition-opacity group-hover:opacity-100" />
+                {/* Top accent line - active state */}
+                <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-mint via-teal to-primary" />
                 
                 <div className="flex flex-col gap-3 p-3">
                   {/* Top row: avatar + user info */}
                   <div className="flex items-start gap-3">
-                    <div className="relative">
-                      <InitialsAvatar
-                        name={app.name}
-                        className="size-9 shrink-0 ring-2 ring-mint/20"
-                      />
-                      {/* Online dot */}
-                      <span className="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full border-2 border-card bg-mint" />
-                    </div>
+                    <InitialsAvatar
+                      name={app.name}
+                      className="size-10 shrink-0 ring-2 ring-mint/30"
+                      showOnline
+                    />
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-1.5">
                         <h3 className="text-[11px] font-bold text-foreground">{app.name}</h3>
+                        <span className="inline-flex items-center gap-0.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-1 py-0.5 text-[7px] font-bold text-amber-500">
+                          <Star className="size-2 fill-current" />
+                          Lv.{app.level}
+                        </span>
                         <span className={`rounded-full px-1.5 py-0.5 text-[8px] font-semibold ${app.roleColor}`}>
                           {app.roleEmoji} {app.role}
                         </span>
@@ -220,28 +257,31 @@ export function MockDashboard() {
 
                   {/* Motivation box */}
                   <div className="relative overflow-hidden rounded-lg bg-secondary/50">
-                    <div className="absolute inset-y-0 left-0 w-0.5 bg-gradient-to-b from-mint/60 to-lavender/40" />
+                    <div className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-mint via-teal to-lavender" />
                     <div className="px-3 py-2">
                       <div className="mb-1 flex items-center gap-1 text-[8px] font-bold uppercase tracking-widest text-muted-foreground/80">
                         <MessageSquareText className="size-2.5" />
                         Motivation
                       </div>
                       <p className="text-[9px] leading-relaxed text-foreground/80">
-                        Super excited to join! I&apos;ve been working with Unity for 3 years...
+                        Super excited to join! I&apos;ve been working with Unity for 3 years and shipped 2 jam games. Your cyberpunk aesthetic is exactly what I love creating!
                       </p>
                     </div>
                   </div>
 
-                  {/* Action buttons */}
+                  {/* Action buttons - enhanced with hover states */}
                   <div className="flex items-center gap-2">
-                    <button className="flex items-center gap-1 rounded-lg bg-green-600 px-3 py-1.5 text-[9px] font-semibold text-white shadow-sm transition-all hover:bg-green-700">
-                      <Check className="size-3" />
+                    <button className="flex items-center gap-1.5 rounded-lg bg-success px-4 py-2 text-[10px] font-bold text-white shadow-lg shadow-success/25 transition-all hover:scale-105 hover:shadow-xl ring-2 ring-success/30">
+                      <Check className="size-3.5" />
                       Accept
                     </button>
-                    <button className="flex items-center gap-1 rounded-lg border border-red-500/50 px-3 py-1.5 text-[9px] font-semibold text-red-600 transition-all hover:bg-red-500/10">
+                    <button className="flex items-center gap-1 rounded-lg border border-destructive/50 bg-destructive/5 px-3 py-1.5 text-[9px] font-semibold text-destructive transition-all hover:bg-destructive/10">
                       <X className="size-3" />
                       Decline
                     </button>
+                    <span className="ml-auto text-[8px] text-muted-foreground">
+                      Respond within 24h for +50 XP
+                    </span>
                   </div>
                 </div>
               </div>

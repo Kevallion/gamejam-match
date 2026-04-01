@@ -29,6 +29,7 @@ type ShowcaseSection = {
   url: string
   cursorPosition: { x: string; y: string }
   cursorLabel: string
+  cursorAction: "click" | "hover" | "drag" | "typing"
   component: ComponentType
   align: "left" | "right"
 }
@@ -45,8 +46,9 @@ const SHOWCASE_SECTIONS: ShowcaseSection[] = [
     description:
       "The homepage welcomes jammers with a bold hero section, live search with auto-suggestions, and advanced filters to narrow down the perfect team by engine, role, experience level, and language.",
     url: "gamejamcrew.com",
-    cursorPosition: { x: "62%", y: "68%" },
+    cursorPosition: { x: "65%", y: "82%" },
     cursorLabel: "Filtering by English",
+    cursorAction: "click",
     component: MockHero,
     align: "left",
   },
@@ -60,9 +62,10 @@ const SHOWCASE_SECTIONS: ShowcaseSection[] = [
     title: "Interactive Team Cards",
     description:
       "Each team card displays the jam name, engine, open roles with color-coded badges, and member count at a glance. Hover to highlight, click to expand full details and apply instantly.",
-    url: "gamejamcrew.com",
-    cursorPosition: { x: "70%", y: "18%" },
-    cursorLabel: "Viewing Neon Runners",
+    url: "gamejamcrew.com/teams",
+    cursorPosition: { x: "72%", y: "48%" },
+    cursorLabel: "Applying to Neon Runners",
+    cursorAction: "hover",
     component: MockTeamGrid,
     align: "right",
   },
@@ -77,8 +80,9 @@ const SHOWCASE_SECTIONS: ShowcaseSection[] = [
     description:
       "A clean, guided form lets you post your team with engine selection, role requirements, experience preferences, and an optional Discord link. The dropdown is open and ready for selection.",
     url: "gamejamcrew.com/create-team",
-    cursorPosition: { x: "28%", y: "42%" },
+    cursorPosition: { x: "30%", y: "44%" },
     cursorLabel: "Selecting Godot",
+    cursorAction: "click",
     component: MockCreateForm,
     align: "left",
   },
@@ -93,8 +97,9 @@ const SHOWCASE_SECTIONS: ShowcaseSection[] = [
     description:
       "Browse player profiles with role badges, experience levels, preferred engines, and short bios. Each card is a gateway to invite talented members directly to your squad.",
     url: "gamejamcrew.com/find-members",
-    cursorPosition: { x: "78%", y: "55%" },
-    cursorLabel: "Checking out BeatMaker99",
+    cursorPosition: { x: "76%", y: "72%" },
+    cursorLabel: "Inviting BeatMaker99",
+    cursorAction: "hover",
     component: MockPlayers,
     align: "right",
   },
@@ -109,8 +114,9 @@ const SHOWCASE_SECTIONS: ShowcaseSection[] = [
     description:
       "Manage all your teams, review incoming applications with accept/decline actions, track your sent applications, and monitor your availability profiles -- all from one unified dashboard with tab navigation.",
     url: "gamejamcrew.com/dashboard",
-    cursorPosition: { x: "72%", y: "56%" },
-    cursorLabel: "Accepting SynthWave_Alex",
+    cursorPosition: { x: "26%", y: "78%" },
+    cursorLabel: "Accepting application",
+    cursorAction: "click",
     component: MockDashboard,
     align: "left",
   },
@@ -125,8 +131,9 @@ const SHOWCASE_SECTIONS: ShowcaseSection[] = [
     description:
       "A notification bell with an unread badge and dropdown shows new applications and squad invitations in real-time. Never miss a message from a potential teammate.",
     url: "gamejamcrew.com/dashboard",
-    cursorPosition: { x: "82%", y: "8%" },
+    cursorPosition: { x: "78%", y: "8%" },
     cursorLabel: "3 new notifications",
+    cursorAction: "click",
     component: MockNotifications,
     align: "right",
   },
@@ -141,8 +148,9 @@ const SHOWCASE_SECTIONS: ShowcaseSection[] = [
     description:
       "Invite jammers with a polished modal: pick the role, write a personalized message, and send. The recipient sees the invitation in their dashboard and can accept or decline with one click.",
     url: "gamejamcrew.com/find-members",
-    cursorPosition: { x: "75%", y: "72%" },
+    cursorPosition: { x: "72%", y: "88%" },
     cursorLabel: "Sending invite",
+    cursorAction: "typing",
     component: MockInviteModal,
     align: "left",
   },
@@ -234,6 +242,7 @@ export function ShowcaseShell() {
                         url={section.url}
                         cursorPosition={section.cursorPosition}
                         cursorLabel={section.cursorLabel}
+                        cursorAction={section.cursorAction}
                         highlighted={idx % 2 === 0}
                       >
                         <section.component />

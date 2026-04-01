@@ -8,6 +8,7 @@ interface BrowserFrameProps {
   className?: string
   cursorPosition?: { x: string; y: string }
   cursorLabel?: string
+  cursorAction?: "click" | "hover" | "drag" | "typing"
   highlighted?: boolean
   /** Neo-brutalist frame aligned with landing (offset shadow + thick borders). */
   variant?: "default" | "neo"
@@ -21,6 +22,7 @@ export function BrowserFrame({
   className,
   cursorPosition,
   cursorLabel,
+  cursorAction = "click",
   highlighted = false,
   variant = "default",
   accentClassName = "border-teal",
@@ -28,28 +30,63 @@ export function BrowserFrame({
   const cursorOverlay =
     cursorPosition != null ? (
       <div
-        className="pointer-events-none absolute z-50 animate-pulse"
+        className="pointer-events-none absolute z-50"
         style={{ left: cursorPosition.x, top: cursorPosition.y }}
       >
-        <svg
-          width="20"
-          height="24"
-          viewBox="0 0 20 24"
-          fill="none"
-          className="drop-shadow-lg"
-        >
-          <path
-            d="M2 2L2 19.5L6.5 15.5L10.5 22L13.5 20.5L9.5 14L15.5 13.5L2 2Z"
-            fill="white"
-            stroke="black"
-            strokeWidth="1.5"
-            strokeLinejoin="round"
-          />
-        </svg>
+        {/* Animated cursor with interaction states */}
+        <div className="relative">
+          {/* Click ripple effect */}
+          {cursorAction === "click" && (
+            <div className="absolute -left-3 -top-3 size-8 animate-ping rounded-full bg-primary/30" />
+          )}
+          
+          {/* Hover glow effect */}
+          {cursorAction === "hover" && (
+            <div className="absolute -left-2 -top-2 size-6 animate-pulse rounded-full bg-teal/40 blur-sm" />
+          )}
+
+          {/* Custom cursor SVG */}
+          <svg
+            width="24"
+            height="28"
+            viewBox="0 0 24 28"
+            fill="none"
+            className={cn(
+              "drop-shadow-xl transition-transform duration-300",
+              cursorAction === "click" && "scale-90",
+              cursorAction === "hover" && "scale-105"
+            )}
+          >
+            <path
+              d="M3 3L3 22L8 17.5L12.5 25L16 23L11.5 15.5L18.5 15L3 3Z"
+              fill="white"
+              stroke="#1a1a1a"
+              strokeWidth="2"
+              strokeLinejoin="round"
+            />
+            {/* Inner fill for depth */}
+            <path
+              d="M5 6L5 18L8.5 14.8L12 21L13.8 20L10.3 13.8L15 13.5L5 6Z"
+              fill="#f8fafc"
+              opacity="0.6"
+            />
+          </svg>
+        </div>
+
+        {/* Enhanced tooltip label */}
         {cursorLabel && (
-          <span className="ml-5 mt-1 inline-block whitespace-nowrap rounded-lg bg-foreground px-2.5 py-1 text-[10px] font-bold text-background shadow-lg">
-            {cursorLabel}
-          </span>
+          <div className="ml-6 mt-0.5 flex items-center gap-1.5">
+            {cursorAction === "typing" && (
+              <span className="flex items-center gap-0.5">
+                <span className="size-1.5 animate-bounce rounded-full bg-primary" style={{ animationDelay: "0ms" }} />
+                <span className="size-1.5 animate-bounce rounded-full bg-primary" style={{ animationDelay: "150ms" }} />
+                <span className="size-1.5 animate-bounce rounded-full bg-primary" style={{ animationDelay: "300ms" }} />
+              </span>
+            )}
+            <span className="inline-block whitespace-nowrap rounded-lg bg-foreground/95 px-3 py-1.5 text-[10px] font-bold text-background shadow-xl backdrop-blur-sm">
+              {cursorLabel}
+            </span>
+          </div>
         )}
       </div>
     ) : null
