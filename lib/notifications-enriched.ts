@@ -140,12 +140,14 @@ function senderNameMatchesActor(type: string, jr: JoinRequestEmbed): boolean {
   return false
 }
 
-/** Extrait un pseudo depuis le texte anglais généré par `team-actions`. */
+/** Extrait un pseudo ou un nom d’équipe entre guillemets depuis le texte généré par `team-actions`. */
 export function extractDisplayNameFromNotificationMessage(type: string, message: string): string | null {
   const m = message.trim()
   if (type === "application_received") {
-    const match = /^(.+?)\s+applied to your team\b/i.exec(m)
-    return match?.[1]?.trim().replace(/^["']|["']$/g, "") ?? null
+    const cand = /^(.+?)\s+applied to your team\b/i.exec(m)?.[1]?.trim().replace(/^["']|["']$/g, "")
+    if (cand) return cand
+    const teamOnly = /applied to your team\s+"([^"]+)"/i.exec(m)?.[1]?.trim()
+    return teamOnly || null
   }
   if (type === "player_joined") {
     const match = /^(.+?)\s+has officially joined your team/i.exec(m)
@@ -154,6 +156,21 @@ export function extractDisplayNameFromNotificationMessage(type: string, message:
   if (type === "invitation_declined") {
     const match = /^Player\s+(.+?)\s+declined your invitation\b/i.exec(m)
     return match?.[1]?.trim() ?? null
+  }
+  if (type === "application_accepted") {
+    return /into the team\s+"([^"]+)"/i.exec(m)?.[1]?.trim() ?? null
+  }
+  if (type === "team_invitation") {
+    return /join the team\s+"([^"]+)"/i.exec(m)?.[1]?.trim() ?? null
+  }
+  if (type === "team_kicked") {
+    return /removed from the team\s+"([^"]+)"/i.exec(m)?.[1]?.trim() ?? null
+  }
+  if (type === "team_chat") {
+    return /team chat\s+"([^"]+)"/i.exec(m)?.[1]?.trim() ?? null
+  }
+  if (type === "discord_updated") {
+    return /your team\s+"([^"]+)"\s+has been updated/i.exec(m)?.[1]?.trim() ?? null
   }
   return null
 }
@@ -247,6 +264,10 @@ export function buildNormalizedFeedItem(
   }
   if (!username && mapped?.discord_username?.trim()) {
     username = mapped.discord_username.trim()
+  }
+  if (!username) {
+    const tn = unwrapTeam(row.team)?.team_name?.trim()
+    if (tn) username = tn
   }
   if (!username) {
     username = "Jammer"

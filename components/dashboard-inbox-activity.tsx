@@ -1,6 +1,5 @@
 "use client"
 
-import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { formatDistanceToNow } from "date-fns"
 import { Badge } from "@/components/ui/badge"
@@ -24,19 +23,22 @@ function ActivityRow({
   const router = useRouter()
   const sender = item.senderResolved
   const detailHref = getNotificationDetailPath(item)
-  const displayName = sender?.username?.trim() || "Jammer"
+  const displayName = (sender?.username?.trim() || "Jammer").trim()
   const profileUserId = item.actorUserId ?? item.sender_id
   const jammerHref = profileUserId ? `/jammer/${profileUserId}` : null
+  const showMutedName = !jammerHref && displayName === "Jammer"
 
   const markRead = async () => {
     await supabase.from("notifications").update({ is_read: true }).eq("id", item.id)
     onChanged?.()
   }
 
-  const openDetails = async () => {
+  const go = async (href: string) => {
     await markRead()
-    router.push(detailHref)
+    router.push(href)
   }
+
+  const openDetails = () => void go(detailHref)
 
   let timeLabel = ""
   try {
@@ -56,26 +58,42 @@ function ActivityRow({
       )}
     >
       <div className="shrink-0 pt-0.5">
-        <UserAvatar
-          src={sender?.avatar_url ?? null}
-          fallbackName={displayName}
-          size="md"
-          className="!size-10 border border-border/50"
-        />
+        <button
+          type="button"
+          className="rounded-full ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+          onClick={() => {
+            if (jammerHref) void go(jammerHref)
+          }}
+          disabled={!jammerHref}
+          aria-label={jammerHref ? `Open profile of ${displayName}` : "No profile link"}
+        >
+          <UserAvatar
+            src={sender?.avatar_url ?? null}
+            fallbackName={displayName}
+            size="md"
+            className="!size-10 border border-border/50"
+          />
+        </button>
       </div>
       <div className="min-w-0 flex-1 space-y-2">
         <div className="flex flex-wrap items-center gap-2">
           {jammerHref ? (
-            <Link
-              href={jammerHref}
-              className="text-sm font-semibold text-foreground hover:text-primary"
-              onClick={(e) => e.stopPropagation()}
-              onPointerDown={() => void markRead()}
+            <button
+              type="button"
+              className="text-sm font-semibold text-foreground hover:text-primary hover:underline"
+              onClick={() => void go(jammerHref)}
             >
               {displayName}
-            </Link>
+            </button>
           ) : (
-            <span className="text-sm font-semibold text-muted-foreground">{displayName}</span>
+            <span
+              className={cn(
+                "text-sm font-semibold",
+                showMutedName ? "text-muted-foreground" : "text-foreground",
+              )}
+            >
+              {displayName}
+            </span>
           )}
           <Badge variant="outline" className="rounded-full px-2 py-0 text-[10px] font-semibold uppercase">
             {item.type.replace(/_/g, " ")}
@@ -91,18 +109,11 @@ function ActivityRow({
             size="sm"
             variant="secondary"
             className="h-8 rounded-lg text-xs font-semibold"
-            onClick={() => void openDetails()}
+            onClick={openDetails}
           >
             View details
             <ChevronRight className="ml-1 size-3.5 opacity-70" aria-hidden />
           </Button>
-          {item.team_id ? (
-            <Button type="button" size="sm" variant="outline" className="h-8 rounded-lg text-xs font-semibold" asChild>
-              <Link href={`/teams/${item.team_id}`} onPointerDown={() => void markRead()}>
-                Team page
-              </Link>
-            </Button>
-          ) : null}
         </div>
       </div>
     </div>
