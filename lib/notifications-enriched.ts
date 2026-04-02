@@ -157,6 +157,9 @@ export function extractDisplayNameFromNotificationMessage(type: string, message:
     const match = /^Player\s+(.+?)\s+declined your invitation\b/i.exec(m)
     return match?.[1]?.trim() ?? null
   }
+  if (type === "application_declined") {
+    return /to join\s+"([^"]+)"\s+was declined/i.exec(m)?.[1]?.trim() ?? null
+  }
   if (type === "application_accepted") {
     return /into the team\s+"([^"]+)"/i.exec(m)?.[1]?.trim() ?? null
   }
@@ -200,9 +203,11 @@ export function deriveNotificationActorUserId(n: EnrichedNotificationRow): strin
       if (jrType === "application" || jrType === "invitation") return jr?.sender_id ?? null
       return null
     case "application_accepted":
-      return teamOwnerFromNotif
+      return n.sender_id ?? teamOwnerFromNotif
     case "application_declined":
-      return teamOwnerFromNotif
+      return n.sender_id ?? teamOwnerFromNotif
+    case "team_kicked":
+      return n.sender_id ?? teamOwnerFromNotif
     default:
       return n.sender_id
   }

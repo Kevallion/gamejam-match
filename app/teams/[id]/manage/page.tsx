@@ -109,6 +109,7 @@ export default function TeamManagePage() {
   const [loading, setLoading] = useState(true)
   const [team, setTeam] = useState<TeamManageData | null>(null)
   const [isOwner, setIsOwner] = useState(false)
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [removingUserId, setRemovingUserId] = useState<string | null>(null)
   const [sendingDiscordToUserId, setSendingDiscordToUserId] = useState<string | null>(null)
   const [editOpen, setEditOpen] = useState(false)
@@ -166,6 +167,7 @@ export default function TeamManagePage() {
       }
 
       setIsOwner(true)
+      setCurrentUserId(session.user.id)
 
       const { data: membersData } = await supabase
         .from("team_members")
@@ -291,7 +293,7 @@ export default function TeamManagePage() {
       )
 
       if (team?.team_name) {
-        void notifyPlayerKicked(userId, team.team_name)
+        void notifyPlayerKicked(userId, team.team_name, teamId, currentUserId)
       }
 
       toast.success("Member removed.", {

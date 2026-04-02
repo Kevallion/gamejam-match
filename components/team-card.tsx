@@ -4,7 +4,6 @@ import { useState } from "react"
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   Dialog,
   DialogContent,
@@ -176,19 +175,19 @@ export function TeamCard({
   )
 
   const dialogBody = (
-    <div className="flex max-h-[min(90vh,720px)] flex-col">
-      <DialogHeader className="shrink-0 space-y-0 border-b border-border/60 px-6 pb-4 pt-6 text-left">
-        <div className="flex items-start justify-between gap-3 pr-10">
+    <div className="flex min-w-0 flex-col">
+      <DialogHeader className="shrink-0 space-y-0 border-b border-border/60 px-4 pb-4 pt-6 text-left sm:px-6">
+        <div className="flex flex-col gap-3 pr-10 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
           <div className="min-w-0 flex-1">
-            <DialogTitle className="truncate text-xl font-extrabold text-foreground">
+            <DialogTitle className="break-words text-xl font-extrabold text-foreground sm:truncate">
               {team.name}
             </DialogTitle>
             <JamTitleBlock
               team={team}
-              className="mt-0.5 truncate text-sm font-semibold text-primary"
+              className="mt-0.5 block min-w-0 break-words text-sm font-semibold text-primary sm:truncate"
             />
           </div>
-          <div className="flex shrink-0 flex-col items-end gap-2">
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:shrink-0 sm:items-end">
             {isRecommended && (
               <Badge
                 variant="outline"
@@ -236,8 +235,8 @@ export function TeamCard({
         )}
       </DialogHeader>
 
-      <ScrollArea className="max-h-[60vh] px-6 py-4">
-        <div className="flex flex-col gap-5 pr-1">
+      <div className="min-w-0 px-4 py-4 sm:px-6">
+        <div className="flex flex-col gap-5">
           <div className="flex flex-wrap gap-2">
             <Badge
               variant="outline"
@@ -276,7 +275,7 @@ export function TeamCard({
 
           <div>
             <h4 className="mb-1.5 text-sm font-bold text-foreground">Description</h4>
-            <p className="whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">
+            <p className="whitespace-pre-wrap break-words text-sm leading-relaxed text-muted-foreground">
               {team.description}
             </p>
           </div>
@@ -288,13 +287,13 @@ export function TeamCard({
                 <li
                   key={`${role.key}-${index}`}
                   className={cn(
-                    "flex items-center gap-2 rounded-xl border border-border/40 px-3 py-2 text-sm transition-colors",
+                    "flex min-w-0 items-center gap-2 rounded-xl border border-border/40 px-3 py-2 text-sm transition-colors",
                     role.filled ? "bg-muted/50 opacity-60" : "bg-secondary/30",
                   )}
                 >
                   <span
                     className={cn(
-                      "inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-semibold",
+                      "inline-flex min-w-0 items-center gap-1.5 break-words rounded-full px-2 py-0.5 text-xs font-semibold",
                       role.filled ? "opacity-40" : role.color,
                     )}
                   >
@@ -311,9 +310,9 @@ export function TeamCard({
             </ul>
           </div>
         </div>
-      </ScrollArea>
+      </div>
 
-      <div className="shrink-0 border-t border-border/60 bg-muted/20 px-6 py-4">
+      <div className="shrink-0 border-t border-border/60 bg-muted/20 px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-6 sm:pb-4">
         {isSquadFull ? (
           <div className="flex w-full items-center justify-center gap-2 rounded-xl border border-border/60 bg-muted/50 px-4 py-3 text-sm font-bold text-muted-foreground">
             <ShieldCheck className="size-4 text-primary" />
@@ -464,7 +463,13 @@ export function TeamCard({
       </article>
 
       <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
-        <DialogContent className="max-h-[min(90vh,720px)] w-[calc(100%-2rem)] max-w-lg min-w-0 gap-0 overflow-hidden rounded-2xl border-border/60 bg-card p-0 shadow-2xl shadow-teal/10">
+        <DialogContent
+          className={cn(
+            "flex max-h-[min(100dvh-2rem,720px)] min-w-0 flex-col gap-0 overflow-x-hidden overflow-y-auto rounded-2xl border-border/60 bg-card p-0 shadow-2xl shadow-teal/10",
+            "max-sm:top-[max(1rem,env(safe-area-inset-top))] max-sm:right-3 max-sm:bottom-auto max-sm:left-3 max-sm:w-auto max-sm:max-w-none max-sm:translate-x-0 max-sm:translate-y-0",
+            "sm:top-[50%] sm:left-[50%] sm:w-[calc(100%-2rem)] sm:max-w-lg sm:translate-x-[-50%] sm:translate-y-[-50%]",
+          )}
+        >
           {dialogBody}
         </DialogContent>
       </Dialog>

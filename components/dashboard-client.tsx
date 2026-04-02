@@ -867,7 +867,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
     try {
       const { data: request } = await supabase
         .from("join_requests")
-        .select("sender_id, team_id")
+        .select("sender_id, team_id, teams(team_name)")
         .eq("id", id)
         .single()
 
@@ -881,7 +881,14 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
 
       // Email notification to the declined applicant (async, non-blocking)
       if (request?.sender_id) {
-        void notifyApplicantDeclined(request.sender_id as string, (request.team_id as string | null) ?? null)
+        const teamMeta = request.teams as { team_name?: string | null } | { team_name?: string | null }[] | null
+        const tn = Array.isArray(teamMeta) ? (teamMeta[0]?.team_name ?? null) : (teamMeta?.team_name ?? null)
+        void notifyApplicantDeclined(
+          request.sender_id as string,
+          (request.team_id as string | null) ?? null,
+          session?.user?.id ?? null,
+          tn,
+        )
       }
 
       setApplications((prev) => prev.filter((a) => a.id !== id))

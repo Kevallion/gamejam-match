@@ -114,7 +114,7 @@ export async function acceptJoinApplication(joinRequestId: string): Promise<Memb
 
   const teamName = teamMeta.team_name ?? undefined
   if (teamName) {
-    void notifyCandidateAccepted(senderId, teamName, teamId)
+    void notifyCandidateAccepted(senderId, teamName, teamId, user.id)
   }
   if (request.sender_name) {
     void notifyOwnerPlayerJoined(teamId, request.sender_name as string, senderId)

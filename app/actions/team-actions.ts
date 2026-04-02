@@ -236,14 +236,18 @@ export async function notifyInviteeInvitation(
 export async function notifyApplicantDeclined(
   candidateUserId: string,
   teamId?: string | null,
+  ownerUserId?: string | null,
+  teamName?: string | null,
 ): Promise<void> {
   try {
     const email = await getUserEmail(candidateUserId)
 
-    const message =
-      "Your application was declined. New teams are waiting for you in the dashboard."
+    const message = teamName
+      ? `Your application to join "${teamName}" was declined.`
+      : "Your application was declined. New teams are waiting for you in the dashboard."
     void insertNotification(candidateUserId, "application_declined", message, "/dashboard?tab=inbox", {
       team_id: teamId ?? null,
+      sender_id: ownerUserId ?? null,
     })
 
     if (!email) return
@@ -278,6 +282,7 @@ export async function notifyCandidateAccepted(
   candidateUserId: string,
   teamName: string,
   teamId: string,
+  ownerUserId?: string | null,
 ): Promise<void> {
   try {
     const email = await getUserEmail(candidateUserId)
@@ -286,6 +291,7 @@ export async function notifyCandidateAccepted(
     const message = `You were accepted into the team "${teamName}".`
     void insertNotification(candidateUserId, "application_accepted", message, teamPath, {
       team_id: teamId,
+      sender_id: ownerUserId ?? null,
     })
 
     if (!email) return
@@ -523,10 +529,15 @@ export async function notifyOwnerPlayerJoined(
 export async function notifyPlayerKicked(
   playerUserId: string,
   teamName: string,
+  teamId?: string | null,
+  ownerUserId?: string | null,
 ): Promise<void> {
   try {
     const message = `You have been removed from the team "${teamName}".`
-    void insertNotification(playerUserId, "team_kicked", message, "/dashboard")
+    void insertNotification(playerUserId, "team_kicked", message, "/dashboard", {
+      team_id: teamId ?? null,
+      sender_id: ownerUserId ?? null,
+    })
 
     const email = await getUserEmail(playerUserId)
     if (!email) return
