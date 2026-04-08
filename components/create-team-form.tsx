@@ -854,8 +854,8 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
                 )}
 
                 {/* Sticky bottom actions */}
-                <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border/60 bg-background/95 px-4 py-3 backdrop-blur md:static md:mt-4 md:border-none md:bg-transparent md:px-0 md:py-0 md:sticky md:bottom-0">
-                  <div className="mx-auto flex w-full max-w-3xl items-center justify-between gap-3">
+                <div className="sticky bottom-0 z-40 -mx-6 border-t border-border/60 bg-background/95 px-4 py-3 backdrop-blur supports-[padding:max(0px)]:pb-[max(0.75rem,env(safe-area-inset-bottom))] md:mx-0 md:mt-4 md:border-none md:bg-transparent md:px-0 md:py-0">
+                  <div className="mx-auto flex w-full max-w-3xl items-center justify-between gap-3 md:px-0">
                     <div className="hidden text-xs text-muted-foreground md:block">
                       {step === 1 && "Basics — team name & jam."}
                       {step === 2 && "Team setup — engine, language & roles."}
