@@ -4,6 +4,11 @@ import { createClient } from "@/lib/supabase/server"
 import { notifyInviteeInvitation } from "@/app/actions/team-actions"
 import { awardXP } from "@/lib/gamification"
 import type { GamificationRewardSummary } from "@/lib/gamification-reward-types"
+import { ROLE_OPTIONS } from "@/lib/constants"
+
+type TeamLookingForEntry = { role?: string; level?: string }
+
+const ROLE_VALUES = new Set<string>(ROLE_OPTIONS.map((o) => o.value))
 
 export type SendTeamInvitationInput = {
   teamId: string
@@ -33,7 +38,7 @@ export async function sendTeamInvitation(input: SendTeamInvitationInput): Promis
 
   const { data: team, error: teamError } = await supabase
     .from("teams")
-    .select("id, user_id, team_name")
+    .select("id, user_id, team_name, looking_for")
     .eq("id", input.teamId)
     .single()
 
@@ -43,6 +48,32 @@ export async function sendTeamInvitation(input: SendTeamInvitationInput): Promis
 
   const msg = input.message?.trim() || "You've been invited to join our squad!"
   const name = input.inviteeUsername?.trim() || "A Jammer"
+  const normalizedTargetRole = input.targetRole.trim().toLowerCase()
+
+  // Keep team requirements in sync with invitations:
+  // if owner invites for a role not currently in looking_for, add it automatically.
+  if (ROLE_VALUES.has(normalizedTargetRole)) {
+    const rawLookingFor = Array.isArray(team.looking_for)
+      ? (team.looking_for as TeamLookingForEntry[])
+      : []
+    const alreadyPresent = rawLookingFor.some(
+      (entry) => entry?.role?.trim().toLowerCase() === normalizedTargetRole,
+    )
+    if (!alreadyPresent) {
+      const nextLookingFor: TeamLookingForEntry[] = [
+        ...rawLookingFor,
+        { role: normalizedTargetRole, level: "regular" },
+      ]
+      const { error: updateTeamError } = await supabase
+        .from("teams")
+        .update({ looking_for: nextLookingFor })
+        .eq("id", input.teamId)
+        .eq("user_id", user.id)
+      if (updateTeamError) {
+        return { success: false, error: "Could not update team roles before sending invitation." }
+      }
+    }
+  }
 
   const { data: inserted, error: insertError } = await supabase
     .from("join_requests")
@@ -53,7 +84,7 @@ export async function sendTeamInvitation(input: SendTeamInvitationInput): Promis
       message: msg,
       status: "pending",
       type: "invitation",
-      target_role: input.targetRole,
+      target_role: normalizedTargetRole,
     })
     .select("id")
     .single()

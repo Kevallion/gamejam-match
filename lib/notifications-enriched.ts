@@ -331,6 +331,14 @@ export function normalizeEnrichedNotificationRow(n: EnrichedNotificationRow): No
   return buildNormalizedFeedItem(n, new Map())
 }
 
+/**
+ * Notifications sans acteur humain — générées par le système (gamification, admin, etc.).
+ * L'UI doit afficher une icône système au lieu d'un avatar utilisateur.
+ */
+export function isSystemNotificationType(type: string): boolean {
+  return type === "gamification_squad_complete"
+}
+
 export function inboxNotificationGroupLabel(type: string): string {
   if (
     type === "application_received" ||

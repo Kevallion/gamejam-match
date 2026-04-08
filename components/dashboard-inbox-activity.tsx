@@ -6,9 +6,9 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { UserAvatar } from "@/components/user-avatar"
 import { Card, CardContent } from "@/components/ui/card"
-import { Bell, ChevronRight } from "lucide-react"
+import { Bell, ChevronRight, Trophy } from "lucide-react"
 import type { NormalizedNotificationFeedItem } from "@/lib/notifications-enriched"
-import { inboxNotificationGroupLabel } from "@/lib/notifications-enriched"
+import { inboxNotificationGroupLabel, isSystemNotificationType } from "@/lib/notifications-enriched"
 import { getNotificationDetailPath } from "@/lib/notification-detail-link"
 import { supabase } from "@/lib/supabase"
 import { cn } from "@/lib/utils"
@@ -21,12 +21,13 @@ function ActivityRow({
   onChanged?: () => void
 }) {
   const router = useRouter()
+  const isSystem = isSystemNotificationType(item.type)
   const sender = item.senderResolved
   const detailHref = getNotificationDetailPath(item)
-  const displayName = (sender?.username?.trim() || "Jammer").trim()
-  const profileUserId = item.actorUserId ?? item.sender_id
+  const displayName = isSystem ? "GameJamCrew" : (sender?.username?.trim() || "Jammer").trim()
+  const profileUserId = isSystem ? null : (item.actorUserId ?? item.sender_id)
   const jammerHref = profileUserId ? `/jammer/${profileUserId}` : null
-  const showMutedName = !jammerHref && displayName === "Jammer"
+  const showMutedName = !jammerHref && !isSystem && displayName === "Jammer"
 
   const markRead = async () => {
     await supabase.from("notifications").update({ is_read: true }).eq("id", item.id)
@@ -58,22 +59,28 @@ function ActivityRow({
       )}
     >
       <div className="shrink-0 pt-0.5">
-        <button
-          type="button"
-          className="rounded-full ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-          onClick={() => {
-            if (jammerHref) void go(jammerHref)
-          }}
-          disabled={!jammerHref}
-          aria-label={jammerHref ? `Open profile of ${displayName}` : "No profile link"}
-        >
-          <UserAvatar
-            src={sender?.avatar_url ?? null}
-            fallbackName={displayName}
-            size="md"
-            className="!size-10 border border-border/50"
-          />
-        </button>
+        {isSystem ? (
+          <div className="flex size-10 items-center justify-center rounded-full border border-amber-500/30 bg-amber-500/10">
+            <Trophy className="size-5 text-amber-500" aria-hidden />
+          </div>
+        ) : (
+          <button
+            type="button"
+            className="rounded-full ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+            onClick={() => {
+              if (jammerHref) void go(jammerHref)
+            }}
+            disabled={!jammerHref}
+            aria-label={jammerHref ? `Open profile of ${displayName}` : "No profile link"}
+          >
+            <UserAvatar
+              src={sender?.avatar_url ?? null}
+              fallbackName={displayName}
+              size="md"
+              className="!size-10 border border-border/50"
+            />
+          </button>
+        )}
       </div>
       <div className="min-w-0 flex-1 space-y-2">
         <div className="flex flex-wrap items-center gap-2">
@@ -89,7 +96,11 @@ function ActivityRow({
             <span
               className={cn(
                 "text-sm font-semibold",
-                showMutedName ? "text-muted-foreground" : "text-foreground",
+                isSystem
+                  ? "text-amber-600 dark:text-amber-400"
+                  : showMutedName
+                    ? "text-muted-foreground"
+                    : "text-foreground",
               )}
             >
               {displayName}

@@ -93,12 +93,14 @@ function formatMember(
     rawRole: roleRaw,
     rawLevel: expRaw,
     rawEngine: engineVal,
-    role:
-      ROLE_STYLES[roleKey] || {
+    role: {
+      ...(ROLE_STYLES[roleKey] || {
         label: roleRaw || "—",
         emoji: "❓",
         color: "bg-gray-500/10 text-gray-500",
-      },
+      }),
+      key: roleKey || undefined,
+    },
     level: EXPERIENCE_STYLES[expKey] || {
       label: expRaw || "—",
       emoji: "⭐",

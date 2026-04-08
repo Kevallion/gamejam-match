@@ -52,6 +52,7 @@ import { sendTeamInvitation } from "@/app/actions/invite-actions"
 import { showGamificationRewards } from "@/components/gamification-reward-toasts"
 import { gamificationRewardHasToast } from "@/lib/gamification-reward-types"
 import { KudosBadgeRow } from "@/components/kudos-badges"
+import { CreateTeamForm } from "@/components/create-team-form"
 import type { KudosCounts } from "@/lib/kudos"
 import { ENGINE_OPTIONS_WITH_ANY, LANGUAGE_OPTIONS } from "@/lib/constants"
 import { fetchPendingInvitationTeamIdsForInvitee } from "@/lib/queries"
@@ -75,6 +76,7 @@ export type JammerCardData = {
   username: string
   avatar_url: string | null
   role: {
+    key?: string
     label: string
     emoji: string
     color: string
@@ -150,6 +152,7 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
   const [sentSquadIds, setSentSquadIds] = useState<Set<string>>(new Set())
   const [pendingInviteTeamIds, setPendingInviteTeamIds] = useState<Set<string>>(new Set())
   const [statusMsg, setStatusMsg] = useState<{ type: "error" | "success"; text: string } | null>(null)
+  const [createSquadDialogOpen, setCreateSquadDialogOpen] = useState(false)
 
   const mySquadIdsKey = mySquads
     .map((s) => s.id)
@@ -205,8 +208,12 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
   const selectedRole = selectedRoleIdx !== null ? squadRoles[selectedRoleIdx] ?? null : null
 
   function openInviteDialog(squad: SquadOption) {
+    const announcementRoleKey = player.role.key?.trim().toLowerCase() ?? ""
+    const preselectedIdx = announcementRoleKey
+      ? squad.needed_roles?.findIndex((r) => r.key.trim().toLowerCase() === announcementRoleKey) ?? -1
+      : -1
     setSelectedSquad(squad)
-    setSelectedRoleIdx(null)
+    setSelectedRoleIdx(preselectedIdx >= 0 ? preselectedIdx : null)
     setMessage("")
     setStatusMsg(null)
     setDialogOpen(true)
@@ -288,6 +295,14 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
     sentSquadIds.has(squadId) || pendingInviteTeamIds.has(squadId)
   const allSent = mySquads.length > 0 && mySquads.every((s) => inviteLockedForSquad(s.id))
   const availabilityInfo = parseAvailability(player.availability)
+  function openCreateSquadDialog(e?: React.MouseEvent) {
+    if (e) {
+      e.preventDefault()
+      e.stopPropagation()
+    }
+    setDialogOpen(false)
+    setCreateSquadDialogOpen(true)
+  }
 
   return (
     <>
@@ -427,16 +442,21 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
 
             <CardFooter className="flex flex-col gap-2 px-4 sm:px-6">
               {mySquads.length === 0 ? (
-                <div className="w-full rounded-xl border border-dashed border-border/60 px-3 py-2.5 text-center">
-                  <div className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground">
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={openCreateSquadDialog}
+                  className="h-auto w-full cursor-pointer rounded-xl border border-primary/40 bg-primary px-3 py-2.5 text-center text-primary-foreground shadow-sm hover:bg-primary/90 hover:border-primary"
+                >
+                  <span className="flex items-center justify-center gap-1.5 text-xs">
                     <Users className="size-3.5" />
-                    <span>Create a team to invite this jammer</span>
-                  </div>
-                </div>
+                    <span>Create a squad and invite this jammer</span>
+                  </span>
+                </Button>
               ) : (
                 <div className="w-full flex items-center justify-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-4 py-2.5 text-sm font-semibold text-primary">
                   <ArrowRight className="size-4" />
-                  View details
+                  Invite from my squads
                 </div>
               )}
             </CardFooter>
@@ -580,10 +600,14 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
           {/* Pied de page avec Inviter */}
           <div className="border-t border-border/60 px-6 py-4 bg-muted/20">
             {mySquads.length === 0 ? (
-              <div className="flex items-center justify-center gap-2 rounded-xl border border-dashed border-border/60 px-4 py-3 text-sm text-muted-foreground">
+              <Button
+                type="button"
+                onClick={openCreateSquadDialog}
+                className="flex h-auto w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-primary/40 bg-primary px-4 py-3 text-sm text-primary-foreground shadow-sm hover:bg-primary/90 hover:border-primary"
+              >
                 <Users className="size-4" />
-                Create a team to invite this jammer
-              </div>
+                Create a squad and invite this jammer
+              </Button>
             ) : (
               <div className="flex flex-col gap-2">
                 <DropdownMenu>
@@ -781,6 +805,30 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
               {statusMsg?.type === "success" ? "Sent!" : "Send Invite"}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={createSquadDialogOpen} onOpenChange={setCreateSquadDialogOpen}>
+        <DialogContent className="top-0 left-0 h-[100dvh] w-screen max-w-none translate-x-0 translate-y-0 overflow-y-auto border-0 bg-card p-0 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden sm:top-[50%] sm:left-[50%] sm:h-auto sm:max-h-[90vh] sm:w-[calc(100%-1rem)] sm:max-w-3xl sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-2xl sm:border sm:border-border/60">
+          <DialogHeader className="sr-only">
+            <DialogTitle>Create a squad and invite jammer</DialogTitle>
+            <DialogDescription>
+              Complete the squad form and send an invitation to this jammer.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="p-4 sm:p-6">
+            <CreateTeamForm
+              embeddedInvite={{
+                inviteeId: player.id,
+                inviteeUsername: player.username,
+                targetRole: player.role.key ?? null,
+              }}
+              onCompleted={() => {
+                setCreateSquadDialogOpen(false)
+                toast.success("You can now manage your new squad from the dashboard.")
+              }}
+            />
+          </div>
         </DialogContent>
       </Dialog>
     </>

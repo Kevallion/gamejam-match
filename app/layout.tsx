@@ -4,7 +4,6 @@ import { Nunito } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/react'
 import { AuthCallbackHandler } from '@/components/auth-callback-handler'
 import { AuthProvider } from '@/components/auth-provider'
-import { FeedbackButton } from '@/components/FeedbackButton'
 import { ThemeProvider } from '@/components/theme-provider'
 import { GamificationProvider } from '@/components/gamification-provider'
 import { Toaster } from '@/components/ui/sonner'
@@ -102,7 +101,6 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                 <div className="flex min-h-0 flex-1 flex-col">{children}</div>
                 <Footer />
               </div>
-              <FeedbackButton />
               <Toaster richColors position="bottom-right" closeButton />
             </GamificationProvider>
           </AuthProvider>

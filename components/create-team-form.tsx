@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
+import { useSearchParams } from "next/navigation"
 import { format } from "date-fns"
 import type { DateRange } from "react-day-picker"
 import { Card, CardContent } from "@/components/ui/card"
@@ -24,10 +25,13 @@ import { Plus, X, Rocket, Sparkles, Loader2, AlertCircle } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { SignInButton } from "@/components/sign-in-button"
 import { toast } from "sonner"
+import { useToast as useShadcnToast } from "@/hooks/use-toast"
+import { ToastAction } from "@/components/ui/toast"
 import { track } from "@vercel/analytics"
 import { ENGINE_OPTIONS, EXPERIENCE_OPTIONS, JAM_STYLE_OPTIONS, ROLE_OPTIONS } from "@/lib/constants"
 import { JamSearchSelector } from "@/components/jam-search-selector"
 import { createTeam } from "@/app/actions/create-team-actions"
+import { sendTeamInvitation } from "@/app/actions/invite-actions"
 import { showGamificationRewards } from "@/components/gamification-reward-toasts"
 import { gamificationRewardHasToast } from "@/lib/gamification-reward-types"
 import { dateInputToUtcEnd, dateInputToUtcStart } from "@/lib/jam-date-utc"
@@ -38,6 +42,15 @@ type RoleEntry = {
   id: number
   role: string
   level: string
+}
+
+interface CreateTeamFormProps {
+  embeddedInvite?: {
+    inviteeId: string
+    inviteeUsername: string
+    targetRole?: string | null
+  } | null
+  onCompleted?: (teamId: string | null) => void
 }
 
 const LANGUAGE_OPTIONS = [
@@ -65,8 +78,14 @@ function jamRangeToYmd(range: DateRange | undefined): { start: string; end: stri
 
 let roleIdCounter = 1
 
-export function CreateTeamForm() {
+function nextRoleId() {
+  return roleIdCounter++
+}
+
+export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTeamFormProps) {
   const router = useRouter()
+  const { toast: shadcnToast } = useShadcnToast()
+  const searchParams = useSearchParams()
   const totalSteps = 3
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
@@ -77,7 +96,7 @@ export function CreateTeamForm() {
   const [teamVibe, setTeamVibe] = useState("")
   const [experienceRequired, setExperienceRequired] = useState("")
   /** Single empty row so the user can type the first needed role without clicking "Add another role". */
-  const [roles, setRoles] = useState<RoleEntry[]>([{ id: 0, role: "", level: "" }])
+  const [roles, setRoles] = useState<RoleEntry[]>([{ id: nextRoleId(), role: "", level: "" }])
   const [discordLink, setDiscordLink] = useState("")
   const [discordLinkError, setDiscordLinkError] = useState("")
   const [rolesError, setRolesError] = useState("")
@@ -102,6 +121,49 @@ export function CreateTeamForm() {
   const formRef = useRef<HTMLFormElement | null>(null)
   /** Évite un second « clic » sur le bouton qui devient « Publish » au même endroit (surtout au tactile). */
   const [publishTapGuard, setPublishTapGuard] = useState(false)
+  const queryInviteeId = searchParams.get("inviteeId")?.trim() ?? ""
+  const queryInviteeUsername = searchParams.get("inviteeUsername")?.trim() ?? ""
+  const queryTargetRole = searchParams.get("targetRole")?.trim() ?? ""
+  const inviteContext = embeddedInvite ?? (
+    queryInviteeId && queryInviteeUsername
+      ? {
+          inviteeId: queryInviteeId,
+          inviteeUsername: queryInviteeUsername,
+          targetRole: queryTargetRole || null,
+        }
+      : null
+  )
+  const requestedTargetRole = inviteContext?.targetRole?.trim().toLowerCase() ?? ""
+  const isEmbeddedInvite = Boolean(inviteContext)
+  const lockedInviteRoleOption =
+    inviteContext && requestedTargetRole
+      ? ROLE_OPTIONS.find((opt) => opt.value === requestedTargetRole) ?? null
+      : null
+  const [inviteMessage, setInviteMessage] = useState("")
+
+  useEffect(() => {
+    if (!inviteContext) return
+    setInviteMessage((prev) =>
+      prev.trim()
+        ? prev
+        : `Hey ${inviteContext.inviteeUsername}! I just created this squad and would love to jam with you.`
+    )
+  }, [inviteContext])
+
+  useEffect(() => {
+    if (!lockedInviteRoleOption) return
+    setRoles((prev) => {
+      const existingIndex = prev.findIndex((r) => r.role === lockedInviteRoleOption.value)
+      if (existingIndex >= 0) {
+        const existing = prev[existingIndex]
+        if (existing.level) return prev
+        return prev.map((r, idx) =>
+          idx === existingIndex ? { ...r, level: "regular" } : r,
+        )
+      }
+      return [{ id: nextRoleId(), role: lockedInviteRoleOption.value, level: "regular" }, ...prev]
+    })
+  }, [lockedInviteRoleOption])
 
   useEffect(() => {
     async function checkUser() {
@@ -213,6 +275,13 @@ export function CreateTeamForm() {
       }
     }
 
+    if (currentStep === 3 && inviteContext && !inviteMessage.trim()) {
+      toast.error("Please write your invitation message.", {
+        description: "Your message will be sent to the jammer after the squad is created.",
+      })
+      return false
+    }
+
     return true
   }
 
@@ -239,15 +308,25 @@ export function CreateTeamForm() {
 
   function addRole() {
     setRolesError("")
-    setRoles((prev) => [...prev, { id: roleIdCounter++, role: "", level: "" }])
+    setRoles((prev) => [...prev, { id: nextRoleId(), role: "", level: "" }])
   }
 
   function removeRole(id: number) {
+    if (lockedInviteRoleOption && roles.find((r) => r.id === id)?.role === lockedInviteRoleOption.value) {
+      return
+    }
     setRolesError("")
     setRoles((prev) => prev.filter((r) => r.id !== id))
   }
 
   function updateRole(id: number, field: "role" | "level", value: string) {
+    if (
+      lockedInviteRoleOption &&
+      field === "role" &&
+      roles.find((r) => r.id === id)?.role === lockedInviteRoleOption.value
+    ) {
+      return
+    }
     setRolesError("")
     setRoles((prev) =>
       prev.map((r) => (r.id === id ? { ...r, [field]: value } : r))
@@ -275,8 +354,9 @@ export function CreateTeamForm() {
       return
     }
 
-    const discordLinkValue = discordLink.trim()
-    if (
+    const effectiveDescription = isEmbeddedInvite ? "" : description.trim()
+    const discordLinkValue = isEmbeddedInvite ? "" : discordLink.trim()
+    if (!isEmbeddedInvite &&
       discordLinkValue !== "" &&
       !/^https:\/\/discord\.(gg|com\/invite)\//.test(discordLinkValue)
     ) {
@@ -284,6 +364,8 @@ export function CreateTeamForm() {
       setDiscordLinkError("Please enter a valid Discord invite link")
       return
     }
+    const effectiveTeamVibe = isEmbeddedInvite ? "chill" : teamVibe || null
+    const effectiveExperienceRequired = isEmbeddedInvite ? "any" : experienceRequired || null
 
     const jamYmd = jamRangeToYmd(jamDateRange)
     if (!jamYmd) {
@@ -298,13 +380,13 @@ export function CreateTeamForm() {
       const result = await createTeam({
         teamName: teamName.trim(),
         jamName: jamName.trim(),
-        description: description.trim(),
+        description: effectiveDescription,
         engine,
         language,
         lookingFor: cleanRoles,
         discordLink: discordLinkValue,
-        teamVibe: teamVibe || null,
-        experienceRequired: experienceRequired || null,
+        teamVibe: effectiveTeamVibe,
+        experienceRequired: effectiveExperienceRequired,
         jamId: jamId || null,
         jamStartDate: dateInputToUtcStart(jamYmd.start),
         jamEndDate: dateInputToUtcEnd(jamYmd.end),
@@ -312,11 +394,44 @@ export function CreateTeamForm() {
       if (!result.success) {
         toast.error("Could not create the team.", { description: result.error })
       } else {
+        if (result.teamId && inviteContext?.inviteeId && inviteContext?.inviteeUsername) {
+          const preferredRole =
+            cleanRoles.find((r) => r.role.trim().toLowerCase() === requestedTargetRole)?.role ??
+            cleanRoles[0]?.role
+          if (preferredRole) {
+            const inviteResult = await sendTeamInvitation({
+              teamId: result.teamId,
+              inviteeUserId: inviteContext.inviteeId,
+              inviteeUsername: inviteContext.inviteeUsername,
+              targetRole: preferredRole,
+              message: inviteMessage.trim(),
+            })
+            if (!inviteResult.success) {
+              toast.error("Squad created, but invitation failed.", { description: inviteResult.error })
+            } else {
+              shadcnToast({
+                title: "Squad created & invitation sent! 🎯",
+                description: "Don't forget to add a description and Discord link to your team.",
+                action: (
+                  <ToastAction
+                    altText="Open manage squad"
+                    onClick={() => router.push(`/teams/${result.teamId}/manage`)}
+                  >
+                    Setup Team
+                  </ToastAction>
+                ),
+              })
+            }
+          }
+        }
+
         if (result.gamification && gamificationRewardHasToast(result.gamification)) {
           showGamificationRewards("CREATE_TEAM", result.gamification)
         }
         track("Created Team", { engine })
-        toast.success("Team created successfully!", { description: "Your listing is now live." })
+        if (!(result.teamId && inviteContext?.inviteeId && inviteContext?.inviteeUsername)) {
+          toast.success("Squad created successfully!", { description: "Your listing is now live." })
+        }
         setTeamName("")
         setJamName("")
         setEngine("")
@@ -328,8 +443,12 @@ export function CreateTeamForm() {
         setJamDateRange(undefined)
         setDiscordLinkError("")
         setDescription("")
-        setRoles([{ id: roleIdCounter++, role: "", level: "" }])
-        router.push(result.teamId ? `/teams/${result.teamId}/manage` : "/dashboard")
+        setRoles([{ id: nextRoleId(), role: "", level: "" }])
+        if (onCompleted) {
+          onCompleted(result.teamId ?? null)
+        } else {
+          router.push(result.teamId ? `/teams/${result.teamId}/manage` : "/dashboard")
+        }
       }
     } catch (err) {
       toast.error("An error occurred.", { description: err instanceof Error ? err.message : "Please try again." })
@@ -362,7 +481,7 @@ export function CreateTeamForm() {
                   <span>
                     {step === 1 && "Basics"}
                     {step === 2 && "Team Setup"}
-                    {step === 3 && "Final Details"}
+                    {step === 3 && (isEmbeddedInvite ? "Invite Message" : "Final Details")}
                   </span>
                 </div>
                 <Progress
@@ -471,53 +590,57 @@ export function CreateTeamForm() {
                       </div>
                     </div>
 
-                    {/* Jam Style — full width to avoid dropdown overlap */}
-                    <div className="flex flex-col gap-2.5">
-                      <Label className="text-sm font-bold text-foreground">Jam Style</Label>
-                      <Select value={teamVibe} onValueChange={setTeamVibe}>
-                        <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-secondary/50">
-                          <SelectValue placeholder="What vibe is your team?" />
-                        </SelectTrigger>
-                        <SelectContent className="rounded-xl">
-                          {JAM_STYLE_OPTIONS.map((opt) => (
-                            <SelectItem key={opt.value} value={opt.value}>
-                              <div>
-                                <span className={`inline-flex items-center gap-2 rounded px-1.5 py-0.5 ${opt.color ?? "bg-muted text-muted-foreground"}`}>
-                                  {opt.emoji} {opt.label}
-                                </span>
-                                <span className="ml-2 text-xs text-muted-foreground">— {opt.description}</span>
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <p className="text-xs text-muted-foreground">
-                        Attracts jammers who match your team&apos;s energy.
-                      </p>
-                    </div>
+                    {!isEmbeddedInvite && (
+                      <>
+                        {/* Jam Style — full width to avoid dropdown overlap */}
+                        <div className="flex flex-col gap-2.5">
+                          <Label className="text-sm font-bold text-foreground">Jam Style</Label>
+                          <Select value={teamVibe} onValueChange={setTeamVibe}>
+                            <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-secondary/50">
+                              <SelectValue placeholder="What vibe is your team?" />
+                            </SelectTrigger>
+                            <SelectContent className="rounded-xl">
+                              {JAM_STYLE_OPTIONS.map((opt) => (
+                                <SelectItem key={opt.value} value={opt.value}>
+                                  <div>
+                                    <span className={`inline-flex items-center gap-2 rounded px-1.5 py-0.5 ${opt.color ?? "bg-muted text-muted-foreground"}`}>
+                                      {opt.emoji} {opt.label}
+                                    </span>
+                                    <span className="ml-2 text-xs text-muted-foreground">— {opt.description}</span>
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <p className="text-xs text-muted-foreground">
+                            Attracts jammers who match your team&apos;s energy.
+                          </p>
+                        </div>
 
-                    {/* Experience Required */}
-                    <div className="flex flex-col gap-2.5">
-                      <Label className="text-sm font-bold text-foreground">Preferred Experience Level</Label>
-                      <Select value={experienceRequired || "any"} onValueChange={setExperienceRequired}>
-                        <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-secondary/50">
-                          <SelectValue placeholder="Minimum level (optional)" />
-                        </SelectTrigger>
-                        <SelectContent className="rounded-xl">
-                          <SelectItem value="any">Any level</SelectItem>
-                          {EXPERIENCE_OPTIONS.map((opt) => (
-                            <SelectItem key={opt.value} value={opt.value}>
-                              <span className={`inline-flex items-center gap-2 rounded px-1.5 py-0.5 ${opt.color ?? "bg-muted text-muted-foreground"}`}>
-                                {opt.emoji} {opt.label}
-                              </span>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <p className="text-xs text-muted-foreground">
-                        Indicates the minimum experience you expect.
-                      </p>
-                    </div>
+                        {/* Experience Required */}
+                        <div className="flex flex-col gap-2.5">
+                          <Label className="text-sm font-bold text-foreground">Preferred Experience Level</Label>
+                          <Select value={experienceRequired || "any"} onValueChange={setExperienceRequired}>
+                            <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-secondary/50">
+                              <SelectValue placeholder="Minimum level (optional)" />
+                            </SelectTrigger>
+                            <SelectContent className="rounded-xl">
+                              <SelectItem value="any">Any level</SelectItem>
+                              {EXPERIENCE_OPTIONS.map((opt) => (
+                                <SelectItem key={opt.value} value={opt.value}>
+                                  <span className={`inline-flex items-center gap-2 rounded px-1.5 py-0.5 ${opt.color ?? "bg-muted text-muted-foreground"}`}>
+                                    {opt.emoji} {opt.label}
+                                  </span>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <p className="text-xs text-muted-foreground">
+                            Indicates the minimum experience you expect.
+                          </p>
+                        </div>
+                      </>
+                    )}
 
                     {/* Roles Needed */}
                     <div className="flex flex-col gap-4">
@@ -527,6 +650,11 @@ export function CreateTeamForm() {
                           {roles.length} role{roles.length !== 1 ? "s" : ""} added
                         </span>
                       </div>
+                      {lockedInviteRoleOption && (
+                        <p className="rounded-xl border border-primary/30 bg-primary/5 px-3 py-2 text-xs text-primary">
+                          The role "{lockedInviteRoleOption.label}" is locked because this jammer is invited for that role.
+                        </p>
+                      )}
 
                       <div className="flex flex-col gap-3">
                         {roles.map((entry) => (
@@ -534,9 +662,18 @@ export function CreateTeamForm() {
                             key={entry.id}
                             className="group flex flex-col gap-3 rounded-2xl border border-border/40 bg-secondary/30 p-4 sm:flex-row sm:items-center"
                           >
+                            {(() => {
+                              const isLockedInviteRole =
+                                Boolean(lockedInviteRoleOption) &&
+                                entry.role === lockedInviteRoleOption?.value
+                              return (
+                                <>
                             <div className="flex flex-1 flex-col gap-3 sm:flex-row">
                               <Select value={entry.role} onValueChange={(v) => updateRole(entry.id, "role", v)}>
-                                <SelectTrigger className="h-11 flex-1 rounded-xl border-border/50 bg-card text-foreground">
+                                <SelectTrigger
+                                  className="h-11 flex-1 rounded-xl border-border/50 bg-card text-foreground"
+                                  disabled={isLockedInviteRole}
+                                >
                                   <SelectValue placeholder="Select role" />
                                 </SelectTrigger>
                                 <SelectContent className="rounded-xl">
@@ -562,7 +699,7 @@ export function CreateTeamForm() {
                               </Select>
                             </div>
 
-                            {roles.length > 1 && (
+                            {roles.length > 1 && !isLockedInviteRole && (
                               <Button
                                 type="button"
                                 variant="ghost"
@@ -573,6 +710,9 @@ export function CreateTeamForm() {
                                 <X className="size-4" />
                               </Button>
                             )}
+                                </>
+                              )
+                            })()}
                           </div>
                         ))}
                       </div>
@@ -598,49 +738,53 @@ export function CreateTeamForm() {
 
                 {step === 3 && (
                   <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-left-2 duration-200">
-                    {/* Discord Invitation Link */}
-                    <div className="flex flex-col gap-2.5">
-                      <Label htmlFor="discordLink" className="text-sm font-bold text-foreground">
-                        Discord Invitation Link (optional)
-                      </Label>
-                      <Input
-                        id="discordLink"
-                        name="discordLink"
-                        type="url"
-                        placeholder="e.g. https://discord.gg/your-server"
-                        value={discordLink}
-                        onChange={(e) => {
-                          setDiscordLink(e.target.value)
-                          if (discordLinkError) setDiscordLinkError("")
-                        }}
-                        autoComplete="off"
-                        className={`h-12 rounded-xl border-border/60 bg-secondary/50 text-foreground${discordLinkError ? " border-destructive" : ""}`}
-                      />
-                      {discordLinkError && (
-                        <div className="status-error flex items-center gap-2 text-sm text-destructive">
-                          <AlertCircle className="size-4 shrink-0" />
-                          <span>{discordLinkError}</span>
+                    {!isEmbeddedInvite && (
+                      <>
+                        {/* Discord Invitation Link */}
+                        <div className="flex flex-col gap-2.5">
+                          <Label htmlFor="discordLink" className="text-sm font-bold text-foreground">
+                            Discord Invitation Link (optional)
+                          </Label>
+                          <Input
+                            id="discordLink"
+                            name="discordLink"
+                            type="url"
+                            placeholder="e.g. https://discord.gg/your-server"
+                            value={discordLink}
+                            onChange={(e) => {
+                              setDiscordLink(e.target.value)
+                              if (discordLinkError) setDiscordLinkError("")
+                            }}
+                            autoComplete="off"
+                            className={`h-12 rounded-xl border-border/60 bg-secondary/50 text-foreground${discordLinkError ? " border-destructive" : ""}`}
+                          />
+                          {discordLinkError && (
+                            <div className="status-error flex items-center gap-2 text-sm text-destructive">
+                              <AlertCircle className="size-4 shrink-0" />
+                              <span>{discordLinkError}</span>
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
 
-                    {/* Description */}
-                    <div className="flex flex-col gap-2.5">
-                      <Label htmlFor="description" className="text-sm font-bold text-foreground">
-                        Project Description / Vibe
-                      </Label>
-                      <Textarea
-                        id="description"
-                        name="description"
-                        required
-                        ref={step3Ref}
-                        placeholder="Tell people about your project idea..."
-                        rows={5}
-                        value={description}
-                        onChange={(e) => setDescription(e.target.value)}
-                        className="rounded-xl border-border/60 bg-secondary/50 text-foreground"
-                      />
-                    </div>
+                        {/* Description */}
+                        <div className="flex flex-col gap-2.5">
+                          <Label htmlFor="description" className="text-sm font-bold text-foreground">
+                            Project Description / Vibe
+                          </Label>
+                          <Textarea
+                            id="description"
+                            name="description"
+                            required
+                            ref={step3Ref}
+                            placeholder="Tell people about your project idea..."
+                            rows={5}
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            className="rounded-xl border-border/60 bg-secondary/50 text-foreground"
+                          />
+                        </div>
+                      </>
+                    )}
 
                     {/* Mini review */}
                     <div className="rounded-2xl border border-border/60 bg-secondary/40 p-4 text-sm text-muted-foreground">
@@ -666,12 +810,14 @@ export function CreateTeamForm() {
                             ? `${getCleanRoles().length} role(s)`
                             : <span className="italic text-muted-foreground">No roles yet</span>}
                         </li>
-                        <li>
-                          <span className="font-medium text-foreground">Discord:</span>{" "}
-                          {discordLink
-                            ? discordLink
-                            : <span className="italic text-muted-foreground">No invite link</span>}
-                        </li>
+                        {!isEmbeddedInvite && (
+                          <li>
+                            <span className="font-medium text-foreground">Discord:</span>{" "}
+                            {discordLink
+                              ? discordLink
+                              : <span className="italic text-muted-foreground">No invite link</span>}
+                          </li>
+                        )}
                       </ul>
                       <p className="mt-3 text-xs text-muted-foreground">
                         Listing visible until{" "}
@@ -683,6 +829,27 @@ export function CreateTeamForm() {
                         (jam end).
                       </p>
                     </div>
+
+                    {inviteContext && (
+                      <div className="flex flex-col gap-2.5 rounded-2xl border border-primary/30 bg-primary/5 p-4">
+                        <Label htmlFor="inviteMessage" className="text-sm font-bold text-foreground">
+                          Invitation message for {inviteContext.inviteeUsername}
+                        </Label>
+                        <Textarea
+                          id="inviteMessage"
+                          name="inviteMessage"
+                          required
+                          placeholder="Write a short message to invite this jammer..."
+                          rows={4}
+                          value={inviteMessage}
+                          onChange={(e) => setInviteMessage(e.target.value)}
+                          className="rounded-xl border-border/60 bg-background text-foreground"
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          This message will be sent automatically after your squad is created.
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -692,7 +859,10 @@ export function CreateTeamForm() {
                     <div className="hidden text-xs text-muted-foreground md:block">
                       {step === 1 && "Basics — team name & jam."}
                       {step === 2 && "Team setup — engine, language & roles."}
-                      {step === 3 && "Final details — description & Discord."}
+                      {step === 3 &&
+                        (isEmbeddedInvite
+                          ? "Final step — write your invitation message."
+                          : "Final details — description & Discord.")}
                     </div>
                     <div className="flex flex-1 items-center justify-between gap-3">
                       <Button
@@ -714,12 +884,12 @@ export function CreateTeamForm() {
                           loading ? (
                             <>
                               <Loader2 className="size-4 animate-spin" />
-                              Publishing...
+                              {isEmbeddedInvite ? "Creating squad & sending invite..." : "Publishing..."}
                             </>
                           ) : (
                             <>
                               <Sparkles className="size-4" />
-                              Publish Announcement
+                              {isEmbeddedInvite ? "Create Squad & Send Invite" : "Publish Announcement"}
                               <Rocket className="size-4" />
                             </>
                           )

@@ -38,6 +38,17 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer"
+import { useIsMobile } from "@/hooks/use-mobile"
+import { Button } from "@/components/ui/button"
 import { supabase } from "@/lib/supabase"
 import { cancelJoinRequest } from "@/app/actions/join-request-actions"
 import {
@@ -205,28 +216,196 @@ function DashboardLoadingSkeleton() {
     <div className="flex min-h-screen flex-col bg-background">
       <Navbar />
       <main className="flex-1">
-        <section className="px-4 py-6 md:py-10 lg:px-6 lg:py-12">
+        <section className="px-4 py-6 pb-24 md:py-10 md:pb-10 lg:px-6 lg:py-12">
           <div className="mx-auto max-w-5xl space-y-6">
             {/* Identity header skeleton */}
             <div className="glass-card flex items-center gap-4 rounded-2xl p-4 md:p-6">
-              <Skeleton className="size-14 shrink-0 rounded-2xl md:size-16" />
+              <Skeleton className="size-12 shrink-0 rounded-xl md:size-16 md:rounded-2xl" />
               <div className="flex flex-1 flex-col gap-2">
                 <Skeleton className="h-5 w-32" />
                 <Skeleton className="h-4 w-48" />
               </div>
             </div>
             {/* KPI cards skeleton */}
-            <div className="grid grid-cols-3 gap-3 md:gap-4">
-              <Skeleton className="h-20 rounded-xl" />
-              <Skeleton className="h-20 rounded-xl" />
-              <Skeleton className="h-20 rounded-xl" />
+            <div className="grid grid-cols-3 gap-2 md:gap-4">
+              <Skeleton className="h-[72px] rounded-xl" />
+              <Skeleton className="h-[72px] rounded-xl" />
+              <Skeleton className="h-[72px] rounded-xl" />
             </div>
-            {/* Tabs skeleton */}
-            <Skeleton className="h-12 w-full rounded-xl" />
+            {/* Section title skeleton (mobile) */}
+            <Skeleton className="h-6 w-28 rounded-lg md:hidden" />
+            {/* Tabs skeleton (desktop) */}
+            <Skeleton className="hidden h-12 w-full rounded-xl md:block" />
             <Skeleton className="h-48 w-full rounded-xl" />
           </div>
         </section>
       </main>
+      {/* Bottom bar skeleton for mobile */}
+      <div className="fixed inset-x-0 bottom-0 z-40 glass-navbar border-t border-border/50 pb-[env(safe-area-inset-bottom)] md:hidden">
+        <div className="flex items-center justify-around px-1 py-2.5">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="flex flex-col items-center gap-1">
+              <Skeleton className="size-5 rounded" />
+              <Skeleton className="h-2.5 w-8 rounded" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── Mobile Bottom Navigation Bar ────────────────────────────────────────────
+const BOTTOM_NAV_TABS = [
+  { value: "squads", label: "Squads", icon: Users2, activeColor: "text-teal" },
+  { value: "inbox", label: "Inbox", icon: Inbox, activeColor: "text-peach" },
+  { value: "availability", label: "Available", icon: UserSearch, activeColor: "text-lavender" },
+  { value: "achievements", label: "Achieve", icon: Trophy, activeColor: "text-amber-500" },
+  { value: "settings", label: "Settings", icon: Settings2, activeColor: "text-slate-300" },
+] as const
+
+function DashboardBottomBar({
+  activeTab,
+  onTabChange,
+  inboxCount,
+}: {
+  activeTab: string
+  onTabChange: (tab: string) => void
+  inboxCount: number
+}) {
+  return (
+    <nav className="fixed inset-x-0 bottom-0 z-40 glass-navbar border-t border-border/50 pb-[env(safe-area-inset-bottom)] md:hidden">
+      <div className="flex items-center justify-around px-1 py-1">
+        {BOTTOM_NAV_TABS.map(({ value, label, icon: Icon, activeColor }) => {
+          const isActive = activeTab === value
+          const showBadge = value === "inbox" && inboxCount > 0
+          return (
+            <button
+              key={value}
+              type="button"
+              onClick={() => onTabChange(value)}
+              className={cn(
+                "relative flex flex-col items-center gap-0.5 rounded-xl px-3 py-1.5 text-[10px] font-semibold transition-colors active:scale-95",
+                isActive ? activeColor : "text-muted-foreground",
+              )}
+            >
+              {isActive && (
+                <span className="absolute inset-x-1.5 -top-1 h-0.5 rounded-full bg-current" />
+              )}
+              <span className="relative">
+                <Icon className="size-5" />
+                {showBadge && (
+                  <span className="absolute -right-2.5 -top-1.5 flex min-h-[16px] min-w-[16px] items-center justify-center rounded-full bg-peach px-1 text-[9px] font-bold text-peach-foreground">
+                    {inboxCount > 9 ? "9+" : inboxCount}
+                  </span>
+                )}
+              </span>
+              <span>{label}</span>
+            </button>
+          )
+        })}
+      </div>
+    </nav>
+  )
+}
+
+// ─── Responsive Confirm Drawer/Dialog ────────────────────────────────────────
+function ResponsiveConfirmDrawer({
+  open,
+  onOpenChange,
+  isMobile,
+  icon,
+  title,
+  description,
+  confirmLabel,
+  cancelLabel,
+  onConfirm,
+  onCancel,
+  confirmClassName,
+}: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  isMobile: boolean
+  icon: ReactNode
+  title: string
+  description: string
+  confirmLabel: string
+  cancelLabel: string
+  onConfirm: () => void
+  onCancel: () => void
+  confirmClassName?: string
+}) {
+  if (isMobile) {
+    return (
+      <Drawer open={open} onOpenChange={(o) => !o && onCancel()}>
+        <DrawerContent className="rounded-t-3xl border-border/40 bg-card">
+          <DrawerHeader className="text-left">
+            <div className="flex items-center gap-3">
+              {icon}
+              <DrawerTitle>{title}</DrawerTitle>
+            </div>
+            <DrawerDescription className="mt-2">{description}</DrawerDescription>
+          </DrawerHeader>
+          <DrawerFooter className="flex-row gap-3 pb-8">
+            <DrawerClose asChild>
+              <Button variant="outline" className="flex-1 rounded-xl" onClick={onCancel}>
+                {cancelLabel}
+              </Button>
+            </DrawerClose>
+            <Button className={cn("flex-1 rounded-xl", confirmClassName)} onClick={onConfirm}>
+              {confirmLabel}
+            </Button>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
+    )
+  }
+
+  return (
+    <AlertDialog open={open} onOpenChange={(o) => !o && onCancel()}>
+      <AlertDialogContent className="glass-card rounded-2xl border-border/40">
+        <AlertDialogHeader>
+          <div className="flex items-center gap-3">
+            {icon}
+            <AlertDialogTitle className="text-left">{title}</AlertDialogTitle>
+          </div>
+          <AlertDialogDescription className="text-left">{description}</AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter className="flex-row gap-2 sm:justify-end">
+          <AlertDialogCancel onClick={onCancel} className="rounded-xl">
+            {cancelLabel}
+          </AlertDialogCancel>
+          <AlertDialogAction onClick={onConfirm} className={cn("rounded-xl", confirmClassName)}>
+            {confirmLabel}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  )
+}
+
+// ─── Mobile Section Title (shown when bottom bar is active) ──────────────────
+const SECTION_TITLES: Record<string, { label: string; icon: typeof Users2; color: string }> = {
+  squads: { label: "My Squads", icon: Users2, color: "text-teal" },
+  inbox: { label: "Inbox", icon: Inbox, color: "text-peach" },
+  availability: { label: "Available", icon: UserSearch, color: "text-lavender" },
+  achievements: { label: "Achievements", icon: Trophy, color: "text-amber-500" },
+  settings: { label: "Settings", icon: Settings2, color: "text-slate-300" },
+}
+
+function MobileSectionTitle({ activeTab, inboxCount }: { activeTab: string; inboxCount: number }) {
+  const section = SECTION_TITLES[activeTab]
+  if (!section) return null
+  const Icon = section.icon
+  return (
+    <div className="mb-4 flex items-center gap-2.5 md:hidden">
+      <Icon className={cn("size-5", section.color)} />
+      <h2 className="text-lg font-bold tracking-tight text-foreground">{section.label}</h2>
+      {activeTab === "inbox" && inboxCount > 0 && (
+        <span className="flex min-h-5 min-w-5 items-center justify-center rounded-full bg-peach px-1.5 text-[10px] font-bold text-peach-foreground">
+          {inboxCount}
+        </span>
+      )}
     </div>
   )
 }
@@ -346,6 +525,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
 
   const dailyXpClaimRef = useRef(false)
   const [compactTabBar, setCompactTabBar] = useState(false)
+  const isMobile = useIsMobile()
 
   useEffect(() => {
     if (typeof window === "undefined") return
@@ -1098,10 +1278,10 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
         </section>
 
         {/* Tabs Section */}
-        <section className="px-4 pb-8 lg:px-6 lg:pb-12">
+        <section className="px-4 pb-24 md:pb-8 lg:px-6 lg:pb-12">
           <div className="mx-auto max-w-5xl">
             <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-              <TabsList className="glass mb-4 flex h-auto w-full touch-pan-x items-center justify-start gap-1 overflow-x-auto overscroll-x-contain rounded-xl p-1.5 [-webkit-overflow-scrolling:touch] md:mb-6 md:w-fit">
+              <TabsList className="glass mb-4 hidden h-auto w-full touch-pan-x items-center justify-start gap-1 overflow-x-auto overscroll-x-contain rounded-xl p-1.5 [-webkit-overflow-scrolling:touch] md:mb-6 md:flex md:w-fit">
                 <DashboardTabTrigger
                   value="squads"
                   tooltipLabel="My Squads"
@@ -1158,6 +1338,9 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
                   label="Settings"
                 />
               </TabsList>
+
+              {/* Mobile section title — visible only when bottom bar is used */}
+              <MobileSectionTitle activeTab={activeTab} inboxCount={toActionCount} />
 
               <TabsContent value="squads" className="mt-0">
                 {teams.length === 0 && availabilityPosts.length === 0 ? (
@@ -1226,65 +1409,57 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
         </section>
       </main>
 
+      {/* Mobile Bottom Navigation */}
+      <DashboardBottomBar
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        inboxCount={toActionCount}
+      />
+
       <OnboardingModal
         open={showOnboardingModal}
         onOpenChange={setShowOnboardingModal}
         profile={profile}
       />
 
-      <AlertDialog open={showAvailabilityModal} onOpenChange={(open) => !open && handleAvailabilityModalCancel()}>
-        <AlertDialogContent className="glass-card rounded-2xl border-border/40">
-          <AlertDialogHeader>
-            <div className="flex items-center gap-3">
-              <div className="flex size-10 items-center justify-center rounded-xl bg-success/15">
-                <UserMinus className="size-5 text-success" />
-              </div>
-              <AlertDialogTitle className="text-left">
-                Congratulations! You&apos;ve joined the team.
-              </AlertDialogTitle>
-            </div>
-            <AlertDialogDescription className="text-left">
-              {availabilityModalContext ? (
-                <>You&apos;ve joined {availabilityModalContext}. </>
-              ) : null}
-              Would you like to remove your profile from the &quot;Available Players&quot; list to stop receiving requests?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="flex-row gap-2 sm:justify-end">
-            <AlertDialogCancel onClick={handleAvailabilityModalCancel} className="rounded-xl">
-              No, keep it
-            </AlertDialogCancel>
-            <AlertDialogAction onClick={handleAvailabilityModalConfirm} className="rounded-xl bg-primary">
-              Yes, remove me
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ResponsiveConfirmDrawer
+        open={showAvailabilityModal}
+        onOpenChange={(open) => !open && handleAvailabilityModalCancel()}
+        isMobile={isMobile}
+        icon={
+          <div className="flex size-10 items-center justify-center rounded-xl bg-success/15">
+            <UserMinus className="size-5 text-success" />
+          </div>
+        }
+        title="Congratulations! You've joined the team."
+        description={
+          (availabilityModalContext ? `You've joined ${availabilityModalContext}. ` : "") +
+          'Would you like to remove your profile from the "Available Players" list to stop receiving requests?'
+        }
+        confirmLabel="Yes, remove me"
+        cancelLabel="No, keep it"
+        onConfirm={handleAvailabilityModalConfirm}
+        onCancel={handleAvailabilityModalCancel}
+        confirmClassName="bg-primary"
+      />
 
-      <AlertDialog open={availabilityPostIdToDelete !== null} onOpenChange={(open) => !open && setAvailabilityPostIdToDelete(null)}>
-        <AlertDialogContent className="glass-card rounded-2xl border-border/40">
-          <AlertDialogHeader>
-            <div className="flex items-center gap-3">
-              <div className="flex size-10 items-center justify-center rounded-xl bg-destructive/15">
-                <Trash2 className="size-5 text-destructive" />
-              </div>
-              <AlertDialogTitle className="text-left">Remove this availability announcement?</AlertDialogTitle>
-            </div>
-            <AlertDialogDescription className="text-left">
-              Your announcement will be removed from the Available Players list.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter className="flex-row gap-2 sm:justify-end">
-            <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => availabilityPostIdToDelete && handleDeleteAvailabilityPost(availabilityPostIdToDelete)}
-              className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Remove
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ResponsiveConfirmDrawer
+        open={availabilityPostIdToDelete !== null}
+        onOpenChange={(open) => !open && setAvailabilityPostIdToDelete(null)}
+        isMobile={isMobile}
+        icon={
+          <div className="flex size-10 items-center justify-center rounded-xl bg-destructive/15">
+            <Trash2 className="size-5 text-destructive" />
+          </div>
+        }
+        title="Remove this availability announcement?"
+        description="Your announcement will be removed from the Available Players list."
+        confirmLabel="Remove"
+        cancelLabel="Cancel"
+        onConfirm={() => availabilityPostIdToDelete && handleDeleteAvailabilityPost(availabilityPostIdToDelete)}
+        onCancel={() => setAvailabilityPostIdToDelete(null)}
+        confirmClassName="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+      />
     </div>
   )
 }

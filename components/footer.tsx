@@ -1,4 +1,4 @@
-import { Gamepad2, Heart, Instagram, Linkedin } from "lucide-react"
+import { Gamepad2, Heart, Instagram, Linkedin, MessageSquare } from "lucide-react"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 
@@ -73,6 +73,15 @@ export function Footer({ tagline, className }: FooterProps) {
                 className="text-muted-foreground transition-colors hover:text-foreground"
               >
                 Legal
+              </Link>
+              <Link
+                href="https://docs.google.com/forms/d/e/1FAIpQLSfPFN9Y_zYZSld-6EEO3ybmPpflPWvTVaF5Le7ooxlIe9a09g/viewform?usp=dialog"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-foreground"
+              >
+                <MessageSquare className="size-3.5" aria-hidden />
+                Feedback
               </Link>
             </nav>
           </div>

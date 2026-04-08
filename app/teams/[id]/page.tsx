@@ -6,13 +6,14 @@ import Link from "next/link"
 import { Navbar } from "@/components/navbar"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { TeamChat } from "@/components/team-chat"
 import { TeamAnnouncementPublic } from "@/components/team-announcement-public"
 import { supabase } from "@/lib/supabase"
 import { fetchProfilesMap } from "@/lib/profiles"
 import { formatTeamToCardData, type TeamRowDb } from "@/lib/team-utils"
 import type { TeamCardData } from "@/components/team-card"
-import { Loader2, ArrowLeft, ShieldAlert, Users, Cpu, Globe } from "lucide-react"
+import { Loader2, ArrowLeft, ShieldAlert, Users, Cpu, Globe, Info } from "lucide-react"
 import { toast } from "sonner"
 import { UserAvatar } from "@/components/user-avatar"
 import { Badge } from "@/components/ui/badge"
@@ -296,6 +297,11 @@ export default function TeamPage() {
   }
 
   if (viewMode === "squad" && squad && currentUserId) {
+    const isOwner = squad.user_id === currentUserId
+    const descriptionMissing = !squad.description?.trim() || squad.description.trim().length < 10
+    const discordMissing = !squad.discord_link?.trim()
+    const showOwnerIncompleteBanner = isOwner && (descriptionMissing || discordMissing)
+
     return (
       <div className="flex min-h-screen flex-col">
         <Navbar />
@@ -332,6 +338,20 @@ export default function TeamPage() {
 
           <section className="px-4 pb-16 pt-4 lg:px-6 lg:pb-24">
             <div className="mx-auto max-w-4xl">
+              {showOwnerIncompleteBanner && (
+                <Alert className="mb-4 border-primary/30 bg-primary/5">
+                  <Info className="text-primary" />
+                  <AlertTitle>Your squad profile is incomplete.</AlertTitle>
+                  <AlertDescription>
+                    Your squad profile is incomplete. Add a description and Discord link to attract more jammers!
+                    <div className="mt-2">
+                      <Button asChild size="sm" className="rounded-lg">
+                        <Link href={`/teams/${squad.id}/manage`}>Setup Team</Link>
+                      </Button>
+                    </div>
+                  </AlertDescription>
+                </Alert>
+              )}
               <Tabs defaultValue="overview">
                 <TabsList className="mb-4">
                   <TabsTrigger value="overview">Squad overview</TabsTrigger>

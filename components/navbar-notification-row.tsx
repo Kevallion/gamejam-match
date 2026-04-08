@@ -1,11 +1,13 @@
 "use client"
 
 import { useRouter } from "next/navigation"
+import { Trophy } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { UserAvatar } from "@/components/user-avatar"
 import type { NormalizedNotificationRow } from "@/hooks/use-notifications"
 import { getNotificationDetailPath } from "@/lib/notification-detail-link"
+import { isSystemNotificationType } from "@/lib/notifications-enriched"
 import { cn } from "@/lib/utils"
 
 export function NavbarNotificationRow({
@@ -18,15 +20,16 @@ export function NavbarNotificationRow({
   compact?: boolean
 }) {
   const router = useRouter()
+  const isSystem = isSystemNotificationType(n.type)
   const sender = n.senderResolved
   const team = n.teamResolved
   const jamTitle = team?.external_jams?.title ?? null
 
   const detailHref = getNotificationDetailPath(n)
-  const profileUserId = n.actorUserId ?? n.sender_id
+  const profileUserId = isSystem ? null : (n.actorUserId ?? n.sender_id)
   const jammerHref = profileUserId ? `/jammer/${profileUserId}` : null
-  const displayName = (sender?.username?.trim() || "Jammer").trim()
-  const showMutedName = !jammerHref && displayName === "Jammer"
+  const displayName = isSystem ? "GameJamCrew" : (sender?.username?.trim() || "Jammer").trim()
+  const showMutedName = !jammerHref && !isSystem && displayName === "Jammer"
 
   /** Navigation explicite : évite les `Link` dans le Dropdown Radix qui annulent la navigation. */
   const go = (href: string) => {
@@ -41,22 +44,28 @@ export function NavbarNotificationRow({
         compact ? "py-2" : "py-2.5",
       )}
     >
-      <button
-        type="button"
-        className="mt-0.5 shrink-0 rounded-full ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-        onClick={() => {
-          if (jammerHref) go(jammerHref)
-        }}
-        disabled={!jammerHref}
-        aria-label={jammerHref ? `Open profile of ${displayName}` : "No profile link"}
-      >
-        <UserAvatar
-          src={sender?.avatar_url ?? null}
-          fallbackName={displayName}
-          size="md"
-          className="!size-9 border border-border/50"
-        />
-      </button>
+      {isSystem ? (
+        <div className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full border border-amber-500/30 bg-amber-500/10">
+          <Trophy className="size-4 text-amber-500" aria-hidden />
+        </div>
+      ) : (
+        <button
+          type="button"
+          className="mt-0.5 shrink-0 rounded-full ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+          onClick={() => {
+            if (jammerHref) go(jammerHref)
+          }}
+          disabled={!jammerHref}
+          aria-label={jammerHref ? `Open profile of ${displayName}` : "No profile link"}
+        >
+          <UserAvatar
+            src={sender?.avatar_url ?? null}
+            fallbackName={displayName}
+            size="md"
+            className="!size-9 border border-border/50"
+          />
+        </button>
+      )}
 
       <div className="min-w-0 flex-1 space-y-1.5">
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -72,7 +81,11 @@ export function NavbarNotificationRow({
             <span
               className={cn(
                 "text-sm font-semibold",
-                showMutedName ? "text-muted-foreground" : "text-foreground",
+                isSystem
+                  ? "text-amber-600 dark:text-amber-400"
+                  : showMutedName
+                    ? "text-muted-foreground"
+                    : "text-foreground",
               )}
             >
               {displayName}
