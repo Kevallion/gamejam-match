@@ -178,6 +178,7 @@ export async function updateTeamJamListing(
     description,
     teamVibe: rawVibe,
     experienceRequired: rawExp,
+    lookingFor: rawLookingFor,
     jamId: rawJamId,
     jamStartDate,
     jamEndDate,
@@ -214,6 +215,15 @@ export async function updateTeamJamListing(
   const expReq = rawExp?.trim() || null
   const experienceRequired =
     expReq && expReq !== "any" && EXPERIENCE_VALUES.has(expReq) ? expReq : null
+  const lookingFor = rawLookingFor.filter((r) => r.role && r.level)
+  if (lookingFor.length < 1) {
+    return { success: false, error: "Select at least one role you are looking for." }
+  }
+  for (const entry of lookingFor) {
+    if (!ROLE_VALUES.has(entry.role) || !EXPERIENCE_VALUES.has(entry.level)) {
+      return { success: false, error: "Invalid role or experience level in team requirements." }
+    }
+  }
 
   const jamEndIso = new Date(jamEndDate).toISOString()
   const jamStartIso = new Date(jamStartDate).toISOString()
@@ -226,6 +236,7 @@ export async function updateTeamJamListing(
       description: description.trim(),
       team_vibe: vibeTrim,
       experience_required: experienceRequired,
+      looking_for: lookingFor,
       jam_id: rawJamId?.trim() || null,
       jam_start_date: jamStartIso,
       jam_end_date: jamEndIso,

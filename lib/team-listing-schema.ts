@@ -49,6 +49,7 @@ export const updateTeamJamListingSchema = z
     description: z.string(),
     teamVibe: z.string().nullable().optional(),
     experienceRequired: z.string().nullable().optional(),
+    lookingFor: z.array(createTeamLookingForSchema).min(1, "Select at least one role."),
     jamId: z
       .preprocess(
         (v) => (v === "" || v === undefined ? null : v),

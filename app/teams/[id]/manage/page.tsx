@@ -43,6 +43,9 @@ import {
   MessageCircle,
   Link2,
   Trophy,
+  Plus,
+  X,
+  AlertCircle,
 } from "lucide-react"
 import { toast } from "sonner"
 import { JamSearchSelector } from "@/components/jam-search-selector"
@@ -56,7 +59,7 @@ import { updateTeamJamListing } from "@/app/actions/create-team-actions"
 import { dateInputToUtcEnd, dateInputToUtcStart, isoTimestampToDateInput } from "@/lib/jam-date-utc"
 import { showGamificationRewards } from "@/components/gamification-reward-toasts"
 import { gamificationRewardHasToast } from "@/lib/gamification-reward-types"
-import { EXPERIENCE_OPTIONS, JAM_STYLE_OPTIONS, ROLE_STYLES } from "@/lib/constants"
+import { EXPERIENCE_OPTIONS, JAM_STYLE_OPTIONS, ROLE_OPTIONS, ROLE_STYLES } from "@/lib/constants"
 import { DateRangeField } from "@/components/date-range-field"
 import {
   AlertDialog,
@@ -98,7 +101,20 @@ type TeamManageData = {
   jam_start_date: string | null
   jam_end_date: string | null
   jam_completion_xp_claimed?: boolean | null
+  looking_for: { role: string; level: string }[]
   members: MemberRow[]
+}
+
+type EditableRoleEntry = {
+  id: number
+  role: string
+  level: string
+}
+
+let editableRoleIdCounter = 1
+
+function nextEditableRoleId() {
+  return editableRoleIdCounter++
 }
 
 export default function TeamManagePage() {
@@ -123,7 +139,9 @@ export default function TeamManagePage() {
     jam_id: null as string | null,
     jam_start_date: "",
     jam_end_date: "",
+    looking_for: [{ id: nextEditableRoleId(), role: "", level: "" }] as EditableRoleEntry[],
   })
+  const [editRolesError, setEditRolesError] = useState("")
   const [discordInput, setDiscordInput] = useState("")
   const [discordSaving, setDiscordSaving] = useState(false)
   const [discordError, setDiscordError] = useState<string | null>(null)
@@ -148,7 +166,7 @@ export default function TeamManagePage() {
       const { data: teamData, error: teamError } = await supabase
         .from("teams")
         .select(
-          "id, user_id, team_name, game_name, description, team_vibe, experience_required, engine, language, jam_id, discord_link, jam_completion_xp_claimed, jam_start_date, jam_end_date",
+          "id, user_id, team_name, game_name, description, team_vibe, experience_required, engine, language, jam_id, discord_link, jam_completion_xp_claimed, jam_start_date, jam_end_date, looking_for",
         )
         .eq("id", teamId)
         .single()
@@ -237,7 +255,16 @@ export default function TeamManagePage() {
         jam_id: (teamData as { jam_id?: string | null }).jam_id ?? null,
         jam_start_date: isoTimestampToDateInput(td.jam_start_date),
         jam_end_date: isoTimestampToDateInput(td.jam_end_date),
+        looking_for:
+          (teamData.looking_for ?? []).length > 0
+            ? (teamData.looking_for ?? []).map((entry) => ({
+                id: nextEditableRoleId(),
+                role: entry.role ?? "",
+                level: entry.level ?? "",
+              }))
+            : [{ id: nextEditableRoleId(), role: "", level: "" }],
       })
+      setEditRolesError("")
       setDiscordInput(teamData.discord_link ?? "")
       setDiscordError(null)
     } catch (err) {
@@ -362,10 +389,68 @@ export default function TeamManagePage() {
     }
   }
 
+  const addEditableRole = () => {
+    setEditRolesError("")
+    setEditForm((prev) => ({
+      ...prev,
+      looking_for: [...prev.looking_for, { id: nextEditableRoleId(), role: "", level: "" }],
+    }))
+  }
+
+  const removeEditableRole = (id: number) => {
+    setEditRolesError("")
+    setEditForm((prev) => {
+      if (prev.looking_for.length <= 1) return prev
+      return { ...prev, looking_for: prev.looking_for.filter((entry) => entry.id !== id) }
+    })
+  }
+
+  const updateEditableRole = (id: number, field: "role" | "level", value: string) => {
+    setEditRolesError("")
+    setEditForm((prev) => ({
+      ...prev,
+      looking_for: prev.looking_for.map((entry) =>
+        entry.id === id ? { ...entry, [field]: value } : entry,
+      ),
+    }))
+  }
+
   const handleEditSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setEditSaving(true)
     try {
+      const cleanLookingFor = editForm.looking_for.filter((entry) => entry.role && entry.level)
+      if (cleanLookingFor.length < 1) {
+        setEditRolesError("Please select at least one role you are looking for.")
+        toast.error("Please complete team requirements.", {
+          description: "At least one role is required.",
+        })
+        return
+      }
+
+      const currentFilledRoleKeys = team?.members
+        .map((m) => (m.target_role ?? "").trim().toLowerCase())
+        .filter(Boolean) as string[]
+      const currentFilledCountByKey: Record<string, number> = {}
+      for (const roleKey of currentFilledRoleKeys) {
+        currentFilledCountByKey[roleKey] = (currentFilledCountByKey[roleKey] ?? 0) + 1
+      }
+      const nextCountByKey: Record<string, number> = {}
+      for (const entry of cleanLookingFor) {
+        const roleKey = entry.role.trim().toLowerCase()
+        nextCountByKey[roleKey] = (nextCountByKey[roleKey] ?? 0) + 1
+      }
+      const removedFilledRole = Object.entries(currentFilledCountByKey).find(([roleKey, filledCount]) => {
+        const nextCount = nextCountByKey[roleKey] ?? 0
+        return nextCount < filledCount
+      })
+      if (removedFilledRole) {
+        toast.error("Cannot remove a filled role.", {
+          description: "Remove or reassign the member first, then update roles.",
+        })
+        return
+      }
+
       if (!editForm.jam_start_date || !editForm.jam_end_date) {
         toast.error("Jam dates required.", {
           description: "Please specify the Jam dates to keep your team visible.",
@@ -389,6 +474,7 @@ export default function TeamManagePage() {
           editForm.experience_required && editForm.experience_required !== "any"
             ? editForm.experience_required
             : null,
+        lookingFor: cleanLookingFor,
         jamId: editForm.jam_id || null,
         jamStartDate: dateInputToUtcStart(editForm.jam_start_date),
         jamEndDate: dateInputToUtcEnd(editForm.jam_end_date),
@@ -413,6 +499,7 @@ export default function TeamManagePage() {
                 editForm.experience_required && editForm.experience_required !== "any"
                   ? editForm.experience_required
                   : null,
+              looking_for: cleanLookingFor,
               jam_id: editForm.jam_id || null,
               jam_start_date: jamStartIso,
               jam_end_date: jamEndIso,
@@ -626,11 +713,12 @@ export default function TeamManagePage() {
                     Edit Team Info
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-lg rounded-2xl">
+                <DialogContent className="flex h-[82dvh] w-[calc(100vw-1rem)] max-w-2xl flex-col rounded-2xl p-0 sm:w-full">
                   <DialogHeader>
-                    <DialogTitle>Edit Team Info</DialogTitle>
+                    <DialogTitle className="px-4 pt-5 sm:px-6">Edit Team Info</DialogTitle>
                   </DialogHeader>
-                  <form onSubmit={handleEditSubmit} className="flex flex-col gap-4">
+                  <form onSubmit={handleEditSubmit} className="flex min-h-0 flex-1 flex-col">
+                    <div className="flex-1 space-y-4 overflow-y-auto px-4 pb-4 sm:px-6">
                     <div className="space-y-2">
                       <Label htmlFor="team_name">Team / Project Name</Label>
                       <Input
@@ -752,16 +840,90 @@ export default function TeamManagePage() {
                         </SelectContent>
                       </Select>
                     </div>
-                    <DialogFooter>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Label>Roles Needed</Label>
+                        <span className="text-xs text-muted-foreground">
+                          {editForm.looking_for.length} role{editForm.looking_for.length > 1 ? "s" : ""}
+                        </span>
+                      </div>
+                      <div className="flex flex-col gap-3">
+                        {editForm.looking_for.map((entry) => (
+                          <div
+                            key={entry.id}
+                            className="flex flex-col gap-3 rounded-xl border border-border/50 bg-muted/20 p-3 sm:flex-row sm:items-center"
+                          >
+                            <Select
+                              value={entry.role}
+                              onValueChange={(value) => updateEditableRole(entry.id, "role", value)}
+                            >
+                              <SelectTrigger className="rounded-xl sm:flex-1">
+                                <SelectValue placeholder="Select role" />
+                              </SelectTrigger>
+                              <SelectContent className="rounded-xl">
+                                {ROLE_OPTIONS.map((opt) => (
+                                  <SelectItem key={opt.value} value={opt.value}>
+                                    {opt.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <Select
+                              value={entry.level}
+                              onValueChange={(value) => updateEditableRole(entry.id, "level", value)}
+                            >
+                              <SelectTrigger className="rounded-xl sm:flex-1">
+                                <SelectValue placeholder="Experience" />
+                              </SelectTrigger>
+                              <SelectContent className="rounded-xl">
+                                {EXPERIENCE_OPTIONS.map((opt) => (
+                                  <SelectItem key={opt.value} value={opt.value}>
+                                    {opt.emoji} {opt.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            {editForm.looking_for.length > 1 && (
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="self-end rounded-xl text-muted-foreground hover:bg-destructive/10 hover:text-destructive sm:self-auto"
+                                onClick={() => removeEditableRole(entry.id)}
+                              >
+                                <X className="size-4" />
+                              </Button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-fit gap-2 rounded-xl"
+                        onClick={addEditableRole}
+                      >
+                        <Plus className="size-4" />
+                        Add role
+                      </Button>
+                      {editRolesError && (
+                        <div className="flex items-center gap-2 text-sm text-destructive">
+                          <AlertCircle className="size-4 shrink-0" />
+                          <span>{editRolesError}</span>
+                        </div>
+                      )}
+                    </div>
+                    </div>
+                    <DialogFooter className="mt-auto flex-col gap-2 border-t border-border/60 bg-background px-4 py-3 sm:flex-row sm:justify-end sm:px-6">
                       <Button
                         type="button"
                         variant="outline"
                         onClick={() => setEditOpen(false)}
-                        className="rounded-xl"
+                        className="w-full rounded-xl sm:w-auto"
                       >
                         Cancel
                       </Button>
-                      <Button type="submit" disabled={editSaving} className="rounded-xl">
+                      <Button type="submit" disabled={editSaving} className="w-full rounded-xl sm:w-auto">
                         {editSaving ? (
                           <>
                             <Loader2 className="size-4 animate-spin" />
