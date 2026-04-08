@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import type { Metadata } from "next"
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
@@ -31,5 +32,9 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
     redirect("/")
   }
   const { tab } = await searchParams
-  return <DashboardClient defaultTab={tab} />
+  return (
+    <Suspense>
+      <DashboardClient defaultTab={tab} />
+    </Suspense>
+  )
 }

@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import { Navbar } from "@/components/navbar"
 import { CreateTeamForm } from "@/components/create-team-form"
 import { PenLine } from "lucide-react"
@@ -56,7 +57,9 @@ export default function CreateTeamPage() {
         {/* Form */}
         <section className="px-4 pb-16 pt-4 lg:px-6 lg:pb-24">
           <div className="mx-auto max-w-2xl">
-            <CreateTeamForm />
+            <Suspense>
+              <CreateTeamForm />
+            </Suspense>
           </div>
         </section>
       </main>
