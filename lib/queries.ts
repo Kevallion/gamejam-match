@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/client"
 import { supabase } from "@/lib/supabase"
-import { ENGINE_OPTIONS, ROLE_STYLES } from "@/lib/constants"
+import { ENGINE_OPTIONS, EXPERIENCE_STYLES, JAM_STYLE_STYLES, ROLE_STYLES } from "@/lib/constants"
+import { levelFromTotalXp } from "@/lib/gamification-level"
+import { kudosCountsMapFromRpcRows, type KudosCounts } from "@/lib/kudos"
 
 /** Client navigateur Supabase (même type que `supabase` exporté par `@/lib/supabase`). */
 export type GamejamSupabaseClient = ReturnType<typeof createClient>
@@ -179,11 +181,18 @@ export type SmartMatchUserProfile = {
   id: string
   main_role?: string | null
   default_role?: string | null
+  profile_roles?: SmartMatchRoleInput[] | null
   /** Préférence moteur : aligner sur le profil (`default_engine` ou colonne `engine` si défaut vide). */
   default_engine?: string | null
   profile_engine?: string | null
   /** Équipes déjà possédées ou rejointes — à exclure des suggestions. */
   excludeTeamIds?: string[]
+}
+
+export type SmartMatchRoleInput = {
+  role?: string | null
+  experience_level?: string | null
+  is_primary?: boolean | null
 }
 
 export type SmartRecommendedTeam = {
@@ -280,8 +289,20 @@ function engineLabel(engineValue: string): string {
 export async function getRecommendedTeams(
   userProfile: SmartMatchUserProfile,
 ): Promise<{ teams: SmartRecommendedTeam[]; error: string | null }> {
-  const roleKey = norm(userProfile.main_role ?? userProfile.default_role).toLowerCase()
-  if (!roleKey) {
+  const normalizedProfileRoles = (userProfile.profile_roles ?? [])
+    .map((role) => ({
+      role: norm(role.role).toLowerCase(),
+      is_primary: role.is_primary === true,
+    }))
+    .filter((role) => role.role.length > 0)
+    .sort((a, b) => Number(b.is_primary) - Number(a.is_primary))
+  const fallbackRole = norm(userProfile.main_role ?? userProfile.default_role).toLowerCase()
+  const roleKeys = normalizedProfileRoles.map((role) => role.role)
+  if (roleKeys.length === 0 && fallbackRole) {
+    roleKeys.push(fallbackRole)
+  }
+
+  if (roleKeys.length === 0) {
     return { teams: [], error: null }
   }
 
@@ -306,7 +327,7 @@ export async function getRecommendedTeams(
     if (exclude.has(row.id)) continue
     if (!isRecruitingTeam(row)) continue
     const needed = requiredRolesForTeam(row)
-    if (!needed.includes(roleKey)) continue
+    if (!roleKeys.some((roleKey) => needed.includes(roleKey))) continue
     candidates.push(row)
   }
 
@@ -318,14 +339,334 @@ export async function getRecommendedTeams(
     return tb - ta
   })
 
-  const teams: SmartRecommendedTeam[] = candidates.slice(0, SMART_MATCH_RESULT_CAP).map((row) => ({
-    id: row.id,
-    team_name: norm(row.team_name) || "Unnamed squad",
-    matched_role: roleKey,
-    role_label: roleLabel(roleKey),
-    team_engine_label: engineLabel(row.engine ?? ""),
-    matches_your_engine: enginesMatchProfileDisplay(userEngineKey, row.engine),
-  }))
+  const teams: SmartRecommendedTeam[] = candidates.slice(0, SMART_MATCH_RESULT_CAP).map((row) => {
+    const needed = requiredRolesForTeam(row)
+    const matchedRole = roleKeys.find((roleKey) => needed.includes(roleKey)) ?? roleKeys[0]
+    return {
+      id: row.id,
+      team_name: norm(row.team_name) || "Unnamed squad",
+      matched_role: matchedRole,
+      role_label: roleLabel(matchedRole),
+      team_engine_label: engineLabel(row.engine ?? ""),
+      matches_your_engine: enginesMatchProfileDisplay(userEngineKey, row.engine),
+    }
+  })
 
   return { teams, error: null }
+}
+
+const AVAILABLE_PLAYERS_DEFAULT_LIMIT = 24
+const LEGACY_EXPERIENCE_EQUIVALENTS: Record<string, string[]> = {
+  junior: ["junior", "hobbyist"],
+  regular: ["regular", "confirmed"],
+  senior: ["senior", "expert"],
+}
+
+type AvailablePlayersPostRow = {
+  id: string
+  user_id: string
+  availability: string | null
+  role: string | null
+  experience: string | null
+  jam_style: string | null
+  engine: string | null
+  language: string | null
+  bio: string | null
+  portfolio_link: string | null
+}
+
+type AvailablePlayerProfile = {
+  id: string
+  username: string | null
+  avatar_url: string | null
+  jam_id: string | null
+  xp: number | null
+  current_title: string | null
+  role: string | null
+  experience: string | null
+  experience_level: string | null
+  jam_style: string | null
+  engine: string | null
+  language: string | null
+  bio: string | null
+  portfolio_link: string | null
+  external_jams?:
+    | { id: string; title: string | null; url: string | null }
+    | { id: string; title: string | null; url: string | null }[]
+    | null
+}
+
+export type AvailablePlayerListItem = {
+  id: string
+  username: string
+  avatar_url: string | null
+  role: {
+    key?: string
+    label: string
+    emoji: string
+    color: string
+  }
+  level: {
+    label: string
+    emoji: string
+    color: string
+  }
+  jamStyle?: {
+    label: string
+    emoji: string
+    color: string
+  }
+  engine: string
+  bio: string
+  language: string
+  portfolio_link?: string
+  availability?: string
+  jam?: { title: string; url?: string | null }
+  jammerTitle?: string | null
+  jammerLevel?: number
+  kudosCounts?: KudosCounts | null
+  rawRole: string
+  rawEngine: string
+  rawLevel: string
+  availabilityPostId: string
+}
+
+export type AvailablePlayersFilters = {
+  searchQuery?: string
+  role?: string
+  engine?: string
+  experience?: string
+  jamId?: string
+  offset?: number
+  limit?: number
+}
+
+type AvailablePlayersResult = {
+  players: AvailablePlayerListItem[]
+  hasMore: boolean
+  nextOffset: number
+  error: string | null
+}
+
+function normalizedFilterValue(value: string | null | undefined): string {
+  return (value ?? "").trim().toLowerCase()
+}
+
+function firstExternalJam(
+  value: AvailablePlayerProfile["external_jams"],
+): { title: string | null; url: string | null } | null {
+  if (!value) return null
+  if (Array.isArray(value)) return value[0] ?? null
+  return value
+}
+
+function toDisplayRole(rawRole: string) {
+  const roleKey = rawRole.toLowerCase()
+  return {
+    ...(ROLE_STYLES[roleKey] || {
+      label: rawRole || "—",
+      emoji: "❓",
+      color: "bg-gray-500/10 text-gray-500",
+    }),
+    key: roleKey || undefined,
+  }
+}
+
+function toDisplayLevel(rawLevel: string) {
+  const levelKey = normalizedFilterValue(rawLevel)
+  const normalizedKey = LEGACY_EXPERIENCE_EQUIVALENTS[levelKey]
+    ? levelKey
+    : ({
+        hobbyist: "junior",
+        confirmed: "regular",
+        expert: "senior",
+      }[levelKey] ?? levelKey)
+
+  return (
+    EXPERIENCE_STYLES[normalizedKey] || {
+      label: rawLevel || "—",
+      emoji: "⭐",
+      color: "bg-gray-500/10 text-gray-500",
+    }
+  )
+}
+
+function toDisplayJamStyle(rawJamStyle: string) {
+  const jamStyleKey = normalizedFilterValue(rawJamStyle)
+  return jamStyleKey ? JAM_STYLE_STYLES[jamStyleKey] : undefined
+}
+
+export async function getAvailablePlayers(
+  {
+    searchQuery = "",
+    role = "all",
+    engine = "all",
+    experience = "all",
+    jamId,
+    offset = 0,
+    limit = AVAILABLE_PLAYERS_DEFAULT_LIMIT,
+  }: AvailablePlayersFilters = {},
+  client: GamejamSupabaseClient = supabase,
+): Promise<AvailablePlayersResult> {
+  const cleanRole = normalizedFilterValue(role)
+  const cleanEngine = normalizedFilterValue(engine)
+  const cleanExperience = normalizedFilterValue(experience)
+  const cleanSearch = searchQuery.trim()
+  const cleanJamId = jamId?.trim()
+  const safeOffset = Math.max(0, offset)
+  const safeLimit = Math.max(1, limit)
+  let profileIdsFilter: string[] | null = null
+
+  if (cleanSearch || cleanJamId) {
+    let profilesFilterQuery = client
+      .from("profiles")
+      .select("id")
+
+    if (cleanJamId) {
+      profilesFilterQuery = profilesFilterQuery.eq("jam_id", cleanJamId)
+    }
+    if (cleanSearch) {
+      profilesFilterQuery = profilesFilterQuery.ilike("username", `%${cleanSearch}%`)
+    }
+
+    const { data: filteredProfiles, error: filteredProfilesError } = await profilesFilterQuery
+    if (filteredProfilesError) {
+      console.error("[getAvailablePlayers:profilesFilter]", filteredProfilesError.message)
+      return {
+        players: [],
+        hasMore: false,
+        nextOffset: safeOffset,
+        error: filteredProfilesError.message,
+      }
+    }
+
+    profileIdsFilter = (filteredProfiles ?? [])
+      .map((row) => row.id)
+      .filter((id): id is string => Boolean(id))
+
+    if (profileIdsFilter.length === 0) {
+      return { players: [], hasMore: false, nextOffset: 0, error: null }
+    }
+  }
+
+  let query = client
+    .from("availability_posts")
+    .select(
+      "id, user_id, availability, role, experience, jam_style, engine, language, bio, portfolio_link",
+    )
+    .gt("expires_at", new Date().toISOString())
+    .not("availability", "is", null)
+    .neq("availability", "")
+    .order("updated_at", { ascending: false })
+
+  if (cleanRole && cleanRole !== "all") {
+    query = query.eq("role", cleanRole)
+  }
+
+  if (cleanEngine && cleanEngine !== "all") {
+    query = query.eq("engine", cleanEngine)
+  }
+
+  if (cleanExperience && cleanExperience !== "all") {
+    const equivalentValues = LEGACY_EXPERIENCE_EQUIVALENTS[cleanExperience] ?? [cleanExperience]
+    query = query.in("experience", equivalentValues)
+  }
+
+  if (profileIdsFilter) {
+    query = query.in("user_id", profileIdsFilter)
+  }
+
+  const { data, error } = await query.range(safeOffset, safeOffset + safeLimit)
+
+  if (error) {
+    console.error("[getAvailablePlayers]", error.message)
+    return { players: [], hasMore: false, nextOffset: safeOffset, error: error.message }
+  }
+
+  const rows = ((data ?? []) as AvailablePlayersPostRow[])
+  const hasMore = rows.length > safeLimit
+  const pageRows = hasMore ? rows.slice(0, safeLimit) : rows
+  const userIds = [...new Set(pageRows.map((row) => row.user_id).filter(Boolean))]
+  const profilesByUserId = new Map<string, AvailablePlayerProfile>()
+
+  if (userIds.length > 0) {
+    const { data: profilesData, error: profilesError } = await client
+      .from("profiles")
+      .select(
+        "id, username, avatar_url, jam_id, xp, current_title, role, experience, experience_level, jam_style, engine, language, bio, portfolio_link, external_jams(id, title, url)",
+      )
+      .in("id", userIds)
+
+    if (profilesError) {
+      console.error("[getAvailablePlayers:profilesHydration]", profilesError.message)
+      return {
+        players: [],
+        hasMore: false,
+        nextOffset: safeOffset,
+        error: profilesError.message,
+      }
+    }
+
+    for (const profile of (profilesData ?? []) as AvailablePlayerProfile[]) {
+      profilesByUserId.set(profile.id, profile)
+    }
+  }
+
+  let kudosByUser = new Map<string, KudosCounts>()
+  if (userIds.length > 0) {
+    const { data: kudosRows, error: kudosError } = await client.rpc("get_kudos_counts_for_users", {
+      p_user_ids: userIds,
+    })
+    if (!kudosError && kudosRows) {
+      kudosByUser = kudosCountsMapFromRpcRows(
+        kudosRows as { receiver_id: string; category: string; cnt: number | string }[],
+      )
+    }
+  }
+
+  const players: AvailablePlayerListItem[] = pageRows.map((row) => {
+    const profile = profilesByUserId.get(row.user_id) ?? null
+    const roleRaw = (row.role ?? profile?.role ?? "").trim()
+    const levelRaw = (
+      row.experience ??
+      profile?.experience ??
+      profile?.experience_level ??
+      ""
+    ).trim()
+    const engineRaw = (row.engine ?? profile?.engine ?? "").trim()
+    const languageRaw = (row.language ?? profile?.language ?? "").trim()
+    const bioRaw = (row.bio ?? profile?.bio ?? "").trim()
+    const portfolioRaw = (row.portfolio_link ?? profile?.portfolio_link ?? "").trim()
+    const xp = typeof profile?.xp === "number" ? profile.xp : 0
+    const jam = firstExternalJam(profile?.external_jams)
+
+    return {
+      id: row.user_id,
+      username: profile?.username?.trim() || "Anonymous",
+      avatar_url: profile?.avatar_url?.trim() || null,
+      role: toDisplayRole(roleRaw),
+      level: toDisplayLevel(levelRaw),
+      jamStyle: toDisplayJamStyle(row.jam_style ?? profile?.jam_style ?? ""),
+      engine: engineRaw,
+      bio: bioRaw,
+      language: languageRaw,
+      portfolio_link: portfolioRaw || undefined,
+      availability: row.availability || undefined,
+      jam: jam?.title ? { title: jam.title, url: jam.url ?? undefined } : undefined,
+      jammerTitle: profile?.current_title?.trim() || "Rookie Jammer",
+      jammerLevel: levelFromTotalXp(xp),
+      kudosCounts: kudosByUser.get(row.user_id) ?? null,
+      rawRole: roleRaw,
+      rawEngine: engineRaw,
+      rawLevel: levelRaw,
+      availabilityPostId: row.id,
+    }
+  })
+
+  return {
+    players,
+    hasMore,
+    nextOffset: safeOffset + players.length,
+    error: null,
+  }
 }

@@ -28,6 +28,7 @@ interface MemberFiltersProps {
   level?: string
   hasActiveFilters?: boolean
   resultsCount?: number
+  isUpdating?: boolean
   onRoleChange: (val: string) => void
   onEngineChange: (val: string) => void
   onLevelChange: (val: string) => void
@@ -40,6 +41,7 @@ export function MemberFilters({
   level = "all",
   hasActiveFilters = false,
   resultsCount,
+  isUpdating = false,
   onRoleChange,
   onEngineChange,
   onLevelChange,
@@ -104,7 +106,7 @@ export function MemberFilters({
                 </DrawerTitle>
               </DrawerHeader>
               <div className="px-4 pb-4 pt-1 space-y-4">
-                <Select onValueChange={onRoleChange} value={role}>
+                <Select onValueChange={onRoleChange} value={role} disabled={isUpdating}>
                   <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40">
                     <SelectValue placeholder="Role" />
                   </SelectTrigger>
@@ -116,7 +118,7 @@ export function MemberFilters({
                   </SelectContent>
                 </Select>
 
-                <Select onValueChange={onEngineChange} value={engine}>
+                <Select onValueChange={onEngineChange} value={engine} disabled={isUpdating}>
                   <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40">
                     <SelectValue placeholder="Engine" />
                   </SelectTrigger>
@@ -128,7 +130,7 @@ export function MemberFilters({
                   </SelectContent>
                 </Select>
 
-                <Select onValueChange={onLevelChange} value={level}>
+                <Select onValueChange={onLevelChange} value={level} disabled={isUpdating}>
                   <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40">
                     <SelectValue placeholder="Experience" />
                   </SelectTrigger>
@@ -151,6 +153,7 @@ export function MemberFilters({
                     variant="outline"
                     size="sm"
                     onClick={onReset}
+                    disabled={isUpdating}
                     className="flex-1 gap-2 rounded-xl text-muted-foreground hover:text-foreground"
                   >
                     <RotateCcw className="size-4" />
@@ -183,7 +186,7 @@ export function MemberFilters({
         </div>
         <div className="flex flex-wrap items-center gap-3">
           
-          <Select onValueChange={onRoleChange} value={role}>
+          <Select onValueChange={onRoleChange} value={role} disabled={isUpdating}>
             <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40 sm:w-[170px]">
               <SelectValue placeholder="Role" />
             </SelectTrigger>
@@ -195,7 +198,7 @@ export function MemberFilters({
             </SelectContent>
           </Select>
 
-          <Select onValueChange={onEngineChange} value={engine}>
+          <Select onValueChange={onEngineChange} value={engine} disabled={isUpdating}>
             <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40 sm:w-[170px]">
               <SelectValue placeholder="Engine" />
             </SelectTrigger>
@@ -207,7 +210,7 @@ export function MemberFilters({
             </SelectContent>
           </Select>
 
-          <Select onValueChange={onLevelChange} value={level}>
+          <Select onValueChange={onLevelChange} value={level} disabled={isUpdating}>
             <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40 sm:w-[190px]">
               <SelectValue placeholder="Experience" />
             </SelectTrigger>
@@ -224,7 +227,7 @@ export function MemberFilters({
           </Select>
 
           {hasActiveFilters && onReset && (
-            <Button variant="ghost" size="sm" onClick={onReset} className="gap-2 rounded-xl text-muted-foreground hover:text-foreground">
+            <Button variant="ghost" size="sm" onClick={onReset} disabled={isUpdating} className="gap-2 rounded-xl text-muted-foreground hover:text-foreground">
               <RotateCcw className="size-4" />
               Reset Filters
             </Button>

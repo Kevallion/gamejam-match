@@ -25,20 +25,22 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { deleteUserAccount } from "@/app/actions/auth-actions"
-import { supabase } from "@/lib/supabase"
-import { ROLE_OPTIONS, ENGINE_OPTIONS_WITH_ANY, LANGUAGE_OPTIONS } from "@/lib/constants"
+import { saveProfileSettings } from "@/app/actions/profile-settings-actions"
+import {
+  ROLE_OPTIONS,
+  EXPERIENCE_OPTIONS,
+  ENGINE_OPTIONS_WITH_ANY,
+  LANGUAGE_OPTIONS,
+  JAM_STYLE_OPTIONS,
+} from "@/lib/constants"
 import { Loader2, Trash2, User, Settings, Bell, AlertTriangle, Link2 } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
-function isUsernameUniqueViolation(error: {
-  code?: string
-  message?: string
-  details?: string | null
-}): boolean {
-  if (error.code !== "23505") return false
-  const combined = `${error.message ?? ""} ${error.details ?? ""}`.toLowerCase()
-  return combined.includes("username")
+type ProfileSettingsRole = {
+  role: string
+  experience_level: string
+  is_primary: boolean
 }
 
 export type ProfileSettingsProfile = {
@@ -47,6 +49,8 @@ export type ProfileSettingsProfile = {
   discord_username?: string | null
   avatar_url?: string | null
   default_role?: string | null
+  jam_style?: string | null
+  profile_roles?: ProfileSettingsRole[] | null
   default_engine?: string | null
   default_language?: string | null
   portfolio_url?: string | null
@@ -64,7 +68,14 @@ type ProfileSettingsProps = {
 export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback }: ProfileSettingsProps) {
   const [username, setUsername] = useState(profile?.username?.trim() ?? "")
   const [discordUsername, setDiscordUsername] = useState(profile?.discord_username?.trim() ?? "")
-  const [defaultRole, setDefaultRole] = useState(profile?.default_role?.trim() ?? "")
+  const initialRoles = (profile?.profile_roles ?? [])
+    .filter((role) => role?.role?.trim())
+    .sort((a, b) => Number(b.is_primary) - Number(a.is_primary))
+  const [primaryRole, setPrimaryRole] = useState(initialRoles[0]?.role?.trim() ?? profile?.default_role?.trim() ?? "")
+  const [primaryExperience, setPrimaryExperience] = useState(initialRoles[0]?.experience_level?.trim() ?? "regular")
+  const [secondaryRole, setSecondaryRole] = useState(initialRoles[1]?.role?.trim() ?? "")
+  const [secondaryExperience, setSecondaryExperience] = useState(initialRoles[1]?.experience_level?.trim() ?? "regular")
+  const [jamStyle, setJamStyle] = useState(profile?.jam_style?.trim() ?? "")
   const [defaultEngine, setDefaultEngine] = useState(profile?.default_engine?.trim() ?? "")
   const [defaultLanguage, setDefaultLanguage] = useState(profile?.default_language?.trim() ?? "")
   const [portfolioUrl, setPortfolioUrl] = useState(profile?.portfolio_url?.trim() ?? "")
@@ -74,7 +85,14 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
     setUsername(profile?.username?.trim() ?? "")
     setUsernameTouched(false)
     setDiscordUsername(profile?.discord_username?.trim() ?? "")
-    setDefaultRole(profile?.default_role?.trim() ?? "")
+    const nextRoles = (profile?.profile_roles ?? [])
+      .filter((role) => role?.role?.trim())
+      .sort((a, b) => Number(b.is_primary) - Number(a.is_primary))
+    setPrimaryRole(nextRoles[0]?.role?.trim() ?? profile?.default_role?.trim() ?? "")
+    setPrimaryExperience(nextRoles[0]?.experience_level?.trim() ?? "regular")
+    setSecondaryRole(nextRoles[1]?.role?.trim() ?? "")
+    setSecondaryExperience(nextRoles[1]?.experience_level?.trim() ?? "regular")
+    setJamStyle(profile?.jam_style?.trim() ?? "")
     setDefaultEngine(profile?.default_engine?.trim() ?? "")
     setDefaultLanguage(profile?.default_language?.trim() ?? "")
     setPortfolioUrl(profile?.portfolio_url?.trim() ?? "")
@@ -82,6 +100,8 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
     profile?.username,
     profile?.discord_username,
     profile?.default_role,
+    profile?.jam_style,
+    profile?.profile_roles,
     profile?.default_engine,
     profile?.default_language,
     profile?.portfolio_url,
@@ -98,6 +118,10 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
     : usernameEmpty
       ? "Username cannot be empty."
       : null
+  const duplicateRoleSelected =
+    primaryRole.trim().length > 0 &&
+    secondaryRole.trim().length > 0 &&
+    primaryRole.trim().toLowerCase() === secondaryRole.trim().toLowerCase()
 
   const [saving, setSaving] = useState(false)
   const [showDeleteAccountDialog, setShowDeleteAccountDialog] = useState(false)
@@ -117,26 +141,43 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
       return
     }
 
+    if (duplicateRoleSelected) {
+      toast.error("Roles must be different.", {
+        description: "Please choose a different secondary role.",
+      })
+      return
+    }
+
     setSaving(true)
     try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({
-          username: trimmedUsername,
-          discord_username: discordUsername.trim() || null,
-          default_role: defaultRole.trim() || null,
-          default_engine: defaultEngine.trim() || null,
-          default_language: defaultLanguage.trim() || null,
-          portfolio_url: portfolioUrl.trim() || null,
+      const roles = []
+      if (primaryRole.trim()) {
+        roles.push({
+          role: primaryRole.trim(),
+          experienceLevel: primaryExperience.trim() || "regular",
+          isPrimary: true,
         })
-        .eq("id", profile.id)
+      }
+      if (secondaryRole.trim()) {
+        roles.push({
+          role: secondaryRole.trim(),
+          experienceLevel: secondaryExperience.trim() || "regular",
+          isPrimary: false,
+        })
+      }
 
-      if (error) {
-        if (isUsernameUniqueViolation(error)) {
-          toast.error("This username is already taken. Please choose another one.")
-          return
-        }
-        toast.error("Could not update profile.", { description: error.message })
+      const result = await saveProfileSettings({
+        username: trimmedUsername,
+        discordUsername: discordUsername.trim() || null,
+        defaultEngine: defaultEngine.trim() || null,
+        defaultLanguage: defaultLanguage.trim() || null,
+        portfolioUrl: portfolioUrl.trim() || null,
+        jamStyle: jamStyle.trim() || null,
+        roles,
+      })
+
+      if (!result.success) {
+        toast.error("Could not update profile.", { description: result.error })
         return
       }
       toast.success("Profile updated.")
@@ -294,12 +335,12 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
           <Card className="border-border/50 bg-muted/30">
             <CardContent className="p-6 md:p-8">
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                <div className="space-y-2">
-                  <Label htmlFor="profile-default-role" className="text-sm font-medium">
-                    Default Role
+                <div className="space-y-2 sm:col-span-2 lg:col-span-1">
+                  <Label htmlFor="profile-primary-role" className="text-sm font-medium">
+                    Primary Role
                   </Label>
-                  <Select value={defaultRole || "any"} onValueChange={(v) => setDefaultRole(v === "any" ? "" : v)}>
-                    <SelectTrigger id="profile-default-role" className="h-11 rounded-lg border-border/50 bg-background">
+                  <Select value={primaryRole || "any"} onValueChange={(v) => setPrimaryRole(v === "any" ? "" : v)}>
+                    <SelectTrigger id="profile-primary-role" className="h-11 rounded-lg border-border/50 bg-background">
                       <SelectValue placeholder="None / No default" />
                     </SelectTrigger>
                     <SelectContent className="rounded-lg">
@@ -310,7 +351,102 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
                     </SelectContent>
                   </Select>
                   <p className="text-xs text-muted-foreground">
-                    Your primary contribution
+                    Main role used as your default role
+                  </p>
+                </div>
+                <div className="space-y-2 sm:col-span-2 lg:col-span-1">
+                  <Label htmlFor="profile-primary-experience" className="text-sm font-medium">
+                    Primary Role Experience
+                  </Label>
+                  <Select value={primaryExperience} onValueChange={setPrimaryExperience}>
+                    <SelectTrigger id="profile-primary-experience" className="h-11 rounded-lg border-border/50 bg-background">
+                      <SelectValue placeholder="Select your experience level" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-lg">
+                      {EXPERIENCE_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.emoji} {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Your experience for this role
+                  </p>
+                </div>
+                <div className="space-y-2 sm:col-span-2 lg:col-span-1">
+                  <Label htmlFor="profile-secondary-role" className="text-sm font-medium">
+                    Secondary Role (optional)
+                  </Label>
+                  <Select value={secondaryRole || "any"} onValueChange={(v) => setSecondaryRole(v === "any" ? "" : v)}>
+                    <SelectTrigger
+                      id="profile-secondary-role"
+                      className={cn(
+                        "h-11 rounded-lg border-border/50 bg-background",
+                        duplicateRoleSelected && "border-destructive/60 focus-visible:ring-destructive/20",
+                      )}
+                    >
+                      <SelectValue placeholder="None / No secondary role" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-lg">
+                      <SelectItem value="any">None / No secondary role</SelectItem>
+                      {ROLE_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Add a second role you can also contribute with
+                  </p>
+                  {duplicateRoleSelected ? (
+                    <p className="text-xs font-medium text-destructive">
+                      Secondary role must be different from primary role.
+                    </p>
+                  ) : null}
+                </div>
+                <div className="space-y-2 sm:col-span-2 lg:col-span-1">
+                  <Label htmlFor="profile-secondary-experience" className="text-sm font-medium">
+                    Secondary Role Experience
+                  </Label>
+                  <Select
+                    value={secondaryExperience}
+                    onValueChange={setSecondaryExperience}
+                    disabled={!secondaryRole.trim()}
+                  >
+                    <SelectTrigger id="profile-secondary-experience" className="h-11 rounded-lg border-border/50 bg-background">
+                      <SelectValue placeholder="Select your experience level" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-lg">
+                      {EXPERIENCE_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.emoji} {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Only used when a secondary role is set
+                  </p>
+                </div>
+                <div className="space-y-2 sm:col-span-2 lg:col-span-1">
+                  <Label htmlFor="profile-jam-style" className="text-sm font-medium">
+                    Jam Style
+                  </Label>
+                  <Select value={jamStyle || "any"} onValueChange={(v) => setJamStyle(v === "any" ? "" : v)}>
+                    <SelectTrigger id="profile-jam-style" className="h-11 rounded-lg border-border/50 bg-background">
+                      <SelectValue placeholder="None / No preference" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-lg">
+                      <SelectItem value="any">None / No preference</SelectItem>
+                      {JAM_STYLE_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.emoji} {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    The vibe you prefer during game jams
                   </p>
                 </div>
                 <div className="space-y-2">

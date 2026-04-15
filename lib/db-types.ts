@@ -13,6 +13,13 @@ export type ExperienceLevel =
 
 export type JamStyle = "chill" | "learning" | "dedicated" | "competitive"
 
+export interface ProfileRoleRow {
+  user_id: string
+  role: string
+  experience_level: ExperienceLevel
+  is_primary: boolean
+}
+
 export interface ProfileRow {
   id: string
   username: string
@@ -40,6 +47,7 @@ export interface ProfileRow {
   last_daily_xp_at?: string | null
   unlocked_titles?: unknown
   current_title?: string | null
+  profile_roles?: ProfileRoleRow[] | null
 }
 
 export interface TeamRow {

@@ -83,7 +83,7 @@ export function JamTitleBlock({
         href={url}
         target="_blank"
         rel="noopener noreferrer"
-        className={cn(className, "text-primary hover:underline")}
+        className={cn(className, "cursor-pointer text-primary hover:underline")}
         onClick={(e) => e.stopPropagation()}
       >
         {label}
@@ -201,7 +201,7 @@ export function TeamCard({
             {team.user_id && team.ownerProfileExists !== false && (
               <Link
                 href={`/jammer/${team.user_id}`}
-                className="inline-flex max-w-[12rem] items-center gap-2 rounded-lg border border-border/60 bg-card/70 px-2.5 py-1.5 transition-colors hover:bg-muted/50"
+                className="inline-flex max-w-[12rem] cursor-pointer items-center gap-2 rounded-lg border border-border/60 bg-card/70 px-2.5 py-1.5 transition-colors hover:bg-muted/50"
               >
                 <UserAvatar
                   src={team.ownerAvatarUrl ?? null}

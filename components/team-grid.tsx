@@ -226,7 +226,7 @@ export function TeamGrid({
 
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
-      .select("default_role, default_engine")
+      .select("default_role, default_engine, profile_roles(role, is_primary)")
       .eq("id", session.user.id)
       .maybeSingle()
 
@@ -235,7 +235,12 @@ export function TeamGrid({
       return
     }
 
-    const role = profile?.default_role?.trim()
+    const sortedRoles = (
+      (profile?.profile_roles ?? []) as { role?: string | null; is_primary?: boolean | null }[]
+    )
+      .filter((profileRole) => profileRole?.role?.trim())
+      .sort((a, b) => Number(b.is_primary === true) - Number(a.is_primary === true))
+    const role = sortedRoles[0]?.role?.trim() ?? profile?.default_role?.trim()
     if (!role) {
       setRecommendedTeams([])
       return

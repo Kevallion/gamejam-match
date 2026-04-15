@@ -62,8 +62,7 @@ import {
 } from "@/app/actions/team-membership-actions"
 import { claimDailyLoginXp } from "@/app/actions/gamification-actions"
 import { OnboardingModal } from "@/components/onboarding-modal"
-import { CURRENT_ONBOARDING_VERSION } from "@/lib/onboarding"
-import { ProfileSettings } from "@/components/profile-settings"
+import { ProfileSettings, type ProfileSettingsProfile } from "@/components/profile-settings"
 import { ProfileGamification } from "@/components/profile-gamification"
 import {
   GamificationDashboardFull,
@@ -81,6 +80,7 @@ import { levelFromTotalXp, gamificationLevelProgress } from "@/lib/gamification-
 import {
   fetchDashboardJoinRequests,
   getRecommendedTeams,
+  type SmartMatchRoleInput,
   type SmartRecommendedTeam,
 } from "@/lib/queries"
 import { kudosCountsMapFromRpcRows, type KudosCounts } from "@/lib/kudos"
@@ -510,18 +510,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
   const [renewingAvailabilityPostId, setRenewingAvailabilityPostId] = useState<string | null>(null)
   const [recommendedTeams, setRecommendedTeams] = useState<SmartRecommendedTeam[]>([])
   const [showOnboardingModal, setShowOnboardingModal] = useState(false)
-  const [profile, setProfile] = useState<{
-    id: string
-    username?: string | null
-    discord_username?: string | null
-    avatar_url?: string | null
-    default_role?: string | null
-    default_engine?: string | null
-    default_language?: string | null
-    portfolio_url?: string | null
-    xp?: number | null
-    current_title?: string | null
-  } | null>(null)
+  const [profile, setProfile] = useState<ProfileSettingsProfile | null>(null)
 
   const dailyXpClaimRef = useRef(false)
   const [compactTabBar, setCompactTabBar] = useState(false)
@@ -628,7 +617,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
 
       const [
         { data: membershipRows },
-        { data: profileData },
+        profileQueryResult,
         joinBundleResult,
         { data: postsData },
         { data: notifRaw, error: notifErr },
@@ -637,7 +626,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
         supabase
           .from("profiles")
           .select(
-            "id, has_completed_onboarding, onboarding_version, jam_id, username, avatar_url, discord_username, default_role, default_engine, engine, default_language, portfolio_url, xp, current_title",
+            "id, has_completed_onboarding, onboarding_version, jam_id, username, avatar_url, discord_username, default_role, default_engine, engine, default_language, portfolio_url, jam_style, xp, current_title, profile_roles(role, experience_level, is_primary)",
           )
           .eq("id", uid)
           .maybeSingle(),
@@ -654,6 +643,43 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
           .order("created_at", { ascending: false })
           .limit(40),
       ])
+      let profileData = profileQueryResult.data as
+        | {
+            id: string
+            has_completed_onboarding?: boolean | null
+            onboarding_version?: number | null
+            jam_id?: string | null
+            username?: string | null
+            avatar_url?: string | null
+            discord_username?: string | null
+            default_role?: string | null
+            default_engine?: string | null
+            engine?: string | null
+            default_language?: string | null
+            portfolio_url?: string | null
+            jam_style?: string | null
+            xp?: number | null
+            current_title?: string | null
+            profile_roles?: SmartMatchRoleInput[] | null
+          }
+        | null
+
+      // Fallback for environments where `profile_roles` relation is not yet available.
+      if (profileQueryResult.error) {
+        const { data: fallbackProfileData, error: fallbackProfileError } = await supabase
+          .from("profiles")
+          .select(
+            "id, has_completed_onboarding, onboarding_version, jam_id, username, avatar_url, discord_username, default_role, default_engine, engine, default_language, portfolio_url, jam_style, xp, current_title",
+          )
+          .eq("id", uid)
+          .maybeSingle()
+
+        if (!fallbackProfileError) {
+          profileData = fallbackProfileData
+            ? { ...fallbackProfileData, profile_roles: [] }
+            : null
+        }
+      }
 
       if (!notifErr && notifRaw) {
         const normalized = await fetchNotificationsAsNormalized(
@@ -718,24 +744,24 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
         default_role?: string | null
         default_engine?: string | null
         engine?: string | null
+        profile_roles?: SmartMatchRoleInput[] | null
       } | null
       const { teams: smartMatches } = await getRecommendedTeams({
         id: uid,
-      default_role: profilePrefs?.default_role ?? null,
-      default_engine: profilePrefs?.default_engine ?? null,
-      profile_engine: profilePrefs?.engine ?? null,
+        default_role: profilePrefs?.default_role ?? null,
+        profile_roles: profilePrefs?.profile_roles ?? [],
+        default_engine: profilePrefs?.default_engine ?? null,
+        profile_engine: profilePrefs?.engine ?? null,
         excludeTeamIds: Array.from(merged.keys()),
       })
       setRecommendedTeams(smartMatches)
 
-      // Show the new onboarding wizard: when no profile yet (new user), or when
-      // onboarding was never completed, or when they completed an older version.
+      // Show onboarding only for users that never completed it.
       if (!profileData) {
         setShowOnboardingModal(true)
       } else {
         const hasCompletedOnboarding = profileData.has_completed_onboarding === true
-        const onboardingVersion = (profileData as { onboarding_version?: number | null }).onboarding_version ?? 0
-        setShowOnboardingModal(!hasCompletedOnboarding || onboardingVersion < CURRENT_ONBOARDING_VERSION)
+        setShowOnboardingModal(!hasCompletedOnboarding)
       }
 
       const meta = authSession.user.user_metadata as Record<string, string> | undefined
@@ -753,6 +779,17 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
               discord_username: (profileData as { discord_username?: string | null }).discord_username,
               avatar_url: sessionAvatarUrl || profileData.avatar_url,
               default_role: (profileData as { default_role?: string | null }).default_role,
+              jam_style: (profileData as { jam_style?: string | null }).jam_style ?? null,
+              profile_roles: (
+                ((profileData as { profile_roles?: SmartMatchRoleInput[] | null }).profile_roles ?? [])
+                  .filter((role) => role?.role?.trim())
+                  .map((role) => ({
+                    role: (role.role ?? "").trim(),
+                    experience_level: (role.experience_level ?? "regular").trim() || "regular",
+                    is_primary: role.is_primary === true,
+                  }))
+                  .sort((a, b) => Number(b.is_primary) - Number(a.is_primary))
+              ),
               default_engine: (profileData as { default_engine?: string | null }).default_engine,
               default_language: (profileData as { default_language?: string | null }).default_language,
               portfolio_url: (profileData as { portfolio_url?: string | null }).portfolio_url,
@@ -768,6 +805,8 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
                   (authSession.user.user_metadata as Record<string, string> | undefined)?.picture ??
                   null,
                 default_role: null,
+                jam_style: null,
+                profile_roles: [],
                 default_engine: null,
                 default_language: null,
                 portfolio_url: null,

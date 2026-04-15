@@ -7,6 +7,7 @@ import type { GamificationRewardSummary } from "@/lib/gamification-reward-types"
 import { ROLE_OPTIONS } from "@/lib/constants"
 
 type TeamLookingForEntry = { role?: string; level?: string }
+type ProfileRoleRow = { role?: string | null; is_primary?: boolean | null }
 
 const ROLE_VALUES = new Set<string>(ROLE_OPTIONS.map((o) => o.value))
 
@@ -20,6 +21,16 @@ export type SendTeamInvitationInput = {
 
 export type SendTeamInvitationResult =
   | { success: true; gamification?: GamificationRewardSummary }
+  | { success: false; error: string }
+
+export type SendProfileInvitationInput = {
+  teamId: string
+  inviteeUserId: string
+  inviteeUsername?: string | null
+}
+
+export type SendProfileInvitationResult =
+  | { success: true }
   | { success: false; error: string }
 
 /**
@@ -122,4 +133,94 @@ export async function sendTeamInvitation(input: SendTeamInvitationInput): Promis
   }
 
   return { success: true, gamification }
+}
+
+/**
+ * Sends a lightweight invitation from a public profile:
+ * - owner picks one of their squads
+ * - creates `join_requests` with `type = invitation`
+ * - target role defaults to invitee preference, then first open team role, then "developer"
+ */
+export async function sendProfileInvitation(
+  input: SendProfileInvitationInput,
+): Promise<SendProfileInvitationResult> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser()
+
+  if (authError || !user) {
+    return { success: false, error: "You must be signed in." }
+  }
+
+  if (user.id === input.inviteeUserId) {
+    return { success: false, error: "You cannot invite yourself." }
+  }
+
+  const { data: team, error: teamError } = await supabase
+    .from("teams")
+    .select("id, user_id, team_name, looking_for")
+    .eq("id", input.teamId)
+    .single()
+
+  if (teamError || !team || team.user_id !== user.id) {
+    return { success: false, error: "You can only invite from squads you own." }
+  }
+
+  const { data: inviteeProfile } = await supabase
+    .from("profiles")
+    .select("username, default_role, profile_roles(role, is_primary)")
+    .eq("id", input.inviteeUserId)
+    .maybeSingle()
+
+  const profileRoles = ((inviteeProfile?.profile_roles ?? []) as ProfileRoleRow[])
+    .filter((role) => role?.role?.trim())
+    .sort((a, b) => Number(b.is_primary === true) - Number(a.is_primary === true))
+  const preferredRoleRaw =
+    profileRoles[0]?.role?.trim().toLowerCase() ??
+    inviteeProfile?.default_role?.trim().toLowerCase() ??
+    ""
+  const lookingFor = Array.isArray(team.looking_for)
+    ? (team.looking_for as TeamLookingForEntry[])
+    : []
+  const firstTeamRoleRaw =
+    lookingFor.find((entry) => entry?.role?.trim())?.role?.trim().toLowerCase() ?? ""
+  const preferredRole = ROLE_VALUES.has(preferredRoleRaw) ? preferredRoleRaw : ""
+  const firstTeamRole = ROLE_VALUES.has(firstTeamRoleRaw) ? firstTeamRoleRaw : ""
+  const targetRole = preferredRole || firstTeamRole || "developer"
+  const senderName =
+    input.inviteeUsername?.trim() || inviteeProfile?.username?.trim() || "A Jammer"
+  const message = `You've been invited to join ${team.team_name || "our squad"} on GameJamCrew.`
+
+  const { data: inserted, error: insertError } = await supabase
+    .from("join_requests")
+    .insert({
+      team_id: input.teamId,
+      sender_id: input.inviteeUserId,
+      sender_name: senderName,
+      message,
+      status: "pending",
+      type: "invitation",
+      target_role: targetRole,
+    })
+    .select("id")
+    .single()
+
+  if (insertError) {
+    if (insertError.code === "23505") {
+      return { success: false, error: "An invitation is already pending for this jammer on this squad." }
+    }
+    return { success: false, error: insertError.message }
+  }
+
+  if (inserted?.id) {
+    void notifyInviteeInvitation(input.inviteeUserId, team.team_name || "your squad", {
+      teamId: input.teamId,
+      joinRequestId: inserted.id as string,
+      inviterUserId: user.id,
+    })
+  }
+
+  return { success: true }
 }

@@ -322,7 +322,7 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
                     <h3 className="truncate text-lg font-bold text-foreground">
                       <Link
                         href={`/jammer/${player.id}`}
-                        className="transition-colors hover:text-teal hover:underline"
+                        className="cursor-pointer transition-colors hover:text-teal"
                         onClick={(e) => e.stopPropagation()}
                       >
                         {player.username}
@@ -422,7 +422,7 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
                       href={player.jam.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex min-w-0 max-w-full items-center gap-1 truncate font-medium text-lavender hover:underline"
+                      className="inline-flex min-w-0 max-w-full cursor-pointer items-center gap-1 truncate font-medium text-lavender hover:underline"
                       onClick={(e) => e.stopPropagation()}
                     >
                       <span className="truncate">{player.jam.title}</span>
@@ -475,7 +475,12 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2 gap-y-1">
                   <DialogTitle className="text-xl font-bold text-foreground">
-                    {player.username}
+                    <Link
+                      href={`/jammer/${player.id}`}
+                      className="cursor-pointer transition-colors hover:text-teal"
+                    >
+                      {player.username}
+                    </Link>
                   </DialogTitle>
                   {typeof player.jammerLevel === "number" ? (
                     <JammerLevelBadge level={player.jammerLevel} />
@@ -561,7 +566,7 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
                       href={player.jam.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 font-medium text-lavender hover:underline"
+                      className="inline-flex cursor-pointer items-center gap-1.5 font-medium text-lavender hover:underline"
                     >
                       {player.jam.title}
                       <ExternalLink className="size-3.5 shrink-0 opacity-70" aria-hidden />
@@ -588,7 +593,7 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
                   href={player.portfolio_link}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 rounded-xl border border-border/60 px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
+                  className="inline-flex cursor-pointer items-center gap-2 rounded-xl border border-border/60 px-4 py-3 text-sm font-medium text-muted-foreground transition-colors hover:border-primary/40 hover:text-primary"
                 >
                   <ExternalLink className="size-4" />
                   View portfolio

@@ -1,31 +1,66 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useTransition } from "react"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { Navbar } from "@/components/navbar"
 import { MemberFilters } from "@/components/member-filters"
 import { MembersGrid } from "@/components/members-grid"
 import { Search, UserSearch } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { ENGINE_OPTIONS, EXPERIENCE_OPTIONS, ROLE_OPTIONS } from "@/lib/constants"
+import type { AvailablePlayerListItem } from "@/lib/queries"
 
-export function FindMembersShell() {
-  const [searchQuery, setSearchQuery] = useState("")
-  const [roleFilter, setRoleFilter] = useState("all")
-  const [engineFilter, setEngineFilter] = useState("all")
-  const [levelFilter, setLevelFilter] = useState("all")
+type FindMembersShellProps = {
+  initialMembers: AvailablePlayerListItem[]
+  initialHasMore: boolean
+}
+
+export function FindMembersShell({ initialMembers, initialHasMore }: FindMembersShellProps) {
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const [isPending, startTransition] = useTransition()
+
+  const searchQuery = searchParams.get("q") ?? ""
+  const roleFilter = searchParams.get("role") ?? "all"
+  const engineFilter = searchParams.get("engine") ?? "all"
+  const levelFilter = searchParams.get("level") ?? "all"
+  const jamIdFilter = searchParams.get("jam_id") ?? ""
   const [resultsCount, setResultsCount] = useState<number | null>(null)
 
   const hasActiveFilters =
     searchQuery !== "" ||
     roleFilter !== "all" ||
     engineFilter !== "all" ||
-    levelFilter !== "all"
+    levelFilter !== "all" ||
+    jamIdFilter !== ""
+
+  const replaceUrlWithFilters = (updates: Record<string, string | null>) => {
+    const nextParams = new URLSearchParams(searchParams.toString())
+    Object.entries(updates).forEach(([key, value]) => {
+      if (!value || value === "all") {
+        nextParams.delete(key)
+      } else {
+        nextParams.set(key, value)
+      }
+    })
+
+    // Any filter update should restart pagination from the first page.
+    nextParams.delete("offset")
+    const query = nextParams.toString()
+    startTransition(() => {
+      router.push(query ? `${pathname}?${query}` : pathname)
+    })
+  }
 
   const handleResetFilters = () => {
-    setSearchQuery("")
-    setRoleFilter("all")
-    setEngineFilter("all")
-    setLevelFilter("all")
+    replaceUrlWithFilters({
+      q: null,
+      role: null,
+      engine: null,
+      level: null,
+      jam_id: null,
+    })
   }
 
   const activeFilterLabels: string[] = []
@@ -74,7 +109,7 @@ export function FindMembersShell() {
                   type="text"
                   placeholder="Search by name..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => replaceUrlWithFilters({ q: e.target.value })}
                   className="h-14 border-0 bg-transparent px-4 text-base shadow-none ring-0 placeholder:text-muted-foreground focus-visible:ring-0"
                 />
               </div>
@@ -88,9 +123,10 @@ export function FindMembersShell() {
           level={levelFilter}
           hasActiveFilters={hasActiveFilters}
           resultsCount={resultsCount ?? undefined}
-          onRoleChange={setRoleFilter}
-          onEngineChange={setEngineFilter}
-          onLevelChange={setLevelFilter}
+          isUpdating={isPending}
+          onRoleChange={(value) => replaceUrlWithFilters({ role: value })}
+          onEngineChange={(value) => replaceUrlWithFilters({ engine: value })}
+          onLevelChange={(value) => replaceUrlWithFilters({ level: value })}
           onReset={handleResetFilters}
         />
 
@@ -106,11 +142,16 @@ export function FindMembersShell() {
         )}
 
         <MembersGrid
+          key={`${searchQuery}|${roleFilter}|${engineFilter}|${levelFilter}|${jamIdFilter}`}
+          initialMembers={initialMembers}
+          initialHasMore={initialHasMore}
           searchQuery={searchQuery}
           roleFilter={roleFilter}
           engineFilter={engineFilter}
           levelFilter={levelFilter}
+          jamIdFilter={jamIdFilter}
           onResultsCountChange={setResultsCount}
+          isRefreshing={isPending}
         />
       </main>
     </div>

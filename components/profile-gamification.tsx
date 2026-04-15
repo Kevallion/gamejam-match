@@ -115,6 +115,8 @@ export type ProfileGamificationProps = {
   className?: string
   /** Only badge grid — pair with `GamificationDashboardFull` on the Achievements tab (or public profile). */
   badgesOnly?: boolean
+  /** Render only unlocked badges (public profile recruiter view). */
+  unlockedOnly?: boolean
 }
 
 type BadgeRow = { badge_id: string; earned_at: string }
@@ -123,14 +125,20 @@ function GamificationBadgeGrid({
   sortedBadgeIds,
   earnedIds,
   badges,
+  unlockedOnly = false,
 }: {
   sortedBadgeIds: (keyof typeof BADGE_DICTIONARY)[]
   earnedIds: Set<string>
   badges: BadgeRow[]
+  unlockedOnly?: boolean
 }) {
+  const visibleBadgeIds = unlockedOnly
+    ? sortedBadgeIds.filter((badgeId) => earnedIds.has(badgeId))
+    : sortedBadgeIds
+
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-      {sortedBadgeIds.map((badgeId) => {
+      {visibleBadgeIds.map((badgeId) => {
         const meta = BADGE_DICTIONARY[badgeId]
         if (!meta) return null
         const unlocked = earnedIds.has(badgeId)
@@ -189,7 +197,12 @@ function GamificationBadgeGrid({
   )
 }
 
-export function ProfileGamification({ userId, className, badgesOnly = false }: ProfileGamificationProps) {
+export function ProfileGamification({
+  userId,
+  className,
+  badgesOnly = false,
+  unlockedOnly = false,
+}: ProfileGamificationProps) {
   const [xp, setXp] = useState<number | null>(null)
   const [currentTitle, setCurrentTitle] = useState<string>("Rookie Jammer")
   const [badges, setBadges] = useState<BadgeRow[]>([])
@@ -294,6 +307,8 @@ export function ProfileGamification({ userId, className, badgesOnly = false }: P
   }
 
   if (badgesOnly) {
+    const unlockedCount = badges.filter((badge) => earnedIds.has(badge.badge_id)).length
+
     return (
       <Card
         className={cn(
@@ -311,8 +326,22 @@ export function ProfileGamification({ userId, className, badgesOnly = false }: P
           </h3>
           {error ? <p className="mt-1 text-xs text-destructive">{error}</p> : null}
         </CardHeader>
-        <CardContent className="relative pb-4 pt-0 sm:pb-6">
-          <GamificationBadgeGrid sortedBadgeIds={sortedBadgeIds} earnedIds={earnedIds} badges={badges} />
+        <CardContent className="relative pb-4 pt-3 sm:pb-6">
+          {unlockedOnly && unlockedCount === 0 ? (
+            <div className="rounded-2xl border border-dashed border-border/50 bg-muted/25 px-4 py-8 text-center">
+              <p className="text-sm font-semibold text-foreground">No badges unlocked yet.</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Keep jamming and collaborating to unlock your first badge.
+              </p>
+            </div>
+          ) : (
+            <GamificationBadgeGrid
+              sortedBadgeIds={sortedBadgeIds}
+              earnedIds={earnedIds}
+              badges={badges}
+              unlockedOnly={unlockedOnly}
+            />
+          )}
         </CardContent>
       </Card>
     )

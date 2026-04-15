@@ -34,7 +34,7 @@ export function GiveKudosControl({
 
   if (!viewerUserId) {
     return (
-      <div className="flex flex-col items-center gap-2 sm:items-start">
+      <div className="flex w-full flex-col items-center gap-2 sm:w-auto sm:items-start">
         <p className="text-center text-sm text-muted-foreground sm:text-left">
           Sign in to endorse this jammer with kudos.
         </p>
@@ -49,7 +49,7 @@ export function GiveKudosControl({
 
   if (!viewerSharesTeamWithReceiver) {
     return (
-      <p className="max-w-md text-center text-sm text-muted-foreground/90 sm:text-left">
+      <p className="w-full max-w-md text-center text-sm text-muted-foreground/90 sm:w-auto sm:text-left">
         Collaborate with{" "}
         <span className="font-medium text-foreground/80">{profileDisplayName}</span> in a team to leave
         a Kudos.
@@ -75,7 +75,7 @@ export function GiveKudosControl({
       <DropdownMenuTrigger asChild>
         <Button
           variant="outline"
-          className="gap-2 rounded-xl border-lavender/35 bg-lavender/5 hover:bg-lavender/10"
+          className="w-full gap-2 rounded-xl border-lavender/35 bg-lavender/5 hover:bg-lavender/10 sm:w-auto"
           disabled={pending}
         >
           {pending ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4 text-lavender" />}

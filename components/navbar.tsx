@@ -138,10 +138,10 @@ export function Navbar() {
   return (
     <>
       {/* Floating Desktop Navbar - Hidden on mobile */}
-      <header className="fixed top-4 left-1/2 -translate-x-1/2 z-50 hidden md:block">
-        <nav className="glass-navbar flex items-center gap-2 rounded-2xl px-3 py-2 shadow-lg shadow-black/5">
+      <header className="fixed top-4 left-1/2 z-50 hidden w-max max-w-[calc(100vw-2rem)] -translate-x-1/2 px-2 md:block">
+        <nav className="glass-navbar flex min-w-0 w-full items-center gap-2 overflow-x-auto overflow-y-hidden rounded-2xl px-3 py-2 shadow-lg shadow-black/5 scrollbar-none">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 px-2 text-foreground transition-colors hover:text-primary">
+          <Link href="/" className="flex shrink-0 items-center gap-2 px-2 text-foreground transition-colors hover:text-primary">
             <div className="flex size-8 items-center justify-center rounded-xl bg-primary/15">
               <Gamepad2 className="size-4 text-primary" />
             </div>
@@ -149,10 +149,10 @@ export function Navbar() {
           </Link>
 
           {/* Separator */}
-          <div className="h-6 w-px bg-border/50 mx-1" />
+          <div className="mx-1 h-6 w-px shrink-0 bg-border/50" />
 
           {/* Nav Links */}
-          <div className="flex items-center gap-0.5">
+          <div className="flex shrink-0 items-center gap-0.5">
             <Button variant="ghost" asChild size="sm" className="gap-1.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-white/10">
               <Link href="/teams"><Users className="size-3.5" />Teams</Link>
             </Button>
@@ -168,10 +168,10 @@ export function Navbar() {
           </div>
 
           {/* Separator */}
-          <div className="h-6 w-px bg-border/50 mx-1" />
+          <div className="mx-1 h-6 w-px shrink-0 bg-border/50" />
 
           {/* Actions */}
-          <div className="flex items-center gap-1">
+          <div className="flex shrink-0 items-center gap-1">
             {mounted ? (
               <SupportNavbarPopover className="size-8" />
             ) : (
@@ -295,10 +295,14 @@ export function Navbar() {
             ) : user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="gap-2 rounded-xl hover:bg-white/10 max-w-48">
-                    <div className="flex items-center gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="min-w-0 max-w-48 shrink gap-2 overflow-hidden rounded-xl hover:bg-white/10"
+                  >
+                    <div className="flex min-w-0 max-w-full items-center gap-2">
                       <JammerLevelBadge level={navLevel} />
-                      <span className="truncate text-sm font-medium">{displayName}</span>
+                      <span className="min-w-0 flex-1 truncate text-sm font-medium">{displayName}</span>
                     </div>
                   </Button>
                 </DropdownMenuTrigger>
@@ -336,17 +340,17 @@ export function Navbar() {
 
       {/* Mobile Header - Simple top bar for branding + actions */}
       <header className="sticky top-0 z-40 w-full glass-navbar md:hidden">
-        <nav className="flex h-14 items-center justify-between px-4">
+        <nav className="flex h-14 min-w-0 items-center justify-between gap-2 px-4">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 text-foreground">
-            <div className="flex size-8 items-center justify-center rounded-xl bg-primary/15">
+          <Link href="/" className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden text-foreground">
+            <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-primary/15">
               <Gamepad2 className="size-4 text-primary" />
             </div>
-            <span className="text-base font-extrabold tracking-tight">GameJamCrew</span>
+            <span className="truncate text-base font-extrabold tracking-tight">GameJamCrew</span>
           </Link>
 
           {/* Mobile Actions */}
-          <div className="flex items-center gap-1">
+          <div className="flex shrink-0 items-center gap-1">
             {mounted ? <SupportNavbarPopover className="size-9" /> : (
               <Button variant="ghost" size="icon" className="size-9 rounded-xl" disabled aria-label="Support the project">
                 <Heart className="size-4 opacity-30" />
