@@ -111,6 +111,11 @@ type EditableRoleEntry = {
   level: string
 }
 
+type LookingForEntryInput = {
+  role?: string | null
+  level?: string | null
+}
+
 let editableRoleIdCounter = 1
 
 function nextEditableRoleId() {
@@ -257,7 +262,7 @@ export default function TeamManagePage() {
         jam_end_date: isoTimestampToDateInput(td.jam_end_date),
         looking_for:
           (teamData.looking_for ?? []).length > 0
-            ? (teamData.looking_for ?? []).map((entry) => ({
+            ? (teamData.looking_for ?? []).map((entry: LookingForEntryInput) => ({
                 id: nextEditableRoleId(),
                 role: entry.role ?? "",
                 level: entry.level ?? "",
