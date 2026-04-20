@@ -16,6 +16,7 @@ import type {
 import {
   Info,
   Inbox,
+  Rocket,
   Settings2,
   Trash2,
   Trophy,
@@ -24,6 +25,7 @@ import {
   Users2,
 } from "lucide-react"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
@@ -1245,6 +1247,38 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
         {/* Hero section with identity + KPIs */}
         <section className="px-4 py-6 md:py-8 lg:px-6">
           <div className="mx-auto max-w-5xl space-y-4 md:space-y-6">
+            <Alert
+              className={cn(
+                "rounded-xl border-purple-500 bg-purple-100 text-foreground shadow-sm",
+                "dark:border-purple-400 dark:bg-purple-950/35 dark:text-purple-50",
+              )}
+            >
+              <Rocket
+                className="size-4 shrink-0 text-purple-600 dark:text-purple-300"
+                aria-hidden
+              />
+              <AlertDescription className="col-start-2 text-foreground/90 dark:text-purple-50/95">
+                <span className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-2 sm:gap-y-1">
+                  <span className="text-sm leading-snug sm:text-sm">
+                    The GameJamCrew Launch Jam starts on May 1st! $40 to $100 Prize Pool.
+                  </span>
+                  <Button
+                    variant="link"
+                    asChild
+                    className="h-auto shrink-0 justify-start p-0 text-sm font-semibold text-purple-700 underline-offset-4 hover:text-purple-900 dark:text-purple-200 dark:hover:text-white"
+                  >
+                    <a
+                      href="https://itch.io/jam/gamejamcrew-jam"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Join now
+                    </a>
+                  </Button>
+                </span>
+              </AlertDescription>
+            </Alert>
+
             {/* Compact Identity Header */}
             {session?.user?.id && profile ? (
               <DashboardIdentityHeader
