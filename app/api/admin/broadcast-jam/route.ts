@@ -6,6 +6,9 @@ export const dynamic = "force-dynamic"
 export const maxDuration = 300
 
 const PAGE_SIZE = 500
+const RESEND_MAX_PER_SECOND = 5
+const SEND_WINDOW_MS = 1000
+const DEFAULT_MAX_SENDS_PER_RUN = 45
 
 /**
  * Admin-only: broadcast Launch Jam announcement to jammers who have an email.
@@ -20,7 +23,7 @@ const PAGE_SIZE = 500
  *
  * GET and POST behave the same (Vercel Cron invokes scheduled routes with GET + Bearer CRON_SECRET).
  *
- * Sends within each page run in parallel (Promise.all) to fit tight serverless timeouts (e.g. Hobby 10s).
+ * Sends in controlled chunks to respect Resend rate limits and avoid duplicate sends.
  */
 function isAuthorized(request: Request): boolean {
   const cronSecret = process.env.CRON_SECRET?.trim()
@@ -39,6 +42,10 @@ function isAuthorized(request: Request): boolean {
   if (adminSecret && headerVal === adminSecret) return true
 
   return false
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
 async function runBroadcastJam(request: Request): Promise<NextResponse> {
@@ -60,15 +67,19 @@ async function runBroadcastJam(request: Request): Promise<NextResponse> {
 
   const supabaseAdmin = createAdminClient()
   let sent = 0
-  let from = 0
+  let attempted = 0
+  const maxSendsPerRun = Math.max(
+    1,
+    Number(process.env.BROADCAST_MAX_SENDS_PER_RUN ?? DEFAULT_MAX_SENDS_PER_RUN),
+  )
 
-  while (true) {
+  while (sent < maxSendsPerRun) {
     const { data: rows, error } = await supabaseAdmin
       .from("profiles")
       .select("id, username")
       .is("launch_jam_announcement_sent_at", null)
       .order("id", { ascending: true })
-      .range(from, from + PAGE_SIZE - 1)
+      .range(0, PAGE_SIZE - 1)
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
@@ -77,17 +88,39 @@ async function runBroadcastJam(request: Request): Promise<NextResponse> {
     const batch = rows ?? []
     if (batch.length === 0) break
 
-    const outcomes = await Promise.all(
+    const recipients = await Promise.all(
       batch.map(async (row) => {
         const userId = row.id as string
         const email = await getUserEmail(userId)
-        if (!email) return false
+        if (!email) return null
 
         const displayName =
           typeof row.username === "string" && row.username.trim()
             ? row.username.trim()
             : "Jammer"
 
+        return { userId, email, displayName }
+      }),
+    )
+
+    const filteredRecipients = recipients.filter(
+      (recipient): recipient is { userId: string; email: string; displayName: string } =>
+        recipient !== null,
+    )
+
+    if (filteredRecipients.length === 0) break
+
+    for (
+      let i = 0;
+      i < filteredRecipients.length && sent < maxSendsPerRun;
+      i += RESEND_MAX_PER_SECOND
+    ) {
+      const room = maxSendsPerRun - sent
+      const chunk = filteredRecipients.slice(i, i + Math.min(RESEND_MAX_PER_SECOND, room))
+      attempted += chunk.length
+
+      const outcomes = await Promise.all(
+        chunk.map(async ({ userId, email, displayName }) => {
         const ok = await sendLaunchJamAnnouncement(email, displayName)
         if (!ok) return false
 
@@ -107,15 +140,34 @@ async function runBroadcastJam(request: Request): Promise<NextResponse> {
         }
 
         return true
-      }),
-    )
-    sent += outcomes.filter(Boolean).length
+        }),
+      )
+
+      sent += outcomes.filter(Boolean).length
+
+      if (i + RESEND_MAX_PER_SECOND < filteredRecipients.length && sent < maxSendsPerRun) {
+        await sleep(SEND_WINDOW_MS)
+      }
+    }
 
     if (batch.length < PAGE_SIZE) break
-    from += PAGE_SIZE
   }
 
-  return NextResponse.json({ sent })
+  const { count: remaining, error: remainingError } = await supabaseAdmin
+    .from("profiles")
+    .select("id", { count: "exact", head: true })
+    .is("launch_jam_announcement_sent_at", null)
+
+  if (remainingError) {
+    return NextResponse.json({ sent, attempted, maxSendsPerRun })
+  }
+
+  return NextResponse.json({
+    sent,
+    attempted,
+    maxSendsPerRun,
+    remaining: remaining ?? 0,
+  })
 }
 
 export async function GET(request: Request) {
