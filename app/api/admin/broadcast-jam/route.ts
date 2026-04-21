@@ -5,10 +5,8 @@ import { sendLaunchJamAnnouncement } from "@/lib/mail"
 export const dynamic = "force-dynamic"
 export const maxDuration = 300
 
-const PAGE_SIZE = 500
-const RESEND_MAX_PER_SECOND = 5
-const SEND_WINDOW_MS = 1000
-const DEFAULT_MAX_SENDS_PER_RUN = 45
+const PAGE_SIZE = 40
+const SEND_DELAY_MS = 200
 
 /**
  * Admin-only: broadcast Launch Jam announcement to jammers who have an email.
@@ -18,12 +16,12 @@ const DEFAULT_MAX_SENDS_PER_RUN = 45
  * - x-cron-secret: <CRON_SECRET>
  * - x-admin-broadcast-secret: <ADMIN_BROADCAST_SECRET>
  *
- * Fetches all profiles not already marked as sent, resolves email from auth.users
- * via getUserEmail, skips users without email.
+ * Fetches one fixed page of profiles (40 per page), resolves email from auth.users,
+ * skips users without email and users already marked as sent.
  *
  * GET and POST behave the same (Vercel Cron invokes scheduled routes with GET + Bearer CRON_SECRET).
  *
- * Sends in controlled chunks to respect Resend rate limits and avoid duplicate sends.
+ * Sends sequentially with 200ms delay to stay under Resend rate limits.
  */
 function isAuthorized(request: Request): boolean {
   const cronSecret = process.env.CRON_SECRET?.trim()
@@ -65,108 +63,87 @@ async function runBroadcastJam(request: Request): Promise<NextResponse> {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
+  const url = new URL(request.url)
+  const rawPage = Number(url.searchParams.get("page") ?? "1")
+  const page = Number.isFinite(rawPage) && rawPage > 0 ? Math.floor(rawPage) : 1
+  const start = (page - 1) * PAGE_SIZE
+  const end = start + PAGE_SIZE - 1
+
   const supabaseAdmin = createAdminClient()
   let sent = 0
   let attempted = 0
-  const maxSendsPerRun = Math.max(
-    1,
-    Number(process.env.BROADCAST_MAX_SENDS_PER_RUN ?? DEFAULT_MAX_SENDS_PER_RUN),
-  )
+  let alreadySent = 0
+  let missingEmail = 0
 
-  while (sent < maxSendsPerRun) {
-    const { data: rows, error } = await supabaseAdmin
-      .from("profiles")
-      .select("id, username")
-      .is("launch_jam_announcement_sent_at", null)
-      .order("id", { ascending: true })
-      .range(0, PAGE_SIZE - 1)
+  const { data: rows, error } = await supabaseAdmin
+    .from("profiles")
+    .select("id, username, launch_jam_announcement_sent_at")
+    .order("id", { ascending: true })
+    .range(start, end)
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 })
+  }
+
+  const batch = rows ?? []
+  for (let i = 0; i < batch.length; i += 1) {
+    const row = batch[i] as {
+      id: string
+      username?: string | null
+      launch_jam_announcement_sent_at?: string | null
     }
 
-    const batch = rows ?? []
-    if (batch.length === 0) break
+    if (row.launch_jam_announcement_sent_at) {
+      alreadySent += 1
+      continue
+    }
 
-    const recipients = await Promise.all(
-      batch.map(async (row) => {
-        const userId = row.id as string
-        const email = await getUserEmail(userId)
-        if (!email) return null
+    attempted += 1
+    const userId = row.id
+    const email = await getUserEmail(userId)
+    if (!email) {
+      missingEmail += 1
+      continue
+    }
 
-        const displayName =
-          typeof row.username === "string" && row.username.trim()
-            ? row.username.trim()
-            : "Jammer"
+    const displayName =
+      typeof row.username === "string" && row.username.trim()
+        ? row.username.trim()
+        : "Jammer"
 
-        return { userId, email, displayName }
-      }),
-    )
+    const ok = await sendLaunchJamAnnouncement(email, displayName)
+    if (ok) {
+      sent += 1
+      const { error: markError } = await supabaseAdmin
+        .from("profiles")
+        .update({
+          launch_jam_announcement_sent_at: new Date().toISOString(),
+        })
+        .eq("id", userId)
+        .is("launch_jam_announcement_sent_at", null)
 
-    const filteredRecipients = recipients.filter(
-      (recipient): recipient is { userId: string; email: string; displayName: string } =>
-        recipient !== null,
-    )
-
-    if (filteredRecipients.length === 0) break
-
-    for (
-      let i = 0;
-      i < filteredRecipients.length && sent < maxSendsPerRun;
-      i += RESEND_MAX_PER_SECOND
-    ) {
-      const room = maxSendsPerRun - sent
-      const chunk = filteredRecipients.slice(i, i + Math.min(RESEND_MAX_PER_SECOND, room))
-      attempted += chunk.length
-
-      const outcomes = await Promise.all(
-        chunk.map(async ({ userId, email, displayName }) => {
-        const ok = await sendLaunchJamAnnouncement(email, displayName)
-        if (!ok) return false
-
-        const { error: markError } = await supabaseAdmin
-          .from("profiles")
-          .update({
-            launch_jam_announcement_sent_at: new Date().toISOString(),
-          })
-          .eq("id", userId)
-          .is("launch_jam_announcement_sent_at", null)
-
-        if (markError) {
-          console.error("[broadcast-jam] Failed to mark profile as sent:", {
-            userId,
-            error: markError.message,
-          })
-        }
-
-        return true
-        }),
-      )
-
-      sent += outcomes.filter(Boolean).length
-
-      if (i + RESEND_MAX_PER_SECOND < filteredRecipients.length && sent < maxSendsPerRun) {
-        await sleep(SEND_WINDOW_MS)
+      if (markError) {
+        console.error("[broadcast-jam] Failed to mark profile as sent:", {
+          userId,
+          error: markError.message,
+        })
       }
     }
 
-    if (batch.length < PAGE_SIZE) break
-  }
-
-  const { count: remaining, error: remainingError } = await supabaseAdmin
-    .from("profiles")
-    .select("id", { count: "exact", head: true })
-    .is("launch_jam_announcement_sent_at", null)
-
-  if (remainingError) {
-    return NextResponse.json({ sent, attempted, maxSendsPerRun })
+    if (i < batch.length - 1) {
+      await sleep(SEND_DELAY_MS)
+    }
   }
 
   return NextResponse.json({
-    sent,
+    page,
+    range: { start, end },
+    pageSize: PAGE_SIZE,
+    totalInPage: batch.length,
     attempted,
-    maxSendsPerRun,
-    remaining: remaining ?? 0,
+    sent,
+    alreadySent,
+    missingEmail,
   })
 }
 
