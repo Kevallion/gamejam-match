@@ -8,15 +8,15 @@ export const maxDuration = 300
 const PAGE_SIZE = 500
 
 /**
- * Admin-only: broadcast Launch Jam announcement to onboarded jammers who have an email.
+ * Admin-only: broadcast Launch Jam announcement to jammers who have an email.
  *
  * Auth (any one):
  * - Authorization: Bearer <CRON_SECRET>
  * - x-cron-secret: <CRON_SECRET>
  * - x-admin-broadcast-secret: <ADMIN_BROADCAST_SECRET>
  *
- * Fetches all profiles with has_completed_onboarding = true, resolves email from
- * auth.users via getUserEmail, skips users without email.
+ * Fetches all profiles, resolves email from auth.users via getUserEmail,
+ * skips users without email.
  *
  * GET and POST behave the same (Vercel Cron invokes scheduled routes with GET + Bearer CRON_SECRET).
  *
@@ -66,7 +66,6 @@ async function runBroadcastJam(request: Request): Promise<NextResponse> {
     const { data: rows, error } = await supabaseAdmin
       .from("profiles")
       .select("id, username")
-      .eq("has_completed_onboarding", true)
       .order("id", { ascending: true })
       .range(from, from + PAGE_SIZE - 1)
 

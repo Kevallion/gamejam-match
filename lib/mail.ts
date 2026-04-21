@@ -95,18 +95,19 @@ export async function sendLaunchJamAnnouncement(
   const contentHtml = `
       <p style="margin:0 0 8px;font-size:40px;line-height:1;text-align:center;">🚀</p>
       <p style="margin:0 0 20px;color:#1f2937;font-size:18px;font-weight:600;">Hi ${safeName},</p>
-      <p style="${p}">We are excited to celebrate the <strong style="font-weight:700;color:#1f2937;">first official GameJamCrew community jam</strong> — our Launch Jam. Whether you are looking for a squad or ready to lead one, this is your moment to connect and build something great together.</p>
+      <p style="${p}">We are excited to celebrate the <strong style="font-weight:700;color:#1f2937;">first official GameJamCrew community jam</strong>, our Launch Jam. Whether you are looking for a squad or ready to lead one, this is your moment to connect and build something great together.</p>
 
       <p style="${h}">The prize pool</p>
       <p style="${p}"><strong style="font-weight:700;color:${accent};">Tier 1:</strong> Every participating team is eligible for <strong style="color:#1f2937;">guaranteed $40 Steam Gift Cards</strong>.</p>
       <p style="${p}"><strong style="font-weight:700;color:${accent};">Tier 2:</strong> If we reach <strong style="color:#1f2937;">600+ jammers</strong> across the event, the pool increases to <strong style="color:#1f2937;">$100</strong> in Steam rewards.</p>
 
       <p style="${h}">Rules</p>
-      <p style="${p}">Teams must have <strong style="color:#1f2937;">3 to 4 members</strong> (maximum). Your squad <strong style="color:#1f2937;">must be officially formed on gamejamcrew.com</strong> — ad-hoc groups outside the platform are not eligible.</p>
+      <p style="${p}">Teams must have <strong style="color:#1f2937;">3 to 4 members</strong> (maximum). Your squad <strong style="color:#1f2937;">must be officially formed on gamejamcrew.com</strong>; ad-hoc groups outside the platform are not eligible.</p>
 
       <p style="${h}">Timeline</p>
       <p style="${p}"><strong style="color:#1f2937;">Kick-off:</strong> May 1st at 6:00 PM (CET)<br/>
       <strong style="color:#1f2937;">Submission deadline:</strong> May 17th at 8:00 PM (CET)</p>
+      <p style="${p}"><strong style="color:#1f2937;">Jam page:</strong> <a href="https://itch.io/jam/gamejamcrew-jam" style="color:${accent};text-decoration:underline;font-weight:600;" target="_blank" rel="noopener noreferrer">https://itch.io/jam/gamejamcrew-jam</a></p>
 
       <p style="margin:28px 0 24px;text-align:center;">
         <a href="${dashboardUrl}" style="${ctaStyle}" target="_blank" rel="noopener noreferrer">FIND YOUR SQUAD</a>
