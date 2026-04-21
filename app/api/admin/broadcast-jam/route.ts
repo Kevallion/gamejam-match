@@ -15,8 +15,8 @@ const PAGE_SIZE = 500
  * - x-cron-secret: <CRON_SECRET>
  * - x-admin-broadcast-secret: <ADMIN_BROADCAST_SECRET>
  *
- * Fetches all profiles, resolves email from auth.users via getUserEmail,
- * skips users without email.
+ * Fetches all profiles not already marked as sent, resolves email from auth.users
+ * via getUserEmail, skips users without email.
  *
  * GET and POST behave the same (Vercel Cron invokes scheduled routes with GET + Bearer CRON_SECRET).
  *
@@ -66,6 +66,7 @@ async function runBroadcastJam(request: Request): Promise<NextResponse> {
     const { data: rows, error } = await supabaseAdmin
       .from("profiles")
       .select("id, username")
+      .is("launch_jam_announcement_sent_at", null)
       .order("id", { ascending: true })
       .range(from, from + PAGE_SIZE - 1)
 
@@ -87,7 +88,25 @@ async function runBroadcastJam(request: Request): Promise<NextResponse> {
             ? row.username.trim()
             : "Jammer"
 
-        return sendLaunchJamAnnouncement(email, displayName)
+        const ok = await sendLaunchJamAnnouncement(email, displayName)
+        if (!ok) return false
+
+        const { error: markError } = await supabaseAdmin
+          .from("profiles")
+          .update({
+            launch_jam_announcement_sent_at: new Date().toISOString(),
+          })
+          .eq("id", userId)
+          .is("launch_jam_announcement_sent_at", null)
+
+        if (markError) {
+          console.error("[broadcast-jam] Failed to mark profile as sent:", {
+            userId,
+            error: markError.message,
+          })
+        }
+
+        return true
       }),
     )
     sent += outcomes.filter(Boolean).length
