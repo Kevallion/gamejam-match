@@ -6,7 +6,6 @@ export const dynamic = "force-dynamic"
 export const maxDuration = 300
 
 const PAGE_SIZE = 500
-const SEND_DELAY_MS = 100
 
 /**
  * Admin-only: broadcast Launch Jam announcement to onboarded jammers who have an email.
@@ -20,6 +19,8 @@ const SEND_DELAY_MS = 100
  * auth.users via getUserEmail, skips users without email.
  *
  * GET and POST behave the same (Vercel Cron invokes scheduled routes with GET + Bearer CRON_SECRET).
+ *
+ * Sends within each page run in parallel (Promise.all) to fit tight serverless timeouts (e.g. Hobby 10s).
  */
 function isAuthorized(request: Request): boolean {
   const cronSecret = process.env.CRON_SECRET?.trim()
@@ -76,21 +77,21 @@ async function runBroadcastJam(request: Request): Promise<NextResponse> {
     const batch = rows ?? []
     if (batch.length === 0) break
 
-    for (const row of batch) {
-      const userId = row.id as string
-      const email = await getUserEmail(userId)
-      if (!email) continue
+    const outcomes = await Promise.all(
+      batch.map(async (row) => {
+        const userId = row.id as string
+        const email = await getUserEmail(userId)
+        if (!email) return false
 
-      const displayName =
-        typeof row.username === "string" && row.username.trim()
-          ? row.username.trim()
-          : "Jammer"
+        const displayName =
+          typeof row.username === "string" && row.username.trim()
+            ? row.username.trim()
+            : "Jammer"
 
-      const ok = await sendLaunchJamAnnouncement(email, displayName)
-      if (ok) sent += 1
-
-      await new Promise((r) => setTimeout(r, SEND_DELAY_MS))
-    }
+        return sendLaunchJamAnnouncement(email, displayName)
+      }),
+    )
+    sent += outcomes.filter(Boolean).length
 
     if (batch.length < PAGE_SIZE) break
     from += PAGE_SIZE
