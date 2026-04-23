@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { Sword, Gamepad2, Code2, Sparkles, BookOpen } from "lucide-react"
+import { Sword, Gamepad2, Code2, Sparkles, BookOpen, Users } from "lucide-react"
 import { AuthModal } from "@/components/auth-modal"
 import { Button } from "@/components/ui/button"
 
@@ -104,6 +104,11 @@ export function LandingHero() {
 
             {/* Social proof row */}
             <div className="mt-8 flex flex-wrap items-center justify-center gap-4 text-sm text-muted-foreground lg:justify-start">
+              <div className="flex items-center gap-2">
+                <Users className="size-4 text-teal" />
+                <span>Join 120+ Jammers</span>
+              </div>
+              <div className="hidden h-4 w-px bg-border sm:block" />
               <div className="flex items-center gap-2">
                 <Gamepad2 className="size-4 text-teal" />
                 <span>Ludum Dare &bull; GMTK &bull; Game Off</span>

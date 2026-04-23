@@ -26,6 +26,7 @@ type MembersPageProps = {
     role?: string
     engine?: string
     level?: string
+    lang?: string
     jam_id?: string
   }>
 }
@@ -39,6 +40,7 @@ export default async function MembersPage({ searchParams }: MembersPageProps) {
       role: params.role,
       engine: params.engine,
       experience: params.level,
+      language: params.lang,
       jamId: params.jam_id,
       offset: 0,
     },

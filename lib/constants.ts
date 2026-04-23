@@ -27,6 +27,11 @@ export const EXPERIENCE_OPTIONS = [
   { value: "veteran", label: "Industry Veteran", emoji: "👑", color: "bg-amber-500/15 text-amber-400" },
 ] as const
 
+/**
+ * Canonical keys persisted in DB (`profiles.default_language`, `profiles.language`,
+ * `availability_posts.language`, `teams.language`). Same vocabulary as onboarding / team forms:
+ * lowercase full names (e.g. `french`), not ISO 639-1 codes (`fr`).
+ */
 export const LANGUAGE_OPTIONS = [
   { value: "english", label: "English" },
   { value: "french", label: "French" },
@@ -37,6 +42,18 @@ export const LANGUAGE_OPTIONS = [
   { value: "korean", label: "Korean" },
   { value: "chinese", label: "Chinese" },
 ] as const
+
+/** ISO-style shortcuts → same keys as `LANGUAGE_OPTIONS` `value` (DB stores canonical keys, not `fr`). */
+export const LANGUAGE_OPTION_VALUE_ALIASES: Readonly<Record<string, string>> = {
+  en: "english",
+  fr: "french",
+  es: "spanish",
+  pt: "portuguese",
+  de: "german",
+  ja: "japanese",
+  ko: "korean",
+  zh: "chinese",
+}
 
 export const ENGINE_OPTIONS = [
   { value: "godot", label: "Godot" },

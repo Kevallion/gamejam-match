@@ -7,7 +7,12 @@ import { MemberFilters } from "@/components/member-filters"
 import { MembersGrid } from "@/components/members-grid"
 import { Search, UserSearch } from "lucide-react"
 import { Input } from "@/components/ui/input"
-import { ENGINE_OPTIONS, EXPERIENCE_OPTIONS, ROLE_OPTIONS } from "@/lib/constants"
+import {
+  ENGINE_OPTIONS,
+  EXPERIENCE_OPTIONS,
+  LANGUAGE_OPTIONS,
+  ROLE_OPTIONS,
+} from "@/lib/constants"
 import type { AvailablePlayerListItem } from "@/lib/queries"
 
 type FindMembersShellProps = {
@@ -25,6 +30,7 @@ export function FindMembersShell({ initialMembers, initialHasMore }: FindMembers
   const roleFilter = searchParams.get("role") ?? "all"
   const engineFilter = searchParams.get("engine") ?? "all"
   const levelFilter = searchParams.get("level") ?? "all"
+  const langFilter = searchParams.get("lang") ?? "all"
   const jamIdFilter = searchParams.get("jam_id") ?? ""
   const [resultsCount, setResultsCount] = useState<number | null>(null)
 
@@ -33,6 +39,7 @@ export function FindMembersShell({ initialMembers, initialHasMore }: FindMembers
     roleFilter !== "all" ||
     engineFilter !== "all" ||
     levelFilter !== "all" ||
+    langFilter !== "all" ||
     jamIdFilter !== ""
 
   const replaceUrlWithFilters = (updates: Record<string, string | null>) => {
@@ -59,6 +66,7 @@ export function FindMembersShell({ initialMembers, initialHasMore }: FindMembers
       role: null,
       engine: null,
       level: null,
+      lang: null,
       jam_id: null,
     })
   }
@@ -75,6 +83,10 @@ export function FindMembersShell({ initialMembers, initialHasMore }: FindMembers
   if (levelFilter !== "all") {
     const levelLabel = EXPERIENCE_OPTIONS.find((l) => l.value === levelFilter)?.label ?? levelFilter
     activeFilterLabels.push(`Experience: ${levelLabel}`)
+  }
+  if (langFilter !== "all") {
+    const langLabel = LANGUAGE_OPTIONS.find((l) => l.value === langFilter)?.label ?? langFilter
+    activeFilterLabels.push(`Language: ${langLabel}`)
   }
 
   return (
@@ -121,12 +133,14 @@ export function FindMembersShell({ initialMembers, initialHasMore }: FindMembers
           role={roleFilter}
           engine={engineFilter}
           level={levelFilter}
+          language={langFilter}
           hasActiveFilters={hasActiveFilters}
           resultsCount={resultsCount ?? undefined}
           isUpdating={isPending}
           onRoleChange={(value) => replaceUrlWithFilters({ role: value })}
           onEngineChange={(value) => replaceUrlWithFilters({ engine: value })}
           onLevelChange={(value) => replaceUrlWithFilters({ level: value })}
+          onLanguageChange={(value) => replaceUrlWithFilters({ lang: value })}
           onReset={handleResetFilters}
         />
 
@@ -142,13 +156,14 @@ export function FindMembersShell({ initialMembers, initialHasMore }: FindMembers
         )}
 
         <MembersGrid
-          key={`${searchQuery}|${roleFilter}|${engineFilter}|${levelFilter}|${jamIdFilter}`}
+          key={`${searchQuery}|${roleFilter}|${engineFilter}|${levelFilter}|${langFilter}|${jamIdFilter}`}
           initialMembers={initialMembers}
           initialHasMore={initialHasMore}
           searchQuery={searchQuery}
           roleFilter={roleFilter}
           engineFilter={engineFilter}
           levelFilter={levelFilter}
+          langFilter={langFilter}
           jamIdFilter={jamIdFilter}
           onResultsCountChange={setResultsCount}
           isRefreshing={isPending}

@@ -10,7 +10,12 @@ import {
 } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { SlidersHorizontal, RotateCcw } from "lucide-react"
-import { ENGINE_OPTIONS, EXPERIENCE_OPTIONS, ROLE_OPTIONS } from "@/lib/constants"
+import {
+  ENGINE_OPTIONS,
+  EXPERIENCE_OPTIONS,
+  LANGUAGE_OPTIONS,
+  ROLE_OPTIONS,
+} from "@/lib/constants"
 import { useIsMobile } from "@/hooks/use-mobile"
 import {
   Drawer,
@@ -26,12 +31,14 @@ interface MemberFiltersProps {
   role?: string
   engine?: string
   level?: string
+  language?: string
   hasActiveFilters?: boolean
   resultsCount?: number
   isUpdating?: boolean
   onRoleChange: (val: string) => void
   onEngineChange: (val: string) => void
   onLevelChange: (val: string) => void
+  onLanguageChange: (val: string) => void
   onReset?: () => void
 }
 
@@ -39,12 +46,14 @@ export function MemberFilters({
   role = "all",
   engine = "all",
   level = "all",
+  language = "all",
   hasActiveFilters = false,
   resultsCount,
   isUpdating = false,
   onRoleChange,
   onEngineChange,
   onLevelChange,
+  onLanguageChange,
   onReset,
 }: MemberFiltersProps) {
   const isMobile = useIsMobile()
@@ -54,8 +63,9 @@ export function MemberFilters({
     if (role !== "all") count++
     if (engine !== "all") count++
     if (level !== "all") count++
+    if (language !== "all") count++
     return count
-  }, [role, engine, level])
+  }, [role, engine, level, language])
 
   const resultsLabel =
     typeof resultsCount === "number"
@@ -145,6 +155,18 @@ export function MemberFilters({
                     ))}
                   </SelectContent>
                 </Select>
+
+                <Select onValueChange={onLanguageChange} value={language} disabled={isUpdating}>
+                  <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40">
+                    <SelectValue placeholder="Language" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl">
+                    <SelectItem value="all">Any Language</SelectItem>
+                    {LANGUAGE_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <DrawerFooter className="flex flex-row gap-3 px-4 pb-6 pt-0">
@@ -222,6 +244,18 @@ export function MemberFilters({
                     {opt.emoji} {opt.label}
                   </span>
                 </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select onValueChange={onLanguageChange} value={language} disabled={isUpdating}>
+            <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40 sm:w-[170px]">
+              <SelectValue placeholder="Language" />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl">
+              <SelectItem value="all">Any Language</SelectItem>
+              {LANGUAGE_OPTIONS.map((opt) => (
+                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
               ))}
             </SelectContent>
           </Select>

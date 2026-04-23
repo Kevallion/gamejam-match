@@ -1,6 +1,13 @@
 import { createClient } from "@/lib/supabase/client"
 import { supabase } from "@/lib/supabase"
-import { ENGINE_OPTIONS, EXPERIENCE_STYLES, JAM_STYLE_STYLES, ROLE_STYLES } from "@/lib/constants"
+import {
+  ENGINE_OPTIONS,
+  EXPERIENCE_STYLES,
+  JAM_STYLE_STYLES,
+  LANGUAGE_OPTION_VALUE_ALIASES,
+  LANGUAGE_OPTIONS,
+  ROLE_STYLES,
+} from "@/lib/constants"
 import { levelFromTotalXp } from "@/lib/gamification-level"
 import { kudosCountsMapFromRpcRows, type KudosCounts } from "@/lib/kudos"
 
@@ -356,6 +363,10 @@ export async function getRecommendedTeams(
 }
 
 const AVAILABLE_PLAYERS_DEFAULT_LIMIT = 24
+
+/** Keys allowed in language filters / URL `lang` — matches `LANGUAGE_OPTIONS` values stored in Postgres. */
+const AVAILABLE_PLAYERS_LANGUAGE_KEYS = new Set<string>(LANGUAGE_OPTIONS.map((o) => o.value))
+
 const LEGACY_EXPERIENCE_EQUIVALENTS: Record<string, string[]> = {
   junior: ["junior", "hobbyist"],
   regular: ["regular", "confirmed"],
@@ -388,6 +399,7 @@ type AvailablePlayerProfile = {
   jam_style: string | null
   engine: string | null
   language: string | null
+  default_language?: string | null
   bio: string | null
   portfolio_link: string | null
   external_jams?:
@@ -436,6 +448,8 @@ export type AvailablePlayersFilters = {
   role?: string
   engine?: string
   experience?: string
+  /** Spoken language key (e.g. from LANGUAGE_OPTIONS); matches `availability_posts.language` or `profiles.default_language`. */
+  language?: string
   jamId?: string
   offset?: number
   limit?: number
@@ -502,6 +516,7 @@ export async function getAvailablePlayers(
     role = "all",
     engine = "all",
     experience = "all",
+    language = "all",
     jamId,
     offset = 0,
     limit = AVAILABLE_PLAYERS_DEFAULT_LIMIT,
@@ -511,6 +526,7 @@ export async function getAvailablePlayers(
   const cleanRole = normalizedFilterValue(role)
   const cleanEngine = normalizedFilterValue(engine)
   const cleanExperience = normalizedFilterValue(experience)
+  const cleanLanguage = normalizedFilterValue(language)
   const cleanSearch = searchQuery.trim()
   const cleanJamId = jamId?.trim()
   const safeOffset = Math.max(0, offset)
@@ -572,6 +588,44 @@ export async function getAvailablePlayers(
     query = query.in("experience", equivalentValues)
   }
 
+  const languageFilterKey = (() => {
+    if (!cleanLanguage || cleanLanguage === "all") return null
+    if (AVAILABLE_PLAYERS_LANGUAGE_KEYS.has(cleanLanguage)) return cleanLanguage
+    const fromAlias = LANGUAGE_OPTION_VALUE_ALIASES[cleanLanguage]
+    return fromAlias && AVAILABLE_PLAYERS_LANGUAGE_KEYS.has(fromAlias) ? fromAlias : null
+  })()
+
+  if (languageFilterKey) {
+    const { data: defaultLangProfiles, error: defaultLangError } = await client
+      .from("profiles")
+      .select("id")
+      .eq("default_language", languageFilterKey)
+
+    if (defaultLangError) {
+      console.error("[getAvailablePlayers:languageFilter]", defaultLangError.message)
+      return {
+        players: [],
+        hasMore: false,
+        nextOffset: safeOffset,
+        error: defaultLangError.message,
+      }
+    }
+
+    const userIdsWithDefaultLang = (defaultLangProfiles ?? [])
+      .map((row) => row.id)
+      .filter((id): id is string => Boolean(id))
+
+    // Never emit `user_id.in.()` with zero UUIDs (malformed PostgREST filter). When no profile
+    // has this `default_language`, only `availability_posts.language` can match.
+    if (userIdsWithDefaultLang.length > 0) {
+      query = query.or(
+        `language.eq.${languageFilterKey},user_id.in.(${userIdsWithDefaultLang.join(",")})`,
+      )
+    } else {
+      query = query.eq("language", languageFilterKey)
+    }
+  }
+
   if (profileIdsFilter) {
     query = query.in("user_id", profileIdsFilter)
   }
@@ -593,7 +647,7 @@ export async function getAvailablePlayers(
     const { data: profilesData, error: profilesError } = await client
       .from("profiles")
       .select(
-        "id, username, avatar_url, jam_id, xp, current_title, role, experience, experience_level, jam_style, engine, language, bio, portfolio_link, external_jams(id, title, url)",
+        "id, username, avatar_url, jam_id, xp, current_title, role, experience, experience_level, jam_style, engine, language, default_language, bio, portfolio_link, external_jams(id, title, url)",
       )
       .in("id", userIds)
 
@@ -634,7 +688,12 @@ export async function getAvailablePlayers(
       ""
     ).trim()
     const engineRaw = (row.engine ?? profile?.engine ?? "").trim()
-    const languageRaw = (row.language ?? profile?.language ?? "").trim()
+    const languageRaw = (
+      row.language ??
+      profile?.language ??
+      profile?.default_language ??
+      ""
+    ).trim()
     const bioRaw = (row.bio ?? profile?.bio ?? "").trim()
     const portfolioRaw = (row.portfolio_link ?? profile?.portfolio_link ?? "").trim()
     const xp = typeof profile?.xp === "number" ? profile.xp : 0

@@ -19,6 +19,7 @@ interface MembersGridProps {
   roleFilter: string
   engineFilter: string
   levelFilter: string
+  langFilter?: string
   jamIdFilter?: string
   onResultsCountChange?: (count: number) => void
   isRefreshing?: boolean
@@ -31,6 +32,7 @@ export function MembersGrid({
   roleFilter = "all",
   engineFilter = "all",
   levelFilter = "all",
+  langFilter = "all",
   jamIdFilter = "",
   onResultsCountChange,
   isRefreshing = false,
@@ -102,6 +104,7 @@ export function MembersGrid({
         role: roleFilter,
         engine: engineFilter,
         experience: levelFilter,
+        language: langFilter,
         jamId: jamIdFilter,
         offset: offsetRef.current,
         limit: PAGE_SIZE,
