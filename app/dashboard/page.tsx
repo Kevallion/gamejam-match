@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { DashboardClient } from "@/components/dashboard-client"
+import { PostActionOnboarding } from "@/components/post-action-onboarding"
 
 export const metadata: Metadata = {
   title: "Dashboard — GameJamCrew",
@@ -33,8 +34,13 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   }
   const { tab } = await searchParams
   return (
-    <Suspense>
-      <DashboardClient defaultTab={tab} />
-    </Suspense>
+    <>
+      <Suspense>
+        <DashboardClient defaultTab={tab} />
+      </Suspense>
+      <Suspense fallback={null}>
+        <PostActionOnboarding />
+      </Suspense>
+    </>
   )
 }

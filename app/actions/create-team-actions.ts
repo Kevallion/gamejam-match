@@ -17,6 +17,7 @@ import {
   ROLE_OPTIONS,
 } from "@/lib/constants"
 import { enqueueSmartMatchEmailsForNewTeam } from "@/lib/smart-match-new-team-email"
+import { sendTeamCreationFollowUp } from "@/lib/mail"
 
 const ENGINE_VALUES = new Set<string>(ENGINE_OPTIONS.map((o) => o.value))
 const LANGUAGE_VALUES = new Set<string>(LANGUAGE_OPTIONS.map((o) => o.value))
@@ -124,6 +125,15 @@ export async function createTeam(input: CreateTeamInput): Promise<CreateTeamResu
 
   if (error || !data?.id) {
     return { success: false, error: error?.message ?? "Could not create the team." }
+  }
+
+  // Best-effort transactional follow-up (doesn't block team creation).
+  if (user.email) {
+    try {
+      await sendTeamCreationFollowUp(user.email, teamName, data.id as string)
+    } catch {
+      // Silent: email issues shouldn't block the primary flow.
+    }
   }
 
   enqueueSmartMatchEmailsForNewTeam(user.id, teamName, lookingFor)

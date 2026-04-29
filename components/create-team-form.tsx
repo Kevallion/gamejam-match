@@ -447,7 +447,9 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
         if (onCompleted) {
           onCompleted(result.teamId ?? null)
         } else {
-          router.push(result.teamId ? `/teams/${result.teamId}/manage` : "/dashboard")
+          router.push(
+            result.teamId ? `/dashboard?flow=new-team&id=${result.teamId}` : "/dashboard",
+          )
         }
       }
     } catch (err) {

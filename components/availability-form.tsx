@@ -28,6 +28,7 @@ import { JamSearchSelector } from "@/components/jam-search-selector"
 import { claimAvailabilityPostXp } from "@/app/actions/availability-actions"
 import { showGamificationRewards } from "@/components/gamification-reward-toasts"
 import { gamificationRewardHasToast } from "@/lib/gamification-reward-types"
+import { useRouter } from "next/navigation"
 
 const LANGUAGE_OPTIONS = [
   { value: "english", label: "English" },
@@ -42,6 +43,7 @@ const LANGUAGE_OPTIONS = [
 
 export function AvailabilityForm() {
   const totalSteps = 3
+  const router = useRouter()
   const [step, setStep] = useState(1)
   // Form state
   const [loading, setLoading] = useState(false)
@@ -297,14 +299,17 @@ export function AvailabilityForm() {
         toast.error("Could not add announcement.", { description: postError.message })
       } else {
         if (insertedPost?.id) {
-          void claimAvailabilityPostXp(insertedPost.id).then((xpRes) => {
-            if (!xpRes.ok && "error" in xpRes && xpRes.error && xpRes.error !== "Reward window expired.") {
-              return
-            }
-            if (xpRes.ok && "reward" in xpRes && xpRes.reward && gamificationRewardHasToast(xpRes.reward)) {
-              showGamificationRewards("POST_ANNOUNCEMENT", xpRes.reward)
-            }
-          })
+          const xpRes = await claimAvailabilityPostXp(insertedPost.id)
+          if (
+            !xpRes.ok &&
+            "error" in xpRes &&
+            xpRes.error &&
+            xpRes.error !== "Reward window expired."
+          ) {
+            // Ignore XP claiming issues; we still want to navigate.
+          } else if (xpRes.ok && "reward" in xpRes && xpRes.reward && gamificationRewardHasToast(xpRes.reward)) {
+            showGamificationRewards("POST_ANNOUNCEMENT", xpRes.reward)
+          }
         }
         toast.success("Announcement added!", {
           description: `You have ${(count ?? 0) + 1} of 3 announcements.`,
@@ -312,6 +317,7 @@ export function AvailabilityForm() {
         setDateRange(undefined)
         // Keep other fields so user can add another with same profile info
         setSubmitted(true)
+        router.push("/dashboard?flow=new-player")
       }
     } catch (err) {
       toast.error("An error occurred.", { description: err instanceof Error ? err.message : "Please try again." })

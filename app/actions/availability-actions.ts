@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { awardXP } from "@/lib/gamification"
+import { sendPlayerPostFollowUp } from "@/lib/mail"
 
 /**
  * Call after a successful availability_posts insert. Verifies the row belongs to the current user
@@ -31,6 +32,24 @@ export async function claimAvailabilityPostXp(postId: string) {
   const created = row.created_at ? new Date(row.created_at as string) : null
   if (!created || Number.isNaN(created.getTime())) {
     return { ok: false as const, error: "Invalid post timestamp." }
+  }
+
+  // Best-effort follow-up after the availability post was inserted.
+  if (user.email) {
+    try {
+      const { data: profileRow } = await supabase
+        .from("profiles")
+        .select("username")
+        .eq("id", user.id)
+        .single()
+
+      const username = profileRow?.username?.trim()
+      if (username) {
+        await sendPlayerPostFollowUp(user.email, username)
+      }
+    } catch {
+      // Silent: email issues shouldn't block XP claiming.
+    }
   }
 
   const fiveMinMs = 5 * 60 * 1000

@@ -1,6 +1,6 @@
 import { Resend } from "resend"
 import { getEmailLayout } from "@/lib/mail-template"
-import { getPublicDashboardUrl } from "@/lib/site-url"
+import { getPublicDashboardUrl, getPublicSiteUrl } from "@/lib/site-url"
 
 const FROM_EMAIL =
   process.env.RESEND_FROM_EMAIL ||
@@ -121,6 +121,93 @@ export async function sendLaunchJamAnnouncement(
     "GameJamCrew Launch Jam",
     contentHtml,
   )
+}
+
+/**
+ * Follow-up après la création d'une équipe :
+ * - annonce que le squad est live
+ * - encourage à inviter des membres via "Find Members"
+ * - donne un lien direct vers la page de gestion de l'équipe
+ */
+export async function sendTeamCreationFollowUp(
+  to: string,
+  teamName: string,
+  teamId: string,
+): Promise<boolean> {
+  const safeTeamName = escapeHtml(teamName)
+
+  const siteUrl = getPublicSiteUrl()
+  const findMembersUrl = `${siteUrl}/find-members`
+  const manageTeamUrl = `${siteUrl}/teams/${teamId}/manage`
+
+  const subject = "Your squad is live! | GameJamCrew"
+  const layoutTitle = "Your squad is live"
+
+  const accent = "#14b8a6"
+  const ctaStyle = `display:inline-block;padding:12px 24px;background-color:${accent};color:#ffffff;text-decoration:none;border-radius:6px;font-weight:bold;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;`
+
+  const contentHtml = `
+      <p style="margin:0 0 16px;color:#1f2937;font-size:16px;font-weight:700;line-height:1.6;">
+        Your squad is now live.
+      </p>
+      <p style="margin:0 0 16px;color:#4b5563;font-size:16px;line-height:1.65;">
+        Your team <strong style="color:#1f2937;">${safeTeamName}</strong> is ready. Next step: browse <strong style="color:#1f2937;">"Find Members"</strong> to invite people manually.
+      </p>
+      <p style="margin:0 0 24px;text-align:center;">
+        <a href="${findMembersUrl}" style="${ctaStyle}" target="_blank" rel="noopener noreferrer">Find Members</a>
+      </p>
+      <p style="margin:0 0 16px;color:#4b5563;font-size:15px;line-height:1.6;">
+        You can manage everything from your <a href="${manageTeamUrl}" style="color:${accent};text-decoration:underline;font-weight:700;" target="_blank" rel="noopener noreferrer">team management page</a>.
+      </p>
+      <p style="margin:0;color:#6b7280;font-size:14px;line-height:1.5;">
+        — The GameJamCrew team
+      </p>
+    `
+
+  return sendEmailWithLayout(to, subject, layoutTitle, contentHtml)
+}
+
+/**
+ * Follow-up après une publication joueur :
+ * - félicite
+ * - encourage à compléter le profil à 100%
+ * - recommande de parcourir la section "Teams"
+ */
+export async function sendPlayerPostFollowUp(
+  to: string,
+  username: string,
+): Promise<boolean> {
+  const safeUsername = escapeHtml(username)
+
+  const siteUrl = getPublicSiteUrl()
+  const teamsUrl = `${siteUrl}/teams`
+  const profileUrl = `${siteUrl}/create-profile`
+
+  const subject = "Nice work! Next up: your profile and Teams | GameJamCrew"
+  const layoutTitle = "Nice work!"
+
+  const accent = "#14b8a6"
+  const ctaStyle = `display:inline-block;padding:12px 24px;background-color:${accent};color:#ffffff;text-decoration:none;border-radius:6px;font-weight:bold;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;`
+
+  const contentHtml = `
+      <p style="margin:0 0 16px;color:#1f2937;font-size:16px;font-weight:700;line-height:1.6;">
+        Congrats, ${safeUsername}!
+      </p>
+      <p style="margin:0 0 16px;color:#4b5563;font-size:16px;line-height:1.65;">
+        You are off to a great start. For the best matchmaking, complete your profile to <strong style="color:#1f2937;">100%</strong>.
+      </p>
+      <p style="margin:0 0 24px;color:#4b5563;font-size:15px;line-height:1.6;">
+        Then browse the <strong style="color:#1f2937;">"Teams"</strong> section to find the right squad for your playstyle.
+      </p>
+      <p style="margin:0 0 24px;text-align:center;">
+        <a href="${teamsUrl}" style="${ctaStyle}" target="_blank" rel="noopener noreferrer">Browse Teams</a>
+      </p>
+      <p style="margin:0;color:#6b7280;font-size:14px;line-height:1.5;">
+        Update your profile here: <a href="${profileUrl}" style="color:${accent};text-decoration:underline;font-weight:700;" target="_blank" rel="noopener noreferrer">Create Profile</a>
+      </p>
+    `
+
+  return sendEmailWithLayout(to, subject, layoutTitle, contentHtml)
 }
 
 /**
