@@ -1,15 +1,15 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { toast } from "sonner"
-import { Sparkles, Users, UserSearch, Loader2 } from "lucide-react"
+import { Sparkles, Users, UserSearch, Loader2, X } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Skeleton } from "@/components/ui/skeleton"
 
 import { supabase } from "@/lib/supabase"
@@ -93,9 +93,14 @@ export function PostActionOnboarding() {
 
   const [teamData, setTeamData] = useState<TeamRow | null>(null)
   const [invitingUserId, setInvitingUserId] = useState<string | null>(null)
+  const [invitedIds, setInvitedIds] = useState<string[]>([])
+  const [closeReason, setCloseReason] = useState<"x" | "outside" | null>(null)
+  const ignoreNextCloseRef = useRef(false)
 
   useEffect(() => {
     setOpen(Boolean(mode))
+    setInvitedIds([])
+    setCloseReason(null)
   }, [mode])
 
   const cleanUrlAndClose = () => {
@@ -249,6 +254,7 @@ export function PostActionOnboarding() {
       }
 
       toast.success("Invitation sent!", { description: `Invited ${player.username}.` })
+      setInvitedIds((prev) => (prev.includes(player.id) ? prev : [...prev, player.id]))
     } catch (err) {
       toast.error("Invite failed.", { description: err instanceof Error ? err.message : "Try again." })
     } finally {
@@ -260,14 +266,48 @@ export function PostActionOnboarding() {
     <Dialog
       open={open}
       onOpenChange={(nextOpen) => {
-        if (!nextOpen) cleanUrlAndClose()
-        else setOpen(true)
+        if (nextOpen) {
+          setOpen(true)
+          setCloseReason(null)
+          return
+        }
+
+        // If the dialog is closing right after clicking Invite, we ignore that close.
+        if (ignoreNextCloseRef.current) {
+          ignoreNextCloseRef.current = false
+          setCloseReason(null)
+          setOpen(true)
+          return
+        }
+
+        // Clean the URL only for explicit close (X) or outside click.
+        if (closeReason === "x" || closeReason === "outside") {
+          setCloseReason(null)
+          cleanUrlAndClose()
+          return
+        }
+
+        setOpen(false)
       }}
     >
       <DialogContent
         className="max-h-[90dvh] w-[calc(100%-2rem)] max-w-md rounded-3xl border-border/60 bg-background p-0 shadow-2xl sm:max-w-lg"
-        showCloseButton={true}
+        showCloseButton={false}
+        onInteractOutside={() => setCloseReason("outside")}
       >
+        <DialogClose asChild>
+          <button
+            type="button"
+            aria-label="Close"
+            className="absolute right-4 top-4 rounded-xl p-2 text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+            onClick={(e) => {
+              e.stopPropagation()
+              setCloseReason("x")
+            }}
+          >
+            <X className="size-4" />
+          </button>
+        </DialogClose>
         <div className="p-5 sm:p-6">
           {mode === "new-team" ? (
             <>
@@ -327,6 +367,12 @@ export function PostActionOnboarding() {
                       <Card
                         key={p.id}
                         className="rounded-2xl border-border/60 bg-card p-3 shadow-sm"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                        }}
+                        onPointerDown={(e) => {
+                          e.stopPropagation()
+                        }}
                       >
                         <CardContent className="p-0">
                           <div className="flex items-start gap-3">
@@ -369,11 +415,29 @@ export function PostActionOnboarding() {
                           <div className="mt-3">
                             <Button
                               type="button"
-                              className="w-full rounded-xl bg-primary px-3 py-2 text-sm font-bold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-                              onClick={() => void handleInvite(p)}
-                              disabled={invitingUserId === p.id}
+                              className={
+                                invitedIds.includes(p.id)
+                                  ? "w-full rounded-xl border border-success/40 bg-success/10 px-3 py-2 text-sm font-bold text-success hover:bg-success/15 hover:border-success/60 disabled:opacity-100"
+                                  : "w-full rounded-xl bg-primary px-3 py-2 text-sm font-bold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+                              }
+                              onPointerDown={(e) => {
+                                e.stopPropagation()
+                                ignoreNextCloseRef.current = true
+                              }}
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                ignoreNextCloseRef.current = true
+                                void handleInvite(p).finally(() => {
+                                  ignoreNextCloseRef.current = false
+                                })
+                              }}
+                              disabled={invitingUserId === p.id || invitedIds.includes(p.id)}
                             >
-                              {invitingUserId === p.id ? (
+                              {invitedIds.includes(p.id) ? (
+                                <span className="inline-flex items-center gap-2">
+                                  Sent! ✓
+                                </span>
+                              ) : invitingUserId === p.id ? (
                                 <span className="inline-flex items-center gap-2">
                                   <Loader2 className="size-4 animate-spin" />
                                   Inviting...
@@ -448,7 +512,17 @@ export function PostActionOnboarding() {
                       const levelStyle = levelKey ? EXPERIENCE_STYLES[levelKey] : undefined
 
                       return (
-                        <Card key={team.id} className="rounded-2xl border-border/60 bg-card p-4 shadow-sm">
+                        <Card
+                          key={team.id}
+                          className="rounded-2xl border-border/60 bg-card p-4 shadow-sm"
+                          onClick={(e) => {
+                            // Avoid any dialog close heuristics triggered by clicks inside the card.
+                            e.stopPropagation()
+                          }}
+                          onPointerDown={(e) => {
+                            e.stopPropagation()
+                          }}
+                        >
                           <CardContent className="p-0">
                             <div className="flex items-start justify-between gap-2">
                               <div className="min-w-0">
