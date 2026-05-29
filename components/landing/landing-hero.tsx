@@ -1,10 +1,14 @@
 "use client"
 
-import { useState } from "react"
 import Link from "next/link"
-import { Sword, Gamepad2, Code2, Sparkles, BookOpen, Users } from "lucide-react"
-import { AuthModal } from "@/components/auth-modal"
+import { track } from "@vercel/analytics"
+import { Sword, Gamepad2, Code2, Sparkles, Users, PenLine } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import type {
+  LandingFeaturedTeam,
+  LandingSocialProofStats,
+  LandingUpcomingJam,
+} from "@/components/landing/landing-home"
 
 // ────────────────────────────────────────────────────────────
 // Player / Role card data
@@ -47,9 +51,27 @@ const roleCards = [
 // ────────────────────────────────────────────────────────────
 const DOT_PATTERN = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Ccircle cx='2' cy='2' r='1.2' fill='%2394a3b8' fill-opacity='0.35'/%3E%3C/svg%3E")`
 
-export function LandingHero() {
-  const [authModalOpen, setAuthModalOpen] = useState(false)
+function startsInLabel(startsAtIso: string): string {
+  const now = Date.now()
+  const target = new Date(startsAtIso).getTime()
+  if (!Number.isFinite(target)) return "Starting soon"
+  const delta = target - now
+  if (delta <= 0) return "Starting now"
+  const dayMs = 86400000
+  const days = Math.ceil(delta / dayMs)
+  if (days <= 1) return "Starts in 1 day"
+  return `Starts in ${days} days`
+}
 
+export function LandingHero({
+  featuredTeams = [],
+  socialProofStats,
+  upcomingJams = [],
+}: {
+  featuredTeams?: LandingFeaturedTeam[]
+  socialProofStats: LandingSocialProofStats
+  upcomingJams?: LandingUpcomingJam[]
+}) {
   return (
     <section
       className="relative min-h-[90vh] flex items-center overflow-hidden px-4 pt-24 pb-16 lg:px-8 lg:pt-32 lg:pb-24"
@@ -83,40 +105,111 @@ export function LandingHero() {
             {/* CTA */}
             <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row lg:items-start">
               <Button
-                type="button"
+                asChild
                 size="lg"
                 className="h-14 min-w-[220px] rounded-lg border-2 border-foreground bg-teal px-8 text-base font-extrabold text-white shadow-[4px_4px_0px_0px_var(--neo-shadow)] transition-all hover:-translate-y-0.5 hover:shadow-[5px_5px_0px_0px_var(--neo-shadow)] active:translate-y-0 active:shadow-[2px_2px_0px_0px_var(--neo-shadow)]"
-                onClick={() => setAuthModalOpen(true)}
               >
-                <Sparkles className="mr-2 size-5" />
-                Find your Squad 🚀
+                <Link
+                  href="/teams"
+                  onClick={() => track("Landing CTA Clicked", { cta: "browse_teams", placement: "hero" })}
+                >
+                  <Sparkles className="size-5" />
+                  Browse Teams
+                </Link>
               </Button>
               <Button
                 asChild
                 className="h-14 min-w-[220px] rounded-lg border-2 border-foreground bg-card px-8 text-base font-extrabold text-foreground shadow-[4px_4px_0px_0px_var(--neo-shadow)] transition-all hover:-translate-y-0.5 hover:shadow-[5px_5px_0px_0px_var(--neo-shadow)] active:translate-y-0 active:shadow-[2px_2px_0px_0px_var(--neo-shadow)]"
               >
-                <Link href="/showcase">
-                  <BookOpen className="size-5" />
-                  How it works
+                <Link
+                  href="/create-team"
+                  onClick={() => track("Landing CTA Clicked", { cta: "post_team", placement: "hero" })}
+                >
+                  <PenLine className="size-5" />
+                  Post a Team
                 </Link>
               </Button>
             </div>
+
+            {featuredTeams.length > 0 && (
+              <div className="mt-7 space-y-2.5">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Active squads right now
+                </p>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {featuredTeams.slice(0, 4).map((team) => (
+                    <Link
+                      key={team.id}
+                      href={`/teams/${team.id}`}
+                      className="rounded-xl border border-border/60 bg-card/80 px-3 py-2 transition-colors hover:border-teal/40"
+                      onClick={() => track("Landing Featured Team Clicked", { team_id: team.id })}
+                    >
+                      <p className="truncate text-sm font-semibold text-foreground">{team.name}</p>
+                      <p className="truncate text-xs text-primary">{team.jam || "Upcoming jam"}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {team.openRoles} open role{team.openRoles > 1 ? "s" : ""}
+                      </p>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {upcomingJams.length > 0 && (
+              <div className="mt-6 space-y-2.5">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Upcoming jams
+                </p>
+                <div className="space-y-2">
+                  {upcomingJams.map((jam) => {
+                    const label = startsInLabel(jam.startsAt)
+                    const content = (
+                      <>
+                        <p className="truncate text-sm font-semibold text-foreground">{jam.title}</p>
+                        <p className="text-xs text-teal">{label}</p>
+                      </>
+                    )
+                    if (jam.url) {
+                      return (
+                        <a
+                          key={jam.id}
+                          href={jam.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="block rounded-xl border border-border/60 bg-card/80 px-3 py-2 transition-colors hover:border-teal/40"
+                        >
+                          {content}
+                        </a>
+                      )
+                    }
+                    return (
+                      <div
+                        key={jam.id}
+                        className="rounded-xl border border-border/60 bg-card/80 px-3 py-2"
+                      >
+                        {content}
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Social proof row */}
             <div className="mt-8 flex flex-wrap items-center justify-center gap-4 text-sm text-muted-foreground lg:justify-start">
               <div className="flex items-center gap-2">
                 <Users className="size-4 text-teal" />
-                <span>Join 120+ Jammers</span>
+                <span>{socialProofStats.activeJammers}+ Jammers</span>
               </div>
               <div className="hidden h-4 w-px bg-border sm:block" />
               <div className="flex items-center gap-2">
                 <Gamepad2 className="size-4 text-teal" />
-                <span>Ludum Dare &bull; GMTK &bull; Game Off</span>
+                <span>{socialProofStats.activeTeams} active squads</span>
               </div>
               <div className="hidden h-4 w-px bg-border sm:block" />
               <div className="flex items-center gap-2">
                 <Code2 className="size-4 text-lavender" />
-                <span>Godot &bull; Unity &bull; Pygame &bull; more</span>
+                <span>{socialProofStats.completedTeams} squads completed</span>
               </div>
             </div>
           </div>
@@ -135,8 +228,6 @@ export function LandingHero() {
 
         </div>
       </div>
-
-      <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
     </section>
   )
 }

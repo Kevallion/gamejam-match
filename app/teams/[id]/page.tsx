@@ -29,6 +29,7 @@ type SquadViewData = {
   engine: string
   language: string
   discord_link: string | null
+  jam_end_date: string | null
 }
 
 type SquadMember = {
@@ -131,7 +132,7 @@ export default function TeamPage() {
 
       const { data: teamData, error: teamDataError } = await supabase
         .from("teams")
-        .select("id, user_id, team_name, game_name, description, engine, language, discord_link")
+        .select("id, user_id, team_name, game_name, description, engine, language, discord_link, jam_end_date")
         .eq("id", teamId)
         .single()
 
@@ -301,6 +302,7 @@ export default function TeamPage() {
     const descriptionMissing = !squad.description?.trim() || squad.description.trim().length < 10
     const discordMissing = !squad.discord_link?.trim()
     const showOwnerIncompleteBanner = isOwner && (descriptionMissing || discordMissing)
+    const isJamFinished = Boolean(squad.jam_end_date && new Date(squad.jam_end_date).getTime() < Date.now())
 
     return (
       <div className="flex min-h-screen flex-col">
@@ -396,6 +398,11 @@ export default function TeamPage() {
                         <h3 className="text-sm font-semibold text-foreground">
                           Squad members
                         </h3>
+                        {isJamFinished ? (
+                          <div className="rounded-xl border border-lavender/35 bg-lavender/10 px-3 py-2 text-xs text-lavender">
+                            Jam ended: leave kudos to your teammates to help them build a stronger public profile.
+                          </div>
+                        ) : null}
                         {members.length === 0 ? (
                           <p className="text-sm text-muted-foreground">
                             No other members have joined this squad yet.
@@ -420,9 +427,21 @@ export default function TeamPage() {
                                       size="xs"
                                     />
                                     <div className="min-w-0">
-                                      <p className="truncate text-sm font-semibold text-foreground">
-                                        {member.username}
-                                      </p>
+                                      <div className="flex items-center gap-2">
+                                        <p className="truncate text-sm font-semibold text-foreground">
+                                          {member.username}
+                                        </p>
+                                        {isJamFinished && member.userId !== currentUserId ? (
+                                          <Button
+                                            asChild
+                                            variant="outline"
+                                            size="sm"
+                                            className="h-6 rounded-lg border-lavender/40 bg-lavender/10 px-2 text-[10px] font-semibold text-lavender hover:bg-lavender/20"
+                                          >
+                                            <Link href={`/jammer/${member.userId}`}>Give kudos</Link>
+                                          </Button>
+                                        ) : null}
+                                      </div>
                                       {member.discordUsername && (
                                         <p className="truncate text-xs text-muted-foreground">
                                           Discord: {member.discordUsername}

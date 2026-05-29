@@ -1,15 +1,13 @@
 "use client"
 
-import { useState } from "react"
-import { Sword, Sparkles, Zap, Star, Gamepad2 } from "lucide-react"
+import Link from "next/link"
+import { track } from "@vercel/analytics"
+import { Sword, Sparkles, Zap, Star, Gamepad2, PenLine } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { AuthModal } from "@/components/auth-modal"
 
 const DOT_PATTERN = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Ccircle cx='2' cy='2' r='1.2' fill='%2394a3b8' fill-opacity='0.35'/%3E%3C/svg%3E")`
 
 export function LandingCTA() {
-  const [authModalOpen, setAuthModalOpen] = useState(false)
-
   return (
     <section
       className="relative overflow-hidden px-4 py-20 lg:px-8 lg:py-28"
@@ -54,16 +52,34 @@ export function LandingCTA() {
               GameJamCrew.
             </p>
 
-            {/* CTA Button */}
-            <div className="mt-8">
+            {/* CTA Buttons */}
+            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Button
-                type="button"
+                asChild
                 size="lg"
                 className="h-14 min-w-[220px] rounded-lg border-2 border-foreground bg-teal px-8 text-base font-extrabold text-white shadow-[4px_4px_0px_0px_var(--neo-shadow)] transition-all hover:-translate-y-0.5 hover:shadow-[5px_5px_0px_0px_var(--neo-shadow)] active:translate-y-0 active:shadow-[2px_2px_0px_0px_var(--neo-shadow)]"
-                onClick={() => setAuthModalOpen(true)}
               >
-                <Sparkles className="mr-2 size-5" />
-                Join the Crew
+                <Link
+                  href="/teams"
+                  onClick={() => track("Landing CTA Clicked", { cta: "browse_teams", placement: "bottom" })}
+                >
+                  <Sparkles className="size-5" />
+                  Browse Teams
+                </Link>
+              </Button>
+              <Button
+                asChild
+                variant="outline"
+                size="lg"
+                className="h-14 min-w-[220px] rounded-lg border-2 border-foreground bg-card px-8 text-base font-extrabold text-foreground shadow-[4px_4px_0px_0px_var(--neo-shadow)] transition-all hover:-translate-y-0.5 hover:bg-card hover:shadow-[5px_5px_0px_0px_var(--neo-shadow)] active:translate-y-0 active:shadow-[2px_2px_0px_0px_var(--neo-shadow)]"
+              >
+                <Link
+                  href="/create-team"
+                  onClick={() => track("Landing CTA Clicked", { cta: "post_team", placement: "bottom" })}
+                >
+                  <PenLine className="size-5" />
+                  Post a Team
+                </Link>
               </Button>
             </div>
 
@@ -102,8 +118,6 @@ export function LandingCTA() {
       <div className="mx-auto mt-16 max-w-6xl">
         <div className="h-0.5 w-full border-t-2 border-dashed border-slate-300" />
       </div>
-
-      <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
     </section>
   )
 }

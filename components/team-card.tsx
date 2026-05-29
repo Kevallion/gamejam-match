@@ -74,6 +74,7 @@ export function JamTitleBlock({
   team: TeamCardData
   className: string
 }) {
+  const baseClassName = "block min-w-0 max-w-full break-words"
   const label = (team.itchJam?.title?.trim() || team.jam || "").trim()
   if (!label) return null
   const url = team.itchJam?.url?.trim()
@@ -83,14 +84,14 @@ export function JamTitleBlock({
         href={url}
         target="_blank"
         rel="noopener noreferrer"
-        className={cn(className, "cursor-pointer text-primary hover:underline")}
+        className={cn(baseClassName, className, "cursor-pointer text-primary hover:underline")}
         onClick={(e) => e.stopPropagation()}
       >
         {label}
       </a>
     )
   }
-  return <p className={className}>{label}</p>
+  return <p className={cn(baseClassName, className)}>{label}</p>
 }
 
 export function TeamCard({

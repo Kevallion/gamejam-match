@@ -55,6 +55,8 @@ export type ProfileCardProps = {
   className?: string
   /** Ring / frame around avatar */
   framedAvatar?: boolean
+  /** Earned after at least one completed jam */
+  showVerifiedJammer?: boolean
 }
 
 function defaultRoleLabel(value: string | null | undefined): string | null {
@@ -163,6 +165,7 @@ export function ProfileCard({
   subtitle,
   className,
   framedAvatar = true,
+  showVerifiedJammer = false,
 }: ProfileCardProps) {
   const name = displayName?.trim() || fallbackName?.trim() || "Jammer"
   const fb = fallbackName?.trim() || name
@@ -199,6 +202,11 @@ export function ProfileCard({
         <div className="flex flex-wrap items-center gap-2 gap-y-1">
           <p className="truncate text-base font-semibold tracking-tight text-foreground sm:text-lg">{name}</p>
           {showLevel ? <JammerLevelBadge level={level} /> : null}
+          {showVerifiedJammer ? (
+            <Badge className="rounded-full border border-teal/35 bg-teal/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-teal">
+              Verified Jammer
+            </Badge>
+          ) : null}
         </div>
         {currentTitle?.trim() ? (
           <JammerTitleBadge title={currentTitle} className="text-sm sm:text-base" />

@@ -2,11 +2,13 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import Link from "next/link"
 import { Navbar } from "@/components/navbar"
-import { DashboardMyTeams, type TeamData } from "@/components/dashboard-my-teams"
+import type { TeamData } from "@/components/dashboard-my-teams"
+import { DashboardSquadsCompact } from "@/components/dashboard-squads-compact"
 import { DashboardRecommendedTeams } from "@/components/dashboard-recommended-teams"
-import { DashboardMyAvailability } from "@/components/dashboard-my-availability"
-import { DashboardInboxHub } from "@/components/dashboard-inbox-hub"
+import { DashboardAvailabilityCompact } from "@/components/dashboard-availability-compact"
+import { DashboardInboxCompact } from "@/components/dashboard-inbox-compact"
 import type { ApplicationData } from "@/components/dashboard-incoming-applications"
 import type { InvitationData } from "@/components/dashboard-squad-invitations"
 import type {
@@ -14,9 +16,12 @@ import type {
   SentInvitationOutboxItem,
 } from "@/components/dashboard-sent-outbox"
 import {
+  Clock3,
+  Compass,
+  Hand,
   Info,
   Inbox,
-  Rocket,
+  Plus,
   Settings2,
   Trash2,
   Trophy,
@@ -25,7 +30,6 @@ import {
   Users2,
 } from "lucide-react"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
@@ -51,6 +55,7 @@ import {
 } from "@/components/ui/drawer"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { Button } from "@/components/ui/button"
+import { Progress } from "@/components/ui/progress"
 import { supabase } from "@/lib/supabase"
 import { cancelJoinRequest } from "@/app/actions/join-request-actions"
 import {
@@ -71,6 +76,8 @@ import {
 } from "@/components/gamification-dashboard"
 import { DashboardEmptyState } from "@/components/dashboard-empty-state"
 import { PushNotificationBanner } from "@/components/push-notification-banner"
+import { DashboardNextSteps } from "@/components/dashboard-next-steps"
+import { MonthlyKudosLeaderboard } from "@/components/monthly-kudos-leaderboard"
 import type { Session } from "@supabase/supabase-js"
 import { showGamificationRewards } from "@/components/gamification-reward-toasts"
 import { gamificationRewardHasToast } from "@/lib/gamification-reward-types"
@@ -105,6 +112,8 @@ type TeamRow = {
   engine: string | null
   language: string | null
   description: string | null
+  team_vibe?: string | null
+  expires_at?: string | null
   looking_for: unknown
   discord_link?: string | null
   jam_start_date?: string | null
@@ -314,7 +323,6 @@ function DashboardBottomBar({
 // ─── Responsive Confirm Drawer/Dialog ────────────────────────────────────────
 function ResponsiveConfirmDrawer({
   open,
-  onOpenChange,
   isMobile,
   icon,
   title,
@@ -326,7 +334,6 @@ function ResponsiveConfirmDrawer({
   confirmClassName,
 }: {
   open: boolean
-  onOpenChange: (open: boolean) => void
   isMobile: boolean
   icon: ReactNode
   title: string
@@ -463,6 +470,151 @@ function DashboardIdentityHeader({
   )
 }
 
+function DashboardQuickActions() {
+  const actions = [
+    { href: "/create-team", label: "Create Team", icon: Plus },
+    { href: "/teams", label: "Browse Teams", icon: Compass },
+    { href: "/create-profile", label: "Post Availability", icon: Hand },
+  ]
+
+  return (
+    <Card className="border-border/40 bg-card/70 shadow-sm backdrop-blur-sm">
+      <CardContent className="p-3">
+        <div className="flex flex-wrap items-center gap-2">
+          {actions.map((action) => {
+            const Icon = action.icon
+            return (
+              <Button
+                key={action.href}
+                asChild
+                variant="outline"
+                size="sm"
+                className="h-8 cursor-pointer rounded-lg border-border/60 bg-background/50 px-2.5 text-xs"
+              >
+                <Link href={action.href}>
+                  <Icon className="size-3.5" />
+                  {action.label}
+                </Link>
+              </Button>
+            )
+          })}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+function DashboardSidebarProgress({
+  xp,
+  currentTitle,
+}: {
+  xp: number
+  currentTitle: string
+}) {
+  const level = levelFromTotalXp(xp)
+  const progress = gamificationLevelProgress(xp)
+
+  return (
+    <Card className="border-border/40 bg-card/70 shadow-sm backdrop-blur-sm">
+      <CardContent className="space-y-3 p-4">
+        <div className="flex items-center justify-between">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Progress</p>
+          <span className="rounded-full border border-teal/35 bg-teal/10 px-2 py-0.5 text-[10px] font-bold text-teal">
+            Level {level}
+          </span>
+        </div>
+        <p className="truncate text-sm font-semibold text-foreground">{currentTitle || "Rookie Jammer"}</p>
+        <Progress value={progress.progressPercent} className="h-1.5 bg-muted/80" />
+        <p className="text-[11px] text-muted-foreground">
+          {progress.currentLevelXp}/{progress.currentLevelXp + progress.xpToNext} XP
+        </p>
+      </CardContent>
+    </Card>
+  )
+}
+
+function relativeDateLabel(dateIso: string): string {
+  const diffMs = Date.now() - new Date(dateIso).getTime()
+  if (!Number.isFinite(diffMs)) return "now"
+  const minutes = Math.floor(diffMs / 60000)
+  if (minutes < 1) return "now"
+  if (minutes < 60) return `${minutes}m`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `${hours}h`
+  const days = Math.floor(hours / 24)
+  return `${days}d`
+}
+
+function DashboardRecentActivity({
+  items,
+}: {
+  items: NormalizedNotificationFeedItem[]
+}) {
+  const latest = items.slice(0, 4)
+
+  return (
+    <Card className="border-border/40 bg-card/70 shadow-sm backdrop-blur-sm">
+      <CardContent className="space-y-3 p-4">
+        <div className="flex items-center justify-between">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Recent activity</p>
+          <Clock3 className="size-3.5 text-muted-foreground" />
+        </div>
+        {latest.length === 0 ? (
+          <p className="text-xs text-muted-foreground">No recent notifications.</p>
+        ) : (
+          <div className="space-y-2">
+            {latest.map((item) => (
+              <div
+                key={item.id}
+                className="rounded-lg border border-border/40 bg-background/40 px-2.5 py-2"
+              >
+                <p className="line-clamp-2 text-xs text-foreground">{item.message}</p>
+                <p className="mt-1 text-[10px] text-muted-foreground">{relativeDateLabel(item.created_at)}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
+function DashboardMiniKpi({
+  icon,
+  label,
+  value,
+  toneClassName,
+  helper,
+  rightSlot,
+}: {
+  icon: ReactNode
+  label: string
+  value: number
+  toneClassName: string
+  helper?: string
+  rightSlot?: ReactNode
+}) {
+  return (
+    <Card className={cn("glass-card !gap-0 !py-0 border shadow-sm", toneClassName)}>
+      <CardContent className="flex items-center justify-between gap-2 p-2.5">
+        <div className="flex min-w-0 items-center gap-2">
+          <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-background/60">
+            {icon}
+          </div>
+          <div className="min-w-0">
+            <p className="text-[10px] font-semibold leading-none text-muted-foreground">{label}</p>
+            <p className="text-base font-extrabold tabular-nums leading-tight text-foreground">{value}</p>
+          </div>
+        </div>
+        <div className="flex shrink-0 items-center gap-1">
+          {helper ? <span className="text-[10px] text-muted-foreground">{helper}</span> : null}
+          {rightSlot}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
 export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientProps = {}) {
   const pathname = usePathname()
   const router = useRouter()
@@ -558,6 +710,8 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
       jamStartDate: t.jam_start_date ?? null,
       jamEndDate: t.jam_end_date ?? null,
       createdAt: t.created_at ?? null,
+      teamVibe: t.team_vibe ?? null,
+      expiresAt: t.expires_at ?? null,
     }
   }
 
@@ -1238,6 +1392,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
     "Jammer"
   const headerXp = typeof profile?.xp === "number" ? profile.xp : 0
   const headerTitle = profile?.current_title?.trim() || "Rookie Jammer"
+  const hasKpiSignal = teams.length > 0 || activityTotal > 0 || availabilityPosts.length > 0
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -1247,38 +1402,6 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
         {/* Hero section with identity + KPIs */}
         <section className="px-4 py-6 md:py-8 lg:px-6">
           <div className="mx-auto max-w-5xl space-y-4 md:space-y-6">
-            <Alert
-              className={cn(
-                "rounded-xl border-purple-500 bg-purple-100 text-foreground shadow-sm",
-                "dark:border-purple-400 dark:bg-purple-950/35 dark:text-purple-50",
-              )}
-            >
-              <Rocket
-                className="size-4 shrink-0 text-purple-600 dark:text-purple-300"
-                aria-hidden
-              />
-              <AlertDescription className="col-start-2 text-foreground/90 dark:text-purple-50/95">
-                <span className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-2 sm:gap-y-1">
-                  <span className="text-sm leading-snug sm:text-sm">
-                    The GameJamCrew Launch Jam starts on May 1st! $40 to $100 Prize Pool.
-                  </span>
-                  <Button
-                    variant="link"
-                    asChild
-                    className="h-auto shrink-0 justify-start p-0 text-sm font-semibold text-purple-700 underline-offset-4 hover:text-purple-900 dark:text-purple-200 dark:hover:text-white"
-                  >
-                    <a
-                      href="https://itch.io/jam/gamejamcrew-jam"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Join now
-                    </a>
-                  </Button>
-                </span>
-              </AlertDescription>
-            </Alert>
-
             {/* Compact Identity Header */}
             {session?.user?.id && profile ? (
               <DashboardIdentityHeader
@@ -1289,64 +1412,54 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
               />
             ) : null}
 
-            {/* 3 KPI Cards */}
-            <div className="grid grid-cols-3 gap-2 md:gap-4">
-              {/* Teams KPI */}
-              <Card className="glass-card border-teal/20 bg-teal/5">
-                <CardContent className="flex items-center gap-2 p-3 md:gap-3 md:p-4">
-                  <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-teal/15 md:size-10">
-                    <Users2 className="size-4 text-teal md:size-5" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-[10px] font-medium text-muted-foreground md:text-xs">Teams</p>
-                    <p className="text-lg font-bold tabular-nums md:text-xl">{teams.length}</p>
-                  </div>
+            {/* 3 KPI cards (hidden if no useful signal) */}
+            {hasKpiSignal ? (
+              <div className="grid grid-cols-3 gap-1.5 md:gap-2">
+                <DashboardMiniKpi
+                  icon={<Users2 className="size-3.5 text-teal" />}
+                  label="Teams"
+                  value={teams.length}
+                  helper={teams.length > 0 ? "active" : undefined}
+                  toneClassName="border-teal/20 bg-teal/5"
+                />
+                <DashboardMiniKpi
+                  icon={<Inbox className="size-3.5 text-peach" />}
+                  label="Activity"
+                  value={activityTotal}
+                  toneClassName="border-peach/20 bg-peach/5"
+                  rightSlot={
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          className="cursor-pointer rounded-full p-0.5 text-muted-foreground hover:text-foreground"
+                          aria-label="Activity info"
+                        >
+                          <Info className="size-3" aria-hidden />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="max-w-56 text-xs">
+                        <p><span className="font-semibold">{toActionCount}</span> to action</p>
+                        <p><span className="font-semibold">{waitingResponseCount}</span> waiting</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  }
+                />
+                <DashboardMiniKpi
+                  icon={<UserSearch className="size-3.5 text-lavender" />}
+                  label="Available"
+                  value={availabilityPosts.length}
+                  helper={availabilityPosts.length > 0 ? "posts" : undefined}
+                  toneClassName="border-lavender/20 bg-lavender/5"
+                />
+              </div>
+            ) : (
+              <Card className="glass-card !gap-0 !py-0 border-border/40 bg-card/60 shadow-sm">
+                <CardContent className="p-2.5 text-[11px] text-muted-foreground">
+                  No active squads or requests yet. Use quick actions to create your first momentum.
                 </CardContent>
               </Card>
-
-              {/* Activity KPI */}
-              <Card className="glass-card border-peach/20 bg-peach/5">
-                <CardContent className="flex items-center gap-2 p-3 md:gap-3 md:p-4">
-                  <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-peach/15 md:size-10">
-                    <Inbox className="size-4 text-peach md:size-5" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1">
-                      <p className="text-[10px] font-medium text-muted-foreground md:text-xs">Activity</p>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <button
-                            type="button"
-                            className="rounded-full p-0.5 text-muted-foreground hover:text-foreground"
-                            aria-label="Activity info"
-                          >
-                            <Info className="size-2.5 md:size-3" aria-hidden />
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent side="top" className="max-w-56 text-xs">
-                          <p><span className="font-semibold">{toActionCount}</span> to action</p>
-                          <p><span className="font-semibold">{waitingResponseCount}</span> waiting</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </div>
-                    <p className="text-lg font-bold tabular-nums md:text-xl">{activityTotal}</p>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Availability KPI */}
-              <Card className="glass-card border-lavender/20 bg-lavender/5">
-                <CardContent className="flex items-center gap-2 p-3 md:gap-3 md:p-4">
-                  <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-lavender/15 md:size-10">
-                    <UserSearch className="size-4 text-lavender md:size-5" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-[10px] font-medium text-muted-foreground md:text-xs">Available</p>
-                    <p className="text-lg font-bold tabular-nums md:text-xl">{availabilityPosts.length}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+            )}
           </div>
         </section>
 
@@ -1416,40 +1529,68 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
               <MobileSectionTitle activeTab={activeTab} inboxCount={toActionCount} />
 
               <TabsContent value="squads" className="mt-0">
-                {teams.length === 0 && availabilityPosts.length === 0 ? (
-                  <DashboardEmptyState />
-                ) : (
-                  <DashboardMyTeams teams={teams} onLeave={handleLeaveTeam} />
-                )}
+                <div className="grid gap-4 lg:grid-cols-12">
+                  <div className="space-y-4 lg:col-span-8">
+                    <DashboardQuickActions />
+                    <DashboardNextSteps
+                      hasTeam={teams.length > 0}
+                      hasAvailability={availabilityPosts.length > 0}
+                      hasDiscord={Boolean(profile?.discord_username?.trim())}
+                      hasPortfolio={Boolean(profile?.portfolio_url?.trim())}
+                      hasInboxActivity={activityTotal > 0}
+                    />
+                    {teams.length === 0 && availabilityPosts.length === 0 ? (
+                      <DashboardEmptyState />
+                    ) : (
+                      <DashboardSquadsCompact teams={teams} onLeave={handleLeaveTeam} />
+                    )}
+                  </div>
+                  <aside className="hidden space-y-4 lg:col-span-4 lg:sticky lg:top-24 lg:block lg:self-start">
+                    <DashboardSidebarProgress xp={headerXp} currentTitle={headerTitle} />
+                    <DashboardRecentActivity items={activityNotifications} />
+                  </aside>
+                </div>
               </TabsContent>
 
               <TabsContent value="inbox" className="mt-0 flex flex-col gap-4 md:gap-6">
-                <PushNotificationBanner />
-                <DashboardInboxHub
-                  applications={applications}
-                  invitations={invitations}
-                  sentApplications={sentApplications}
-                  sentInvitations={sentInvitationsOutbox}
-                  activityNotifications={activityNotifications}
-                  onInboxActivityChanged={() => void loadData()}
-                  cancellingSentRequestId={cancellingSentRequestId}
-                  onAcceptApplication={handleAcceptApplication}
-                  onDeclineApplication={handleDeclineApplication}
-                  onAcceptInvitation={handleAcceptInvitation}
-                  onDeclineInvitation={handleDeclineInvitation}
-                  onCancelPendingSentRequest={handleCancelPendingSentRequest}
-                />
+                <div className="grid gap-4 lg:grid-cols-12">
+                  <div className="space-y-4 lg:col-span-8">
+                    <PushNotificationBanner />
+                    <DashboardInboxCompact
+                      applications={applications}
+                      invitations={invitations}
+                      sentApplications={sentApplications}
+                      sentInvitations={sentInvitationsOutbox}
+                      cancellingSentRequestId={cancellingSentRequestId}
+                      onAcceptApplication={handleAcceptApplication}
+                      onDeclineApplication={handleDeclineApplication}
+                      onAcceptInvitation={handleAcceptInvitation}
+                      onDeclineInvitation={handleDeclineInvitation}
+                      onCancelPendingSentRequest={handleCancelPendingSentRequest}
+                    />
+                  </div>
+                  <aside className="hidden space-y-4 lg:col-span-4 lg:sticky lg:top-24 lg:block lg:self-start">
+                    <DashboardRecentActivity items={activityNotifications} />
+                  </aside>
+                </div>
               </TabsContent>
 
               <TabsContent value="availability" className="mt-0 flex flex-col gap-4 md:gap-6">
-                <DashboardRecommendedTeams teams={recommendedTeams} />
-                <DashboardMyAvailability
-                  availabilityPosts={availabilityPosts}
-                  onDeletePost={handleDeleteAvailabilityPostClick}
-                  onRenewPost={handleRenewAvailabilityPost}
-                  renewingPostId={renewingAvailabilityPostId}
-                  profileAvatarUrl={profile?.avatar_url ?? null}
-                />
+                <div className="grid gap-4 lg:grid-cols-12">
+                  <div className="space-y-4 lg:col-span-8">
+                    <DashboardAvailabilityCompact
+                      posts={availabilityPosts}
+                      onDeletePost={handleDeleteAvailabilityPostClick}
+                      onRenewPost={handleRenewAvailabilityPost}
+                      renewingPostId={renewingAvailabilityPostId}
+                      profileAvatarUrl={profile?.avatar_url ?? null}
+                    />
+                  </div>
+                  <aside className="hidden space-y-4 lg:col-span-4 lg:sticky lg:top-24 lg:block lg:self-start">
+                    <DashboardRecommendedTeams teams={recommendedTeams} compact />
+                    <DashboardRecentActivity items={activityNotifications} />
+                  </aside>
+                </div>
               </TabsContent>
 
               <TabsContent value="achievements" className="mt-0 flex flex-col gap-4 md:gap-6">
@@ -1459,6 +1600,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
                       userId={session.user.id}
                       onDataChanged={() => void loadData()}
                     />
+                    <MonthlyKudosLeaderboard />
                     <ProfileGamification userId={session.user.id} badgesOnly />
                   </>
                 ) : null}
@@ -1497,7 +1639,6 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
 
       <ResponsiveConfirmDrawer
         open={showAvailabilityModal}
-        onOpenChange={(open) => !open && handleAvailabilityModalCancel()}
         isMobile={isMobile}
         icon={
           <div className="flex size-10 items-center justify-center rounded-xl bg-success/15">
@@ -1518,7 +1659,6 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
 
       <ResponsiveConfirmDrawer
         open={availabilityPostIdToDelete !== null}
-        onOpenChange={(open) => !open && setAvailabilityPostIdToDelete(null)}
         isMobile={isMobile}
         icon={
           <div className="flex size-10 items-center justify-center rounded-xl bg-destructive/15">

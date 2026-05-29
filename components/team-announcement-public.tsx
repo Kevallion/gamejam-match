@@ -1,10 +1,12 @@
 "use client"
 
+import { useState } from "react"
 import Link from "next/link"
 import { Navbar } from "@/components/navbar"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { JoinTeamModal } from "@/components/join-team-modal"
+import { AuthModal } from "@/components/auth-modal"
 import { JamTitleBlock, type TeamCardData } from "@/components/team-card"
 import { ArrowLeft, ArrowRight, Cpu, Globe, ShieldCheck } from "lucide-react"
 
@@ -39,6 +41,7 @@ interface TeamAnnouncementPublicProps {
 }
 
 export function TeamAnnouncementPublic({ team, isLoggedIn }: TeamAnnouncementPublicProps) {
+  const [authModalOpen, setAuthModalOpen] = useState(false)
   const availableRoles = computeAvailableRoles(team)
   const isSquadFull =
     availableRoles.length > 0 && availableRoles.every((r) => r.filled)
@@ -150,8 +153,12 @@ export function TeamAnnouncementPublic({ team, isLoggedIn }: TeamAnnouncementPub
                   Team full
                 </div>
               ) : !isLoggedIn ? (
-                <Button asChild className="w-full gap-2 rounded-xl bg-primary text-primary-foreground hover:bg-primary/85">
-                  <Link href="/">Sign in to apply</Link>
+                <Button
+                  type="button"
+                  className="w-full gap-2 rounded-xl bg-primary text-primary-foreground hover:bg-primary/85"
+                  onClick={() => setAuthModalOpen(true)}
+                >
+                  Sign in to apply
                 </Button>
               ) : (
                 <JoinTeamModal
@@ -170,6 +177,7 @@ export function TeamAnnouncementPublic({ team, isLoggedIn }: TeamAnnouncementPub
           </div>
         </div>
       </main>
+      <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
     </div>
   )
 }

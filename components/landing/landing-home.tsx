@@ -5,6 +5,26 @@ import { Navbar } from "@/components/navbar"
 import { LandingHero } from "@/components/landing/landing-hero"
 import { cn } from "@/lib/utils"
 
+export type LandingFeaturedTeam = {
+  id: string
+  name: string
+  jam: string
+  openRoles: number
+}
+
+export type LandingSocialProofStats = {
+  activeTeams: number
+  completedTeams: number
+  activeJammers: number
+}
+
+export type LandingUpcomingJam = {
+  id: string
+  title: string
+  url: string | null
+  startsAt: string
+}
+
 function BelowFoldSkeleton({ className }: { className?: string }) {
   return (
     <div
@@ -30,12 +50,24 @@ const LandingBelowFold = dynamic(
   },
 )
 
-export function LandingHome() {
+export function LandingHome({
+  featuredTeams = [],
+  socialProofStats,
+  upcomingJams = [],
+}: {
+  featuredTeams?: LandingFeaturedTeam[]
+  socialProofStats: LandingSocialProofStats
+  upcomingJams?: LandingUpcomingJam[]
+}) {
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
       <main className="flex-1">
-        <LandingHero />
+        <LandingHero
+          featuredTeams={featuredTeams}
+          socialProofStats={socialProofStats}
+          upcomingJams={upcomingJams}
+        />
         <LandingBelowFold />
       </main>
     </div>

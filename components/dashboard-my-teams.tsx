@@ -66,6 +66,8 @@ export type TeamData = {
   jamStartDate?: string | null
   jamEndDate?: string | null
   createdAt?: string | null
+  teamVibe?: string | null
+  expiresAt?: string | null
 }
 
 function roleLabel(key: string) {
