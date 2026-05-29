@@ -526,7 +526,7 @@ function DashboardSidebarProgress({
         <p className="truncate text-sm font-semibold text-foreground">{currentTitle || "Rookie Jammer"}</p>
         <Progress value={progress.progressPercent} className="h-1.5 bg-muted/80" />
         <p className="text-[11px] text-muted-foreground">
-          {progress.currentLevelXp}/{progress.currentLevelXp + progress.xpToNext} XP
+          {progress.xpInLevel}/{progress.xpInLevel + progress.xpToNextLevel} XP
         </p>
       </CardContent>
     </Card>
