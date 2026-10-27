@@ -1,11 +1,13 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { awardXP, tryAwardCaptainBadgeForFullRoster } from "@/lib/gamification"
 import type { GamificationRewardSummary } from "@/lib/gamification-reward-types"
 import {
   markNotificationsReadForJoinRequest,
   notifyCandidateAccepted,
+  notifyOwnerMemberLeft,
   notifyOwnerPlayerJoined,
   notifyOwnerSquadRosterComplete,
 } from "@/app/actions/team-actions"
@@ -92,37 +94,52 @@ export async function acceptJoinApplication(joinRequestId: string): Promise<Memb
     return { success: false, error: "Role already filled." }
   }
 
+  const { data: alreadyMember } = await supabase
+    .from("team_members")
+    .select("id")
+    .eq("team_id", teamId)
+    .eq("user_id", senderId)
+    .maybeSingle()
+  if (alreadyMember) {
+    return { success: false, error: "This jammer is already a member of this squad." }
+  }
+
   const { error: insertError } = await supabase.from("team_members").insert({
     team_id: teamId,
     user_id: senderId,
     role: targetRole || "member",
   })
 
-  const duplicateMember = insertError?.code === "23505"
-  if (insertError && !duplicateMember) {
+  if (insertError) {
+    if (insertError.code === "23505") {
+      return { success: false, error: "This jammer is already a member of this squad." }
+    }
     return { success: false, error: insertError.message }
   }
 
-  const { error: updateError } = await supabase
+  const { data: updatedRows, error: updateError } = await supabase
     .from("join_requests")
     .update({ status: "accepted" })
     .eq("id", joinRequestId)
+    .eq("status", "pending")
+    .select("id")
 
   if (updateError) {
     return { success: false, error: updateError.message }
   }
+  if (!updatedRows?.length) {
+    return { success: false, error: "This request was already handled." }
+  }
 
   const teamName = teamMeta.team_name ?? undefined
   if (teamName) {
-    void notifyCandidateAccepted(senderId, teamName, teamId, user.id)
+    void notifyCandidateAccepted(senderId, teamName, teamId, user.id, joinRequestId)
   }
-  if (request.sender_name) {
-    void notifyOwnerPlayerJoined(teamId, request.sender_name as string, senderId)
-  }
+  void notifyOwnerPlayerJoined(teamId, (request.sender_name as string | null) ?? "", senderId)
   void markNotificationsReadForJoinRequest(joinRequestId)
 
   let ownerGamification: GamificationRewardSummary | undefined
-  if (!duplicateMember) {
+  {
     try {
       const gamification = await awardXP(senderId, "JOIN_TEAM", { joinRole: targetRole })
       if (!gamification.ok) {
@@ -178,42 +195,49 @@ export async function acceptTeamInvitation(invitationId: string): Promise<Member
   const teamId = invitation.team_id as string
   const targetRole = (invitation.target_role as string | null) ?? "member"
 
+  const { data: alreadyMember } = await supabase
+    .from("team_members")
+    .select("id")
+    .eq("team_id", teamId)
+    .eq("user_id", user.id)
+    .maybeSingle()
+  if (alreadyMember) {
+    return { success: false, error: "You are already a member of this squad." }
+  }
+
   const { error: insertError } = await supabase.from("team_members").insert({
     team_id: teamId,
     user_id: user.id,
     role: targetRole,
   })
 
-  const duplicateMember = insertError?.code === "23505"
-  if (insertError && !duplicateMember) {
+  if (insertError) {
+    if (insertError.code === "23505") {
+      return { success: false, error: "You are already a member of this squad." }
+    }
     return { success: false, error: insertError.message }
   }
 
-  const { error: updateError } = await supabase
+  const { data: updatedRows, error: updateError } = await supabase
     .from("join_requests")
     .update({ status: "accepted" })
     .eq("id", invitationId)
+    .eq("status", "pending")
+    .select("id")
 
   if (updateError) {
     return { success: false, error: updateError.message }
   }
-
-  const meta = user.user_metadata as Record<string, string> | undefined
-  const currentUserName =
-    meta?.username ??
-    meta?.user_name ??
-    meta?.full_name ??
-    meta?.name ??
-    (user.email ? user.email.split("@")[0] : null)
-
-  if (currentUserName) {
-    void notifyOwnerPlayerJoined(teamId, currentUserName, user.id)
+  if (!updatedRows?.length) {
+    return { success: false, error: "This invitation was already handled." }
   }
+
+  void notifyOwnerPlayerJoined(teamId, "", user.id)
   void markNotificationsReadForJoinRequest(invitationId)
 
   let joinGamification: GamificationRewardSummary | undefined
   let ownerGamification: GamificationRewardSummary | undefined
-  if (!duplicateMember) {
+  {
     try {
       const gamification = await awardXP(user.id, "JOIN_TEAM", { joinRole: targetRole })
       if (!gamification.ok) {
@@ -237,4 +261,82 @@ export async function acceptTeamInvitation(invitationId: string): Promise<Member
   }
 
   return { success: true, gamification: joinGamification, ownerGamification }
+}
+
+/**
+ * Member leaves a squad. Notifies the owner, drops accepted join rows, and
+ * clears the leaver's invite/accept notifications plus the owner's join notice
+ * so a later rejoin can notify again.
+ */
+export async function leaveTeam(teamId: string): Promise<MembershipActionResult> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser()
+
+  if (authError || !user) {
+    return { success: false, error: "You must be signed in." }
+  }
+
+  const { data: team, error: teamError } = await supabase
+    .from("teams")
+    .select("id, user_id, team_name")
+    .eq("id", teamId)
+    .maybeSingle()
+
+  if (teamError || !team) {
+    return { success: false, error: teamError?.message ?? "Squad not found." }
+  }
+  if (team.user_id === user.id) {
+    return { success: false, error: "Squad owners cannot leave. Delete the squad instead." }
+  }
+
+  const { data: membership } = await supabase
+    .from("team_members")
+    .select("id")
+    .eq("team_id", teamId)
+    .eq("user_id", user.id)
+    .maybeSingle()
+  if (!membership) {
+    return { success: false, error: "You are not a member of this squad." }
+  }
+
+  const { error: deleteError } = await supabase
+    .from("team_members")
+    .delete()
+    .eq("team_id", teamId)
+    .eq("user_id", user.id)
+  if (deleteError) {
+    return { success: false, error: deleteError.message }
+  }
+
+  await supabase
+    .from("join_requests")
+    .delete()
+    .eq("team_id", teamId)
+    .eq("sender_id", user.id)
+    .eq("status", "accepted")
+
+  try {
+    const admin = createAdminClient()
+    await admin
+      .from("notifications")
+      .delete()
+      .eq("user_id", user.id)
+      .eq("team_id", teamId)
+      .in("type", ["team_invitation", "application_accepted"])
+    await admin
+      .from("notifications")
+      .delete()
+      .eq("user_id", team.user_id as string)
+      .eq("team_id", teamId)
+      .eq("sender_id", user.id)
+      .eq("type", "player_joined")
+  } catch (err) {
+    console.error("[leaveTeam] notification cleanup:", err)
+  }
+
+  void notifyOwnerMemberLeft(teamId, user.id)
+  return { success: true }
 }

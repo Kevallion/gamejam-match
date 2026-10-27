@@ -47,6 +47,7 @@ export type DashboardIncomingInvitationRow = {
 export type DashboardSentApplicationRow = {
   id: string
   status: string
+  team_id?: string | null
   target_role?: string | null
   created_at?: string | null
   teams:
@@ -118,7 +119,7 @@ export async function fetchDashboardJoinRequests(
       .eq("type", "invitation"),
     client
       .from("join_requests")
-      .select("id, status, target_role, created_at, teams(team_name, team_discord_links(discord_link))")
+      .select("id, status, target_role, team_id, created_at, teams(team_name, team_discord_links(discord_link))")
       .eq("sender_id", userId)
       .eq("type", "application")
       .order("created_at", { ascending: false }),

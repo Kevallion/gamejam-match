@@ -1,4 +1,5 @@
 import { supabase } from "./supabase"
+import { fetchTeammateDiscordUsernames } from "@/lib/profile-discord"
 
 export type ProfileDisplay = {
   username: string
@@ -48,28 +49,14 @@ export async function fetchProfilesMap(
 export async function fetchProfilesMapWithDiscord(
   userIds: string[]
 ): Promise<Record<string, ProfileDisplay>> {
-  const uniqueIds = Array.from(new Set(userIds)).filter(Boolean)
-  if (uniqueIds.length === 0) return {}
-
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("id, username, avatar_url, discord_username")
-    .in("id", uniqueIds)
-
-  if (error) {
-    console.error("[fetchProfilesMapWithDiscord] Error:", error.message)
-    return {}
-  }
-
-  const map: Record<string, ProfileDisplay> = {}
-  for (const p of data ?? []) {
-    if (!p.id) continue
-    const rawAvatar = (p.avatar_url ?? "").trim() || null
-    map[p.id] = {
-      username: (p.username ?? "").trim() || "",
-      avatar_url: rawAvatar,
-      discord_username: (p as { discord_username?: string | null }).discord_username ?? null,
+  const map = await fetchProfilesMap(userIds)
+  const discord = await fetchTeammateDiscordUsernames(supabase, userIds)
+  for (const [id, handle] of Object.entries(discord)) {
+    if (!map[id]) {
+      map[id] = { username: "", avatar_url: null, discord_username: handle }
+      continue
     }
+    map[id] = { ...map[id], discord_username: handle }
   }
   return map
 }

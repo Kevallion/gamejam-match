@@ -60,7 +60,7 @@ export type ProfileSettingsProfile = {
 
 type ProfileSettingsProps = {
   profile: ProfileSettingsProfile | null
-  onProfileUpdated?: () => void
+  onProfileUpdated?: (patch?: { discord_username?: string | null }) => void
   /** Fallback when profile.username is empty (e.g. OAuth name before profile is saved) */
   displayNameFallback?: string | null
 }
@@ -181,7 +181,7 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
         return
       }
       toast.success("Profile updated.")
-      onProfileUpdated?.()
+      onProfileUpdated?.({ discord_username: discordUsername.trim() || null })
     } catch (err) {
       toast.error("An error occurred.", {
         description: err instanceof Error ? err.message : "Please try again.",

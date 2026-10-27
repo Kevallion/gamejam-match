@@ -93,6 +93,16 @@ export function useNotifications(userId: string | null) {
         },
         () => void fetchNotifications(),
       )
+      .on(
+        "postgres_changes",
+        {
+          event: "DELETE",
+          schema: "public",
+          table: "notifications",
+          filter: `user_id=eq.${userId}`,
+        },
+        () => void fetchNotifications(),
+      )
       .subscribe()
     return () => {
       supabase.removeChannel(channel)

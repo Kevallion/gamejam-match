@@ -11,6 +11,7 @@ import { TeamChat } from "@/components/team-chat"
 import { TeamAnnouncementPublic } from "@/components/team-announcement-public"
 import { supabase } from "@/lib/supabase"
 import { fetchProfilesMap } from "@/lib/profiles"
+import { fetchTeammateDiscordUsernames } from "@/lib/profile-discord"
 import { fetchTeamDiscordLink } from "@/lib/team-discord"
 import { formatTeamToCardData, type TeamRowDb } from "@/lib/team-utils"
 import type { TeamCardData } from "@/components/team-card"
@@ -56,6 +57,14 @@ export default function TeamPage() {
   const [squad, setSquad] = useState<SquadViewData | null>(null)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [members, setMembers] = useState<SquadMember[]>([])
+  const [clockMs, setClockMs] = useState<number | null>(null)
+
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      setClockMs(Date.now())
+    }, 0)
+    return () => window.clearTimeout(id)
+  }, [])
 
   useEffect(() => {
     if (!teamId || teamId.length < 2) return
@@ -151,7 +160,7 @@ export default function TeamPage() {
       const allUserIds = Array.from(
         new Set([teamData.user_id, ...(membersData ?? []).map((m: { user_id: string }) => m.user_id)])
       )
-      const [joinRes, profilesFromMap, discordLink] = await Promise.all([
+      const [joinRes, profilesFromMap, discordByUserId, discordLink] = await Promise.all([
         (membersData?.length ?? 0) > 0
           ? supabase
               .from("join_requests")
@@ -170,6 +179,7 @@ export default function TeamPage() {
               }[],
             }),
         fetchProfilesMap(allUserIds),
+        fetchTeammateDiscordUsernames(supabase, allUserIds),
         fetchTeamDiscordLink(supabase, teamId),
       ])
 
@@ -190,7 +200,7 @@ export default function TeamPage() {
         profileMap[id] = {
           username: p.username,
           avatar_url: p.avatar_url,
-          discord_username: p.discord_username ?? null,
+          discord_username: discordByUserId[id]?.trim() || null,
         }
       }
 
@@ -304,7 +314,11 @@ export default function TeamPage() {
     const descriptionMissing = !squad.description?.trim() || squad.description.trim().length < 10
     const discordMissing = !squad.discord_link?.trim()
     const showOwnerIncompleteBanner = isOwner && (descriptionMissing || discordMissing)
-    const isJamFinished = Boolean(squad.jam_end_date && new Date(squad.jam_end_date).getTime() < Date.now())
+    const isJamFinished = Boolean(
+      clockMs !== null &&
+        squad.jam_end_date &&
+        new Date(squad.jam_end_date).getTime() < clockMs,
+    )
 
     return (
       <div className="flex min-h-screen flex-col">
@@ -433,7 +447,7 @@ export default function TeamPage() {
                                         <p className="truncate text-sm font-semibold text-foreground">
                                           {member.username}
                                         </p>
-                                        {isJamFinished && member.userId !== currentUserId ? (
+                                        {member.userId !== currentUserId ? (
                                           <Button
                                             asChild
                                             variant="outline"

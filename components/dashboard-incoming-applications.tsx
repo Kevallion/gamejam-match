@@ -179,6 +179,7 @@ export function DashboardIncomingApplications({
                 <div className="flex items-center gap-3 pt-0.5">
                   <Button
                     onClick={() => onAccept(app.id)}
+                    aria-label={`Accept application from ${app.username}`}
                     className="gap-2 rounded-xl bg-green-600 px-5 text-white shadow-md shadow-green-500/20 transition-all hover:bg-green-700 hover:shadow-lg hover:shadow-green-500/30"
                   >
                     <Check className="size-4" />
@@ -187,6 +188,7 @@ export function DashboardIncomingApplications({
                   <Button
                     variant="outline"
                     onClick={() => onDecline(app.id)}
+                    aria-label={`Decline application from ${app.username}`}
                     className="gap-2 rounded-xl border-red-500/50 px-5 text-red-600 transition-all hover:border-red-500 hover:bg-red-500/10 hover:text-red-700"
                   >
                     <X className="size-4" />

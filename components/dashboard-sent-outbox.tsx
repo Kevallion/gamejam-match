@@ -237,7 +237,7 @@ export function DashboardSentOutbox({
                         className="shrink-0 ring-2 ring-lavender/20"
                       />
                       <div className="min-w-0 flex-1">
-                        <p className="font-semibold text-foreground">{inv.inviteeUsername}</p>
+                        <p className="font-semibold text-foreground">Invitation · {inv.inviteeUsername}</p>
                         <p className="mt-0.5 text-sm text-muted-foreground">
                           to join{" "}
                           <span className="font-medium text-foreground">{inv.teamName}</span>

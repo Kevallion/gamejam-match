@@ -151,6 +151,23 @@ export function DirectoryGrid({
       }
       type LookingForRole = { role?: string | null }
 
+      const teamIds = (teamsData as TeamMiniRow[]).map((team) => team.id)
+      const memberIdsByTeam = new Map<string, string[]>()
+      if (teamIds.length > 0) {
+        const { data: memberRows } = await supabase
+          .from("team_members")
+          .select("team_id, user_id")
+          .in("team_id", teamIds)
+        for (const row of memberRows ?? []) {
+          const teamId = row.team_id as string | null
+          const memberId = row.user_id as string | null
+          if (!teamId || !memberId) continue
+          const list = memberIdsByTeam.get(teamId) ?? []
+          list.push(memberId)
+          memberIdsByTeam.set(teamId, list)
+        }
+      }
+
       const squads: SquadOption[] = (teamsData as TeamMiniRow[]).map((t) => {
         const parsedRoles: LookingForRole[] = Array.isArray(t.looking_for)
           ? (t.looking_for as LookingForRole[])
@@ -168,6 +185,7 @@ export function DirectoryGrid({
           team_name: t.team_name ?? "Untitled team",
           game_name: t.game_name ?? undefined,
           needed_roles,
+          memberIds: memberIdsByTeam.get(t.id) ?? [],
         }
       })
       setMySquads(squads)

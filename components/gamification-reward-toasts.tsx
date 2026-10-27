@@ -11,6 +11,14 @@ import {
 
 const STAGGER_MS = 95
 
+/** Badge id → title string unlocked at the same moment. Toast the badge only. */
+const TITLE_DUPLICATED_BY_BADGE: Record<string, string> = {
+  founder: "Squad Founder",
+  recruiter: "Recruiter",
+  captain: "Captain",
+  jam_champion: "Jam Champion",
+}
+
 function playRewardChime() {
   try {
     const Ctx = window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
@@ -78,7 +86,15 @@ async function showGamificationRewardsAsync(
     })
   }
 
-  const titles = reward.newTitles?.length ? reward.newTitles : reward.newTitle ? [reward.newTitle] : []
+  const badges = reward.newBadges?.length ? reward.newBadges : reward.newBadge ? [reward.newBadge] : []
+  const titleCoveredByBadge = new Set(
+    badges
+      .map((badgeId) => TITLE_DUPLICATED_BY_BADGE[badgeId.trim().toLowerCase()])
+      .filter((title): title is string => Boolean(title)),
+  )
+  const titles = (reward.newTitles?.length ? reward.newTitles : reward.newTitle ? [reward.newTitle] : []).filter(
+    (title) => !titleCoveredByBadge.has(title),
+  )
   for (const title of titles) {
     await delay(t)
     t += STAGGER_MS
@@ -92,7 +108,6 @@ async function showGamificationRewardsAsync(
     })
   }
 
-  const badges = reward.newBadges?.length ? reward.newBadges : reward.newBadge ? [reward.newBadge] : []
   for (const badgeId of badges) {
     await delay(t)
     t += STAGGER_MS

@@ -25,6 +25,18 @@ const JAM_STYLE_VALUES = new Set<string>(JAM_STYLE_OPTIONS.map((o) => o.value))
 const EXPERIENCE_VALUES = new Set<string>(EXPERIENCE_OPTIONS.map((o) => o.value))
 const ROLE_VALUES = new Set<string>(ROLE_OPTIONS.map((o) => o.value))
 
+function lookingForRequirementError(raw: { role?: string; level?: string }[]): string | null {
+  const named = raw.filter((entry) => entry.role?.trim())
+  const complete = raw.filter((entry) => entry.role?.trim() && entry.level?.trim())
+  if (named.length > 0 && complete.length < named.length) {
+    return "Please select an experience level for each role you are looking for."
+  }
+  if (complete.length < 1) {
+    return "Select at least one role you are looking for."
+  }
+  return null
+}
+
 export type CreateTeamResult =
   | { success: true; teamId: string; gamification?: GamificationRewardSummary }
   | { success: false; error: string }
@@ -72,10 +84,11 @@ export async function createTeam(input: CreateTeamInput): Promise<CreateTeamResu
     return { success: false, error: "Invalid language." }
   }
 
-  const lookingFor = rawLookingFor.filter((r) => r.role && r.level)
-  if (lookingFor.length < 1) {
-    return { success: false, error: "Select at least one role you are looking for." }
+  const lookingForError = lookingForRequirementError(rawLookingFor)
+  if (lookingForError) {
+    return { success: false, error: lookingForError }
   }
+  const lookingFor = rawLookingFor.filter((r) => r.role && r.level)
   for (const entry of lookingFor) {
     if (!ROLE_VALUES.has(entry.role) || !EXPERIENCE_VALUES.has(entry.level)) {
       return { success: false, error: "Invalid role or experience level in team requirements." }
@@ -238,10 +251,11 @@ export async function updateTeamJamListing(
   const expReq = rawExp?.trim() || null
   const experienceRequired =
     expReq && expReq !== "any" && EXPERIENCE_VALUES.has(expReq) ? expReq : null
-  const lookingFor = rawLookingFor.filter((r) => r.role && r.level)
-  if (lookingFor.length < 1) {
-    return { success: false, error: "Select at least one role you are looking for." }
+  const lookingForError = lookingForRequirementError(rawLookingFor)
+  if (lookingForError) {
+    return { success: false, error: lookingForError }
   }
+  const lookingFor = rawLookingFor.filter((r) => r.role && r.level)
   for (const entry of lookingFor) {
     if (!ROLE_VALUES.has(entry.role) || !EXPERIENCE_VALUES.has(entry.level)) {
       return { success: false, error: "Invalid role or experience level in team requirements." }

@@ -23,7 +23,7 @@ export function HomeShell() {
 
   // Sync URL to state on load and when URL changes
   useEffect(() => {
-    const q = searchParams.get("q") ?? ""
+    const q = searchParams.get("q") ?? searchParams.get("search") ?? ""
     const engine = searchParams.get("engine") ?? "all"
     const role = searchParams.get("role") ?? "all"
     const level = searchParams.get("level") ?? "all"
@@ -45,7 +45,10 @@ export function HomeShell() {
         if (val && val !== "all") params.set(key, val)
         else params.delete(key)
       }
-      if (updates.q !== undefined) set("q", updates.q)
+      if (updates.q !== undefined) {
+        set("q", updates.q)
+        params.delete("search")
+      }
       if (updates.engine !== undefined) set("engine", updates.engine)
       if (updates.role !== undefined) set("role", updates.role)
       if (updates.level !== undefined) set("level", updates.level)

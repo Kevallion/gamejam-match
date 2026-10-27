@@ -84,9 +84,13 @@ export function CreateProfileAvailabilitySection() {
         <Alert className="border-teal/30 bg-teal/10 text-foreground [&>svg]:text-teal">
           <Info className="size-4" />
           <AlertTitle>
-            You already have {activeCount} active availability post{activeCount === 1 ? "" : "s"}.
+            {activeCount} of 3 availability posts in use
           </AlertTitle>
           <AlertDescription className="text-muted-foreground">
+            <p>
+              You can still publish {3 - activeCount} more. The form below stays available until you
+              reach 3 active posts.
+            </p>
             <Button variant="outline" size="sm" className="mt-1 border-teal/30 bg-background/80 hover:bg-teal/5" asChild>
               <Link href="/dashboard?tab=availability">Manage in Dashboard</Link>
             </Button>

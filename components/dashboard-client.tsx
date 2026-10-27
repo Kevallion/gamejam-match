@@ -66,7 +66,9 @@ import {
 import {
   acceptJoinApplication,
   acceptTeamInvitation,
+  leaveTeam,
 } from "@/app/actions/team-membership-actions"
+import { readOwnDiscordUsername } from "@/lib/profile-discord"
 import { claimDailyLoginXp } from "@/app/actions/gamification-actions"
 import { OnboardingModal } from "@/components/onboarding-modal"
 import { ProfileSettings, type ProfileSettingsProfile } from "@/components/profile-settings"
@@ -688,6 +690,9 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
   const [applications, setApplications] = useState<ApplicationData[]>([])
   const [invitations, setInvitations] = useState<InvitationData[]>([])
   const [sentApplications, setSentApplications] = useState<SentApplicationOutboxItem[]>([])
+  const [busyInboxRequestId, setBusyInboxRequestId] = useState<string | null>(null)
+  const [leaveTeamId, setLeaveTeamId] = useState<string | null>(null)
+  const [leavingTeam, setLeavingTeam] = useState(false)
   const [sentInvitationsOutbox, setSentInvitationsOutbox] = useState<SentInvitationOutboxItem[]>([])
   const [cancellingSentRequestId, setCancellingSentRequestId] = useState<string | null>(null)
   const [activityNotifications, setActivityNotifications] = useState<NormalizedNotificationFeedItem[]>([])
@@ -817,7 +822,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
         supabase
           .from("profiles")
           .select(
-            "id, has_completed_onboarding, onboarding_version, jam_id, username, avatar_url, discord_username, default_role, default_engine, engine, default_language, portfolio_url, jam_style, xp, current_title, profile_roles(role, experience_level, is_primary)",
+            "id, has_completed_onboarding, onboarding_version, jam_id, username, avatar_url, default_role, default_engine, engine, default_language, portfolio_url, jam_style, xp, current_title, profile_roles(role, experience_level, is_primary)",
           )
           .eq("id", uid)
           .maybeSingle(),
@@ -860,7 +865,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
         const { data: fallbackProfileData, error: fallbackProfileError } = await supabase
           .from("profiles")
           .select(
-            "id, has_completed_onboarding, onboarding_version, jam_id, username, avatar_url, discord_username, default_role, default_engine, engine, default_language, portfolio_url, jam_style, xp, current_title",
+            "id, has_completed_onboarding, onboarding_version, jam_id, username, avatar_url, default_role, default_engine, engine, default_language, portfolio_url, jam_style, xp, current_title",
           )
           .eq("id", uid)
           .maybeSingle()
@@ -871,6 +876,8 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
             : null
         }
       }
+
+      const ownDiscord = await readOwnDiscordUsername(supabase, uid)
 
       if (!notifErr && notifRaw) {
         const normalized = await fetchNotificationsAsNormalized(
@@ -969,7 +976,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
           ? {
               id: (profileData as { id: string }).id ?? authSession.user.id,
               username: profileData.username,
-              discord_username: (profileData as { discord_username?: string | null }).discord_username,
+              discord_username: ownDiscord,
               avatar_url: sessionAvatarUrl || profileData.avatar_url,
               default_role: (profileData as { default_role?: string | null }).default_role,
               jam_style: (profileData as { jam_style?: string | null }).jam_style ?? null,
@@ -1041,8 +1048,16 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
       if (appsData) setApplications((appsData as ApplicationRow[]).map((r) => mapApplicationRow(r, profileMap)))
       if (rawInvitesData) setInvitations((rawInvitesData as InvitationRow[]).map(mapInvitationRow))
 
+      const seenSentTeams = new Set<string>()
+      const latestSentApps = sentAppsData.filter((a) => {
+        const teamId = a.team_id ?? ""
+        if (teamId && seenSentTeams.has(teamId)) return false
+        if (teamId) seenSentTeams.add(teamId)
+        if (a.status === "accepted" && teamId && !memberTeamIds.includes(teamId)) return false
+        return true
+      })
       setSentApplications(
-        sentAppsData.map((a) => {
+        latestSentApps.map((a) => {
           const t = Array.isArray(a.teams) ? a.teams[0] ?? undefined : a.teams ?? undefined
           return {
             id: a.id,
@@ -1054,8 +1069,15 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
         }),
       )
 
+      const seenInvites = new Set<string>()
+      const latestInvites = bundle.sentInvitations.filter((row) => {
+        const key = `${row.team_id}:${row.sender_id ?? ""}`
+        if (seenInvites.has(key)) return false
+        seenInvites.add(key)
+        return true
+      })
       setSentInvitationsOutbox(
-        bundle.sentInvitations.map((row) => {
+        latestInvites.map((row) => {
           const inviteeId = row.sender_id ?? ""
           const prof = inviteeId ? profileMap[inviteeId] : undefined
           const tm = row.teams
@@ -1095,6 +1117,40 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
   useEffect(() => {
     void loadData()
   }, [loadData])
+
+  useEffect(() => {
+    const uid = session?.user?.id
+    if (!uid) return
+    let cancelled = false
+    const refreshActivity = async () => {
+      const { data, error } = await supabase
+        .from("notifications")
+        .select(NOTIFICATION_ENRICHED_SELECT)
+        .eq("user_id", uid)
+        .order("created_at", { ascending: false })
+        .limit(40)
+      if (cancelled || error || !data) return
+      const normalized = await fetchNotificationsAsNormalized(
+        supabase,
+        data as EnrichedNotificationRow[],
+      )
+      if (!cancelled) setActivityNotifications(normalized)
+    }
+    const channel = supabase
+      .channel(`dashboard-activity-${uid}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${uid}` },
+        () => {
+          void refreshActivity()
+        },
+      )
+      .subscribe()
+    return () => {
+      cancelled = true
+      void supabase.removeChannel(channel)
+    }
+  }, [session?.user?.id])
 
   useEffect(() => {
     if (loading || activeTab !== "inbox" || !highlightRequestId?.trim()) return
@@ -1149,9 +1205,10 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
         void loadData()
         return
       }
-      toast.success("Request cancelled", {
+      toast.success("Request cancelled.", {
         description: "Your pending application or invitation has been removed.",
       })
+      void loadData()
     } catch (err) {
       toast.error("An error occurred.", {
         description: err instanceof Error ? err.message : "Please try again.",
@@ -1162,41 +1219,35 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
     }
   }
 
-  const handleLeaveTeam = async (id: string) => {
+  const handleLeaveTeam = (id: string) => {
     if (!session?.user) {
       toast.error("You must be logged in to leave a squad.")
       return
     }
+    setLeaveTeamId(id)
+  }
 
+  const confirmLeaveTeam = async () => {
+    if (!leaveTeamId || leavingTeam) return
+    setLeavingTeam(true)
     try {
-      const { error } = await supabase
-        .from("team_members")
-        .delete()
-        .eq("team_id", id)
-        .eq("user_id", session.user.id)
-
-      if (error) {
-        toast.error("Could not leave the squad.", { description: error.message })
+      const result = await leaveTeam(leaveTeamId)
+      if (!result.success) {
+        toast.error("Could not leave the squad.", { description: result.error })
         return
       }
-
-      // Also remove the accepted join request so the role slot becomes available again
-      await supabase
-        .from("join_requests")
-        .delete()
-        .eq("team_id", id)
-        .eq("sender_id", session.user.id)
-        .eq("type", "application")
-        .eq("status", "accepted")
-
-      setTeams((prev) => prev.filter((t) => t.id !== id))
+      setTeams((prev) => prev.filter((t) => t.id !== leaveTeamId))
       toast.success("You left this squad.", {
-        description: "You can join or create new squads from your dashboard.",
+        description: "The squad owner has been notified.",
       })
+      setLeaveTeamId(null)
+      void loadData()
     } catch (err) {
       toast.error("An error occurred.", {
         description: err instanceof Error ? err.message : "Please try again.",
       })
+    } finally {
+      setLeavingTeam(false)
     }
   }
 
@@ -1254,28 +1305,39 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
   }
 
   const handleAcceptApplication = async (id: string) => {
+    if (busyInboxRequestId) return
+    const removed = applications.find((a) => a.id === id)
+    const applicantLabel = removed?.username ?? "The jammer"
+    setBusyInboxRequestId(id)
+    setApplications((prev) => prev.filter((a) => a.id !== id))
     try {
-      const applicantLabel =
-        applications.find((a) => a.id === id)?.username ?? "The jammer"
       const result = await acceptJoinApplication(id)
       if (!result.success) {
+        if (removed) setApplications((prev) => [removed, ...prev.filter((a) => a.id !== removed.id)])
         toast.error("Could not accept the application.", { description: result.error })
         return
       }
 
-      setApplications((prev) => prev.filter((a) => a.id !== id))
       if (result.ownerGamification && gamificationRewardHasToast(result.ownerGamification)) {
         showGamificationRewards("TEAM_ROSTER_COMPLETE", result.ownerGamification)
       }
       toast.success("Application accepted!", {
-        description: `${applicantLabel} joined your team.`,
+        description: `${applicantLabel} joined your squad.`,
       })
+      void loadData()
     } catch (err) {
+      if (removed) setApplications((prev) => [removed, ...prev.filter((a) => a.id !== removed.id)])
       toast.error("An error occurred.", { description: err instanceof Error ? err.message : "Please try again." })
+    } finally {
+      setBusyInboxRequestId(null)
     }
   }
 
   const handleDeclineApplication = async (id: string) => {
+    if (busyInboxRequestId) return
+    const removed = applications.find((a) => a.id === id)
+    setBusyInboxRequestId(id)
+    setApplications((prev) => prev.filter((a) => a.id !== id))
     try {
       const { data: request } = await supabase
         .from("join_requests")
@@ -1285,6 +1347,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
 
       const { error } = await supabase.from("join_requests").update({ status: 'rejected' }).eq("id", id)
       if (error) {
+        if (removed) setApplications((prev) => [removed, ...prev.filter((a) => a.id !== removed.id)])
         toast.error("Could not decline the application.", { description: error.message })
         return
       }
@@ -1303,14 +1366,18 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
         )
       }
 
-      setApplications((prev) => prev.filter((a) => a.id !== id))
-      toast.success("Application declined.", { icon: "?" })
+      toast.success("Application declined.")
     } catch (err) {
+      if (removed) setApplications((prev) => [removed, ...prev.filter((a) => a.id !== removed.id)])
       toast.error("An error occurred.", { description: err instanceof Error ? err.message : "Please try again." })
+    } finally {
+      setBusyInboxRequestId(null)
     }
   }
 
   const handleAcceptInvitation = async (invitation: InvitationData) => {
+    if (busyInboxRequestId) return
+    setBusyInboxRequestId(invitation.id)
     try {
       const result = await acceptTeamInvitation(invitation.id)
       if (!result.success) {
@@ -1331,6 +1398,8 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
       setShowAvailabilityModal(true)
     } catch (err) {
       toast.error("An error occurred.", { description: err instanceof Error ? err.message : "Please try again." })
+    } finally {
+      setBusyInboxRequestId(null)
     }
   }
 
@@ -1370,6 +1439,10 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
   }
 
   const handleDeclineInvitation = async (id: string) => {
+    if (busyInboxRequestId) return
+    const removed = invitations.find((item) => item.id === id)
+    setBusyInboxRequestId(id)
+    setInvitations((prev) => prev.filter((item) => item.id !== id))
     try {
       const { data: request } = await supabase
         .from("join_requests")
@@ -1379,33 +1452,30 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
 
       const { error } = await supabase.from("join_requests").update({ status: "rejected" }).eq("id", id)
       if (error) {
+        if (removed) setInvitations((prev) => [removed, ...prev.filter((item) => item.id !== removed.id)])
         toast.error("Could not decline the invitation.", { description: error.message })
         return
       }
 
-      // Notification in-app pour le proprietaire : invitation declinee
-      const currentUserName =
-        session?.user?.user_metadata?.username ??
-        session?.user?.user_metadata?.user_name ??
-        session?.user?.user_metadata?.full_name ??
-        session?.user?.user_metadata?.name ??
-        (session?.user?.email ? session.user.email.split("@")[0] : null)
-
       void markNotificationsReadForJoinRequest(id)
 
-      if (request?.team_id && currentUserName) {
+      if (request?.team_id) {
         void notifyOwnerInvitationDeclined(
           request.team_id,
-          currentUserName,
+          profile?.username?.trim() || "",
           session?.user?.id ?? null,
         )
       }
 
-      setInvitations((prev) => prev.filter((i) => i.id !== id))
-      toast.success("Invitation declined.", { icon: "?" })
+      toast.success("Invitation declined.", {
+        description: "The squad captain has been notified.",
+      })
     } catch (err) {
+      if (removed) setInvitations((prev) => [removed, ...prev.filter((item) => item.id !== removed.id)])
       toast.error("An error occurred.", { description: err instanceof Error ? err.message : "Please try again." })
-      }
+    } finally {
+      setBusyInboxRequestId(null)
+    }
   }
 
   if (loading) {
@@ -1425,7 +1495,6 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
     meta?.user_name?.trim() ||
     meta?.full_name?.trim() ||
     meta?.name?.trim() ||
-    (session?.user?.email ? session.user.email.split("@")[0] : null) ||
     "Jammer"
   const headerXp = typeof profile?.xp === "number" ? profile.xp : 0
   const headerTitle = profile?.current_title?.trim() || "Rookie Jammer"
@@ -1603,6 +1672,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
                       onDeclineApplication={handleDeclineApplication}
                       onAcceptInvitation={handleAcceptInvitation}
                       onDeclineInvitation={handleDeclineInvitation}
+                      busyRequestId={busyInboxRequestId}
                       onCancelPendingSentRequest={handleCancelPendingSentRequest}
                     />
                   </div>
@@ -1646,14 +1716,15 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
               <TabsContent value="settings" className="mt-0 flex w-full flex-col">
                 <ProfileSettings
                   profile={profile}
-                  onProfileUpdated={loadData}
-                  displayNameFallback={
-                    meta?.username?.trim() ||
-                    meta?.user_name?.trim() ||
-                    meta?.full_name?.trim() ||
-                    meta?.name?.trim() ||
-                    (session?.user?.email ? session.user.email.split("@")[0] : null)
-                  }
+                  onProfileUpdated={(patch) => {
+                    if (patch && "discord_username" in patch) {
+                      setProfile((prev) =>
+                        prev ? { ...prev, discord_username: patch.discord_username ?? null } : prev,
+                      )
+                    }
+                    void loadData()
+                  }}
+                  displayNameFallback={displayName}
                 />
               </TabsContent>
             </Tabs>
@@ -1692,6 +1763,25 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
         onConfirm={handleAvailabilityModalConfirm}
         onCancel={handleAvailabilityModalCancel}
         confirmClassName="bg-primary"
+      />
+
+      <ResponsiveConfirmDrawer
+        open={leaveTeamId !== null}
+        isMobile={isMobile}
+        icon={
+          <div className="flex size-10 items-center justify-center rounded-xl bg-destructive/15">
+            <UserMinus className="size-5 text-destructive" />
+          </div>
+        }
+        title="Leave this squad?"
+        description="You will be removed from the squad. The owner is notified, and this cannot be undone from here."
+        confirmLabel={leavingTeam ? "Leaving..." : "Leave squad"}
+        cancelLabel="Stay"
+        onConfirm={() => void confirmLeaveTeam()}
+        onCancel={() => {
+          if (!leavingTeam) setLeaveTeamId(null)
+        }}
+        confirmClassName="bg-destructive text-destructive-foreground hover:bg-destructive/90"
       />
 
       <ResponsiveConfirmDrawer

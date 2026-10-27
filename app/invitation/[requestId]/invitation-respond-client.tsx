@@ -90,14 +90,6 @@ export function InvitationRespondClient(props: {
         data: { session },
       } = await supabase.auth.getSession()
       const uid = session?.user?.id ?? null
-      const meta = session?.user?.user_metadata as Record<string, string> | undefined
-      const displayName =
-        meta?.username?.trim() ||
-        meta?.user_name?.trim() ||
-        meta?.full_name?.trim() ||
-        meta?.name?.trim() ||
-        (session?.user?.email ? session.user.email.split("@")[0] : null) ||
-        "A jammer"
 
       const { error } = await supabase
         .from("join_requests")
@@ -110,9 +102,11 @@ export function InvitationRespondClient(props: {
       }
 
       void markNotificationsReadForJoinRequest(props.requestId)
-      void notifyOwnerInvitationDeclined(props.teamId, displayName, uid)
+      void notifyOwnerInvitationDeclined(props.teamId, "", uid)
 
-      toast.success("Invitation declined.")
+      toast.success("Invitation declined.", {
+        description: "The squad captain has been notified.",
+      })
       router.push("/dashboard?tab=inbox")
       router.refresh()
     } catch (err) {

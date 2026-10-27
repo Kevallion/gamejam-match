@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js"
+import { isEmailDerivedLabel, publicJammerName } from "@/lib/public-display-name"
 
 export type NotificationSender = {
   username: string | null
@@ -254,38 +255,130 @@ export function buildNormalizedFeedItem(
   const embedded = normalizeSender(row.sender)
   const mapped = actorUserId ? profileMap.get(actorUserId) : undefined
 
-  let username =
-    mapped?.username?.trim() ||
-    embedded?.username?.trim() ||
-    null
+  const safeSenderName = jr?.sender_name?.trim() && senderNameMatchesActor(row.type, jr)
+    ? jr.sender_name.trim()
+    : null
+  const fromMsg = extractDisplayNameFromNotificationMessage(row.type, row.message)
+  let username = publicJammerName(
+    [
+      mapped?.username,
+      embedded?.username,
+      safeSenderName,
+      fromMsg,
+    ],
+    "",
+  )
   const avatar_url = mapped?.avatar_url ?? embedded?.avatar_url ?? null
 
-  if (!username && jr?.sender_name?.trim() && senderNameMatchesActor(row.type, jr)) {
-    username = jr.sender_name.trim()
-  }
-  if (!username) {
-    const fromMsg = extractDisplayNameFromNotificationMessage(row.type, row.message)
-    if (fromMsg) username = fromMsg
-  }
-  if (!username && mapped?.discord_username?.trim()) {
-    username = mapped.discord_username.trim()
-  }
   if (!username) {
     const tn = unwrapTeam(row.team)?.team_name?.trim()
-    if (tn) username = tn
+    if (tn && !isEmailDerivedLabel(tn)) username = tn
   }
   if (!username) {
     username = "Jammer"
   }
 
   const senderResolved: NotificationSender = { username, avatar_url }
+  const message = rewriteNotificationMessage(row.type, row.message, username)
 
   return {
     ...row,
+    message,
     senderResolved,
     teamResolved: normalizeTeam(row.team),
     actorUserId,
   }
+}
+
+function rewriteNotificationMessage(type: string, message: string, safeName: string): string {
+  const nameOk = Boolean(safeName && safeName !== "Jammer" && !isEmailDerivedLabel(safeName))
+  const leaked = notificationLooksLeaked(message)
+  if (type === "player_joined") {
+    if (nameOk) return `${safeName} has officially joined your team!`
+    if (leaked) return "A jammer has officially joined your team!"
+  }
+  if (type === "invitation_declined") {
+    if (nameOk) return `Player ${safeName} declined your invitation to join the team.`
+    if (leaked) return "A jammer declined your invitation to join the team."
+  }
+  if (type === "member_left") {
+    if (nameOk) return `${safeName} left your squad.`
+    if (leaked) return "A jammer left your squad."
+  }
+  if (type === "application_received") {
+    const team = /applied to your team\s+"([^"]+)"/i.exec(message)?.[1]?.trim()
+    if (nameOk) {
+      if (team && !isEmailDerivedLabel(team)) return `${safeName} applied to your team "${team}".`
+      return `${safeName} applied to your team.`
+    }
+    if (leaked) {
+      if (team && !isEmailDerivedLabel(team)) return `A jammer applied to your team "${team}".`
+      return "A jammer applied to your team."
+    }
+  }
+  return message
+}
+
+function notificationLooksLeaked(message: string): boolean {
+  return /[@+]/.test(message)
+}
+
+/** Newest-first feed: one join notice and one accept notice per squad event. */
+export function dedupeNotificationFeed(
+  items: NormalizedNotificationFeedItem[],
+): NormalizedNotificationFeedItem[] {
+  const joined = new Map<string, NormalizedNotificationFeedItem>()
+  const accepted = new Map<string, NormalizedNotificationFeedItem>()
+  const declined = new Map<string, NormalizedNotificationFeedItem>()
+  const kept: NormalizedNotificationFeedItem[] = []
+
+  const prefer = (
+    current: NormalizedNotificationFeedItem | undefined,
+    next: NormalizedNotificationFeedItem,
+  ) => {
+    if (!current) return next
+    const currentLeak = notificationLooksLeaked(current.message)
+    const nextLeak = notificationLooksLeaked(next.message)
+    if (currentLeak && !nextLeak) return next
+    return current
+  }
+
+  for (const item of items) {
+    if (item.type === "application_received") {
+      const jr = unwrapJoinRequest(item.join_request)
+      if (!item.join_request_id) continue
+      if (jr?.status && jr.status !== "pending") continue
+    }
+    if (item.type === "player_joined" && item.team_id) {
+      const key = `${item.team_id}:${item.actorUserId ?? item.sender_id ?? item.id}`
+      joined.set(key, prefer(joined.get(key), item))
+      continue
+    }
+    if (item.type === "application_accepted" && item.team_id) {
+      const key = `${item.team_id}:${item.message}`
+      accepted.set(key, prefer(accepted.get(key), item))
+      continue
+    }
+    if (item.type === "invitation_declined" && item.team_id) {
+      const key = `${item.team_id}:${item.actorUserId ?? item.sender_id ?? item.id}`
+      declined.set(key, prefer(declined.get(key), item))
+      continue
+    }
+    kept.push(item)
+  }
+
+  for (const [key, item] of [...joined.entries()]) {
+    if (!notificationLooksLeaked(item.message)) continue
+    const teamId = item.team_id
+    const hasCleanTwin = [...joined.values()].some(
+      (other) => other.team_id === teamId && other.id !== item.id && !notificationLooksLeaked(other.message),
+    )
+    if (hasCleanTwin) joined.delete(key)
+  }
+
+  const merged = [...kept, ...joined.values(), ...accepted.values(), ...declined.values()]
+  merged.sort((a, b) => (a.created_at < b.created_at ? 1 : a.created_at > b.created_at ? -1 : 0))
+  return merged
 }
 
 export async function fetchNotificationsAsNormalized(
@@ -306,7 +399,7 @@ export async function fetchNotificationsAsNormalized(
   if (ids.size > 0) {
     const { data, error } = await client
       .from("profiles")
-      .select("id, username, avatar_url, discord_username")
+      .select("id, username, avatar_url")
       .in("id", [...ids])
     if (error) {
       console.warn("[notifications] profiles batch:", error.message)
@@ -317,13 +410,13 @@ export async function fetchNotificationsAsNormalized(
           {
             username: (p.username as string | null) ?? null,
             avatar_url: (p.avatar_url as string | null) ?? null,
-            discord_username: (p.discord_username as string | null) ?? null,
+            discord_username: null,
           },
         ]),
       )
     }
   }
-  return hydrated.map((row) => buildNormalizedFeedItem(row, profileMap))
+  return dedupeNotificationFeed(hydrated.map((row) => buildNormalizedFeedItem(row, profileMap)))
 }
 
 /** @deprecated Utiliser `fetchNotificationsAsNormalized` pour avatar / pseudo corrects. */
@@ -346,7 +439,8 @@ export function inboxNotificationGroupLabel(type: string): string {
     type === "application_accepted" ||
     type === "application_declined" ||
     type === "invitation_declined" ||
-    type === "player_joined"
+    type === "player_joined" ||
+    type === "member_left"
   ) {
     return "Join requests & squad"
   }

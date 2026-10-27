@@ -1,6 +1,7 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
+import { upsertOwnDiscordUsername } from "@/lib/profile-discord"
 import {
   saveProfileSettingsSchema,
   type SaveProfileSettingsInput,
@@ -145,6 +146,8 @@ export async function saveProfileSettings(
     }
     return { success: false, error: profileError.message, code: "UNKNOWN" }
   }
+
+  await upsertOwnDiscordUsername(supabase, user.id, normalizeText(payload.discordUsername))
 
   return { success: true }
 }

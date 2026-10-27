@@ -7,6 +7,7 @@ import { CURRENT_ONBOARDING_VERSION } from "@/lib/onboarding"
 import { awardXP } from "@/lib/gamification"
 import type { GamificationRewardSummary } from "@/lib/gamification-reward-types"
 import { gamificationRewardHasToast } from "@/lib/gamification-reward-types"
+import { readOwnDiscordUsername, upsertOwnDiscordUsername } from "@/lib/profile-discord"
 
 export type OnboardingGamificationStep = {
   action: string
@@ -68,7 +69,7 @@ export async function completeOnboarding(
   const { data: existingProfile } = await supabase
     .from("profiles")
     .select(
-      "has_completed_onboarding, role, engine, language, default_role, default_engine, default_language, main_role, experience, experience_level, jam_style, bio, portfolio_link, portfolio_url, discord_username",
+      "has_completed_onboarding, role, engine, language, default_role, default_engine, default_language, main_role, experience, experience_level, jam_style, bio, portfolio_link, portfolio_url",
     )
     .eq("id", user.id)
     .maybeSingle()
@@ -93,7 +94,8 @@ export async function completeOnboarding(
     existingProfile?.language,
     existingProfile?.default_language,
   )
-  const mergedDiscord = firstNonEmpty(pickedDiscord, existingProfile?.discord_username)
+  const storedDiscord = await readOwnDiscordUsername(supabase, user.id)
+  const mergedDiscord = firstNonEmpty(pickedDiscord, storedDiscord)
   const mergedPortfolio = firstNonEmpty(
     pickedPortfolio,
     existingProfile?.portfolio_link,
@@ -131,6 +133,8 @@ export async function completeOnboarding(
   if (error) {
     return { success: false, error: error.message }
   }
+
+  await upsertOwnDiscordUsername(supabase, user.id, mergedDiscord)
 
   const gamificationSteps: OnboardingGamificationStep[] = []
 

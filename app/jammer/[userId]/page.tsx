@@ -113,6 +113,7 @@ export default async function JammerPublicProfilePage({ params }: PageProps) {
   let viewerSharesTeamWithReceiver = false
   let ownedSquads: OwnedSquadOption[] = []
   let alreadyInvitedTeamIds: string[] = []
+  let memberTeamIdsForInvitee: string[] = []
   const nowIso = new Date().toISOString()
   const { data: ownedCompletedTeams } = await supabase
     .from("teams")
@@ -177,6 +178,15 @@ export default async function JammerPublicProfilePage({ params }: PageProps) {
         .in("status", ["pending", "accepted"])
 
       alreadyInvitedTeamIds = (existingInvitations ?? [])
+        .map((row) => row.team_id as string | null)
+        .filter((id): id is string => Boolean(id))
+
+      const { data: inviteeMemberships } = await supabase
+        .from("team_members")
+        .select("team_id")
+        .eq("user_id", userId)
+        .in("team_id", viewerTeamIds)
+      memberTeamIdsForInvitee = (inviteeMemberships ?? [])
         .map((row) => row.team_id as string | null)
         .filter((id): id is string => Boolean(id))
     }
@@ -254,6 +264,7 @@ export default async function JammerPublicProfilePage({ params }: PageProps) {
                       viewerUserId={viewerId}
                       squads={ownedSquads}
                       alreadyInvitedTeamIds={alreadyInvitedTeamIds}
+                      memberTeamIds={memberTeamIdsForInvitee}
                     />
                   </div>
                 </div>

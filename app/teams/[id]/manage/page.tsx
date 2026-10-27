@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/select"
 import { supabase } from "@/lib/supabase"
 import { fetchProfilesMap } from "@/lib/profiles"
+import { fetchTeammateDiscordUsernames } from "@/lib/profile-discord"
 import {
   ArrowLeft,
   CalendarClock,
@@ -85,6 +86,7 @@ type MemberRow = {
   username: string
   avatar_url: string | null
   target_role: string | null
+  discord_username: string | null
 }
 
 type TeamManageData = {
@@ -205,7 +207,7 @@ export default function TeamManagePage() {
       const roleByUserId: Record<string, string> = {}
       const senderNameByUserId: Record<string, string> = {}
 
-      const [joinRes, profilesByUserId, discordLink] = await Promise.all([
+      const [joinRes, profilesByUserId, discordByUserId, discordLink] = await Promise.all([
         memberUserIds.length > 0
           ? supabase
               .from("join_requests")
@@ -215,6 +217,7 @@ export default function TeamManagePage() {
               .in("sender_id", memberUserIds)
           : Promise.resolve({ data: [] as { sender_id?: string; sender_name?: string; target_role?: string }[] }),
         fetchProfilesMap(memberUserIds),
+        fetchTeammateDiscordUsernames(supabase, memberUserIds),
         fetchTeamDiscordLink(supabase, teamId),
       ])
 
@@ -241,6 +244,7 @@ export default function TeamManagePage() {
             username: displayName,
             avatar_url: profile?.avatar_url ?? null,
             target_role: finalRole,
+            discord_username: discordByUserId[m.user_id]?.trim() || null,
           }
         },
       )
@@ -427,7 +431,14 @@ export default function TeamManagePage() {
     e.preventDefault()
     setEditSaving(true)
     try {
+      const namedLookingFor = editForm.looking_for.filter((entry) => entry.role)
       const cleanLookingFor = editForm.looking_for.filter((entry) => entry.role && entry.level)
+      if (namedLookingFor.length > 0 && cleanLookingFor.length < namedLookingFor.length) {
+        const levelMessage = "Please select an experience level for each role you are looking for."
+        setEditRolesError(levelMessage)
+        toast.error("Please complete team requirements.", { description: levelMessage })
+        return
+      }
       if (cleanLookingFor.length < 1) {
         setEditRolesError("Please select at least one role you are looking for.")
         toast.error("Please complete team requirements.", {
@@ -983,6 +994,9 @@ export default function TeamManagePage() {
                             />
                             <div>
                               <p className="font-semibold text-foreground">{member.username}</p>
+                              {member.discord_username ? (
+                                <p className="text-xs text-muted-foreground">Discord: {member.discord_username}</p>
+                              ) : null}
                               {roleStyle && (
                                 <span
                                   className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${roleStyle.color}`}

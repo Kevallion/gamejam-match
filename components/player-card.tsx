@@ -111,6 +111,7 @@ export type SquadOption = {
   team_name: string
   game_name?: string
   needed_roles?: { key: string; label: string; emoji: string; color: string }[]
+  memberIds?: string[]
 }
 
 /** Parse availability string ("yyyy-MM-dd to yyyy-MM-dd" or "yyyy-MM-dd") into readable display + whether to show warning (past/near expiry) */
@@ -212,8 +213,9 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
     const preselectedIdx = announcementRoleKey
       ? squad.needed_roles?.findIndex((r) => r.key.trim().toLowerCase() === announcementRoleKey) ?? -1
       : -1
+    const onlyRoleIdx = (squad.needed_roles?.length ?? 0) === 1 ? 0 : null
     setSelectedSquad(squad)
-    setSelectedRoleIdx(preselectedIdx >= 0 ? preselectedIdx : null)
+    setSelectedRoleIdx(preselectedIdx >= 0 ? preselectedIdx : onlyRoleIdx)
     setMessage("")
     setStatusMsg(null)
     setDialogOpen(true)
@@ -291,8 +293,10 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
     }
   }
 
+  const memberLockedForSquad = (squadId: string) =>
+    mySquads.find((squad) => squad.id === squadId)?.memberIds?.includes(player.id) ?? false
   const inviteLockedForSquad = (squadId: string) =>
-    sentSquadIds.has(squadId) || pendingInviteTeamIds.has(squadId)
+    memberLockedForSquad(squadId) || sentSquadIds.has(squadId) || pendingInviteTeamIds.has(squadId)
   const allSent = mySquads.length > 0 && mySquads.every((s) => inviteLockedForSquad(s.id))
   const availabilityInfo = parseAvailability(player.availability)
   function openCreateSquadDialog(e?: React.MouseEvent) {
@@ -644,7 +648,7 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
                           {squad.team_name}
                           {locked && (
                             <span className="ml-auto text-xs text-muted-foreground">
-                              Invitation sent
+                              {memberLockedForSquad(squad.id) ? "Already a member" : "Invitation sent"}
                             </span>
                           )}
                         </DropdownMenuItem>
@@ -726,7 +730,7 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
                             "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer",
                             isSelected
                               ? `ring-2 ring-offset-2 ring-offset-card ring-primary ${role.color} scale-105`
-                              : `${role.color} hover:scale-105`,
+                              : "border border-border/70 bg-secondary/40 text-foreground hover:border-primary/40",
                           ].join(" ")}
                         >
                           {role.emoji} {role.label}

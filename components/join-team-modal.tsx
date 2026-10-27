@@ -102,6 +102,7 @@ export function JoinTeamModal({
     text: string
   } | null>(null)
   const [hasPendingApplication, setHasPendingApplication] = useState(false)
+  const [alreadyMember, setAlreadyMember] = useState(false)
   const isMobile = useIsMobile()
   const userEditedMessageRef = useRef(false)
 
@@ -116,23 +117,33 @@ export function JoinTeamModal({
   }, [open, ownerUserId])
 
   useEffect(() => {
-    if (!open) {
-      setHasPendingApplication(false)
-      return
-    }
     let cancelled = false
     void (async () => {
       const {
         data: { session },
       } = await supabase.auth.getSession()
       if (!session?.user || cancelled) return
-      const pending = await hasPendingApplicationToTeam(session.user.id, teamId, supabase)
-      if (!cancelled) setHasPendingApplication(pending)
+      if (ownerUserId && session.user.id === ownerUserId) {
+        if (!cancelled) setIsOwnTeam(true)
+        return
+      }
+      const [pending, membership] = await Promise.all([
+        hasPendingApplicationToTeam(session.user.id, teamId, supabase),
+        supabase
+          .from("team_members")
+          .select("id")
+          .eq("team_id", teamId)
+          .eq("user_id", session.user.id)
+          .maybeSingle(),
+      ])
+      if (cancelled) return
+      setHasPendingApplication(pending)
+      setAlreadyMember(Boolean(membership.data))
     })()
     return () => {
       cancelled = true
     }
-  }, [open, teamId])
+  }, [teamId, ownerUserId, open])
 
   useEffect(() => {
     if (!open) return
@@ -189,6 +200,17 @@ export function JoinTeamModal({
   const maxChars = MOTIVATION_MAX_CHARS
   const openRoles = availableRoles.filter((r) => !r.filled)
 
+  useEffect(() => {
+    if (!open) return
+    setSelectedRoleIdx((current) => {
+      if (current !== null) return current
+      const openIndexes = availableRoles
+        .map((role, index) => (role.filled ? -1 : index))
+        .filter((index) => index >= 0)
+      return openIndexes.length === 1 ? openIndexes[0] : null
+    })
+  }, [open, availableRoles])
+
   const handleOpen = (isOpen: boolean) => {
     setOpen(isOpen)
     if (!isOpen) {
@@ -229,6 +251,19 @@ export function JoinTeamModal({
         return
       }
 
+      const { data: membership } = await supabase
+        .from("team_members")
+        .select("id")
+        .eq("team_id", teamId)
+        .eq("user_id", session.user.id)
+        .maybeSingle()
+      if (membership) {
+        setAlreadyMember(true)
+        setStatusMsg({ type: "error", text: "You are already a member of this squad." })
+        setLoading(false)
+        return
+      }
+
       const alreadyPending = await hasPendingApplicationToTeam(session.user.id, teamId, supabase)
       if (alreadyPending) {
         setStatusMsg({
@@ -247,13 +282,10 @@ export function JoinTeamModal({
         .eq("id", session.user.id)
         .single()
       const meta = session.user.user_metadata as Record<string, string> | undefined
-      const senderName =
-        profile?.username?.trim() ||
-        meta?.full_name ||
-        meta?.name ||
-        meta?.user_name ||
-        meta?.username ||
-        "A Jammer"
+      const metaName = [meta?.full_name, meta?.name, meta?.user_name, meta?.username].find(
+        (value) => value?.trim() && !value.includes("@") && !value.includes("+"),
+      )
+      const senderName = profile?.username?.trim() || metaName?.trim() || "A Jammer"
 
       const { data: insertedRequest, error } = await supabase
         .from("join_requests")
@@ -296,6 +328,7 @@ export function JoinTeamModal({
         })
       }
 
+      setHasPendingApplication(true)
       setStatusMsg({
         type: "success",
         text: `Application sent for the role of ${selectedRole.label}!`,
@@ -303,6 +336,7 @@ export function JoinTeamModal({
 
       toast.success(`Application sent for the role of ${selectedRole.label}!`, {
         description: `You applied to join ${teamName}.`,
+        duration: 5000,
       })
 
       setTimeout(() => {
@@ -399,7 +433,7 @@ export function JoinTeamModal({
                           ? "cursor-not-allowed opacity-40 line-through bg-muted text-muted-foreground"
                           : isSelected
                           ? `ring-2 ring-offset-2 ring-offset-card ring-primary ${role.color} scale-105`
-                          : `${role.color} hover:scale-105 cursor-pointer`,
+                          : "cursor-pointer border border-border/70 bg-secondary/40 text-foreground hover:border-primary/40",
                       ].join(" ")}
                     >
                       {role.filled && <Lock className="size-3" />}
@@ -504,6 +538,14 @@ export function JoinTeamModal({
       </DialogFooter>
     </>
   )
+
+  if (alreadyMember || hasPendingApplication) {
+    return (
+      <Button type="button" disabled className="w-full cursor-not-allowed rounded-xl">
+        {alreadyMember ? "Already a member" : "Application pending"}
+      </Button>
+    )
+  }
 
   if (isMobile) {
     return (

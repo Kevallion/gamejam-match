@@ -1,8 +1,9 @@
 "use client"
 
-import type { ReactNode } from "react"
+import { useRef, type ReactNode } from "react"
 import { format } from "date-fns"
 import type { DateRange, Matcher } from "react-day-picker"
+import { selectDateRangeDay } from "@/lib/date-range-selection"
 import { CalendarDays } from "lucide-react"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { Button } from "@/components/ui/button"
@@ -86,14 +87,30 @@ export function DateRangeField({
   const sep =
     rangeSeparator ?? (dateFormat === "short" ? " - " : " → ")
   const display = formatRangeLabel(value, dateFormat, sep, placeholder)
+  const lastSelectAt = useRef(0)
+  const lastDayKey = useRef<number | null>(null)
+
+  function handleDayClick(day: Date) {
+    const dayKey = new Date(day.getFullYear(), day.getMonth(), day.getDate()).getTime()
+    const now = Date.now()
+    if (lastDayKey.current === dayKey && now - lastSelectAt.current < 250) return
+    lastSelectAt.current = now
+    lastDayKey.current = dayKey
+    onChange(selectDateRangeDay(value, day))
+  }
 
   const calendar = (
     <Calendar
       mode="range"
+      min={1}
       selected={value}
-      onSelect={onChange}
+      // Controlled range: DayPicker would otherwise set from and to to the same day,
+      // then a second event on the end date collapses the start.
+      onSelect={() => {}}
+      onDayClick={handleDayClick}
       disabled={disabled}
       numberOfMonths={isMobile ? 1 : numberOfMonthsDesktop}
+      showOutsideDays={false}
     />
   )
 

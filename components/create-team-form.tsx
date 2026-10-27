@@ -231,7 +231,7 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
     const namedRoles = roles.filter((r) => r.role !== "")
     const cleanRoles = getCleanRoles()
     if (namedRoles.length > 0 && cleanRoles.length < namedRoles.length) {
-      return "Select an experience level for each role."
+      return "Please select an experience level for each role you are looking for."
     }
     if (cleanRoles.length < 1) {
       return "Please select at least one role you are looking for."
@@ -672,7 +672,7 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
                       </div>
                       {lockedInviteRoleOption && (
                         <p className="rounded-xl border border-primary/30 bg-primary/5 px-3 py-2 text-xs text-primary">
-                          The role "{lockedInviteRoleOption.label}" is locked because this jammer is invited for that role.
+                          The role &quot;{lockedInviteRoleOption.label}&quot; is locked because this jammer is invited for that role.
                         </p>
                       )}
 

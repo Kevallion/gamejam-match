@@ -78,6 +78,14 @@ export const BADGE_DICTIONARY: Record<string, BadgeCatalogMeta> = {
       "border-emerald-500/40 bg-gradient-to-br from-emerald-500/20 via-teal/15 to-lime-500/5 shadow-[0_0_22px_-4px_rgba(16,185,129,0.28)]",
     locked: "border-border/40 bg-muted/20 opacity-45 grayscale",
   },
+  jam_champion: {
+    emoji: "🏆",
+    label: "Jam Champion",
+    blurb: "Claimed jam completion rewards on a squad you own.",
+    unlocked:
+      "border-amber-500/45 bg-gradient-to-br from-amber-500/20 via-peach/15 to-teal/10 shadow-[0_0_22px_-4px_rgba(245,158,11,0.3)]",
+    locked: "border-border/40 bg-muted/20 opacity-45 grayscale",
+  },
   supporter: {
     emoji: "☕",
     label: "Supporter",
@@ -108,6 +116,7 @@ export const ALL_BADGE_IDS: (keyof typeof BADGE_DICTIONARY)[] = [
   "stalwart",
   "recruiter",
   "multi_tool",
+  "jam_champion",
 ]
 
 export type ProfileGamificationProps = {

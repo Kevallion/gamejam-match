@@ -46,6 +46,7 @@ export function DashboardInboxCompact({
   onAcceptInvitation,
   onDeclineInvitation,
   onCancelPendingSentRequest,
+  busyRequestId = null,
 }: {
   applications: ApplicationData[]
   invitations: InvitationData[]
@@ -57,6 +58,7 @@ export function DashboardInboxCompact({
   onAcceptInvitation: (invitation: InvitationData) => void
   onDeclineInvitation: (id: string) => void
   onCancelPendingSentRequest: (id: string) => void
+  busyRequestId?: string | null
 }) {
   const incomingCount = applications.length + invitations.length
   const sentCount = sentApplications.length + sentInvitations.length
@@ -102,6 +104,8 @@ export function DashboardInboxCompact({
                       type="button"
                       size="sm"
                       className="h-7 cursor-pointer rounded-md bg-success px-2 text-[11px] text-success-foreground hover:bg-success/90"
+                      aria-label={`Accept application from ${app.username}`}
+                      disabled={busyRequestId === app.id}
                       onClick={() => onAcceptApplication(app.id)}
                     >
                       <Check className="size-3.5" />
@@ -111,6 +115,8 @@ export function DashboardInboxCompact({
                       size="sm"
                       variant="outline"
                       className="h-7 cursor-pointer rounded-md border-destructive/40 px-2 text-[11px] text-destructive hover:bg-destructive/10 hover:text-destructive"
+                      aria-label={`Decline application from ${app.username}`}
+                      disabled={busyRequestId === app.id}
                       onClick={() => onDeclineApplication(app.id)}
                     >
                       <X className="size-3.5" />
@@ -143,6 +149,8 @@ export function DashboardInboxCompact({
                       type="button"
                       size="sm"
                       className="h-7 cursor-pointer rounded-md bg-success px-2 text-[11px] text-success-foreground hover:bg-success/90"
+                      aria-label={`Accept invitation to ${inv.squadName}`}
+                      disabled={busyRequestId === inv.id}
                       onClick={() => onAcceptInvitation(inv)}
                     >
                       <Check className="size-3.5" />
@@ -152,6 +160,8 @@ export function DashboardInboxCompact({
                       size="sm"
                       variant="outline"
                       className="h-7 cursor-pointer rounded-md border-destructive/40 px-2 text-[11px] text-destructive hover:bg-destructive/10 hover:text-destructive"
+                      aria-label={`Decline invitation to ${inv.squadName}`}
+                      disabled={busyRequestId === inv.id}
                       onClick={() => onDeclineInvitation(inv.id)}
                     >
                       <X className="size-3.5" />
@@ -213,7 +223,7 @@ export function DashboardInboxCompact({
                   <div key={request.id} className="rounded-lg border border-border/40 bg-background/40 p-2.5">
                     <div className="flex items-center justify-between gap-2">
                       <p className="truncate text-xs font-semibold text-foreground">
-                        {request.inviteeUsername}
+                        Invitation · {request.inviteeUsername}
                       </p>
                       <span className={`rounded-full border px-1.5 py-0 text-[10px] font-semibold ${status.className}`}>
                         {status.label}

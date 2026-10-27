@@ -38,7 +38,6 @@ export const TITLES_BY_ACTION: Record<string, string> = {
   /** Listing published — distinct from badge `captain` (full roster) and title "Captain". */
   CREATE_TEAM: "Squad Founder",
   JOIN_TEAM: "Squad Mate",
-  INVITE_MEMBER: "Recruiter",
   POST_ANNOUNCEMENT: "Town Crier",
   COMPLETE_PROFILE: "Profile Pioneer",
   TEAM_COMPLETED: "Jam Champion",
@@ -375,8 +374,13 @@ export async function awardXP(
     dynamicBadges.push("stalwart")
   }
 
-  if (action === "INVITE_MEMBER" && nextInvites >= 5 && prevInvites < 5) {
+  const grantRecruiter = action === "INVITE_MEMBER" && nextInvites >= 5 && prevInvites < 5
+  if (grantRecruiter) {
     dynamicBadges.push("recruiter")
+  }
+
+  if (action === "TEAM_COMPLETED") {
+    dynamicBadges.push("jam_champion")
   }
 
   if (action === "JOIN_TEAM" && nextRoleDistinct >= 3 && prevRoleDistinct < 3) {
@@ -403,6 +407,7 @@ export async function awardXP(
   const existingTitles = parseUnlockedTitles(row.unlocked_titles)
   const additions: string[] = []
   if (actionTitle) additions.push(actionTitle)
+  if (grantRecruiter) additions.push("Recruiter")
   additions.push(...roleTitleAdditions)
   if (leveledUp) {
     additions.push(...collectTitlesForLevelRange(previousLevel, newLevel))

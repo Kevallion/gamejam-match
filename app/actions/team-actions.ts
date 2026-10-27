@@ -13,6 +13,7 @@ import type { GamificationRewardSummary } from "@/lib/gamification-reward-types"
 import { gamificationRewardHasToast } from "@/lib/gamification-reward-types"
 import { formatBadgeLabel } from "@/lib/gamification-toast-labels"
 import { NOTIFICATION_TYPE_GAMIFICATION_SQUAD_COMPLETE } from "@/lib/notification-constants"
+import { publicJammerName } from "@/lib/public-display-name"
 
 const SITE_URL = getPublicSiteUrl()
 const DASHBOARD_URL = getPublicDashboardUrl()
@@ -41,6 +42,31 @@ type NotificationInsertExtras = {
   join_request_id?: string | null
 }
 
+const DEDUPED_NOTIFICATION_TYPES = new Set([
+  "player_joined",
+  "application_accepted",
+  "invitation_declined",
+  "application_received",
+  "member_left",
+])
+
+async function resolvePublicJammerName(
+  userId: string | null | undefined,
+  hint?: string | null,
+): Promise<string> {
+  let fromProfile: string | null = null
+  if (userId) {
+    try {
+      const admin = createAdminClient()
+      const { data } = await admin.from("profiles").select("username").eq("id", userId).maybeSingle()
+      fromProfile = (data?.username as string | null | undefined) ?? null
+    } catch {
+      fromProfile = null
+    }
+  }
+  return publicJammerName([fromProfile, hint])
+}
+
 async function insertNotification(
   userId: string,
   type: string,
@@ -50,15 +76,63 @@ async function insertNotification(
 ) {
   try {
     const admin = createAdminClient()
-    await admin.from("notifications").insert({
+    const senderId = extras?.sender_id ?? null
+    const teamId = extras?.team_id ?? null
+    const joinRequestId = extras?.join_request_id ?? null
+
+    if (DEDUPED_NOTIFICATION_TYPES.has(type) && (teamId || joinRequestId)) {
+      const since = new Date(Date.now() - 3 * 60 * 1000).toISOString()
+      let query = admin
+        .from("notifications")
+        .select("id, sender_id, join_request_id")
+        .eq("user_id", userId)
+        .eq("type", type)
+        .gte("created_at", since)
+      if (teamId) query = query.eq("team_id", teamId)
+      const { data: existing } = await query
+      const matches = (existing ?? []).filter((row) => {
+        if (joinRequestId && row.join_request_id && row.join_request_id !== joinRequestId) return false
+        if (senderId && row.sender_id && row.sender_id !== senderId) return false
+        return true
+      })
+      if (matches.length > 0) {
+        const [keep, ...rest] = matches
+        await admin
+          .from("notifications")
+          .update({
+            message,
+            link: link ?? null,
+            sender_id: senderId ?? keep.sender_id,
+            team_id: teamId,
+            join_request_id: joinRequestId ?? keep.join_request_id,
+          })
+          .eq("id", keep.id)
+        if (rest.length > 0) {
+          await admin.from("notifications").delete().in(
+            "id",
+            rest.map((row) => row.id as string),
+          )
+        }
+        return
+      }
+    }
+
+    const { error } = await admin.from("notifications").insert({
       user_id: userId,
       type,
       message,
       link: link ?? null,
-      sender_id: extras?.sender_id ?? null,
-      team_id: extras?.team_id ?? null,
-      join_request_id: extras?.join_request_id ?? null,
+      sender_id: senderId,
+      team_id: teamId,
+      join_request_id: joinRequestId,
     })
+    if (error?.code === "23505") {
+      let repair = admin.from("notifications").update({ message, link: link ?? null }).eq("user_id", userId).eq("type", type)
+      if (teamId) repair = repair.eq("team_id", teamId)
+      if (senderId) repair = repair.eq("sender_id", senderId)
+      await repair
+      return
+    }
     void sendPushToUser(userId, "GameJamCrew", message, link ?? null)
   } catch {
     // Silent error: notifications should never break the main UX
@@ -134,7 +208,8 @@ export async function notifyOwnerNewApplication(
     const inboxLink = ctx
       ? `/dashboard?tab=inbox&highlightRequest=${ctx.joinRequestId}`
       : "/dashboard?tab=inbox"
-    const message = `${candidateName} applied to your team "${teamName}".`
+    const safeName = await resolvePublicJammerName(ctx?.candidateUserId, candidateName)
+    const message = `${safeName} applied to your team "${teamName}".`
     void insertNotification(ownerUserId, "application_received", message, inboxLink, {
       sender_id: ctx?.candidateUserId ?? null,
       team_id: ctx?.teamId ?? null,
@@ -158,7 +233,7 @@ export async function notifyOwnerNewApplication(
       : ""
     const contentHtml = `
       <p style="${EMAIL_P}">Good news! <strong style="${EMAIL_STRONG}">${escapeHtml(
-        candidateName,
+        safeName,
       )}</strong> applied to join <strong style="${EMAIL_STRONG}">${escapeHtml(teamName)}</strong>.</p>
       <p style="${EMAIL_P}">Review their message and respond from your inbox.</p>
       <p style="margin:0 0 24px;text-align:center;">
@@ -294,6 +369,7 @@ export async function notifyCandidateAccepted(
   teamName: string,
   teamId: string,
   ownerUserId?: string | null,
+  joinRequestId?: string | null,
 ): Promise<void> {
   try {
     const email = await getUserEmail(candidateUserId)
@@ -303,6 +379,7 @@ export async function notifyCandidateAccepted(
     void insertNotification(candidateUserId, "application_accepted", message, teamPath, {
       team_id: teamId,
       sender_id: ownerUserId ?? null,
+      join_request_id: joinRequestId ?? null,
     })
 
     if (!email) return
@@ -492,8 +569,9 @@ export async function notifyOwnerInvitationDeclined(
 
     if (error || !teamRow?.user_id) return
 
+    const safeName = await resolvePublicJammerName(declinerUserId, playerName)
     const managePath = `/teams/${teamId}/manage`
-    const message = `Player ${playerName} declined your invitation to join the team.`
+    const message = `Player ${safeName} declined your invitation to join the team.`
     void insertNotification(teamRow.user_id as string, "invitation_declined", message, managePath, {
       team_id: teamId,
       sender_id: declinerUserId ?? null,
@@ -523,11 +601,38 @@ export async function notifyOwnerPlayerJoined(
 
     if (error || !teamRow?.user_id) return
 
+    const safeName = await resolvePublicJammerName(playerUserId, playerName)
     const teamPath = `/teams/${teamId}`
-    const message = `${playerName} has officially joined your team!`
+    const message = `${safeName} has officially joined your team!`
     void insertNotification(teamRow.user_id as string, "player_joined", message, teamPath, {
       team_id: teamId,
       sender_id: playerUserId ?? null,
+    })
+  } catch {
+    // Silent error
+  }
+}
+
+/**
+ * Tells the squad owner that a member left. In-app only. Always uses the profile username.
+ */
+export async function notifyOwnerMemberLeft(teamId: string, memberUserId: string): Promise<void> {
+  try {
+    const admin = createAdminClient()
+    const { data: teamRow, error } = await admin
+      .from("teams")
+      .select("id, user_id")
+      .eq("id", teamId)
+      .single()
+
+    if (error || !teamRow?.user_id) return
+    if (teamRow.user_id === memberUserId) return
+
+    const safeName = await resolvePublicJammerName(memberUserId)
+    const message = `${safeName} left your squad.`
+    void insertNotification(teamRow.user_id as string, "member_left", message, `/teams/${teamId}/manage`, {
+      team_id: teamId,
+      sender_id: memberUserId,
     })
   } catch {
     // Silent error

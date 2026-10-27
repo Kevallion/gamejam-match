@@ -51,12 +51,7 @@ function getDisplayName(user: User | null, profile: NavbarProfile | null): strin
     meta?.user_name?.trim() ||
     meta?.username?.trim()
 
-  if (fromMeta) return fromMeta
-
-  if (user?.email) {
-    const [local] = user.email.split("@")
-    if (local) return local
-  }
+  if (fromMeta && !fromMeta.includes("@") && !fromMeta.includes("+")) return fromMeta
 
   return "Jammer"
 }
@@ -387,13 +382,14 @@ export function Navbar() {
                 onOpenChange={(open) => open && refetchNotifications()}
               >
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="relative size-9 rounded-xl">
+                  <Button variant="ghost" size="icon" className="relative size-9 rounded-xl" aria-label="Notifications">
                     <Bell className="size-4" />
                     {unreadCount > 0 && (
                       <span className="absolute -right-0.5 -top-0.5 flex min-h-4 min-w-4 items-center justify-center rounded-full bg-peach text-peach-foreground px-1 text-[10px] font-bold">
                         {unreadCount > 9 ? "9+" : unreadCount}
                       </span>
                     )}
+                    <span className="sr-only">Notifications</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-72 rounded-2xl p-2">

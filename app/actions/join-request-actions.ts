@@ -1,6 +1,7 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 
 export type CancelJoinRequestResult =
   | { success: true }
@@ -50,6 +51,21 @@ export async function cancelJoinRequest(joinRequestId: string): Promise<CancelJo
 
   if (!allowed) {
     return { success: false, error: "You are not allowed to cancel this request." }
+  }
+
+  try {
+    const admin = createAdminClient()
+    await admin.from("notifications").delete().eq("join_request_id", joinRequestId)
+    if (row.type === "application" && row.sender_id) {
+      await admin
+        .from("notifications")
+        .delete()
+        .eq("type", "application_received")
+        .eq("team_id", row.team_id)
+        .eq("sender_id", row.sender_id)
+    }
+  } catch (err) {
+    console.error("[cancelJoinRequest] notification cleanup:", err)
   }
 
   const { error: delError } = await supabase.from("join_requests").delete().eq("id", joinRequestId)

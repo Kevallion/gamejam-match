@@ -26,6 +26,7 @@ type InviteToSquadControlProps = {
   viewerUserId: string | null
   squads: OwnedSquadOption[]
   alreadyInvitedTeamIds: string[]
+  memberTeamIds?: string[]
 }
 
 export function InviteToSquadControl({
@@ -34,6 +35,7 @@ export function InviteToSquadControl({
   viewerUserId,
   squads,
   alreadyInvitedTeamIds,
+  memberTeamIds = [],
 }: InviteToSquadControlProps) {
   const [open, setOpen] = useState(false)
   const [pendingTeamId, setPendingTeamId] = useState<string | null>(null)
@@ -97,21 +99,22 @@ export function InviteToSquadControl({
           <div className="space-y-2">
             {squads.map((squad) => {
               const busy = busyForTeam === squad.id
-              const isAlreadyInvited = alreadyInvitedTeamIds.includes(squad.id)
+              const isMember = memberTeamIds.includes(squad.id)
+              const isAlreadyInvited = !isMember && alreadyInvitedTeamIds.includes(squad.id)
               return (
                 <div
                   key={squad.id}
                   className="flex items-center justify-between gap-3 rounded-xl border border-border/60 px-4 py-3"
                 >
                   <span className="min-w-0 flex-1 truncate font-medium">{squad.teamName}</span>
-                  {isAlreadyInvited ? (
+                  {isMember || isAlreadyInvited ? (
                     <Button
                       type="button"
                       variant="secondary"
                       disabled
                       className="w-36 shrink-0 justify-center rounded-lg"
                     >
-                      Pending / Joined
+                      {isMember ? "Already a member" : "Pending / Joined"}
                     </Button>
                   ) : (
                     <Button

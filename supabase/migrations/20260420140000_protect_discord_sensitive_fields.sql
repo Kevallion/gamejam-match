@@ -77,12 +77,26 @@ CREATE POLICY team_discord_links_delete_owner
     )
   );
 
-INSERT INTO public.team_discord_links (team_id, discord_link)
-SELECT id, discord_link
-FROM public.teams
-WHERE discord_link IS NOT NULL AND btrim(discord_link) <> ''
-ON CONFLICT (team_id) DO UPDATE
-SET discord_link = EXCLUDED.discord_link, updated_at = now();
+-- Copy only when the legacy public column still exists (fresh databases and
+-- environments that already dropped it must both succeed). A later migration
+-- adds teams.discord_link back as a nullable column for schema parity.
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'teams'
+      AND column_name = 'discord_link'
+  ) THEN
+    INSERT INTO public.team_discord_links (team_id, discord_link)
+    SELECT id, discord_link
+    FROM public.teams
+    WHERE discord_link IS NOT NULL AND btrim(discord_link) <> ''
+    ON CONFLICT (team_id) DO UPDATE
+    SET discord_link = EXCLUDED.discord_link, updated_at = now();
+  END IF;
+END $$;
 
 ALTER TABLE public.teams DROP COLUMN IF EXISTS discord_link;
 

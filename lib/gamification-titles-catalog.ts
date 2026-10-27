@@ -17,7 +17,7 @@ export const TITLE_CATALOG: TitleCatalogEntry[] = [
   { title: "Squad Founder", unlockHint: "Publish a squad listing (create a team)." },
   { title: "Captain", unlockHint: "Fill every open role slot on your squad listing." },
   { title: "Squad Mate", unlockHint: "Join a team on GameJamCrew." },
-  { title: "Recruiter", unlockHint: "Send a squad invitation to another jammer." },
+  { title: "Recruiter", unlockHint: "Send 5 squad invitations to other jammers." },
   { title: "Active Scouter", unlockHint: "Reach level 5." },
   { title: "Veteran", unlockHint: "Reach level 10." },
   { title: "Jam Champion", unlockHint: "Claim jam completion rewards on a team you own." },

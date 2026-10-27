@@ -57,6 +57,20 @@ export async function sendTeamInvitation(input: SendTeamInvitationInput): Promis
     return { success: false, error: "You can only invite from teams you own." }
   }
 
+  if (input.inviteeUserId === user.id) {
+    return { success: false, error: "You cannot invite yourself." }
+  }
+
+  const { data: existingMember } = await supabase
+    .from("team_members")
+    .select("id")
+    .eq("team_id", input.teamId)
+    .eq("user_id", input.inviteeUserId)
+    .maybeSingle()
+  if (existingMember) {
+    return { success: false, error: "This jammer is already a member of this squad." }
+  }
+
   const msg = input.message?.trim() || "You've been invited to join our squad!"
   const name = input.inviteeUsername?.trim() || "A Jammer"
   const normalizedTargetRole = input.targetRole.trim().toLowerCase()
@@ -167,6 +181,16 @@ export async function sendProfileInvitation(
 
   if (teamError || !team || team.user_id !== user.id) {
     return { success: false, error: "You can only invite from squads you own." }
+  }
+
+  const { data: existingMember } = await supabase
+    .from("team_members")
+    .select("id")
+    .eq("team_id", input.teamId)
+    .eq("user_id", input.inviteeUserId)
+    .maybeSingle()
+  if (existingMember) {
+    return { success: false, error: "This jammer is already a member of this squad." }
   }
 
   const { data: inviteeProfile } = await supabase
