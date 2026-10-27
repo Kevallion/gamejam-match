@@ -117,6 +117,7 @@ export async function sendTeamInvitation(input: SendTeamInvitationInput): Promis
       teamId: input.teamId,
       joinRequestId: requestId,
       inviterUserId: user.id,
+      personalMessage: msg,
     })
   }
 
@@ -219,6 +220,7 @@ export async function sendProfileInvitation(
       teamId: input.teamId,
       joinRequestId: inserted.id as string,
       inviterUserId: user.id,
+      personalMessage: message,
     })
   }
 

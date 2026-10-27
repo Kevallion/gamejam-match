@@ -92,6 +92,7 @@ import {
   type SmartMatchRoleInput,
   type SmartRecommendedTeam,
 } from "@/lib/queries"
+import { discordLinkFromEmbed } from "@/lib/team-discord"
 import { kudosCountsMapFromRpcRows, type KudosCounts } from "@/lib/kudos"
 import {
   NOTIFICATION_ENRICHED_SELECT,
@@ -116,6 +117,10 @@ type TeamRow = {
   expires_at?: string | null
   looking_for: unknown
   discord_link?: string | null
+  team_discord_links?:
+    | { discord_link?: string | null }
+    | { discord_link?: string | null }[]
+    | null
   jam_start_date?: string | null
   jam_end_date?: string | null
   created_at?: string | null
@@ -184,6 +189,17 @@ const LEGACY_TAB_TO_CURRENT: Record<string, (typeof VALID_TABS)[number]> = {
   overview: "squads",
   teams: "squads",
   profile: "settings",
+  available: "availability",
+}
+
+function resolveDashboardTab(raw: string | null | undefined): (typeof VALID_TABS)[number] {
+  const key = (raw ?? "").trim().toLowerCase()
+  const mapped = LEGACY_TAB_TO_CURRENT[key]
+  if (mapped) return mapped
+  if ((VALID_TABS as readonly string[]).includes(key)) {
+    return key as (typeof VALID_TABS)[number]
+  }
+  return "squads"
 }
 
 function DashboardTabTrigger({
@@ -622,24 +638,43 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
   const tabFromUrl = searchParams.get("tab")
   const highlightRequestId = searchParams.get("highlightRequest")
 
-  const activeTab = useMemo(() => {
-    const raw = (tabFromUrl ?? defaultTabProp ?? "").trim().toLowerCase()
+  const urlTab = useMemo(
+    () => resolveDashboardTab(tabFromUrl ?? defaultTabProp),
+    [tabFromUrl, defaultTabProp],
+  )
+  const [activeTab, setActiveTab] = useState(urlTab)
+
+  useEffect(() => {
+    setActiveTab(urlTab)
+  }, [urlTab])
+
+  useEffect(() => {
+    const raw = (tabFromUrl ?? "").trim().toLowerCase()
     const mapped = LEGACY_TAB_TO_CURRENT[raw]
-    if (mapped) return mapped
-    if (VALID_TABS.includes(raw as (typeof VALID_TABS)[number])) {
-      return raw as (typeof VALID_TABS)[number]
+    if (!mapped) return
+    const params = new URLSearchParams(searchParams.toString())
+    if (mapped === "squads") {
+      params.delete("tab")
+    } else {
+      params.set("tab", mapped)
     }
-    return "squads"
-  }, [tabFromUrl, defaultTabProp])
+    const qs = params.toString()
+    const nextUrl = qs ? `${pathname}?${qs}` : pathname
+    const currentQs = searchParams.toString()
+    const currentUrl = currentQs ? `${pathname}?${currentQs}` : pathname
+    if (nextUrl === currentUrl) return
+    router.replace(nextUrl, { scroll: false })
+  }, [tabFromUrl, pathname, router, searchParams])
 
   const handleTabChange = useCallback(
     (value: string) => {
-      if (!VALID_TABS.includes(value as (typeof VALID_TABS)[number])) return
+      const next = resolveDashboardTab(value)
+      setActiveTab(next)
       const params = new URLSearchParams(searchParams.toString())
-      if (value === "squads") {
+      if (next === "squads") {
         params.delete("tab")
       } else {
-        params.set("tab", value)
+        params.set("tab", next)
       }
       const qs = params.toString()
       router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
@@ -705,7 +740,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
         .map((r) => (r.role ?? "").trim().toLowerCase())
         .filter(Boolean),
       level: LEVEL_STYLES[rawLevel] ?? FALLBACK_LEVEL,
-      discord_link: t.discord_link ?? null,
+      discord_link: discordLinkFromEmbed(t.team_discord_links) ?? t.discord_link ?? null,
       isOwner: t.user_id === authUserId,
       jamStartDate: t.jam_start_date ?? null,
       jamEndDate: t.jam_end_date ?? null,
@@ -866,7 +901,9 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
         ...new Set((membershipRows as MembershipRow[] | null)?.map((m) => m.team_id).filter(Boolean) ?? []),
       ] as string[]
 
-      let teamsQuery = supabase.from("teams").select("*, team_members(count)")
+      let teamsQuery = supabase
+        .from("teams")
+        .select("*, team_members(count), team_discord_links(discord_link)")
       if (memberTeamIds.length > 0) {
         teamsQuery = teamsQuery.or(`user_id.eq.${uid},id.in.(${memberTeamIds.join(",")})`)
       } else {

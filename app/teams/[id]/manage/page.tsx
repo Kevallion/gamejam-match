@@ -57,6 +57,7 @@ import {
 import { claimTeamJamCompletedXp } from "@/app/actions/team-gamification-actions"
 import { updateTeamJamListing } from "@/app/actions/create-team-actions"
 import { dateInputToUtcEnd, dateInputToUtcStart, isoTimestampToDateInput } from "@/lib/jam-date-utc"
+import { fetchTeamDiscordLink, upsertTeamDiscordLink } from "@/lib/team-discord"
 import { showGamificationRewards } from "@/components/gamification-reward-toasts"
 import { gamificationRewardHasToast } from "@/lib/gamification-reward-types"
 import { EXPERIENCE_OPTIONS, JAM_STYLE_OPTIONS, ROLE_OPTIONS, ROLE_STYLES } from "@/lib/constants"
@@ -171,7 +172,7 @@ export default function TeamManagePage() {
       const { data: teamData, error: teamError } = await supabase
         .from("teams")
         .select(
-          "id, user_id, team_name, game_name, description, team_vibe, experience_required, engine, language, jam_id, discord_link, jam_completion_xp_claimed, jam_start_date, jam_end_date, looking_for",
+          "id, user_id, team_name, game_name, description, team_vibe, experience_required, engine, language, jam_id, jam_completion_xp_claimed, jam_start_date, jam_end_date, looking_for",
         )
         .eq("id", teamId)
         .single()
@@ -204,7 +205,7 @@ export default function TeamManagePage() {
       const roleByUserId: Record<string, string> = {}
       const senderNameByUserId: Record<string, string> = {}
 
-      const [joinRes, profilesByUserId] = await Promise.all([
+      const [joinRes, profilesByUserId, discordLink] = await Promise.all([
         memberUserIds.length > 0
           ? supabase
               .from("join_requests")
@@ -214,6 +215,7 @@ export default function TeamManagePage() {
               .in("sender_id", memberUserIds)
           : Promise.resolve({ data: [] as { sender_id?: string; sender_name?: string; target_role?: string }[] }),
         fetchProfilesMap(memberUserIds),
+        fetchTeamDiscordLink(supabase, teamId),
       ])
 
       for (const jr of joinRes.data ?? []) {
@@ -246,6 +248,7 @@ export default function TeamManagePage() {
       const td = teamData as TeamManageData & { jam_completion_xp_claimed?: boolean | null }
       setTeam({
         ...teamData,
+        discord_link: discordLink,
         jam_start_date: td.jam_start_date ?? null,
         jam_end_date: td.jam_end_date ?? null,
         jam_completion_xp_claimed: td.jam_completion_xp_claimed,
@@ -270,7 +273,7 @@ export default function TeamManagePage() {
             : [{ id: nextEditableRoleId(), role: "", level: "" }],
       })
       setEditRolesError("")
-      setDiscordInput(teamData.discord_link ?? "")
+      setDiscordInput(discordLink ?? "")
       setDiscordError(null)
     } catch (err) {
       toast.error("Error loading team.", {
@@ -584,13 +587,10 @@ export default function TeamManagePage() {
     setDiscordSaving(true)
     const previousLink = team?.discord_link ?? null
     try {
-      const { error } = await supabase
-        .from("teams")
-        .update({ discord_link: trimmed || null })
-        .eq("id", teamId)
+      const { error } = await upsertTeamDiscordLink(supabase, teamId, trimmed || null)
 
       if (error) {
-        toast.error("Could not update Discord link.", { description: error.message })
+        toast.error("Could not update Discord link.", { description: error })
         return
       }
 

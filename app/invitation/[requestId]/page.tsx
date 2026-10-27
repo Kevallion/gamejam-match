@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
+import { discordLinkFromEmbed, type TeamDiscordEmbed } from "@/lib/team-discord"
 import { Navbar } from "@/components/navbar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -55,8 +56,9 @@ export default async function InvitationPage({ params }: PageProps) {
     .select(
       `id, status, type, target_role, message, sender_id, team_id,
        teams (
-         team_name, game_name, engine, description, team_vibe, experience_required, discord_link, user_id,
-         external_jams (title)
+         team_name, game_name, engine, description, team_vibe, experience_required, user_id,
+         external_jams (title),
+         team_discord_links (discord_link)
        )`,
     )
     .eq("id", requestId)
@@ -73,7 +75,7 @@ export default async function InvitationPage({ params }: PageProps) {
     description?: string | null
     team_vibe?: string | null
     experience_required?: string | null
-    discord_link?: string | null
+    team_discord_links?: TeamDiscordEmbed
     user_id?: string | null
     external_jams?: { title?: string | null } | { title?: string | null }[] | null
   } | null
@@ -92,7 +94,7 @@ export default async function InvitationPage({ params }: PageProps) {
     description: teamRaw.description ?? null,
     team_vibe: teamRaw.team_vibe ?? null,
     experience_required: teamRaw.experience_required ?? null,
-    discord_link: teamRaw.discord_link ?? null,
+    discord_link: discordLinkFromEmbed(teamRaw.team_discord_links),
     jam_title: jam?.title ?? null,
   }
 

@@ -227,6 +227,18 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
     return roles.filter((r) => r.role !== "" && r.level !== "")
   }
 
+  function roleStepError() {
+    const namedRoles = roles.filter((r) => r.role !== "")
+    const cleanRoles = getCleanRoles()
+    if (namedRoles.length > 0 && cleanRoles.length < namedRoles.length) {
+      return "Select an experience level for each role."
+    }
+    if (cleanRoles.length < 1) {
+      return "Please select at least one role you are looking for."
+    }
+    return null
+  }
+
   function validateStep(currentStep: number) {
     if (currentStep === 1) {
       if (!teamName.trim() || !jamName.trim()) {
@@ -254,7 +266,6 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
 
     if (currentStep === 2) {
       let valid = true
-      const cleanRoles = getCleanRoles()
 
       if (!engine) {
         valid = false
@@ -262,14 +273,16 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
       if (!language) {
         valid = false
       }
-      if (cleanRoles.length < 1) {
-        setRolesError("Please select at least one role you are looking for.")
+      const roleError = roleStepError()
+      if (roleError) {
+        setRolesError(roleError)
         valid = false
       }
 
       if (!valid) {
         toast.error("Please complete the team setup.", {
-          description: "Engine, language and at least one role are required.",
+          description: roleError ?? "Engine, language and at least one role are required.",
+          duration: 8000,
         })
         return false
       }
@@ -347,10 +360,12 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
     setDiscordLinkError("")
     setRolesError("")
 
+    const roleError = roleStepError()
     const cleanRoles = getCleanRoles()
-    if (cleanRoles.length < 1) {
+    if (roleError) {
       setLoading(false)
-      setRolesError("Please select at least one role you are looking for.")
+      setRolesError(roleError)
+      toast.error("Please complete the team setup.", { description: roleError, duration: 8000 })
       return
     }
 
@@ -392,7 +407,7 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
         jamEndDate: dateInputToUtcEnd(jamYmd.end),
       })
       if (!result.success) {
-        toast.error("Could not create the team.", { description: result.error })
+        toast.error("Could not create the team.", { description: result.error, duration: 12000 })
       } else {
         if (result.teamId && inviteContext?.inviteeId && inviteContext?.inviteeUsername) {
           const preferredRole =
@@ -453,7 +468,10 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
         }
       }
     } catch (err) {
-      toast.error("An error occurred.", { description: err instanceof Error ? err.message : "Please try again." })
+      toast.error("An error occurred.", {
+        description: err instanceof Error ? err.message : "Please try again.",
+        duration: 12000,
+      })
     } finally {
       setLoading(false)
     }

@@ -34,11 +34,24 @@ export async function updateSession(request: NextRequest) {
   )
 
   // IMPORTANT: Ne pas exécuter de code entre createServerClient et getSession/getUser
+  let user = null
   try {
-    await supabase.auth.getUser()
+    const { data } = await supabase.auth.getUser()
+    user = data.user
   } catch {
     // refresh_token_not_found : session invalide, on signe out pour nettoyer les cookies
     await supabase.auth.signOut()
+  }
+
+  // Keep `/` statically cacheable: authenticated jammers are sent to the dashboard here.
+  if (request.nextUrl.pathname === "/" && user) {
+    const url = request.nextUrl.clone()
+    url.pathname = "/dashboard"
+    const redirectResponse = NextResponse.redirect(url)
+    supabaseResponse.cookies.getAll().forEach((cookie) => {
+      redirectResponse.cookies.set(cookie.name, cookie.value)
+    })
+    return redirectResponse
   }
 
   return supabaseResponse

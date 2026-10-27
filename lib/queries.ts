@@ -10,6 +10,7 @@ import {
 } from "@/lib/constants"
 import { levelFromTotalXp } from "@/lib/gamification-level"
 import { kudosCountsMapFromRpcRows, type KudosCounts } from "@/lib/kudos"
+import { discordLinkFromEmbed, type TeamDiscordEmbed } from "@/lib/team-discord"
 
 /** Client navigateur Supabase (même type que `supabase` exporté par `@/lib/supabase`). */
 export type GamejamSupabaseClient = ReturnType<typeof createClient>
@@ -34,6 +35,7 @@ export type DashboardIncomingInvitationRow = {
     team_name?: string | null
     game_name?: string | null
     discord_link?: string | null
+    team_discord_links?: TeamDiscordEmbed
     engine?: string | null
     description?: string | null
     team_vibe?: string | null
@@ -47,7 +49,18 @@ export type DashboardSentApplicationRow = {
   status: string
   target_role?: string | null
   created_at?: string | null
-  teams: { team_name?: string | null; discord_link?: string | null } | { team_name?: string | null; discord_link?: string | null }[] | null
+  teams:
+    | {
+        team_name?: string | null
+        discord_link?: string | null
+        team_discord_links?: TeamDiscordEmbed
+      }
+    | {
+        team_name?: string | null
+        discord_link?: string | null
+        team_discord_links?: TeamDiscordEmbed
+      }[]
+    | null
 }
 
 /** Invitations envoyées par le propriétaire : `sender_id` en base = joueur invité. */
@@ -59,7 +72,12 @@ export type DashboardSentInvitationRow = {
   sender_name: string | null
   team_id: string
   created_at?: string | null
-  teams?: { team_name?: string | null; discord_link?: string | null; user_id?: string | null }
+  teams?: {
+    team_name?: string | null
+    discord_link?: string | null
+    team_discord_links?: TeamDiscordEmbed
+    user_id?: string | null
+  }
 }
 
 export type DashboardJoinRequestsBundle = {
@@ -93,21 +111,21 @@ export async function fetchDashboardJoinRequests(
     client
       .from("join_requests")
       .select(
-        "id, team_id, status, target_role, message, teams(team_name, game_name, discord_link, engine, description, team_vibe, experience_required, external_jams(title))",
+        "id, team_id, status, target_role, message, teams(team_name, game_name, engine, description, team_vibe, experience_required, external_jams(title), team_discord_links(discord_link))",
       )
       .eq("sender_id", userId)
       .eq("status", "pending")
       .eq("type", "invitation"),
     client
       .from("join_requests")
-      .select("id, status, target_role, created_at, teams(team_name, discord_link)")
+      .select("id, status, target_role, created_at, teams(team_name, team_discord_links(discord_link))")
       .eq("sender_id", userId)
       .eq("type", "application")
       .order("created_at", { ascending: false }),
     client
       .from("join_requests")
       .select(
-        "id, status, target_role, sender_id, sender_name, team_id, created_at, teams!inner(team_name, discord_link, user_id)",
+        "id, status, target_role, sender_id, sender_name, team_id, created_at, teams!inner(team_name, user_id, team_discord_links(discord_link))",
       )
       .eq("type", "invitation")
       .eq("teams.user_id", userId)
@@ -125,12 +143,39 @@ export async function fetchDashboardJoinRequests(
     return { data: null, error: firstErr }
   }
 
+  const withDiscord = <T extends { teams?: unknown }>(row: T): T => {
+    const teams = row.teams as
+      | { discord_link?: string | null; team_discord_links?: TeamDiscordEmbed }
+      | { discord_link?: string | null; team_discord_links?: TeamDiscordEmbed }[]
+      | null
+      | undefined
+    if (!teams) return row
+    if (Array.isArray(teams)) {
+      return {
+        ...row,
+        teams: teams.map((team) => ({
+          ...team,
+          discord_link: discordLinkFromEmbed(team.team_discord_links) ?? team.discord_link ?? null,
+        })),
+      }
+    }
+    return {
+      ...row,
+      teams: {
+        ...teams,
+        discord_link: discordLinkFromEmbed(teams.team_discord_links) ?? teams.discord_link ?? null,
+      },
+    }
+  }
+
   return {
     data: {
       incomingApplications: (incomingApplicationsRes.data ?? []) as DashboardIncomingApplicationRow[],
-      incomingInvitations: (incomingInvitationsRes.data ?? []) as DashboardIncomingInvitationRow[],
-      sentApplications: (sentApplicationsRes.data ?? []) as DashboardSentApplicationRow[],
-      sentInvitations: (sentInvitationsRes.data ?? []) as DashboardSentInvitationRow[],
+      incomingInvitations: ((incomingInvitationsRes.data ?? []) as DashboardIncomingInvitationRow[]).map(
+        withDiscord,
+      ),
+      sentApplications: ((sentApplicationsRes.data ?? []) as DashboardSentApplicationRow[]).map(withDiscord),
+      sentInvitations: ((sentInvitationsRes.data ?? []) as DashboardSentInvitationRow[]).map(withDiscord),
     },
     error: null,
   }
@@ -726,6 +771,252 @@ export async function getAvailablePlayers(
     players,
     hasMore,
     nextOffset: safeOffset + players.length,
+    error: null,
+  }
+}
+
+const DIRECTORY_JAMMERS_DEFAULT_LIMIT = 24
+
+export type DirectoryJammerListItem = {
+  id: string
+  username: string
+  avatar_url: string | null
+  role: {
+    key?: string
+    label: string
+    emoji: string
+    color: string
+  }
+  level: {
+    label: string
+    emoji: string
+    color: string
+  }
+  jamStyle?: {
+    label: string
+    emoji: string
+    color: string
+  }
+  engine: string
+  bio: string
+  language: string
+  portfolio_link?: string
+  jam?: { title: string; url?: string | null }
+  jammerTitle?: string | null
+  jammerLevel?: number
+  kudosCounts?: KudosCounts | null
+  rawRole: string
+  rawEngine: string
+  rawLanguage: string
+}
+
+export type DirectoryJammersFilters = {
+  searchQuery?: string
+  role?: string
+  engine?: string
+  language?: string
+  offset?: number
+  limit?: number
+}
+
+type DirectoryJammersResult = {
+  jammers: DirectoryJammerListItem[]
+  hasMore: boolean
+  nextOffset: number
+  error: string | null
+}
+
+type DirectoryProfileRow = {
+  id: string
+  username: string | null
+  avatar_url: string | null
+  jam_id: string | null
+  xp: number | null
+  current_title: string | null
+  role: string | null
+  main_role: string | null
+  default_role: string | null
+  experience: string | null
+  experience_level: string | null
+  jam_style: string | null
+  engine: string | null
+  default_engine: string | null
+  language: string | null
+  default_language: string | null
+  bio: string | null
+  portfolio_link: string | null
+  portfolio_url: string | null
+  external_jams?:
+    | { id: string; title: string | null; url: string | null }
+    | { id: string; title: string | null; url: string | null }[]
+    | null
+  profile_roles?: { role?: string | null; is_primary?: boolean | null }[] | null
+}
+
+function resolveDirectoryRole(profile: DirectoryProfileRow): string {
+  const fromRoles = (profile.profile_roles ?? [])
+    .filter((row) => row?.role?.trim())
+    .sort((a, b) => Number(b.is_primary === true) - Number(a.is_primary === true))
+  return (
+    fromRoles[0]?.role?.trim() ||
+    profile.main_role?.trim() ||
+    profile.default_role?.trim() ||
+    profile.role?.trim() ||
+    ""
+  )
+}
+
+function resolveDirectoryEngine(profile: DirectoryProfileRow): string {
+  return profile.default_engine?.trim() || profile.engine?.trim() || ""
+}
+
+function resolveDirectoryLanguage(profile: DirectoryProfileRow): string {
+  return profile.default_language?.trim() || profile.language?.trim() || ""
+}
+
+/**
+ * Lists onboarded jammers for the public directory (all completed profiles).
+ * Filters by role, engine, and language using profile defaults / primary role.
+ */
+export async function getDirectoryJammers(
+  {
+    searchQuery = "",
+    role = "all",
+    engine = "all",
+    language = "all",
+    offset = 0,
+    limit = DIRECTORY_JAMMERS_DEFAULT_LIMIT,
+  }: DirectoryJammersFilters = {},
+  client: GamejamSupabaseClient = supabase,
+): Promise<DirectoryJammersResult> {
+  const cleanRole = normalizedFilterValue(role)
+  const cleanEngine = normalizedFilterValue(engine)
+  const cleanLanguage = normalizedFilterValue(language)
+  const cleanSearch = searchQuery.trim()
+  const safeOffset = Math.max(0, offset)
+  const safeLimit = Math.max(1, limit)
+
+  const languageFilterKey = (() => {
+    if (!cleanLanguage || cleanLanguage === "all") return null
+    if (AVAILABLE_PLAYERS_LANGUAGE_KEYS.has(cleanLanguage)) return cleanLanguage
+    const fromAlias = LANGUAGE_OPTION_VALUE_ALIASES[cleanLanguage]
+    return fromAlias && AVAILABLE_PLAYERS_LANGUAGE_KEYS.has(fromAlias) ? fromAlias : null
+  })()
+
+  let roleUserIds: string[] | null = null
+  if (cleanRole && cleanRole !== "all") {
+    const { data: roleRows, error: roleError } = await client
+      .from("profile_roles")
+      .select("user_id")
+      .eq("role", cleanRole)
+
+    if (roleError) {
+      console.error("[getDirectoryJammers:profile_roles]", roleError.message)
+      return { jammers: [], hasMore: false, nextOffset: safeOffset, error: roleError.message }
+    }
+
+    roleUserIds = [
+      ...new Set(
+        (roleRows ?? [])
+          .map((row) => (row as { user_id?: string }).user_id)
+          .filter((id): id is string => Boolean(id)),
+      ),
+    ]
+  }
+
+  let query = client
+    .from("profiles")
+    .select(
+      "id, username, avatar_url, jam_id, xp, current_title, role, main_role, default_role, experience, experience_level, jam_style, engine, default_engine, language, default_language, bio, portfolio_link, portfolio_url, external_jams(id, title, url), profile_roles(role, is_primary)",
+    )
+    .eq("has_completed_onboarding", true)
+    .order("username", { ascending: true })
+
+  if (cleanSearch) {
+    query = query.ilike("username", `%${cleanSearch}%`)
+  }
+
+  if (cleanRole && cleanRole !== "all") {
+    if (roleUserIds && roleUserIds.length > 0) {
+      query = query.or(
+        `default_role.eq.${cleanRole},main_role.eq.${cleanRole},role.eq.${cleanRole},id.in.(${roleUserIds.join(",")})`,
+      )
+    } else {
+      query = query.or(
+        `default_role.eq.${cleanRole},main_role.eq.${cleanRole},role.eq.${cleanRole}`,
+      )
+    }
+  }
+
+  if (cleanEngine && cleanEngine !== "all") {
+    query = query.or(`default_engine.eq.${cleanEngine},engine.eq.${cleanEngine}`)
+  }
+
+  if (languageFilterKey) {
+    query = query.or(
+      `default_language.eq.${languageFilterKey},language.eq.${languageFilterKey}`,
+    )
+  }
+
+  const { data, error } = await query.range(safeOffset, safeOffset + safeLimit)
+
+  if (error) {
+    console.error("[getDirectoryJammers]", error.message)
+    return { jammers: [], hasMore: false, nextOffset: safeOffset, error: error.message }
+  }
+
+  const rows = (data ?? []) as DirectoryProfileRow[]
+  const hasMore = rows.length > safeLimit
+  const pageRows = hasMore ? rows.slice(0, safeLimit) : rows
+  const userIds = pageRows.map((row) => row.id)
+
+  let kudosByUser = new Map<string, KudosCounts>()
+  if (userIds.length > 0) {
+    const { data: kudosRows, error: kudosError } = await client.rpc("get_kudos_counts_for_users", {
+      p_user_ids: userIds,
+    })
+    if (!kudosError && kudosRows) {
+      kudosByUser = kudosCountsMapFromRpcRows(
+        kudosRows as { receiver_id: string; category: string; cnt: number | string }[],
+      )
+    }
+  }
+
+  const jammers: DirectoryJammerListItem[] = pageRows.map((profile) => {
+    const roleRaw = resolveDirectoryRole(profile)
+    const levelRaw = (profile.experience ?? profile.experience_level ?? "").trim()
+    const engineRaw = resolveDirectoryEngine(profile)
+    const languageRaw = resolveDirectoryLanguage(profile)
+    const bioRaw = (profile.bio ?? "").trim()
+    const portfolioRaw = (profile.portfolio_link ?? profile.portfolio_url ?? "").trim()
+    const xp = typeof profile.xp === "number" ? profile.xp : 0
+    const jam = firstExternalJam(profile.external_jams)
+
+    return {
+      id: profile.id,
+      username: profile.username?.trim() || "Anonymous",
+      avatar_url: profile.avatar_url?.trim() || null,
+      role: toDisplayRole(roleRaw),
+      level: toDisplayLevel(levelRaw),
+      jamStyle: toDisplayJamStyle(profile.jam_style ?? ""),
+      engine: engineRaw,
+      bio: bioRaw,
+      language: languageRaw,
+      portfolio_link: portfolioRaw || undefined,
+      jam: jam?.title ? { title: jam.title, url: jam.url ?? undefined } : undefined,
+      jammerTitle: profile.current_title?.trim() || "Rookie Jammer",
+      jammerLevel: levelFromTotalXp(xp),
+      kudosCounts: kudosByUser.get(profile.id) ?? null,
+      rawRole: roleRaw,
+      rawEngine: engineRaw,
+      rawLanguage: languageRaw,
+    }
+  })
+
+  return {
+    jammers,
+    hasMore,
+    nextOffset: safeOffset + jammers.length,
     error: null,
   }
 }

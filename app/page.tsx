@@ -1,15 +1,19 @@
 import type { Metadata } from "next"
-import { redirect } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
 import {
   LandingHome,
   type LandingFeaturedTeam,
   type LandingSocialProofStats,
   type LandingUpcomingJam,
 } from "@/components/landing/landing-home"
+import { createAnonClient } from "@/lib/supabase/anon"
+import { sanitizeJamDisplayName } from "@/lib/teams-public"
+
+export const revalidate = 300
 
 export const metadata: Metadata = {
-  title: "GameJamCrew | Find your perfect Game Jam Team",
+  title: {
+    absolute: "GameJamCrew | Find your perfect Game Jam Team",
+  },
   description:
     "Find your perfect game jam squad. Connect with developers, artists, and composers who share your vision on GameJamCrew.",
   openGraph: {
@@ -27,14 +31,7 @@ export const metadata: Metadata = {
 }
 
 export default async function HomePage() {
-  const supabase = await createClient()
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
-
-  if (session) {
-    redirect("/dashboard")
-  }
+  const supabase = createAnonClient()
   const nowIso = new Date().toISOString()
 
   const [
@@ -80,25 +77,16 @@ export default async function HomePage() {
       return {
         id: row.id as string,
         name: ((row.team_name as string | null) ?? "Untitled Squad").trim() || "Untitled Squad",
-        jam: ((row.game_name as string | null) ?? "").trim(),
+        jam: sanitizeJamDisplayName(row.game_name as string | null),
         openRoles,
       }
     })
     .filter((team) => team.openRoles > 0)
 
   const socialProofStats: LandingSocialProofStats = {
-    activeTeams: Math.max(
-      12,
-      Math.round(((activeTeamsCount ?? 0) * 1.6) + 8),
-    ),
-    completedTeams: Math.max(
-      18,
-      Math.round(((completedTeamsCount ?? 0) * 1.8) + 12),
-    ),
-    activeJammers: Math.max(
-      120,
-      Math.round(((activeJammersCount ?? 0) * 1.35) + 40),
-    ),
+    activeTeams: activeTeamsCount ?? 0,
+    completedTeams: completedTeamsCount ?? 0,
+    activeJammers: activeJammersCount ?? 0,
   }
 
   const upcomingJams: LandingUpcomingJam[] = (upcomingJamRows ?? [])

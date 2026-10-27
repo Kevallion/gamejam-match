@@ -7,6 +7,7 @@ import { AuthProvider } from '@/components/auth-provider'
 import { ThemeProvider } from '@/components/theme-provider'
 import { GamificationProvider } from '@/components/gamification-provider'
 import { Toaster } from '@/components/ui/sonner'
+import { FeedbackButton } from '@/components/FeedbackButton'
 import { Footer } from '@/components/footer'
 import './globals.css'
 
@@ -105,6 +106,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
             </GamificationProvider>
           </AuthProvider>
         </ThemeProvider>
+        <FeedbackButton />
         <Analytics />
       </body>
     </html>

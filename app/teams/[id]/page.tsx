@@ -11,6 +11,7 @@ import { TeamChat } from "@/components/team-chat"
 import { TeamAnnouncementPublic } from "@/components/team-announcement-public"
 import { supabase } from "@/lib/supabase"
 import { fetchProfilesMap } from "@/lib/profiles"
+import { fetchTeamDiscordLink } from "@/lib/team-discord"
 import { formatTeamToCardData, type TeamRowDb } from "@/lib/team-utils"
 import type { TeamCardData } from "@/components/team-card"
 import { Loader2, ArrowLeft, ShieldAlert, Users, Cpu, Globe, Info } from "lucide-react"
@@ -132,7 +133,7 @@ export default function TeamPage() {
 
       const { data: teamData, error: teamDataError } = await supabase
         .from("teams")
-        .select("id, user_id, team_name, game_name, description, engine, language, discord_link, jam_end_date")
+        .select("id, user_id, team_name, game_name, description, engine, language, jam_end_date")
         .eq("id", teamId)
         .single()
 
@@ -150,7 +151,7 @@ export default function TeamPage() {
       const allUserIds = Array.from(
         new Set([teamData.user_id, ...(membersData ?? []).map((m: { user_id: string }) => m.user_id)])
       )
-      const [joinRes, profilesFromMap] = await Promise.all([
+      const [joinRes, profilesFromMap, discordLink] = await Promise.all([
         (membersData?.length ?? 0) > 0
           ? supabase
               .from("join_requests")
@@ -169,6 +170,7 @@ export default function TeamPage() {
               }[],
             }),
         fetchProfilesMap(allUserIds),
+        fetchTeamDiscordLink(supabase, teamId),
       ])
 
       const roleByUserId: Record<string, string | null> = {}
@@ -236,7 +238,7 @@ export default function TeamPage() {
       }
 
       if (cancelled) return
-      setSquad(teamData as SquadViewData)
+      setSquad({ ...teamData, discord_link: discordLink })
       setMembers(squadMembers)
       setViewMode("squad")
     }

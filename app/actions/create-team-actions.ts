@@ -103,16 +103,17 @@ export async function createTeam(input: CreateTeamInput): Promise<CreateTeamResu
 
   const jamEndIso = new Date(jamEndDate).toISOString()
   const jamStartIso = new Date(jamStartDate).toISOString()
+  const { sanitizeJamDisplayName } = await import("@/lib/teams-public")
+  const safeJamName = sanitizeJamDisplayName(jamName) || jamName.trim()
 
   const teamData = {
     user_id: user.id,
     team_name: teamName,
-    game_name: jamName,
+    game_name: safeJamName,
     description: description.trim(),
     engine,
     language,
     looking_for: lookingFor,
-    discord_link: discordLinkValue || null,
     team_vibe: vibeTrim,
     experience_required: experienceRequired,
     jam_id: jamId,
@@ -125,6 +126,18 @@ export async function createTeam(input: CreateTeamInput): Promise<CreateTeamResu
 
   if (error || !data?.id) {
     return { success: false, error: error?.message ?? "Could not create the team." }
+  }
+
+  if (discordLinkValue) {
+    const { upsertTeamDiscordLink } = await import("@/lib/team-discord")
+    const { error: discordError } = await upsertTeamDiscordLink(
+      supabase,
+      data.id as string,
+      discordLinkValue,
+    )
+    if (discordError) {
+      console.error("[createTeam] discord link upsert failed:", discordError)
+    }
   }
 
   // Best-effort transactional follow-up (doesn't block team creation).

@@ -17,13 +17,47 @@ export async function fetchProfilesMap(
   const uniqueIds = Array.from(new Set(userIds)).filter(Boolean)
   if (uniqueIds.length === 0) return {}
 
+  // Public listing: never request discord_username (PII; revoked for anon at DB level).
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, username, avatar_url")
+    .in("id", uniqueIds)
+
+  if (error) {
+    console.error("[fetchProfilesMap] Error:", error.message)
+    return {}
+  }
+
+  const map: Record<string, ProfileDisplay> = {}
+  for (const p of data ?? []) {
+    if (!p.id) continue
+    const rawAvatar = (p.avatar_url ?? "").trim() || null
+    map[p.id] = {
+      username: (p.username ?? "").trim() || "",
+      avatar_url: rawAvatar,
+      discord_username: null,
+    }
+  }
+  return map
+}
+
+/**
+ * Like fetchProfilesMap but includes discord_username for authenticated
+ * contexts where the viewer is allowed to see it (own profile / teammates).
+ */
+export async function fetchProfilesMapWithDiscord(
+  userIds: string[]
+): Promise<Record<string, ProfileDisplay>> {
+  const uniqueIds = Array.from(new Set(userIds)).filter(Boolean)
+  if (uniqueIds.length === 0) return {}
+
   const { data, error } = await supabase
     .from("profiles")
     .select("id, username, avatar_url, discord_username")
     .in("id", uniqueIds)
 
   if (error) {
-    console.error("[fetchProfilesMap] Error:", error.message)
+    console.error("[fetchProfilesMapWithDiscord] Error:", error.message)
     return {}
   }
 

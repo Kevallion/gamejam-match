@@ -5,42 +5,60 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { Navbar } from "@/components/navbar"
 import { MemberFilters } from "@/components/member-filters"
 import { MembersGrid } from "@/components/members-grid"
-import { Search, UserSearch } from "lucide-react"
+import { DirectoryFilters } from "@/components/directory-filters"
+import { DirectoryGrid } from "@/components/directory-grid"
+import { BookUser, Search, UserSearch } from "lucide-react"
 import { Input } from "@/components/ui/input"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   ENGINE_OPTIONS,
   EXPERIENCE_OPTIONS,
   LANGUAGE_OPTIONS,
   ROLE_OPTIONS,
 } from "@/lib/constants"
-import type { AvailablePlayerListItem } from "@/lib/queries"
+import type { AvailablePlayerListItem, DirectoryJammerListItem } from "@/lib/queries"
+
+export type MembersBrowseMode = "available" | "directory"
 
 type FindMembersShellProps = {
   initialMembers: AvailablePlayerListItem[]
   initialHasMore: boolean
+  initialDirectory: DirectoryJammerListItem[]
+  initialDirectoryHasMore: boolean
+  initialMode?: MembersBrowseMode
 }
 
-export function FindMembersShell({ initialMembers, initialHasMore }: FindMembersShellProps) {
+export function FindMembersShell({
+  initialMembers,
+  initialHasMore,
+  initialDirectory,
+  initialDirectoryHasMore,
+  initialMode = "available",
+}: FindMembersShellProps) {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const [isPending, startTransition] = useTransition()
+  const [resultsCount, setResultsCount] = useState<number | null>(null)
 
+  const mode: MembersBrowseMode =
+    (searchParams.get("view") ?? initialMode) === "directory" ? "directory" : "available"
   const searchQuery = searchParams.get("q") ?? ""
   const roleFilter = searchParams.get("role") ?? "all"
   const engineFilter = searchParams.get("engine") ?? "all"
   const levelFilter = searchParams.get("level") ?? "all"
   const langFilter = searchParams.get("lang") ?? "all"
   const jamIdFilter = searchParams.get("jam_id") ?? ""
-  const [resultsCount, setResultsCount] = useState<number | null>(null)
+  const isDirectory = mode === "directory"
 
-  const hasActiveFilters =
-    searchQuery !== "" ||
-    roleFilter !== "all" ||
-    engineFilter !== "all" ||
-    levelFilter !== "all" ||
-    langFilter !== "all" ||
-    jamIdFilter !== ""
+  const hasActiveFilters = isDirectory
+    ? searchQuery !== "" || roleFilter !== "all" || engineFilter !== "all" || langFilter !== "all"
+    : searchQuery !== "" ||
+      roleFilter !== "all" ||
+      engineFilter !== "all" ||
+      levelFilter !== "all" ||
+      langFilter !== "all" ||
+      jamIdFilter !== ""
 
   const replaceUrlWithFilters = (updates: Record<string, string | null>) => {
     const nextParams = new URLSearchParams(searchParams.toString())
@@ -52,7 +70,6 @@ export function FindMembersShell({ initialMembers, initialHasMore }: FindMembers
       }
     })
 
-    // Any filter update should restart pagination from the first page.
     nextParams.delete("offset")
     const query = nextParams.toString()
     startTransition(() => {
@@ -80,7 +97,7 @@ export function FindMembersShell({ initialMembers, initialHasMore }: FindMembers
     const engineLabel = ENGINE_OPTIONS.find((e) => e.value === engineFilter)?.label ?? engineFilter
     activeFilterLabels.push(`Engine: ${engineLabel}`)
   }
-  if (levelFilter !== "all") {
+  if (!isDirectory && levelFilter !== "all") {
     const levelLabel = EXPERIENCE_OPTIONS.find((l) => l.value === levelFilter)?.label ?? levelFilter
     activeFilterLabels.push(`Experience: ${levelLabel}`)
   }
@@ -102,7 +119,7 @@ export function FindMembersShell({ initialMembers, initialHasMore }: FindMembers
           <div className="relative mx-auto max-w-2xl text-center">
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-lavender/30 bg-lavender px-4 py-1.5 text-sm font-medium text-lavender-foreground">
               <UserSearch className="size-4" />
-              Browse available jammers
+              Find teammates
             </div>
 
             <h1 className="text-balance text-4xl font-extrabold tracking-tight text-foreground md:text-5xl lg:text-6xl">
@@ -110,12 +127,50 @@ export function FindMembersShell({ initialMembers, initialHasMore }: FindMembers
             </h1>
 
             <p className="mx-auto mt-4 max-w-lg text-pretty text-lg leading-relaxed text-muted-foreground">
-              Discover talented jammers ready to join your squad. Filter by role, engine, and experience to find the perfect match.
+              {isDirectory
+                ? "Browse every onboarded jammer. Filter by role, engine, and language, then invite them with a personal message."
+                : "Discover jammers who marked themselves available. Need a wider search? Switch to the Directory."}
             </p>
 
-            <div className="relative mx-auto mt-10 max-w-xl">
-              <div className="absolute inset-0 -m-1 rounded-[1.25rem] bg-lavender/20 blur-md" />
-              <div className="relative flex items-center overflow-hidden rounded-2xl border-2 border-lavender/30 bg-card shadow-lg shadow-lavender/5">
+            <div className="mx-auto mt-8 flex justify-center">
+              <Tabs
+                value={mode}
+                onValueChange={(next) =>
+                  replaceUrlWithFilters({ view: next === "directory" ? "directory" : null })
+                }
+              >
+                <TabsList className="h-11 rounded-xl border border-border/60 bg-card/80 p-1 shadow-sm">
+                  <TabsTrigger
+                    value="available"
+                    className="gap-1.5 rounded-lg px-4 data-[state=active]:bg-lavender data-[state=active]:text-lavender-foreground"
+                  >
+                    <UserSearch className="size-3.5" />
+                    Available
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="directory"
+                    className="gap-1.5 rounded-lg px-4 data-[state=active]:bg-teal data-[state=active]:text-teal-foreground"
+                  >
+                    <BookUser className="size-3.5" />
+                    Directory
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
+
+            <div className="relative mx-auto mt-8 max-w-xl">
+              <div
+                className={`absolute inset-0 -m-1 rounded-[1.25rem] blur-md ${
+                  isDirectory ? "bg-teal/20" : "bg-lavender/20"
+                }`}
+              />
+              <div
+                className={`relative flex items-center overflow-hidden rounded-2xl border-2 bg-card shadow-lg ${
+                  isDirectory
+                    ? "border-teal/30 shadow-teal/5"
+                    : "border-lavender/30 shadow-lavender/5"
+                }`}
+              >
                 <Search className="ml-5 size-5 shrink-0 text-muted-foreground" />
                 <Input
                   type="text"
@@ -129,20 +184,34 @@ export function FindMembersShell({ initialMembers, initialHasMore }: FindMembers
           </div>
         </section>
 
-        <MemberFilters
-          role={roleFilter}
-          engine={engineFilter}
-          level={levelFilter}
-          language={langFilter}
-          hasActiveFilters={hasActiveFilters}
-          resultsCount={resultsCount ?? undefined}
-          isUpdating={isPending}
-          onRoleChange={(value) => replaceUrlWithFilters({ role: value })}
-          onEngineChange={(value) => replaceUrlWithFilters({ engine: value })}
-          onLevelChange={(value) => replaceUrlWithFilters({ level: value })}
-          onLanguageChange={(value) => replaceUrlWithFilters({ lang: value })}
-          onReset={handleResetFilters}
-        />
+        {isDirectory ? (
+          <DirectoryFilters
+            role={roleFilter}
+            engine={engineFilter}
+            language={langFilter}
+            hasActiveFilters={hasActiveFilters}
+            resultsCount={resultsCount ?? undefined}
+            onRoleChange={(value) => replaceUrlWithFilters({ role: value })}
+            onEngineChange={(value) => replaceUrlWithFilters({ engine: value })}
+            onLanguageChange={(value) => replaceUrlWithFilters({ lang: value })}
+            onReset={handleResetFilters}
+          />
+        ) : (
+          <MemberFilters
+            role={roleFilter}
+            engine={engineFilter}
+            level={levelFilter}
+            language={langFilter}
+            hasActiveFilters={hasActiveFilters}
+            resultsCount={resultsCount ?? undefined}
+            isUpdating={isPending}
+            onRoleChange={(value) => replaceUrlWithFilters({ role: value })}
+            onEngineChange={(value) => replaceUrlWithFilters({ engine: value })}
+            onLevelChange={(value) => replaceUrlWithFilters({ level: value })}
+            onLanguageChange={(value) => replaceUrlWithFilters({ lang: value })}
+            onReset={handleResetFilters}
+          />
+        )}
 
         {activeFilterLabels.length > 0 && (
           <section className="px-4 pt-1 sm:px-6">
@@ -155,19 +224,34 @@ export function FindMembersShell({ initialMembers, initialHasMore }: FindMembers
           </section>
         )}
 
-        <MembersGrid
-          key={`${searchQuery}|${roleFilter}|${engineFilter}|${levelFilter}|${langFilter}|${jamIdFilter}`}
-          initialMembers={initialMembers}
-          initialHasMore={initialHasMore}
-          searchQuery={searchQuery}
-          roleFilter={roleFilter}
-          engineFilter={engineFilter}
-          levelFilter={levelFilter}
-          langFilter={langFilter}
-          jamIdFilter={jamIdFilter}
-          onResultsCountChange={setResultsCount}
-          isRefreshing={isPending}
-        />
+        {isDirectory ? (
+          <DirectoryGrid
+            key={`${searchQuery}|${roleFilter}|${engineFilter}|${langFilter}`}
+            searchQuery={searchQuery}
+            roleFilter={roleFilter}
+            engineFilter={engineFilter}
+            languageFilter={langFilter}
+            initialJammers={initialDirectory}
+            initialHasMore={initialDirectoryHasMore}
+            onResultsCountChange={setResultsCount}
+            onSwitchToAvailable={() => replaceUrlWithFilters({ view: null })}
+          />
+        ) : (
+          <MembersGrid
+            key={`${searchQuery}|${roleFilter}|${engineFilter}|${levelFilter}|${langFilter}|${jamIdFilter}`}
+            initialMembers={initialMembers}
+            initialHasMore={initialHasMore}
+            searchQuery={searchQuery}
+            roleFilter={roleFilter}
+            engineFilter={engineFilter}
+            levelFilter={levelFilter}
+            langFilter={langFilter}
+            jamIdFilter={jamIdFilter}
+            onResultsCountChange={setResultsCount}
+            isRefreshing={isPending}
+            onSwitchToDirectory={() => replaceUrlWithFilters({ view: "directory" })}
+          />
+        )}
       </main>
     </div>
   )

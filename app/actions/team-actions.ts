@@ -178,6 +178,8 @@ export type NotifyInvitationContext = {
   teamId: string
   joinRequestId: string
   inviterUserId: string
+  /** Optional free-form message from the captain (shown in email). */
+  personalMessage?: string | null
 }
 
 /**
@@ -193,7 +195,12 @@ export async function notifyInviteeInvitation(
     const email = await getUserEmail(inviteeUserId)
 
     const invitationPath = `/invitation/${ctx.joinRequestId}`
-    const message = `You were invited to join the team "${teamName}".`
+    const personalMessage = ctx.personalMessage?.trim() || ""
+    const truncatedPersonal =
+      personalMessage.length > 160 ? `${personalMessage.slice(0, 157)}...` : personalMessage
+    const message = truncatedPersonal
+      ? `You were invited to join the team "${teamName}": ${truncatedPersonal}`
+      : `You were invited to join the team "${teamName}".`
     void insertNotification(inviteeUserId, "team_invitation", message, invitationPath, {
       sender_id: ctx.inviterUserId,
       team_id: ctx.teamId,
@@ -206,12 +213,16 @@ export async function notifyInviteeInvitation(
     const captainProfileUrl = getPublicJammerProfileUrl(ctx.inviterUserId)
     const ctaPrimary = `display:inline-block;padding:12px 24px;background-color:#14b8a6;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:bold;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;margin:4px 8px 4px 0;`
     const ctaSecondary = `display:inline-block;padding:12px 24px;background-color:#f3f4f6;color:#111827;text-decoration:none;border-radius:6px;font-weight:600;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;border:1px solid #e5e7eb;margin:4px 8px 4px 0;`
+    const quoteBlock = personalMessage
+      ? `<p style="margin:0 0 18px;padding:12px 16px;background-color:#f9fafb;border-left:3px solid #14b8a6;color:#374151;font-size:15px;line-height:1.6;font-style:italic;">"${escapeHtml(personalMessage)}"</p>`
+      : ""
 
     const subject = "You've been invited to join a team! 🎮 | GameJamCrew"
     const contentHtml = `
       <p style="${EMAIL_P}">Hi there! A team leader invited you to join <strong style="${EMAIL_STRONG}">${escapeHtml(
         teamName,
       )}</strong> for an upcoming jam.</p>
+      ${quoteBlock}
       <p style="${EMAIL_P}">See the project, engine, and role on the invitation page — then accept or decline in one click.</p>
       <p style="margin:0 0 20px;text-align:center;">
         <a href="${invitationUrl}" style="${ctaPrimary}" target="_blank" rel="noopener noreferrer">View invitation</a>

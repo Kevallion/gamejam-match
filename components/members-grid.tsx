@@ -23,6 +23,7 @@ interface MembersGridProps {
   jamIdFilter?: string
   onResultsCountChange?: (count: number) => void
   isRefreshing?: boolean
+  onSwitchToDirectory?: () => void
 }
 
 export function MembersGrid({
@@ -36,6 +37,7 @@ export function MembersGrid({
   jamIdFilter = "",
   onResultsCountChange,
   isRefreshing = false,
+  onSwitchToDirectory,
 }: MembersGridProps) {
   const [members, setMembers] = useState<AvailablePlayerListItem[]>(initialMembers)
   const [mySquads, setMySquads] = useState<SquadOption[]>([])
@@ -144,8 +146,23 @@ export function MembersGrid({
         </div>
 
         {members.length === 0 ? (
-          <div className="text-center py-10 bg-card/50 rounded-3xl border border-dashed border-border">
-            No jammers found matching these filters. 😢
+          <div className="rounded-3xl border border-dashed border-border bg-card/50 px-6 py-10 text-center">
+            <p className="text-sm text-muted-foreground">
+              No available jammers match these filters.
+            </p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Try the Directory to browse every onboarded jammer.
+            </p>
+            {onSwitchToDirectory ? (
+              <Button
+                type="button"
+                variant="outline"
+                className="mt-4 rounded-xl"
+                onClick={onSwitchToDirectory}
+              >
+                Search Directory
+              </Button>
+            ) : null}
           </div>
         ) : (
           <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
