@@ -19,6 +19,7 @@ import {
   type LucideIcon,
 } from "lucide-react"
 import { siConstruct3, siGamemaker, siGodotengine, siUnity, siUnrealengine } from "simple-icons"
+import { DEFOLD_MARK_PATH, GDEVELOP_MARK_PATH } from "@/lib/official-engine-marks"
 import {
   EXPERIENCE_RANK,
   EXPERIENCE_STYLES,
@@ -70,20 +71,21 @@ const STYLE_ICON: Record<string, LucideIcon> = {
 }
 
 /**
- * Official engine marks only, from simple-icons (CC0) using the slug that
- * names that engine. Checked against simple-icons 16.36:
+ * Official engine marks.
+ * simple-icons (CC0), slugs checked against 16.36:
  * godot → godotengine, unity → unity, unreal → unrealengine,
- * gamemaker → gamemaker, construct → construct3 (title "Construct 3";
- * there is no separate `construct` slug).
- * defold, gdevelop and pico8 have no entry. They use one neutral icon
- * plus the text label — never a stand-in logo.
+ * gamemaker → gamemaker, construct → construct3 ("Construct 3").
+ * defold and gdevelop are single-path traces of the logos the site owner
+ * supplied (navy / white gaps are cut out). pico8 and custom have no mark.
  */
 type EngineMark = {
   path?: string
   /** Brand hex without #. Omitted when that hex would disappear (white/black). */
   hex?: string
-  /** simple-icons slug when the path is an official mark. */
+  /** simple-icons slug when the path comes from that package. */
   slug?: string
+  /** Owner-supplied logo traced as one evenodd path. */
+  evenOdd?: boolean
   verified: boolean
 }
 
@@ -93,9 +95,9 @@ const ENGINE_MARK: Record<string, EngineMark> = {
   unreal: { path: siUnrealengine.path, slug: siUnrealengine.slug, verified: true },
   gamemaker: { path: siGamemaker.path, slug: siGamemaker.slug, verified: true },
   construct: { path: siConstruct3.path, hex: siConstruct3.hex, slug: siConstruct3.slug, verified: true },
+  defold: { path: DEFOLD_MARK_PATH, hex: "F86020", evenOdd: true, verified: true },
+  gdevelop: { path: GDEVELOP_MARK_PATH, hex: "4A90D9", evenOdd: true, verified: true },
   pico8: { verified: false },
-  defold: { verified: false },
-  gdevelop: { verified: false },
   custom: { verified: false },
   any: { verified: false },
 }
@@ -271,7 +273,7 @@ function resolveTag(kind: TagKind, raw: string): ResolvedTag | null {
       brandHover: engine.hex ? `#${engine.hex}` : undefined,
       node: (iconClass) => (
         <svg viewBox="0 0 24 24" className={iconClass} aria-hidden>
-          <path d={engine.path} fill="currentColor" />
+          <path d={engine.path} fill="currentColor" fillRule={engine.evenOdd ? "evenodd" : "nonzero"} />
         </svg>
       ),
     }
