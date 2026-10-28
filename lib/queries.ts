@@ -526,7 +526,7 @@ function toDisplayRole(rawRole: string) {
     ...(ROLE_STYLES[roleKey] || {
       label: rawRole || "—",
       emoji: "❓",
-      color: "bg-gray-500/10 text-gray-500",
+      color: "bg-muted text-muted-foreground",
     }),
     key: roleKey || undefined,
   }
@@ -542,18 +542,22 @@ function toDisplayLevel(rawLevel: string) {
         expert: "senior",
       }[levelKey] ?? levelKey)
 
-  return (
-    EXPERIENCE_STYLES[normalizedKey] || {
+  const style = EXPERIENCE_STYLES[normalizedKey]
+  if (!style) {
+    return {
       label: rawLevel || "—",
       emoji: "⭐",
-      color: "bg-gray-500/10 text-gray-500",
+      color: "bg-muted text-muted-foreground",
+      key: normalizedKey || undefined,
     }
-  )
+  }
+  return { ...style, key: normalizedKey }
 }
 
 function toDisplayJamStyle(rawJamStyle: string) {
   const jamStyleKey = normalizedFilterValue(rawJamStyle)
-  return jamStyleKey ? JAM_STYLE_STYLES[jamStyleKey] : undefined
+  const style = jamStyleKey ? JAM_STYLE_STYLES[jamStyleKey] : undefined
+  return style ? { ...style, key: jamStyleKey } : undefined
 }
 
 export async function getAvailablePlayers(

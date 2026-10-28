@@ -73,16 +73,46 @@ export const ENGINE_OPTIONS_WITH_ANY = [
   ...ENGINE_OPTIONS,
 ] as const
 
+/** Tint + text pair. Each role has its own hue (`--role-*` in globals.css). */
+function roleTone(token: string): string {
+  return `bg-[color-mix(in_oklab,var(${token})_18%,transparent)] text-[var(${token})]`
+}
+
 export const ROLE_STYLES: Record<string, { label: string; emoji: string; color: string }> = {
-  developer: { label: "Developer", emoji: "💻", color: "bg-teal text-teal-foreground" },
-  "2d-artist": { label: "2D Artist", emoji: "🎨", color: "bg-pink text-pink-foreground" },
-  "3d-artist": { label: "3D Artist", emoji: "🗿", color: "bg-peach text-peach-foreground" },
-  audio: { label: "Audio", emoji: "🎵", color: "bg-lavender text-lavender-foreground" },
-  voice_actor: { label: "Voice Actor", emoji: "🎙️", color: "bg-lavender text-lavender-foreground" },
-  writer: { label: "Writer", emoji: "✍️", color: "bg-pink text-pink-foreground" },
-  "game-design": { label: "Game Designer", emoji: "🎯", color: "bg-peach text-peach-foreground" },
-  "ui-ux": { label: "UI / UX", emoji: "✨", color: "bg-mint text-mint-foreground" },
-  qa: { label: "QA / Playtester", emoji: "🐛", color: "bg-peach text-peach-foreground" },
+  developer: { label: "Developer", emoji: "💻", color: roleTone("--role-developer") },
+  "2d-artist": { label: "2D Artist", emoji: "🎨", color: roleTone("--role-artist-2d") },
+  "3d-artist": { label: "3D Artist", emoji: "🗿", color: roleTone("--role-artist-3d") },
+  audio: { label: "Audio", emoji: "🎵", color: roleTone("--role-audio") },
+  voice_actor: { label: "Voice Actor", emoji: "🎙️", color: roleTone("--role-voice") },
+  writer: { label: "Writer", emoji: "✍️", color: roleTone("--role-writer") },
+  "game-design": { label: "Game Designer", emoji: "🎯", color: roleTone("--role-design") },
+  "ui-ux": { label: "UI / UX", emoji: "✨", color: roleTone("--role-ux") },
+  qa: { label: "QA / Playtester", emoji: "🐛", color: roleTone("--role-qa") },
+}
+
+/** Spoken-language key → short ISO pill. A language is not a country, so pills stay codes. */
+export const LANGUAGE_ISO: Record<string, string> = {
+  english: "EN",
+  french: "FR",
+  spanish: "ES",
+  portuguese: "PT",
+  german: "DE",
+  japanese: "JA",
+  korean: "KO",
+  chinese: "ZH",
+}
+
+/** 1–6 filled pips on the experience gauge, including legacy keys. */
+export const EXPERIENCE_RANK: Record<string, number> = {
+  beginner: 1,
+  junior: 2,
+  hobbyist: 2,
+  regular: 3,
+  confirmed: 3,
+  advanced: 4,
+  senior: 5,
+  expert: 5,
+  veteran: 6,
 }
 
 export const EXPERIENCE_STYLES: Record<string, { label: string; emoji: string; color: string }> = {

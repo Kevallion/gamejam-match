@@ -1,17 +1,35 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { Sparkles, Trophy } from "lucide-react"
+import {
+  Coffee,
+  Crown,
+  Flag,
+  Flame,
+  Handshake,
+  HeartHandshake,
+  Megaphone,
+  Sparkles,
+  Sunrise,
+  Trophy,
+  Wrench,
+  type LucideIcon,
+} from "lucide-react"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { Progress } from "@/components/ui/progress"
 import { supabase } from "@/lib/supabase"
 import { gamificationLevelProgress } from "@/lib/gamification-level"
 import { cn } from "@/lib/utils"
 
+export type BadgeRarity = "common" | "uncommon" | "rare" | "epic" | "special"
+
 export type BadgeCatalogMeta = {
   emoji: string
   label: string
   blurb: string
+  rarity: BadgeRarity
   /** Card when unlocked */
   unlocked: string
   /** Card when locked */
@@ -20,11 +38,61 @@ export type BadgeCatalogMeta = {
   lockedHint?: string
 }
 
+const BADGE_ICONS: Record<string, LucideIcon> = {
+  early_bird: Sunrise,
+  team_player: Handshake,
+  founder: Flag,
+  stalwart: Flame,
+  multi_tool: Wrench,
+  recruiter: Megaphone,
+  captain: Crown,
+  jam_champion: Trophy,
+  supporter: Coffee,
+  golden_heart: HeartHandshake,
+}
+
+const RARITY_RANK: Record<BadgeRarity, number> = {
+  common: 1,
+  uncommon: 2,
+  rare: 3,
+  special: 4,
+  epic: 5,
+}
+
+const RARITY_LABEL: Record<BadgeRarity, string> = {
+  common: "Common",
+  uncommon: "Uncommon",
+  rare: "Rare",
+  epic: "Epic",
+  special: "Special",
+}
+
+const RARITY_RING: Record<BadgeRarity, string> = {
+  common: "ring-border",
+  uncommon: "ring-teal",
+  rare: "ring-lavender",
+  epic: "ring-amber-400",
+  special: "ring-pink",
+}
+
+function badgeIcon(badgeId: string): LucideIcon {
+  return BADGE_ICONS[badgeId] ?? Trophy
+}
+
+function formatUnlocked(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  })
+}
+
 /** Ordered catalog: known badges + copy/styling. Extend when adding new badge_id values in the backend. */
 export const BADGE_DICTIONARY: Record<string, BadgeCatalogMeta> = {
   founder: {
     emoji: "🏗️",
     label: "Founder",
+    rarity: "uncommon",
     blurb: "Created your first squad listing.",
     unlocked:
       "border-amber-500/50 bg-gradient-to-br from-amber-500/20 via-amber-600/10 to-yellow-500/5 shadow-[0_0_24px_-4px_rgba(245,158,11,0.35)]",
@@ -33,6 +101,7 @@ export const BADGE_DICTIONARY: Record<string, BadgeCatalogMeta> = {
   captain: {
     emoji: "👑",
     label: "Captain",
+    rarity: "rare",
     blurb: "Filled every open role on your squad listing.",
     unlocked:
       "border-violet-500/45 bg-gradient-to-br from-violet-500/20 via-purple-600/10 to-fuchsia-500/5 shadow-[0_0_24px_-4px_rgba(139,92,246,0.35)]",
@@ -41,6 +110,7 @@ export const BADGE_DICTIONARY: Record<string, BadgeCatalogMeta> = {
   team_player: {
     emoji: "🤝",
     label: "Team Player",
+    rarity: "common",
     blurb: "Joined a squad on GameJamCrew.",
     unlocked:
       "border-teal/50 bg-gradient-to-br from-teal/25 via-teal/10 to-cyan-500/5 shadow-[0_0_20px_-4px_rgba(45,212,191,0.3)]",
@@ -49,6 +119,7 @@ export const BADGE_DICTIONARY: Record<string, BadgeCatalogMeta> = {
   early_bird: {
     emoji: "🌅",
     label: "Early Bird",
+    rarity: "common",
     blurb: "Completed your jammer onboarding.",
     unlocked:
       "border-pink/40 bg-gradient-to-br from-peach/25 via-pink/15 to-lavender/10 shadow-[0_0_22px_-4px_rgba(244,114,182,0.28)]",
@@ -57,6 +128,7 @@ export const BADGE_DICTIONARY: Record<string, BadgeCatalogMeta> = {
   stalwart: {
     emoji: "💎",
     label: "Stalwart",
+    rarity: "uncommon",
     blurb: "Logged in 5 days in a row.",
     unlocked:
       "border-sky-500/45 bg-gradient-to-br from-sky-500/20 via-cyan-500/10 to-teal-500/5 shadow-[0_0_22px_-4px_rgba(14,165,233,0.3)]",
@@ -65,6 +137,7 @@ export const BADGE_DICTIONARY: Record<string, BadgeCatalogMeta> = {
   recruiter: {
     emoji: "📣",
     label: "Recruiter",
+    rarity: "rare",
     blurb: "Sent 5 squad invitations to other jammers.",
     unlocked:
       "border-orange-500/40 bg-gradient-to-br from-orange-500/20 via-amber-500/10 to-yellow-500/5 shadow-[0_0_22px_-4px_rgba(249,115,22,0.28)]",
@@ -73,6 +146,7 @@ export const BADGE_DICTIONARY: Record<string, BadgeCatalogMeta> = {
   multi_tool: {
     emoji: "🛠️",
     label: "Multi-Tool",
+    rarity: "rare",
     blurb: "Joined squads in 3 different role slots.",
     unlocked:
       "border-emerald-500/40 bg-gradient-to-br from-emerald-500/20 via-teal/15 to-lime-500/5 shadow-[0_0_22px_-4px_rgba(16,185,129,0.28)]",
@@ -81,6 +155,7 @@ export const BADGE_DICTIONARY: Record<string, BadgeCatalogMeta> = {
   jam_champion: {
     emoji: "🏆",
     label: "Jam Champion",
+    rarity: "epic",
     blurb: "Claimed jam completion rewards on a squad you own.",
     unlocked:
       "border-amber-500/45 bg-gradient-to-br from-amber-500/20 via-peach/15 to-teal/10 shadow-[0_0_22px_-4px_rgba(245,158,11,0.3)]",
@@ -89,6 +164,7 @@ export const BADGE_DICTIONARY: Record<string, BadgeCatalogMeta> = {
   supporter: {
     emoji: "☕",
     label: "Supporter",
+    rarity: "special",
     blurb: "Awarded to our Buy Me a Coffee supporters.",
     lockedHint: "Unlock by supporting the project on Buy Me a Coffee (use the email on your account).",
     unlocked:
@@ -98,6 +174,7 @@ export const BADGE_DICTIONARY: Record<string, BadgeCatalogMeta> = {
   golden_heart: {
     emoji: "💛",
     label: "Golden Heart",
+    rarity: "special",
     blurb: "Verified supporter — thank you for backing the community.",
     unlocked:
       "border-rose-500/45 bg-gradient-to-br from-rose-500/25 via-pink-500/15 to-amber-400/10 shadow-[0_0_26px_-4px_rgba(244,63,94,0.35)]",
@@ -126,6 +203,8 @@ export type ProfileGamificationProps = {
   badgesOnly?: boolean
   /** Render only unlocked badges (public profile recruiter view). */
   unlockedOnly?: boolean
+  /** Public profile: top 3 medallions, +N opens the full list. */
+  compact?: boolean
 }
 
 type BadgeRow = { badge_id: string; earned_at: string }
@@ -163,10 +242,17 @@ function GamificationBadgeGrid({
           >
             <div className="flex items-center gap-2">
               <span
-                className={cn("text-2xl leading-none", !unlocked && "opacity-50 saturate-0")}
+                className={cn(
+                  "flex size-9 shrink-0 items-center justify-center rounded-full bg-background/40 ring-2",
+                  RARITY_RING[meta.rarity],
+                  !unlocked && "opacity-50 saturate-0",
+                )}
                 aria-hidden
               >
-                {meta.emoji}
+                {(() => {
+                  const Icon = badgeIcon(badgeId)
+                  return <Icon className="size-4" strokeWidth={1.75} />
+                })()}
               </span>
               <span
                 className={cn(
@@ -206,11 +292,85 @@ function GamificationBadgeGrid({
   )
 }
 
+function CompactBadgeRow({ badges }: { badges: BadgeRow[] }) {
+  const ranked = badges
+    .map((badge) => ({ badge, meta: BADGE_DICTIONARY[badge.badge_id] }))
+    .filter((entry): entry is { badge: BadgeRow; meta: BadgeCatalogMeta } => Boolean(entry.meta))
+    .sort((a, b) => {
+      const byRarity = RARITY_RANK[b.meta.rarity] - RARITY_RANK[a.meta.rarity]
+      if (byRarity !== 0) return byRarity
+      return new Date(b.badge.earned_at).getTime() - new Date(a.badge.earned_at).getTime()
+    })
+
+  if (ranked.length === 0) return null
+
+  const top = ranked.slice(0, 3)
+  const extra = ranked.length - top.length
+  const earnedIds = new Set(ranked.map((entry) => entry.badge.badge_id))
+
+  return (
+    <Dialog>
+      <div className="flex flex-wrap items-center gap-2">
+        {top.map(({ badge, meta }) => {
+          const Icon = badgeIcon(badge.badge_id)
+          return (
+            <Tooltip key={badge.badge_id}>
+              <TooltipTrigger asChild>
+                <DialogTrigger asChild>
+                  <button
+                    type="button"
+                    className={cn(
+                      "flex size-9 items-center justify-center rounded-full bg-background/50 ring-2 transition-transform hover:scale-105",
+                      RARITY_RING[meta.rarity],
+                    )}
+                    aria-label={`${meta.label}, ${RARITY_LABEL[meta.rarity]}`}
+                  >
+                    <Icon className="size-4" strokeWidth={1.75} aria-hidden />
+                  </button>
+                </DialogTrigger>
+              </TooltipTrigger>
+              <TooltipContent className="max-w-56 space-y-1 text-left">
+                <p className="font-semibold">{meta.label}</p>
+                <p>{meta.blurb}</p>
+                <p>Unlocked {formatUnlocked(badge.earned_at)}</p>
+                <p>{RARITY_LABEL[meta.rarity]}</p>
+              </TooltipContent>
+            </Tooltip>
+          )
+        })}
+        {extra > 0 ? (
+          <DialogTrigger asChild>
+            <button
+              type="button"
+              className="inline-flex h-9 items-center rounded-full bg-muted px-2.5 text-xs font-bold text-muted-foreground"
+              aria-label={`Show ${extra} more badges`}
+            >
+              +{extra}
+            </button>
+          </DialogTrigger>
+        ) : null}
+      </div>
+      <DialogContent className="max-w-lg rounded-2xl">
+        <DialogHeader>
+          <DialogTitle>Badges</DialogTitle>
+        </DialogHeader>
+        <GamificationBadgeGrid
+          sortedBadgeIds={ranked.map((entry) => entry.badge.badge_id)}
+          earnedIds={earnedIds}
+          badges={ranked.map((entry) => entry.badge)}
+          unlockedOnly
+        />
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 export function ProfileGamification({
   userId,
   className,
   badgesOnly = false,
   unlockedOnly = false,
+  compact = false,
 }: ProfileGamificationProps) {
   const [xp, setXp] = useState<number | null>(null)
   const [currentTitle, setCurrentTitle] = useState<string>("Rookie Jammer")
@@ -289,6 +449,15 @@ export function ProfileGamification({
   }, [earnedIds])
 
   if (loading) {
+    if (compact) {
+      return (
+        <div className={cn("flex gap-2", className)} aria-hidden>
+          {[1, 2, 3].map((item) => (
+            <div key={item} className="size-9 animate-pulse rounded-full bg-muted" />
+          ))}
+        </div>
+      )
+    }
     return (
       <Card
         className={cn(
@@ -312,6 +481,24 @@ export function ProfileGamification({
           </div>
         </CardContent>
       </Card>
+    )
+  }
+
+  if (compact) {
+    if (loading) {
+      return (
+        <div className={cn("flex gap-2", className)} aria-hidden>
+          {[1, 2, 3].map((item) => (
+            <div key={item} className="size-9 animate-pulse rounded-full bg-muted" />
+          ))}
+        </div>
+      )
+    }
+    if (error) return <p className={cn("text-xs text-destructive", className)}>{error}</p>
+    return (
+      <div className={className}>
+        <CompactBadgeRow badges={badges} />
+      </div>
     )
   }
 

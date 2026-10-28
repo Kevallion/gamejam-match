@@ -50,12 +50,16 @@ export function formatTeamToCardData(t: TeamRowDb): TeamCardData {
   }))
   const mainLevel =
     (parsedRoles.length > 0 ? parsedRoles[0].level : "beginner") ?? "beginner"
-  const levelBadge = EXPERIENCE_STYLES[mainLevel] || EXPERIENCE_STYLES["beginner"]
+  const levelBadge = {
+    ...(EXPERIENCE_STYLES[mainLevel] || EXPERIENCE_STYLES.beginner),
+    key: mainLevel,
+  }
   const acceptedRoleKeys: string[] = (t.team_members ?? [])
     .map((m) => m.role ?? null)
     .filter((r): r is string => !!r)
   const acceptedMembersCount = t.team_members ? t.team_members.length : 0
-  const teamVibe = t.team_vibe ? JAM_STYLE_STYLES[t.team_vibe] : undefined
+  const vibeStyle = t.team_vibe ? JAM_STYLE_STYLES[t.team_vibe] : undefined
+  const teamVibe = vibeStyle && t.team_vibe ? { ...vibeStyle, key: t.team_vibe } : undefined
 
   return {
     id: t.id,
