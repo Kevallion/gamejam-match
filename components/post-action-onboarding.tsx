@@ -14,7 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 
 import { supabase } from "@/lib/supabase"
 import { getAvailablePlayers, type AvailablePlayerListItem } from "@/lib/queries"
-import { ROLE_STYLES, EXPERIENCE_STYLES } from "@/lib/constants"
+import { ROLE_STYLES, EXPERIENCE_STYLES, languageOptionLabel } from "@/lib/constants"
 
 import { UserAvatar } from "@/components/user-avatar"
 import { sendTeamInvitation } from "@/app/actions/invite-actions"
@@ -136,7 +136,7 @@ export function PostActionOnboarding() {
             .single()
 
           if (teamErr || !t) {
-            toast.error("Team not found.", { description: "Could not load your squad." })
+            toast.error("Squad not found.", { description: "Could not load your squad." })
             return
           }
 
@@ -206,7 +206,7 @@ export function PostActionOnboarding() {
             .limit(80)
 
           if (teamsErr) {
-            toast.error("Could not load team suggestions.", { description: teamsErr.message })
+            toast.error("Could not load squad suggestions.", { description: teamsErr.message })
             return
           }
 
@@ -556,9 +556,11 @@ export function PostActionOnboarding() {
                                 </Badge>
                               ) : null}
 
-                              <Badge className="rounded-full border-border/60 bg-secondary/50 px-3 py-1 text-[11px] font-bold text-teal" variant="secondary">
-                                {team.language?.trim() || "—"}
-                              </Badge>
+                              {languageOptionLabel(team.language) ? (
+                                <Badge className="rounded-full border-border/60 bg-secondary/50 px-3 py-1 text-[11px] font-bold text-teal" variant="secondary">
+                                  {languageOptionLabel(team.language)}
+                                </Badge>
+                              ) : null}
                             </div>
 
                             <div className="mt-4">

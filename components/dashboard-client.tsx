@@ -490,8 +490,8 @@ function DashboardIdentityHeader({
 
 function DashboardQuickActions() {
   const actions = [
-    { href: "/create-team", label: "Create Team", icon: Plus },
-    { href: "/teams", label: "Browse Teams", icon: Compass },
+    { href: "/create-team", label: "Create a Squad", icon: Plus },
+    { href: "/teams", label: "Browse Squads", icon: Compass },
     { href: "/create-profile", label: "Post Availability", icon: Hand },
   ]
 
@@ -765,7 +765,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
       id: r.id,
       username,
       avatar_url: profile?.avatar_url ?? null,
-      teamName: r.teams?.team_name || "Unknown Team",
+      teamName: r.teams?.team_name || "Unknown squad",
       role: targetRole,
       motivation: r.message || "No motivation provided.",
       createdAt: r.created_at,
@@ -1063,7 +1063,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
             id: a.id,
             status: a.status,
             target_role: a.target_role ?? null,
-            teamName: t?.team_name || "Unknown team",
+            teamName: t?.team_name || "Unknown squad",
             discord_link: t?.discord_link ?? null,
           } satisfies SentApplicationOutboxItem
         }),
@@ -1381,7 +1381,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
     try {
       const result = await acceptTeamInvitation(invitation.id)
       if (!result.success) {
-        toast.error("Could not join the team.", { description: result.error })
+        toast.error("Could not join the squad.", { description: result.error })
         return
       }
 
@@ -1504,7 +1504,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
     <div className="flex min-h-screen flex-col bg-background">
       <Navbar />
       
-      <main className="flex-1 md:pt-16">
+      <main className="flex-1 lg:pt-16">
         {/* Hero section with identity + KPIs */}
         <section className="px-4 py-6 md:py-8 lg:px-6">
           <div className="mx-auto max-w-5xl space-y-4 md:space-y-6">
@@ -1523,7 +1523,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
               <div className="grid grid-cols-3 gap-1.5 md:gap-2">
                 <DashboardMiniKpi
                   icon={<Users2 className="size-3.5 text-teal" />}
-                  label="Teams"
+                  label="Squads"
                   value={teams.length}
                   helper={teams.length > 0 ? "active" : undefined}
                   toneClassName="border-teal/20 bg-teal/5"
@@ -1753,7 +1753,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
             <UserMinus className="size-5 text-success" />
           </div>
         }
-        title="Congratulations! You've joined the team."
+        title="Congratulations! You've joined the squad."
         description={
           (availabilityModalContext ? `You've joined ${availabilityModalContext}. ` : "") +
           'Would you like to remove your profile from the "Available Players" list to stop receiving requests?'

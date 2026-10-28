@@ -57,14 +57,14 @@ export function LandingCTA() {
               <Button
                 asChild
                 size="lg"
-                className="h-14 min-w-[220px] rounded-lg border-2 border-foreground bg-teal px-8 text-base font-extrabold text-white shadow-[4px_4px_0px_0px_var(--neo-shadow)] transition-all hover:-translate-y-0.5 hover:shadow-[5px_5px_0px_0px_var(--neo-shadow)] active:translate-y-0 active:shadow-[2px_2px_0px_0px_var(--neo-shadow)]"
+                className="h-14 min-w-[220px] rounded-lg border-2 border-foreground bg-teal px-8 text-base font-extrabold text-teal-foreground shadow-[4px_4px_0px_0px_var(--neo-shadow)] transition-all hover:-translate-y-0.5 hover:shadow-[5px_5px_0px_0px_var(--neo-shadow)] active:translate-y-0 active:shadow-[2px_2px_0px_0px_var(--neo-shadow)]"
               >
                 <Link
                   href="/teams"
                   onClick={() => track("Landing CTA Clicked", { cta: "browse_teams", placement: "bottom" })}
                 >
                   <Sparkles className="size-5" />
-                  Browse Teams
+                  Browse Squads
                 </Link>
               </Button>
               <Button
@@ -78,7 +78,7 @@ export function LandingCTA() {
                   onClick={() => track("Landing CTA Clicked", { cta: "post_team", placement: "bottom" })}
                 >
                   <PenLine className="size-5" />
-                  Post a Team
+                  Create a Squad
                 </Link>
               </Button>
             </div>

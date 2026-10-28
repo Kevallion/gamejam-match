@@ -221,9 +221,9 @@ export function DashboardMyTeams({
     <section>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-extrabold text-foreground">My Teams</h2>
+          <h2 className="text-xl font-extrabold text-foreground">My Squads</h2>
           <p className="mt-0.5 text-sm text-muted-foreground">
-            Teams you{"'"}ve created or joined
+            Squads you{"'"}ve created or joined
           </p>
         </div>
         <Button
@@ -233,7 +233,7 @@ export function DashboardMyTeams({
         >
           <Link href="/create-team">
             <Rocket className="size-3.5" />
-            New Team
+            Create a Squad
           </Link>
         </Button>
       </div>
@@ -250,7 +250,7 @@ export function DashboardMyTeams({
             size="sm"
             className="gap-2 rounded-xl border-primary/30 text-primary hover:bg-primary/10 hover:text-primary"
           >
-            <Link href="/create-team">Post your first team</Link>
+            <Link href="/create-team">Create a Squad</Link>
           </Button>
         </Card>
       ) : (
@@ -325,11 +325,11 @@ export function DashboardMyTeams({
                 <div className="flex items-center gap-3 text-xs text-muted-foreground">
                   <span className="inline-flex items-center gap-1">
                     <Cpu className="size-3 text-lavender" />
-                    {team.engine}
+                    {engineLabel(team.engine)}
                   </span>
                   <span className="inline-flex items-center gap-1">
                     <Globe className="size-3 text-teal" />
-                    {team.language}
+                    {spokenLanguageLabel(team.language)}
                   </span>
                 </div>
 

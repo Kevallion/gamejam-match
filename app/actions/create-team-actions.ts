@@ -138,7 +138,7 @@ export async function createTeam(input: CreateTeamInput): Promise<CreateTeamResu
   const { data, error } = await supabase.from("teams").insert([teamData]).select("id").single()
 
   if (error || !data?.id) {
-    return { success: false, error: error?.message ?? "Could not create the team." }
+    return { success: false, error: error?.message ?? "Could not create the squad." }
   }
 
   if (discordLinkValue) {
@@ -181,7 +181,7 @@ export type UpdateTeamJamListingResult =
   | { success: false; error: string }
 
 const MISSING_JAM_DATES_MSG =
-  "Please specify the Jam dates to keep your team visible."
+  "Please specify the Jam dates to keep your squad visible."
 
 /**
  * Owner-only update for manage page; requires jam window (legacy rows without dates must set them).
@@ -231,7 +231,7 @@ export async function updateTeamJamListing(
   }
 
   if (existing.user_id !== user.id) {
-    return { success: false, error: "Only the team owner can update this listing." }
+    return { success: false, error: "Only the squad owner can update this listing." }
   }
 
   const row = existing as {

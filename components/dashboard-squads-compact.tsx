@@ -147,9 +147,9 @@ export function DashboardSquadsCompact({
     return (
       <Card className="border-border/40 bg-card/70 shadow-sm backdrop-blur-sm">
         <CardContent className="flex flex-col items-center gap-3 p-6 text-center">
-          <p className="text-sm text-muted-foreground">No squads yet. Create one or join a team to get started.</p>
+          <p className="text-sm text-muted-foreground">No squads yet. Create one or join a squad to get started.</p>
           <Button asChild size="sm" className="h-8 cursor-pointer rounded-lg">
-            <Link href="/create-team">Create Team</Link>
+            <Link href="/create-team">Create a Squad</Link>
           </Button>
         </CardContent>
       </Card>

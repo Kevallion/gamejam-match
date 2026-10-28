@@ -246,7 +246,7 @@ export function JoinTeamModal({
       }
 
       if (ownerUserId && session.user.id === ownerUserId) {
-        setStatusMsg({ type: "error", text: "You cannot join your own team." })
+        setStatusMsg({ type: "error", text: "You cannot join your own squad." })
         setLoading(false)
         return
       }
@@ -268,7 +268,7 @@ export function JoinTeamModal({
       if (alreadyPending) {
         setStatusMsg({
           type: "error",
-          text: "You already have a pending application for this team.",
+          text: "You already have a pending application for this squad.",
         })
         setHasPendingApplication(true)
         setLoading(false)
@@ -305,7 +305,7 @@ export function JoinTeamModal({
         if (error.code === "23505") {
           setStatusMsg({
             type: "error",
-            text: "You already have a pending application for this team.",
+            text: "You already have a pending application for this squad.",
           })
           setHasPendingApplication(true)
           setLoading(false)
@@ -345,7 +345,7 @@ export function JoinTeamModal({
     } catch (err: unknown) {
       const isFkError = err && typeof err === "object" && "code" in err && (err as { code?: string }).code === "23503"
       const msg = isFkError
-        ? "This team may have been removed. Please refresh the page."
+        ? "This squad may have been removed. Please refresh the page."
         : (err instanceof Error ? err.message : (err as { message?: string }).message ?? "An error occurred. Please try again.")
       setStatusMsg({ type: "error", text: msg })
       toast.error("Could not send the application.", { description: msg })
@@ -394,7 +394,7 @@ export function JoinTeamModal({
               className="flex items-center gap-2.5 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3.5 py-2.5 text-sm font-medium text-amber-700 dark:text-amber-400"
             >
               <AlertCircle className="size-4 shrink-0" />
-              <p className="leading-snug">You cannot join your own team.</p>
+              <p className="leading-snug">You cannot join your own squad.</p>
             </div>
           )}
 
@@ -416,7 +416,7 @@ export function JoinTeamModal({
             </div>
 
             {availableRoles.length === 0 ? (
-              <p className="text-xs text-muted-foreground">This team hasn&apos;t listed any roles.</p>
+              <p className="text-xs text-muted-foreground">This squad hasn&apos;t listed any roles.</p>
             ) : (
               <div className="flex flex-wrap gap-2">
                 {availableRoles.map((role, idx) => {

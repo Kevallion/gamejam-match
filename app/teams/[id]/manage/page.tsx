@@ -180,7 +180,7 @@ export default function TeamManagePage() {
         .single()
 
       if (teamError || !teamData) {
-        toast.error("Team not found.")
+        toast.error("Squad not found.")
         router.push("/dashboard")
         return
       }
@@ -280,7 +280,7 @@ export default function TeamManagePage() {
       setDiscordInput(discordLink ?? "")
       setDiscordError(null)
     } catch (err) {
-      toast.error("Error loading team.", {
+      toast.error("Error loading squad.", {
         description: err instanceof Error ? err.message : "Please try again.",
       })
       router.push("/dashboard")
@@ -296,7 +296,7 @@ export default function TeamManagePage() {
   const handleRemoveMember = async (userId: string) => {
     if (
       !window.confirm(
-        "Are you sure you want to remove this member? They will lose access to the team."
+        "Are you sure you want to remove this member? They will lose access to the squad."
       )
     )
       return
@@ -351,7 +351,7 @@ export default function TeamManagePage() {
     if (
       !teamId ||
       !window.confirm(
-        "Claim one-time rewards for finishing a jam with this squad? You can only do this once per team listing.",
+        "Claim one-time rewards for finishing a jam with this squad? You can only do this once per squad listing.",
       )
     ) {
       return
@@ -380,8 +380,8 @@ export default function TeamManagePage() {
 
   const handleSendDiscordLink = async (userId: string) => {
     if (!team?.discord_link) {
-      toast.error("No Discord link configured for this team.", {
-        description: "You can set one on this Manage Team page.",
+      toast.error("No Discord link configured for this squad.", {
+        description: "You can set one on this Manage squad page.",
       })
       return
     }
@@ -436,12 +436,12 @@ export default function TeamManagePage() {
       if (namedLookingFor.length > 0 && cleanLookingFor.length < namedLookingFor.length) {
         const levelMessage = "Please select an experience level for each role you are looking for."
         setEditRolesError(levelMessage)
-        toast.error("Please complete team requirements.", { description: levelMessage })
+        toast.error("Please complete squad requirements.", { description: levelMessage })
         return
       }
       if (cleanLookingFor.length < 1) {
         setEditRolesError("Please select at least one role you are looking for.")
-        toast.error("Please complete team requirements.", {
+        toast.error("Please complete squad requirements.", {
           description: "At least one role is required.",
         })
         return
@@ -472,7 +472,7 @@ export default function TeamManagePage() {
 
       if (!editForm.jam_start_date || !editForm.jam_end_date) {
         toast.error("Jam dates required.", {
-          description: "Please specify the Jam dates to keep your team visible.",
+          description: "Please specify the Jam dates to keep your squad visible.",
         })
         return
       }
@@ -500,7 +500,7 @@ export default function TeamManagePage() {
       })
 
       if (!result.success) {
-        toast.error("Could not update team.", { description: result.error })
+        toast.error("Could not update the squad.", { description: result.error })
         return
       }
 
@@ -526,7 +526,7 @@ export default function TeamManagePage() {
           : null
       )
       setEditOpen(false)
-      toast.success("Team updated.", { description: "Your changes have been saved." })
+      toast.success("Squad updated.", { description: "Your changes have been saved." })
     } catch (err) {
       toast.error("An error occurred.", {
         description: err instanceof Error ? err.message : "Please try again.",
@@ -568,11 +568,11 @@ export default function TeamManagePage() {
     try {
       const { error } = await supabase.from("teams").delete().eq("id", teamId)
       if (error) {
-        toast.error("Could not delete the team.", { description: error.message })
+        toast.error("Could not delete the squad.", { description: error.message })
         return
       }
       setDeleteTeamDialogOpen(false)
-      toast.success("Team deleted.")
+      toast.success("Squad deleted.")
       router.push("/dashboard")
     } catch (err) {
       toast.error("An error occurred.", {
@@ -622,7 +622,7 @@ export default function TeamManagePage() {
       toast.success("Discord link updated.", {
         description: trimmed
           ? "Members can now join your squad's Discord."
-          : "Discord link removed from this team.",
+          : "Discord link removed from this squad.",
       })
     } catch (err) {
       toast.error("An error occurred.", {
@@ -656,7 +656,7 @@ export default function TeamManagePage() {
                 <ShieldAlert className="size-12 text-destructive" />
                 <h1 className="text-xl font-bold text-foreground">Access denied</h1>
                 <p className="text-muted-foreground">
-                  Only the team owner can manage this team.
+                  Only the squad owner can manage this squad.
                 </p>
                 <Button asChild variant="outline" className="gap-2 rounded-xl">
                   <Link href="/dashboard">
@@ -694,7 +694,7 @@ export default function TeamManagePage() {
             </Button>
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary">
               <Settings className="size-4" />
-              Team Management
+              Squad management
             </div>
             <h1 className="text-balance text-3xl font-extrabold tracking-tight text-foreground md:text-4xl">
               {team.team_name}
@@ -706,7 +706,7 @@ export default function TeamManagePage() {
         <section className="px-4 pb-16 pt-4 lg:px-6 lg:pb-24">
           <div className="mx-auto max-w-4xl space-y-8">
             <div className="flex flex-wrap items-center justify-between gap-4">
-              <h2 className="text-xl font-bold text-foreground">Edit Team Info</h2>
+              <h2 className="text-xl font-bold text-foreground">Edit squad</h2>
               <Dialog
                 open={editOpen}
                 onOpenChange={(open) => {
@@ -726,17 +726,17 @@ export default function TeamManagePage() {
                 <DialogTrigger asChild>
                   <Button className="gap-2 rounded-xl">
                     <Pencil className="size-4" />
-                    Edit Team Info
+                    Edit squad
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="flex h-[82dvh] w-[calc(100vw-1rem)] max-w-2xl flex-col rounded-2xl p-0 sm:w-full">
                   <DialogHeader>
-                    <DialogTitle className="px-4 pt-5 sm:px-6">Edit Team Info</DialogTitle>
+                    <DialogTitle className="px-4 pt-5 sm:px-6">Edit squad</DialogTitle>
                   </DialogHeader>
                   <form onSubmit={handleEditSubmit} className="flex min-h-0 flex-1 flex-col">
                     <div className="flex-1 space-y-4 overflow-y-auto px-4 pb-4 sm:px-6">
                     <div className="space-y-2">
-                      <Label htmlFor="team_name">Team / Project Name</Label>
+                      <Label htmlFor="team_name">Squad name</Label>
                       <Input
                         id="team_name"
                         value={editForm.team_name}
@@ -962,7 +962,7 @@ export default function TeamManagePage() {
                   Members ({team.members.length} accepted)
                 </h3>
                 <p className="text-sm text-muted-foreground">
-                  Jammers who have been accepted into your team. Removing a member frees their slot
+                  Jammers who have been accepted into your squad. Removing a member frees their slot
                   for new applicants.
                 </p>
               </CardHeader>
@@ -1055,7 +1055,7 @@ export default function TeamManagePage() {
                   </h3>
                   <p className="text-sm text-muted-foreground">
                     Finished a game jam with this squad? Claim a one-time XP bonus and the &quot;Jam Champion&quot;
-                    title. This can only be done once per team listing.
+                    title. This can only be done once per squad listing.
                   </p>
                 </CardHeader>
                 <CardContent>
@@ -1108,7 +1108,7 @@ export default function TeamManagePage() {
                   onClick={() => setDeleteTeamDialogOpen(true)}
                 >
                   <Trash2 className="size-3.5" />
-                  Delete team
+                  Delete squad
                 </Button>
               </CardContent>
             </Card>
@@ -1140,7 +1140,7 @@ export default function TeamManagePage() {
                       <p className="text-sm text-destructive">{discordError}</p>
                     )}
                     <p className="text-xs text-muted-foreground">
-                      Leave empty to remove the Discord link from this team.
+                      Leave empty to remove the Discord link from this squad.
                     </p>
                   </div>
                   <div className="flex gap-2">
@@ -1173,10 +1173,10 @@ export default function TeamManagePage() {
               <div className="flex size-10 items-center justify-center rounded-xl bg-destructive/15">
                 <Trash2 className="size-5 text-destructive" />
               </div>
-              <AlertDialogTitle className="text-left">Delete this team?</AlertDialogTitle>
+              <AlertDialogTitle className="text-left">Delete this squad?</AlertDialogTitle>
             </div>
             <AlertDialogDescription className="text-left">
-              This action cannot be undone. The team listing will be permanently removed.
+              This action cannot be undone. The squad listing will be permanently removed.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="flex-row gap-2 sm:justify-end">

@@ -64,7 +64,7 @@ export function InvitationRespondClient(props: {
     try {
       const result = await acceptTeamInvitation(props.requestId)
       if (!result.success) {
-        toast.error("Could not join the team.", { description: result.error })
+        toast.error("Could not join the squad.", { description: result.error })
         return
       }
       void markNotificationsReadForJoinRequest(props.requestId)
@@ -122,7 +122,7 @@ export function InvitationRespondClient(props: {
     return (
       <div className="flex min-h-screen flex-col bg-background">
         <Navbar />
-        <main className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center px-4 py-16 md:pt-24">
+        <main className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center px-4 py-16 lg:pt-24">
           <Card className="rounded-2xl border-border/50 bg-card">
             <CardContent className="space-y-4 p-8 text-center">
               <p className="text-lg font-bold text-foreground">This invitation is no longer pending.</p>
@@ -142,7 +142,7 @@ export function InvitationRespondClient(props: {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <Navbar />
-      <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-8 md:py-16 md:pt-24">
+      <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-8 lg:py-16 lg:pt-24">
         <div className="mb-6 space-y-2">
           <Badge variant="outline" className="rounded-full border-lavender/30 bg-lavender/10 text-lavender">
             Squad invitation
@@ -172,7 +172,7 @@ export function InvitationRespondClient(props: {
                   href={`/jammer/${props.captainUserId}`}
                   className="text-lg font-bold text-foreground hover:text-teal"
                 >
-                  {props.captainUsername ?? "Team captain"}
+                  {props.captainUsername ?? "Squad captain"}
                 </Link>
               </div>
               <Button variant="outline" size="sm" className="rounded-xl border-border/60" asChild>
@@ -228,7 +228,7 @@ export function InvitationRespondClient(props: {
             ) : null}
             {props.team.team_vibe?.trim() ? (
               <div>
-                <p className="mb-1 text-xs font-semibold uppercase text-muted-foreground">Team vibe</p>
+                <p className="mb-1 text-xs font-semibold uppercase text-muted-foreground">Squad vibe</p>
                 <p className="text-sm text-foreground">{props.team.team_vibe.trim()}</p>
               </div>
             ) : null}

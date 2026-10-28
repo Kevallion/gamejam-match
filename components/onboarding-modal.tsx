@@ -62,7 +62,7 @@ const TOTAL_STEPS = 3
 const CHOICE_OPTIONS = [
   {
     id: "looking-for-team",
-    title: "I am looking for a team",
+    title: "I am looking for a squad",
     description: "Find an existing squad and join a project that matches your skills.",
     href: "/",
     icon: Search,
@@ -76,7 +76,7 @@ const CHOICE_OPTIONS = [
   },
   {
     id: "create-team",
-    title: "I want to create a team",
+    title: "I want to create a squad",
     description: "Start a new squad and recruit the right people around your idea.",
     href: "/create-team",
     icon: Flag,

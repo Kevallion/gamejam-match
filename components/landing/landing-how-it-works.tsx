@@ -19,9 +19,9 @@ const steps = [
   {
     number: "02",
     icon: Search,
-    title: "Find Your Team",
+    title: "Find Your Squad",
     description:
-      "Browse teams looking for members or post your own squad. Use filters to find the perfect match for your playstyle.",
+      "Browse squads looking for members or post your own. Use filters to find the perfect match for your playstyle.",
     accent: "border-lavender",
     iconBg: "bg-lavender/10 border-lavender/30",
     iconColor: "text-lavender",

@@ -196,7 +196,7 @@ export default async function JammerPublicProfilePage({ params }: PageProps) {
     <div className="flex min-h-screen flex-col">
       <Navbar />
       <main className="flex-1">
-        <section className="relative overflow-hidden border-b border-border/40 bg-card/30 px-3 py-8 sm:px-4 sm:py-10 lg:px-6 lg:py-14">
+        <section className="relative overflow-hidden border-b border-border/40 bg-card/30 px-3 pb-8 pt-8 sm:px-4 sm:pb-10 sm:pt-10 lg:px-6 lg:pb-14 lg:pt-28">
           <div className="pointer-events-none absolute inset-0 opacity-40" aria-hidden>
             <div className="absolute left-1/4 top-0 size-[420px] -translate-y-1/2 rounded-full bg-teal/15 blur-[100px]" />
             <div className="absolute bottom-0 right-1/4 size-[380px] translate-y-1/3 rounded-full bg-lavender/15 blur-[90px]" />
@@ -234,7 +234,7 @@ export default async function JammerPublicProfilePage({ params }: PageProps) {
                   subtitle={
                     isVerifiedJammer
                       ? `Verified jammer with ${completedJamsCount} completed jam${completedJamsCount > 1 ? "s" : ""}.`
-                      : "Level, title, and badges that showcase this jammer to recruiters."
+                      : null
                   }
                   className="w-full justify-start"
                 />

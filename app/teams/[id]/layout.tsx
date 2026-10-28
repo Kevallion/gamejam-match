@@ -15,7 +15,7 @@ export async function generateMetadata({
     .single()
 
   if (!team) {
-    return { title: "Team Not Found | GameJamCrew" }
+    return { title: "Squad Not Found | GameJamCrew" }
   }
 
   const title = `${team.team_name} is recruiting! | GameJamCrew`

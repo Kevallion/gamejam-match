@@ -19,7 +19,7 @@ import { Loader2, ArrowLeft, ShieldAlert, Users, Cpu, Globe, Info } from "lucide
 import { toast } from "sonner"
 import { UserAvatar } from "@/components/user-avatar"
 import { Badge } from "@/components/ui/badge"
-import { ROLE_STYLES } from "@/lib/constants"
+import { ROLE_STYLES, engineOptionLabel, languageOptionLabel } from "@/lib/constants"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 
 type SquadViewData = {
@@ -275,7 +275,7 @@ export default function TeamPage() {
     return (
       <div className="flex min-h-screen flex-col bg-background">
         <Navbar />
-        <main className="flex-1 px-4 py-16 lg:px-6">
+        <main className="flex-1 px-4 py-16 lg:px-6 lg:pt-28">
           <div className="mx-auto max-w-2xl">
             <Card className="rounded-2xl border-border/60 bg-card">
               <CardContent className="flex flex-col items-center gap-4 p-8 text-center">
@@ -284,12 +284,12 @@ export default function TeamPage() {
                   This announcement is no longer available
                 </h1>
                 <p className="text-muted-foreground">
-                  The team may have been removed or the listing has expired.
+                  The squad may have been removed or the listing has expired.
                 </p>
                 <Button asChild variant="outline" className="gap-2 rounded-xl">
-                  <Link href="/dashboard">
+                  <Link href="/teams">
                     <ArrowLeft className="size-4" />
-                    Back to Dashboard
+                    All squads
                   </Link>
                 </Button>
               </CardContent>
@@ -364,7 +364,7 @@ export default function TeamPage() {
                     Your squad profile is incomplete. Add a description and Discord link to attract more jammers!
                     <div className="mt-2">
                       <Button asChild size="sm" className="rounded-lg">
-                        <Link href={`/teams/${squad.id}/manage`}>Setup Team</Link>
+                        <Link href={`/teams/${squad.id}/manage`}>Set up squad</Link>
                       </Button>
                     </div>
                   </AlertDescription>
@@ -385,11 +385,11 @@ export default function TeamPage() {
                       <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                         <span className="inline-flex items-center gap-1.5">
                           <Cpu className="size-3.5 text-lavender" />
-                          {squad.engine}
+                          {engineOptionLabel(squad.engine)}
                         </span>
                         <span className="inline-flex items-center gap-1.5">
                           <Globe className="size-3.5 text-teal" />
-                          {squad.language}
+                          {languageOptionLabel(squad.language)}
                         </span>
                         {squad.discord_link && (
                           <Button

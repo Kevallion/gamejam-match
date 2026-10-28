@@ -73,7 +73,7 @@ export function DashboardIncomingApplications({
               Incoming Applications
             </h2>
             <p className="mt-0.5 text-sm text-muted-foreground">
-              Players who want to join your teams
+              Players who want to join your squads
             </p>
           </div>
         </div>
@@ -96,7 +96,7 @@ export function DashboardIncomingApplications({
               No pending applications
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Share your teams to attract jammers!
+              Share your squads to attract jammers!
             </p>
           </div>
         </Card>

@@ -26,6 +26,7 @@ import { cn } from "@/lib/utils"
 import { UserAvatar } from "@/components/user-avatar"
 
 import { JoinTeamModal } from "@/components/join-team-modal"
+import { engineOptionLabel, languageOptionLabel } from "@/lib/constants"
 import { getJamListingStatus } from "@/lib/jam-calendar-status"
 
 type RoleBadge = {
@@ -127,13 +128,15 @@ export function TeamCard({
     availableRoles.length > 0 && availableRoles.every((r) => r.filled)
 
   const remainingSpots = team.maxMembers - team.members
+  const engineLabel = engineOptionLabel(team.engine)
+  const languageLabel = languageOptionLabel(team.language)
   const openRoles = availableRoles.filter((r) => !r.filled)
   const openRolesForCard = openRoles.slice(0, 4)
   const openRolesOverflow = openRoles.length > 4 ? openRoles.length - 4 : 0
 
   const jamPendingTitle =
     jamStatus?.phase === "dates_pending"
-      ? "Jam dates match listing creation — update them in Manage team for an accurate status."
+      ? "Jam dates match listing creation — update them in Manage squad for an accurate status."
       : undefined
 
   async function handleShare(e: React.MouseEvent) {
@@ -206,12 +209,12 @@ export function TeamCard({
               >
                 <UserAvatar
                   src={team.ownerAvatarUrl ?? null}
-                  fallbackName={team.ownerUsername || "Team owner"}
+                  fallbackName={team.ownerUsername || "Squad owner"}
                   size="sm"
                 />
                 <div className="min-w-0 text-left">
                   <p className="truncate text-xs font-semibold text-foreground">
-                    {team.ownerUsername || "Team owner"}
+                    {team.ownerUsername || "Squad owner"}
                   </p>
                   <p className="truncate text-[10px] text-muted-foreground">
                     View profile
@@ -244,14 +247,14 @@ export function TeamCard({
               className="inline-flex items-center gap-1.5 rounded-full border-border/60 bg-lavender/20 px-3 py-1 text-xs font-semibold text-lavender-foreground"
             >
               <Cpu className="size-3.5" />
-              {team.engine}
+              {engineLabel}
             </Badge>
             <Badge
               variant="outline"
               className="inline-flex items-center gap-1.5 rounded-full border-border/60 bg-teal/10 px-3 py-1 text-xs font-semibold text-teal"
             >
               <Globe className="size-3.5" />
-              {team.language}
+              {languageLabel}
             </Badge>
             <span
               className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold ${team.level.color}`}
@@ -376,7 +379,7 @@ export function TeamCard({
               size="icon"
               className="size-8 rounded-full text-muted-foreground hover:text-foreground"
               onClick={handleShare}
-              aria-label="Share team"
+              aria-label="Share squad"
             >
               <Share2 className="size-3.5" />
             </Button>
@@ -433,11 +436,11 @@ export function TeamCard({
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <span className="inline-flex items-center gap-1">
               <Cpu className="size-3.5 text-lavender" aria-hidden />
-              {team.engine}
+              {engineLabel}
             </span>
             <span className="inline-flex items-center gap-1">
               <Globe className="size-3.5 text-teal" aria-hidden />
-              {team.language}
+              {languageLabel}
             </span>
           </div>
 

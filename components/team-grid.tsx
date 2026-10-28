@@ -71,7 +71,7 @@ async function attachOwnerProfiles(teams: TeamWithMeta[]): Promise<TeamWithMeta[
     return {
       ...team,
       ownerProfileExists: ownerUsername.length > 0,
-      ownerUsername: ownerUsername || "Team owner",
+      ownerUsername: ownerUsername || "Squad owner",
       ownerAvatarUrl: owner?.avatar_url ?? null,
     }
   })
@@ -94,7 +94,7 @@ function formatTeam(t: TeamRowDb): TeamWithMeta {
   return {
     id: t.id,
     user_id: t.user_id,
-    name: t.team_name || "Unknown Team",
+    name: t.team_name || "Unknown squad",
     jam: t.game_name || "",
     engine: t.engine || "",
     language: t.language || "",
@@ -211,7 +211,7 @@ export function TeamGrid({
       setTeams([])
       setHasMore(false)
       offsetRef.current = 0
-      toast.error("Error loading teams.", { description: error.message })
+      toast.error("Error loading squads.", { description: error.message })
     }
   }, [])
 
@@ -316,7 +316,7 @@ export function TeamGrid({
   }, [displayedTeams.length, onResultsCountChange])
 
   if (!teams.length && hasMore)
-    return <div className="text-center py-20 text-muted-foreground">Loading teams...</div>
+    return <div className="text-center py-20 text-muted-foreground">Loading squads...</div>
 
   return (
     <section className="px-4 pb-16 pt-4 lg:px-6 lg:pb-24">
@@ -325,13 +325,13 @@ export function TeamGrid({
           <p className="text-sm text-muted-foreground">
             Showing{" "}
             <span className="font-semibold text-foreground">{displayedTeams.length}</span>{" "}
-            teams
+            squads
           </p>
         </div>
 
         {displayedTeams.length === 0 ? (
           <div className="text-center py-10 bg-card/50 rounded-3xl border border-dashed border-border">
-            No teams found matching these filters. 😢
+            No squads found matching these filters. 😢
           </div>
         ) : (
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -357,7 +357,7 @@ export function TeamGrid({
                   Loading...
                 </>
               ) : (
-                "Load more teams"
+                "Load more squads"
               )}
             </Button>
           </div>

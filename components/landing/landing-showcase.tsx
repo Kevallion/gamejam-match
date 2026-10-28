@@ -24,7 +24,7 @@ export function LandingShowcase() {
             Your Command Center
           </div>
           <h2 className="text-balance text-3xl font-extrabold tracking-tight text-foreground md:text-4xl lg:text-5xl">
-            Manage your teams{" "}
+            Manage your squads{" "}
             <span className="text-teal">in one place.</span>
           </h2>
           <p className="mx-auto mt-4 max-w-lg text-pretty text-lg leading-relaxed text-muted-foreground">
@@ -73,7 +73,7 @@ export function LandingShowcase() {
                 </div>
                 <div>
                   <p className="font-extrabold text-foreground text-sm">+50 XP Earned!</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">Your team just joined a new jam.</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">Your squad just joined a new jam.</p>
                 </div>
               </div>
             </div>

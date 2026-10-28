@@ -137,9 +137,9 @@ export default function LegalPage() {
               </h2>
               <p className="leading-relaxed text-muted-foreground">
                 GameJamCrew is a <strong className="text-foreground">free community platform</strong> dedicated
-                to Game Jams. It helps jammers publish team listings, discover
+                to Game Jams. It helps jammers publish squad listings, discover
                 other players, send applications and invitations, exchange messages
-                in team chat, receive in-app or email notifications, and optionally
+                in squad chat, receive in-app or email notifications, and optionally
                 enable browser push alerts. The product may display jam information
                 sourced from public pages on third-party sites (such as Itch.io)
                 when users import a jam link. Gamification elements (for example
@@ -148,7 +148,7 @@ export default function LegalPage() {
               </p>
               <p className="mt-4 leading-relaxed text-muted-foreground">
                 The service is provided &quot;as is&quot; without warranty. The publisher
-                does not guarantee that you will find a team or a collaborator.
+                does not guarantee that you will find a squad or a collaborator.
                 Interactions, agreements, and projects you enter into with other
                 users are solely between you and them. Use of the platform implies
                 acceptance of these notices and our{" "}
@@ -169,7 +169,7 @@ export default function LegalPage() {
               <p className="leading-relaxed text-muted-foreground">
                 You agree not to misuse the platform: no harassment, hate speech,
                 illegal content, spam, impersonation, or attempts to compromise
-                security or other users&apos; accounts. Team owners and the publisher
+                security or other users&apos; accounts. Squad owners and the publisher
                 may remove or restrict content or access that violates these rules
                 or disrupts the service, without prejudice to other remedies.
               </p>
@@ -183,7 +183,7 @@ export default function LegalPage() {
                 The content and structure of the site are protected by
                 intellectual property law. The GameJamCrew brand and logo are
                 used for the purposes of this project. User-generated content
-                (profiles, team listings, availability posts, application or
+                (profiles, squad listings, availability posts, application or
                 invitation messages, chat messages, and similar contributions)
                 remains the responsibility of each user. You warrant that you
                 have the rights to any material you upload or post.

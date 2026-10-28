@@ -41,7 +41,7 @@ export const BADGE_DICTIONARY: Record<string, BadgeCatalogMeta> = {
   team_player: {
     emoji: "🤝",
     label: "Team Player",
-    blurb: "Joined a team on GameJamCrew.",
+    blurb: "Joined a squad on GameJamCrew.",
     unlocked:
       "border-teal/50 bg-gradient-to-br from-teal/25 via-teal/10 to-cyan-500/5 shadow-[0_0_20px_-4px_rgba(45,212,191,0.3)]",
     locked: "border-border/40 bg-muted/20 opacity-45 grayscale",

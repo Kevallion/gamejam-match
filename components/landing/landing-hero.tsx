@@ -51,6 +51,9 @@ const roleCards = [
 // ────────────────────────────────────────────────────────────
 const DOT_PATTERN = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Ccircle cx='2' cy='2' r='1.2' fill='%2394a3b8' fill-opacity='0.35'/%3E%3C/svg%3E")`
 
+/** Hide "N squads completed" until the number is real social proof. */
+const MIN_COMPLETED_SQUADS_TO_SHOW = 10
+
 function startsInLabel(startsAtIso: string): string {
   const now = Date.now()
   const target = new Date(startsAtIso).getTime()
@@ -90,14 +93,14 @@ export function LandingHero({
 
             {/* Headline */}
             <h1 className="text-balance text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl md:text-6xl">
-              Find your Game Jam team in{" "}
+              Find your Game Jam squad in{" "}
               <span className="text-teal">3 clicks.</span>
             </h1>
 
             {/* Subheadline */}
             <p className="mx-auto mt-5 max-w-2xl text-pretty text-lg leading-relaxed text-muted-foreground lg:mx-0">
               No more digging through scattered Discord servers or forums. GameJamCrew
-              helps developers, artists, and audio creators find their perfect team.
+              helps developers, artists, and audio creators find their perfect squad.
               Whether you&apos;re a beginner gaining XP or a veteran building a portfolio,
               stop jamming alone and join our cozy community of passionate creators.
             </p>
@@ -107,14 +110,14 @@ export function LandingHero({
               <Button
                 asChild
                 size="lg"
-                className="h-14 min-w-[220px] rounded-lg border-2 border-foreground bg-teal px-8 text-base font-extrabold text-white shadow-[4px_4px_0px_0px_var(--neo-shadow)] transition-all hover:-translate-y-0.5 hover:shadow-[5px_5px_0px_0px_var(--neo-shadow)] active:translate-y-0 active:shadow-[2px_2px_0px_0px_var(--neo-shadow)]"
+                className="h-14 min-w-[220px] rounded-lg border-2 border-foreground bg-teal px-8 text-base font-extrabold text-teal-foreground shadow-[4px_4px_0px_0px_var(--neo-shadow)] transition-all hover:-translate-y-0.5 hover:shadow-[5px_5px_0px_0px_var(--neo-shadow)] active:translate-y-0 active:shadow-[2px_2px_0px_0px_var(--neo-shadow)]"
               >
                 <Link
                   href="/teams"
                   onClick={() => track("Landing CTA Clicked", { cta: "browse_teams", placement: "hero" })}
                 >
                   <Sparkles className="size-5" />
-                  Browse Teams
+                  Browse Squads
                 </Link>
               </Button>
               <Button
@@ -126,7 +129,7 @@ export function LandingHero({
                   onClick={() => track("Landing CTA Clicked", { cta: "post_team", placement: "hero" })}
                 >
                   <PenLine className="size-5" />
-                  Post a Team
+                  Create a Squad
                 </Link>
               </Button>
             </div>
@@ -206,11 +209,15 @@ export function LandingHero({
                 <Gamepad2 className="size-4 text-teal" />
                 <span>{socialProofStats.activeTeams} active squads</span>
               </div>
-              <div className="hidden h-4 w-px bg-border sm:block" />
-              <div className="flex items-center gap-2">
-                <Code2 className="size-4 text-lavender" />
-                <span>{socialProofStats.completedTeams} squads completed</span>
-              </div>
+              {socialProofStats.completedTeams >= MIN_COMPLETED_SQUADS_TO_SHOW ? (
+                <>
+                  <div className="hidden h-4 w-px bg-border sm:block" />
+                  <div className="flex items-center gap-2">
+                    <Code2 className="size-4 text-lavender" />
+                    <span>{socialProofStats.completedTeams} squads completed</span>
+                  </div>
+                </>
+              ) : null}
             </div>
           </div>
 

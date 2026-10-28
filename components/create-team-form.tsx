@@ -25,10 +25,8 @@ import { Plus, X, Rocket, Sparkles, Loader2, AlertCircle } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { SignInButton } from "@/components/sign-in-button"
 import { toast } from "sonner"
-import { useToast as useShadcnToast } from "@/hooks/use-toast"
-import { ToastAction } from "@/components/ui/toast"
 import { track } from "@vercel/analytics"
-import { ENGINE_OPTIONS, EXPERIENCE_OPTIONS, JAM_STYLE_OPTIONS, ROLE_OPTIONS } from "@/lib/constants"
+import { ENGINE_OPTIONS, EXPERIENCE_OPTIONS, JAM_STYLE_OPTIONS, ROLE_OPTIONS, engineOptionLabel, languageOptionLabel } from "@/lib/constants"
 import { JamSearchSelector } from "@/components/jam-search-selector"
 import { createTeam } from "@/app/actions/create-team-actions"
 import { sendTeamInvitation } from "@/app/actions/invite-actions"
@@ -84,7 +82,6 @@ function nextRoleId() {
 
 export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTeamFormProps) {
   const router = useRouter()
-  const { toast: shadcnToast } = useShadcnToast()
   const searchParams = useSearchParams()
   const totalSteps = 3
   const [step, setStep] = useState(1)
@@ -243,7 +240,7 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
     if (currentStep === 1) {
       if (!teamName.trim() || !jamName.trim()) {
         toast.error("Please complete the required basics.", {
-          description: "Team / Project Name and Game Jam Name are required.",
+          description: "Squad name and Game Jam Name are required.",
         })
         return false
       }
@@ -280,7 +277,7 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
       }
 
       if (!valid) {
-        toast.error("Please complete the team setup.", {
+        toast.error("Please complete the squad setup.", {
           description: roleError ?? "Engine, language and at least one role are required.",
           duration: 8000,
         })
@@ -365,7 +362,7 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
     if (roleError) {
       setLoading(false)
       setRolesError(roleError)
-      toast.error("Please complete the team setup.", { description: roleError, duration: 8000 })
+      toast.error("Please complete the squad setup.", { description: roleError, duration: 8000 })
       return
     }
 
@@ -407,7 +404,7 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
         jamEndDate: dateInputToUtcEnd(jamYmd.end),
       })
       if (!result.success) {
-        toast.error("Could not create the team.", { description: result.error, duration: 12000 })
+        toast.error("Could not create the squad.", { description: result.error, duration: 12000 })
       } else {
         if (result.teamId && inviteContext?.inviteeId && inviteContext?.inviteeUsername) {
           const preferredRole =
@@ -424,17 +421,12 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
             if (!inviteResult.success) {
               toast.error("Squad created, but invitation failed.", { description: inviteResult.error })
             } else {
-              shadcnToast({
-                title: "Squad created & invitation sent! 🎯",
-                description: "Don't forget to add a description and Discord link to your team.",
-                action: (
-                  <ToastAction
-                    altText="Open manage squad"
-                    onClick={() => router.push(`/teams/${result.teamId}/manage`)}
-                  >
-                    Setup Team
-                  </ToastAction>
-                ),
+              toast.success("Squad created & invitation sent", {
+                description: "Don't forget to add a description and Discord link to your squad.",
+                action: {
+                  label: "Set up squad",
+                  onClick: () => router.push(`/teams/${result.teamId}/manage`),
+                },
               })
             }
           }
@@ -484,7 +476,7 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
         <Card className="mb-8 rounded-3xl border-destructive/50 bg-destructive/10">
           <CardContent className="p-6 text-center">
             <h3 className="mb-2 text-lg font-bold text-destructive">You must be signed in!</h3>
-            <p className="mb-4 text-muted-foreground">Please sign in to post a team.</p>
+            <p className="mb-4 text-muted-foreground">Please sign in to create a squad.</p>
             <SignInButton />
           </CardContent>
         </Card>
@@ -500,7 +492,7 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
                   <span>Step {step} of {totalSteps}</span>
                   <span>
                     {step === 1 && "Basics"}
-                    {step === 2 && "Team Setup"}
+                    {step === 2 && "Squad setup"}
                     {step === 3 && (isEmbeddedInvite ? "Invite Message" : "Final Details")}
                   </span>
                 </div>
@@ -516,7 +508,7 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
                     {/* Team / Project Name */}
                     <div className="flex flex-col gap-2.5">
                       <Label htmlFor="teamName" className="text-sm font-bold text-foreground">
-                        Team / Project Name
+                        Squad name
                       </Label>
                       <Input
                         id="teamName"
@@ -617,7 +609,7 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
                           <Label className="text-sm font-bold text-foreground">Jam Style</Label>
                           <Select value={teamVibe} onValueChange={setTeamVibe}>
                             <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-secondary/50">
-                              <SelectValue placeholder="What vibe is your team?" />
+                              <SelectValue placeholder="What vibe is your squad?" />
                             </SelectTrigger>
                             <SelectContent className="rounded-xl">
                               {JAM_STYLE_OPTIONS.map((opt) => (
@@ -633,7 +625,7 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
                             </SelectContent>
                           </Select>
                           <p className="text-xs text-muted-foreground">
-                            Attracts jammers who match your team&apos;s energy.
+                            Attracts jammers who match your squad&apos;s energy.
                           </p>
                         </div>
 
@@ -811,7 +803,7 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
                       <p className="mb-2 font-semibold text-foreground">Quick preview before publishing</p>
                       <ul className="space-y-1.5">
                         <li>
-                          <span className="font-medium text-foreground">Team:</span>{" "}
+                          <span className="font-medium text-foreground">Squad:</span>{" "}
                           {teamName || <span className="italic text-muted-foreground">Not set</span>}
                         </li>
                         <li>
@@ -821,7 +813,7 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
                         <li>
                           <span className="font-medium text-foreground">Engine / Language:</span>{" "}
                           {engine || language
-                            ? `${engine || "Any"} • ${language || "Any"}`
+                            ? `${engineOptionLabel(engine) || "Any"} • ${languageOptionLabel(language) || "Any"}`
                             : <span className="italic text-muted-foreground">Not set</span>}
                         </li>
                         <li>
@@ -877,8 +869,8 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
                 <div className="sticky bottom-0 z-40 -mx-6 border-t border-border/60 bg-background/95 px-4 py-3 backdrop-blur supports-[padding:max(0px)]:pb-[max(0.75rem,env(safe-area-inset-bottom))] md:mx-0 md:mt-4 md:border-none md:bg-transparent md:px-0 md:py-0">
                   <div className="mx-auto flex w-full max-w-3xl items-center justify-between gap-3 md:px-0">
                     <div className="hidden text-xs text-muted-foreground md:block">
-                      {step === 1 && "Basics — team name & jam."}
-                      {step === 2 && "Team setup — engine, language & roles."}
+                      {step === 1 && "Basics — squad name & jam."}
+                      {step === 2 && "Squad setup — engine, language & roles."}
                       {step === 3 &&
                         (isEmbeddedInvite
                           ? "Final step — write your invitation message."

@@ -103,7 +103,7 @@ export function MockDashboard() {
               <Users2 className="size-3.5 text-teal" />
             </div>
             <div>
-              <p className="text-[8px] font-medium text-muted-foreground">Teams</p>
+              <p className="text-[8px] font-medium text-muted-foreground">Squads</p>
               <p className="text-sm font-bold tabular-nums">2</p>
             </div>
           </div>
@@ -170,7 +170,7 @@ export function MockDashboard() {
             </div>
             <div>
               <h2 className="text-xs font-bold text-foreground">Incoming Applications</h2>
-              <p className="text-[9px] text-muted-foreground">Players who want to join your teams</p>
+              <p className="text-[9px] text-muted-foreground">Players who want to join your squads</p>
             </div>
             <span className="ml-auto rounded-full bg-mint px-2 py-0.5 text-[9px] font-bold text-mint-foreground">
               1 pending
@@ -259,7 +259,7 @@ export function MockDashboard() {
             </div>
             <div>
               <h2 className="text-xs font-bold text-foreground">My Sent Applications</h2>
-              <p className="text-[9px] text-muted-foreground">Track your applications to join a team</p>
+              <p className="text-[9px] text-muted-foreground">Track your applications to join a squad</p>
             </div>
           </div>
 

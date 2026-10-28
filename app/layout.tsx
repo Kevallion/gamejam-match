@@ -22,22 +22,22 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
     template: '%s | GameJamCrew',
-    default: 'GameJamCrew | Find your perfect Game Jam Team',
+    default: 'GameJamCrew | Find your perfect Game Jam Squad',
   },
   description:
-    'Looking for a game jam team? GameJamCrew helps you find the perfect teammates, filter by experience, and build your dream squad for your next game jam.',
+    'Looking for a game jam squad? GameJamCrew helps you find the perfect teammates, filter by experience, and build your dream squad for your next game jam.',
   keywords: ['game jam team', 'find team for game jam', 'game jam recruitment', 'gamedev team builder', 'indie game team'],
   openGraph: {
     type: 'website',
     siteName: 'GameJamCrew',
-    title: 'GameJamCrew | Find your perfect Game Jam Team',
-    description: 'Looking for a game jam team? GameJamCrew helps you find the perfect teammates, filter by experience, and build your dream squad for your next game jam.',
+    title: 'GameJamCrew | Find your perfect Game Jam Squad',
+    description: 'Looking for a game jam squad? GameJamCrew helps you find the perfect teammates, filter by experience, and build your dream squad for your next game jam.',
     images: ['/og-image.png'],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'GameJamCrew | Find your perfect Game Jam Team',
-    description: 'Looking for a game jam team? GameJamCrew helps you find the perfect teammates, filter by experience, and build your dream squad for your next game jam.',
+    title: 'GameJamCrew | Find your perfect Game Jam Squad',
+    description: 'Looking for a game jam squad? GameJamCrew helps you find the perfect teammates, filter by experience, and build your dream squad for your next game jam.',
     images: ['/og-image.png'],
   },
   generator: 'v0.app',

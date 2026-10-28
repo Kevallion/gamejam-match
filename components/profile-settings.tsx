@@ -519,7 +519,7 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
           </div>
           <div>
             <h2 className="text-base font-medium text-foreground">Notifications</h2>
-            <p className="text-sm text-muted-foreground">Get notified about team applications and invites</p>
+            <p className="text-sm text-muted-foreground">Get notified about squad applications and invites</p>
           </div>
         </div>
 

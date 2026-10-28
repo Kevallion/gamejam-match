@@ -10,7 +10,7 @@ const features = [
     number: "01",
     title: "Assemble your Party.",
     description:
-      "Find the missing piece for your game. Filter by engine, role, and language to build the perfect crew before the jam clock starts.",
+      "Find the missing piece for your game. Filter by engine, role, and language to build the perfect squad before the jam clock starts.",
     tags: ["By Engine", "By Role", "By Language"],
     accent: "border-teal",
     iconBg: "bg-teal/10 border-teal/30",
@@ -23,8 +23,8 @@ const features = [
     number: "02",
     title: "The Squad Hideout.",
     description:
-      "A private space for your team to share ideas, post assets, and stay organized from kickoff to submission, whether the jam is 3 days or a whole month.",
-    tags: ["Asset Sharing", "Team Chat", "Progress Board"],
+      "A private space for your squad to share ideas, post assets, and stay organized from kickoff to submission, whether the jam is 3 days or a whole month.",
+    tags: ["Asset Sharing", "Squad Chat", "Progress Board"],
     accent: "border-lavender",
     iconBg: "bg-lavender/10 border-lavender/30",
     iconColor: "text-lavender",
@@ -65,7 +65,7 @@ export function LandingFeatures() {
             <span className="text-teal">finished game.</span>
           </h2>
           <p className="mx-auto mt-4 max-w-lg text-pretty text-lg leading-relaxed text-muted-foreground">
-            Everything your team needs, from the party board to the victory screen.
+            Everything your squad needs, from the party board to the victory screen.
           </p>
         </div>
 

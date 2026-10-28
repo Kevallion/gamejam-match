@@ -102,7 +102,7 @@ export function MembersGrid({
             }))
             return {
               id: t.id,
-              team_name: t.team_name ?? "Untitled team",
+              team_name: t.team_name ?? "Untitled squad",
               game_name: t.game_name ?? undefined,
               needed_roles,
               memberIds: memberIdsByTeam.get(t.id) ?? [],

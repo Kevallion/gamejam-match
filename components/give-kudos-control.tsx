@@ -51,7 +51,7 @@ export function GiveKudosControl({
     return (
       <p className="w-full max-w-md text-center text-sm text-muted-foreground/90 sm:w-auto sm:text-left">
         Collaborate with{" "}
-        <span className="font-medium text-foreground/80">{profileDisplayName}</span> in a team to leave
+        <span className="font-medium text-foreground/80">{profileDisplayName}</span> in a squad to leave
         a Kudos.
       </p>
     )
