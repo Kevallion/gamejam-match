@@ -87,6 +87,17 @@
   --peach-foreground: oklch(0.22 0.04 60);
   --mint: oklch(0.78 0.08 160);
   --mint-foreground: oklch(0.20 0.04 160);
+
+  /* One hue per role — bright enough to read on the dark background */
+  --role-developer: oklch(0.78 0.11 185);
+  --role-artist-2d: oklch(0.78 0.11 340);
+  --role-artist-3d: oklch(0.82 0.10 65);
+  --role-audio: oklch(0.76 0.10 290);
+  --role-voice: oklch(0.74 0.13 305);
+  --role-writer: oklch(0.78 0.11 12);
+  --role-design: oklch(0.82 0.12 85);
+  --role-ux: oklch(0.80 0.09 160);
+  --role-qa: oklch(0.78 0.09 230);
 }
 
 /* Light mode - off-white game design document aesthetic */
@@ -154,6 +165,17 @@
   --peach-foreground: oklch(0.22 0.04 65);
   --mint: oklch(0.72 0.10 160);
   --mint-foreground: oklch(0.20 0.04 160);
+
+  /* Darker role hues so icon labels clear WCAG AA on the light background */
+  --role-developer: oklch(0.42 0.08 185);
+  --role-artist-2d: oklch(0.46 0.12 340);
+  --role-artist-3d: oklch(0.46 0.10 55);
+  --role-audio: oklch(0.44 0.10 290);
+  --role-voice: oklch(0.42 0.13 305);
+  --role-writer: oklch(0.46 0.12 12);
+  --role-design: oklch(0.45 0.11 75);
+  --role-ux: oklch(0.40 0.08 160);
+  --role-qa: oklch(0.42 0.09 230);
 
   /* Neo-brutalist shadow color */
   --neo-shadow: oklch(0.18 0.02 220);

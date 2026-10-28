@@ -238,6 +238,7 @@ export default async function JammerPublicProfilePage({ params }: PageProps) {
                   }
                   className="w-full justify-start"
                 />
+                <ProfileGamification userId={userId} badgesOnly unlockedOnly compact className="pt-3" />
                 <div className="flex flex-col gap-3 pt-4 sm:flex-row sm:flex-wrap sm:items-center">
                   {publicPortfolioUrl ? (
                     <Button asChild variant="outline" className="w-full gap-2 rounded-xl sm:w-auto">
@@ -309,7 +310,6 @@ export default async function JammerPublicProfilePage({ params }: PageProps) {
                 </div>
               )}
             </div>
-            <ProfileGamification userId={userId} badgesOnly unlockedOnly />
           </div>
         </section>
       </main>

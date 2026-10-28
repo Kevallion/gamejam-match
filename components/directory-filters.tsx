@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { SlidersHorizontal, RotateCcw } from "lucide-react"
 import { ENGINE_OPTIONS, LANGUAGE_OPTIONS, ROLE_OPTIONS } from "@/lib/constants"
+import { TagFilterChoice } from "@/components/tag-icon"
 import { useIsMobile } from "@/hooks/use-mobile"
 import {
   Drawer,
@@ -70,7 +71,7 @@ export function DirectoryFilters({
           <SelectItem value="all">Any Role</SelectItem>
           {ROLE_OPTIONS.map((opt) => (
             <SelectItem key={opt.value} value={opt.value}>
-              {opt.label}
+              <TagFilterChoice kind="role" value={opt.value} label={opt.label} />
             </SelectItem>
           ))}
         </SelectContent>
@@ -84,7 +85,7 @@ export function DirectoryFilters({
           <SelectItem value="all">Any Engine</SelectItem>
           {ENGINE_OPTIONS.map((opt) => (
             <SelectItem key={opt.value} value={opt.value}>
-              {opt.label}
+              <TagFilterChoice kind="engine" value={opt.value} label={opt.label} />
             </SelectItem>
           ))}
         </SelectContent>
@@ -98,7 +99,7 @@ export function DirectoryFilters({
           <SelectItem value="all">Any Language</SelectItem>
           {LANGUAGE_OPTIONS.map((opt) => (
             <SelectItem key={opt.value} value={opt.value}>
-              {opt.label}
+              <TagFilterChoice kind="language" value={opt.value} label={opt.label} />
             </SelectItem>
           ))}
         </SelectContent>

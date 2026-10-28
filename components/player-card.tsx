@@ -36,6 +36,7 @@ import {
   ExternalLink,
   Loader2,
   ChevronDown,
+  UserPlus,
   Users,
   Send,
   CheckCircle2,
@@ -47,6 +48,8 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { format, parseISO, isPast, addDays, isBefore } from "date-fns"
+import { TagIconRow } from "@/components/tag-icon"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { toast } from "sonner"
 import { sendTeamInvitation } from "@/app/actions/invite-actions"
 import { showGamificationRewards } from "@/components/gamification-reward-toasts"
@@ -90,11 +93,13 @@ export type JammerCardData = {
     label: string
     emoji: string
     color: string
+    key?: string
   }
   jamStyle?: {
     label: string
     emoji: string
     color: string
+    key?: string
   }
   engine: string
   bio: string
@@ -120,7 +125,7 @@ export type SquadOption = {
 }
 
 /** Parse availability string ("yyyy-MM-dd to yyyy-MM-dd" or "yyyy-MM-dd") into readable display + whether to show warning (past/near expiry) */
-function parseAvailability(availability: string | undefined): { label: string; isWarning: boolean } | null {
+function parseAvailability(availability: string | undefined): { label: string; isWarning: boolean; isDate: boolean } | null {
   if (!availability || availability === "Not specified" || !availability.trim()) return null
   const trimmed = availability.trim()
   const parts = trimmed.split(/\s+to\s+/i).map((s) => s.trim())
@@ -128,6 +133,9 @@ function parseAvailability(availability: string | undefined): { label: string; i
   const toStr = parts[1]
   try {
     const fromDate = parseISO(fromStr)
+    if (!Number.isFinite(fromDate.getTime())) {
+      return { label: trimmed, isWarning: false, isDate: false }
+    }
     const fromLabel = format(fromDate, "MMM d")
     const endDate = toStr ? parseISO(toStr) : fromDate
     const endLabel = toStr ? format(endDate, "MMM d") : fromLabel
@@ -138,9 +146,10 @@ function parseAvailability(availability: string | undefined): { label: string; i
     return {
       label: toStr ? `${fromLabel} – ${endLabel}` : fromLabel,
       isWarning: isPastOrExpired || nearExpiry,
+      isDate: true,
     }
   } catch {
-    return { label: trimmed, isWarning: false }
+    return { label: trimmed, isWarning: false, isDate: false }
   }
 }
 
@@ -364,71 +373,17 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
                 </Button>
               </div>
 
-              {/* Role + Level + Jam Style badges — empty directory fields stay hidden */}
-              {(showRoleChip || showLevelChip || player.jamStyle) ? (
-              <div className="flex flex-wrap items-center gap-1.5">
-                {showRoleChip ? (
-                <Badge
-                  variant="secondary"
-                  title={`${player.role.emoji} ${player.role.label}`}
-                  className={`max-w-full min-w-0 shrink truncate rounded-full px-3 py-1 text-xs font-semibold ${player.role.color}`}
-                >
-                  <span className="min-w-0 truncate">
-                    {player.role.emoji} {player.role.label}
-                  </span>
-                </Badge>
-                ) : null}
-                {showLevelChip ? (
-                <span
-                  title={`${player.level.emoji} ${player.level.label}`}
-                  className={`inline-flex min-w-0 max-w-full shrink items-center gap-1 truncate rounded-full px-2.5 py-1 text-xs font-semibold ${player.level.color}`}
-                >
-                  <span className="min-w-0 truncate">
-                    {player.level.emoji} {player.level.label}
-                  </span>
-                </span>
-                ) : null}
-                {player.jamStyle && (
-                  <span
-                    className={`inline-flex min-w-0 max-w-full shrink items-center gap-1 truncate rounded-full px-2.5 py-1 text-xs font-semibold ${player.jamStyle.color}`}
-                    title={player.jamStyle.label}
-                  >
-                    <span className="min-w-0 truncate">
-                      {player.jamStyle.emoji} {player.jamStyle.label}
-                    </span>
-                  </span>
-                )}
-              </div>
-              ) : null}
+              <TagIconRow
+                items={[
+                  ...(showRoleChip && player.role.key ? [{ kind: "role" as const, value: player.role.key }] : []),
+                  ...(showLevelChip && player.level.key ? [{ kind: "level" as const, value: player.level.key }] : []),
+                  ...(player.jamStyle?.key ? [{ kind: "style" as const, value: player.jamStyle.key }] : []),
+                  ...(engineLabel ? [{ kind: "engine" as const, value: player.engine }] : []),
+                  ...(languageLabel ? [{ kind: "language" as const, value: player.language }] : []),
+                ]}
+              />
 
               <KudosBadgeRow counts={player.kudosCounts} className="gap-1.5" size="xs" />
-
-              {/* Engine */}
-              {engineLabel ? (
-                <div className="flex min-w-0 items-center gap-1.5 text-sm text-muted-foreground">
-                  <Cpu className="size-3.5 shrink-0 text-lavender" />
-                  <span className="min-w-0 truncate" title={engineLabel}>
-                    {engineLabel}
-                  </span>
-                </div>
-              ) : null}
-
-              {/* Availability */}
-              {availabilityInfo && (
-                <div
-                  className={cn(
-                    "inline-flex min-w-0 max-w-full items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-medium",
-                    availabilityInfo.isWarning
-                      ? "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400"
-                      : "border-border/60 bg-muted/50 text-muted-foreground",
-                  )}
-                >
-                  <Calendar className="size-3.5 shrink-0" />
-                  <span className="min-w-0 truncate">
-                    Available: {availabilityInfo.label}
-                  </span>
-                </div>
-              )}
 
               {/* Linked game jam */}
               {player.jam?.title && (
@@ -452,29 +407,57 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
               )}
 
               {/* Bio */}
-              <p className="flex-1 text-sm leading-relaxed text-muted-foreground line-clamp-3">
-                {player.bio}
-              </p>
+              {player.bio?.trim() ? (
+                <p className="text-sm leading-relaxed text-muted-foreground line-clamp-2">{player.bio}</p>
+              ) : null}
             </CardContent>
 
-            <CardFooter className="flex flex-col gap-2 px-4 sm:px-6">
-              {mySquads.length === 0 ? (
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={openCreateSquadDialog}
-                  className="h-auto w-full cursor-pointer rounded-xl border border-primary/40 bg-primary px-3 py-2.5 text-center text-primary-foreground shadow-sm hover:bg-primary/90 hover:border-primary"
+            <CardFooter className="flex flex-row items-center justify-between gap-2 px-4 sm:px-6">
+              {availabilityInfo?.isDate ? (
+                <div
+                  className={cn(
+                    "inline-flex min-w-0 items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-medium",
+                    availabilityInfo.isWarning
+                      ? "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400"
+                      : "border-border/60 bg-muted/50 text-muted-foreground",
+                  )}
                 >
-                  <span className="flex items-center justify-center gap-1.5 text-xs">
-                    <Users className="size-3.5" />
-                    <span>Create a Squad and invite this jammer</span>
-                  </span>
-                </Button>
-              ) : (
-                <div className="w-full flex items-center justify-center gap-2 rounded-xl border border-primary/30 bg-primary/5 px-4 py-2.5 text-sm font-semibold text-primary">
-                  <ArrowRight className="size-4" />
-                  Invite from my squads
+                  <Calendar className="size-3.5 shrink-0" />
+                  <span className="min-w-0 truncate">{availabilityInfo.label}</span>
                 </div>
+              ) : (
+                <span />
+              )}
+              {mySquads.length === 0 ? (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      size="icon"
+                      onClick={openCreateSquadDialog}
+                      className="shrink-0 rounded-xl"
+                      aria-label="Create a Squad and invite this jammer"
+                    >
+                      <UserPlus className="size-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Create a Squad and invite this jammer</TooltipContent>
+                </Tooltip>
+              ) : (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="outline"
+                      className="shrink-0 rounded-xl"
+                      aria-label="Invite from my squads"
+                    >
+                      <Mail className="size-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Invite from my squads</TooltipContent>
+                </Tooltip>
               )}
             </CardFooter>
           </Card>

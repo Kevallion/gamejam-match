@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { SlidersHorizontal, RotateCcw } from "lucide-react"
 import { ENGINE_OPTIONS, EXPERIENCE_OPTIONS, JAM_STYLE_OPTIONS, LANGUAGE_OPTIONS, ROLE_OPTIONS } from "@/lib/constants"
+import { TagFilterChoice } from "@/components/tag-icon"
 import { useIsMobile } from "@/hooks/use-mobile"
 import {
   Drawer,
@@ -123,7 +124,9 @@ export function Filters({
                   <SelectContent className="rounded-xl">
                     <SelectItem value="all">Any Engine</SelectItem>
                     {ENGINE_OPTIONS.map((opt) => (
-                      <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                      <SelectItem key={opt.value} value={opt.value}>
+                        <TagFilterChoice kind="engine" value={opt.value} label={opt.label} />
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -135,7 +138,9 @@ export function Filters({
                   <SelectContent className="rounded-xl">
                     <SelectItem value="all">Any Role</SelectItem>
                     {ROLE_OPTIONS.map((opt) => (
-                      <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                      <SelectItem key={opt.value} value={opt.value}>
+                        <TagFilterChoice kind="role" value={opt.value} label={opt.label} />
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -148,9 +153,7 @@ export function Filters({
                     <SelectItem value="all">Any Experience</SelectItem>
                     {EXPERIENCE_OPTIONS.map((opt) => (
                       <SelectItem key={opt.value} value={opt.value}>
-                        <span className={`inline-flex items-center gap-2 rounded px-1.5 py-0.5 ${opt.color ?? "bg-muted text-muted-foreground"}`}>
-                          {opt.emoji} {opt.label}
-                        </span>
+                        <TagFilterChoice kind="level" value={opt.value} label={opt.label} />
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -163,7 +166,9 @@ export function Filters({
                   <SelectContent className="rounded-xl">
                     <SelectItem value="all">Any Language</SelectItem>
                     {LANGUAGE_OPTIONS.map((opt) => (
-                      <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                      <SelectItem key={opt.value} value={opt.value}>
+                        <TagFilterChoice kind="language" value={opt.value} label={opt.label} />
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -177,9 +182,7 @@ export function Filters({
                       <SelectItem value="all">Any Style</SelectItem>
                       {JAM_STYLE_OPTIONS.map((opt) => (
                         <SelectItem key={opt.value} value={opt.value}>
-                          <span className={`inline-flex items-center gap-2 rounded px-1.5 py-0.5 ${opt.color ?? "bg-muted text-muted-foreground"}`}>
-                            {opt.emoji} {opt.label}
-                          </span>
+                          <TagFilterChoice kind="style" value={opt.value} label={opt.label} />
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -237,7 +240,9 @@ export function Filters({
             <SelectContent className="rounded-xl">
               <SelectItem value="all">Any Engine</SelectItem>
               {ENGINE_OPTIONS.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                <SelectItem key={opt.value} value={opt.value}>
+                  <TagFilterChoice kind="engine" value={opt.value} label={opt.label} />
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -249,7 +254,9 @@ export function Filters({
             <SelectContent className="rounded-xl">
               <SelectItem value="all">Any Role</SelectItem>
               {ROLE_OPTIONS.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                <SelectItem key={opt.value} value={opt.value}>
+                  <TagFilterChoice kind="role" value={opt.value} label={opt.label} />
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -262,9 +269,7 @@ export function Filters({
               <SelectItem value="all">Any Experience</SelectItem>
               {EXPERIENCE_OPTIONS.map((opt) => (
                 <SelectItem key={opt.value} value={opt.value}>
-                  <span className={`inline-flex items-center gap-2 rounded px-1.5 py-0.5 ${opt.color ?? "bg-muted text-muted-foreground"}`}>
-                    {opt.emoji} {opt.label}
-                  </span>
+                  <TagFilterChoice kind="level" value={opt.value} label={opt.label} />
                 </SelectItem>
               ))}
             </SelectContent>
@@ -277,7 +282,9 @@ export function Filters({
             <SelectContent className="rounded-xl">
               <SelectItem value="all">Any Language</SelectItem>
               {LANGUAGE_OPTIONS.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                <SelectItem key={opt.value} value={opt.value}>
+                  <TagFilterChoice kind="language" value={opt.value} label={opt.label} />
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -291,9 +298,7 @@ export function Filters({
                 <SelectItem value="all">Any Style</SelectItem>
                 {JAM_STYLE_OPTIONS.map((opt) => (
                   <SelectItem key={opt.value} value={opt.value}>
-                    <span className={`inline-flex items-center gap-2 rounded px-1.5 py-0.5 ${opt.color ?? "bg-muted text-muted-foreground"}`}>
-                      {opt.emoji} {opt.label}
-                    </span>
+                    <TagFilterChoice kind="style" value={opt.value} label={opt.label} />
                   </SelectItem>
                 ))}
               </SelectContent>

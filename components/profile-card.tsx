@@ -5,14 +5,12 @@ import { Button } from "@/components/ui/button"
 import { UserAvatar } from "@/components/user-avatar"
 import {
   ENGINE_OPTIONS_WITH_ANY,
-  EXPERIENCE_STYLES,
-  JAM_STYLE_STYLES,
   LANGUAGE_OPTIONS,
   ROLE_OPTIONS,
-  ROLE_STYLES,
 } from "@/lib/constants"
 import { cn } from "@/lib/utils"
-import { ExternalLink, Globe } from "lucide-react"
+import { ExternalLink } from "lucide-react"
+import { TagIcon } from "@/components/tag-icon"
 
 const avatarSize = {
   sm: "size-12 rounded-xl",
@@ -79,15 +77,6 @@ function languageLabel(value: string | null | undefined): string | null {
   if (!raw) return null
   const key = raw.toLowerCase()
   return LANGUAGE_OPTIONS.find((opt) => opt.value === key)?.label ?? raw
-}
-
-function jamStyleLabel(value: string | null | undefined): { label: string; emoji: string; badgeClass: string } | null {
-  const raw = value?.trim()
-  if (!raw) return null
-  const key = raw.toLowerCase()
-  const meta = JAM_STYLE_STYLES[key]
-  if (!meta) return { label: raw, emoji: "🎮", badgeClass: "border-border/50 bg-muted/40 text-foreground" }
-  return { label: meta.label, emoji: meta.emoji, badgeClass: meta.badgeColor }
 }
 
 function normalizePortfolioUrl(url: string | null | undefined): string | null {
@@ -174,7 +163,6 @@ export function ProfileCard({
   const secondaryRoleLabel = defaultRoleLabel(secondaryRole)
   const engineLabel = defaultEngineLabel(defaultEngine)
   const langLabel = languageLabel(defaultLanguage)
-  const jamStyleMeta = jamStyleLabel(jamStyle)
   const safePortfolioUrl = normalizePortfolioUrl(portfolioUrl)
 
   const slots = (roleSlots ?? []).filter((s) => s?.role?.trim())
@@ -212,27 +200,11 @@ export function ProfileCard({
           <JammerTitleBadge title={currentTitle} className="text-sm sm:text-base" />
         ) : null}
 
-        {jamStyleMeta ? (
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge
-              variant="outline"
-              className={cn(
-                "max-w-full gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-semibold",
-                jamStyleMeta.badgeClass,
-              )}
-            >
-              <span aria-hidden>{jamStyleMeta.emoji}</span>
-              <span className="truncate">Jam style: {jamStyleMeta.label}</span>
-            </Badge>
-          </div>
-        ) : null}
-
-        {langLabel ? (
-          <div className="flex min-w-0 items-center gap-1.5 text-sm text-muted-foreground">
-            <Globe className="size-3.5 shrink-0 text-teal" aria-hidden />
-            <span className="font-medium text-foreground/90">Language: {langLabel}</span>
-          </div>
-        ) : null}
+        <div className="flex flex-wrap items-center gap-2">
+          {jamStyle ? <TagIcon kind="style" value={jamStyle} size="md" showLabel /> : null}
+          {langLabel ? <TagIcon kind="language" value={defaultLanguage} size="md" showLabel /> : null}
+          {engineLabel ? <TagIcon kind="engine" value={defaultEngine} size="md" showLabel /> : null}
+        </div>
 
         {showRoleSlots ? (
           <div className="space-y-2">
@@ -241,12 +213,6 @@ export function ProfileCard({
               {slots.map((slot, idx) => {
                 const rKey = slot.role.trim().toLowerCase()
                 const expKey = slot.experience_level?.trim().toLowerCase() || "regular"
-                const roleMeta = ROLE_STYLES[rKey] ?? {
-                  label: defaultRoleLabel(slot.role) ?? slot.role,
-                  emoji: "❓",
-                  color: "bg-muted text-muted-foreground",
-                }
-                const expMeta = EXPERIENCE_STYLES[expKey] ?? EXPERIENCE_STYLES.regular
                 const isPrimarySlot = slot.is_primary === true || (slots.length === 1 && idx === 0)
                 return (
                   <li
@@ -260,60 +226,22 @@ export function ProfileCard({
                         Secondary
                       </span>
                     )}
-                    <span
-                      className={cn(
-                        "inline-flex min-w-0 max-w-full items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold",
-                        roleMeta.color,
-                      )}
-                    >
-                      <span aria-hidden>{roleMeta.emoji}</span>
-                      <span className="truncate">{roleMeta.label}</span>
-                    </span>
-                    <span className="text-muted-foreground">·</span>
-                    <span
-                      className={cn(
-                        "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold",
-                        expMeta.color,
-                      )}
-                    >
-                      <span aria-hidden>{expMeta.emoji}</span>
-                      {expMeta.label}
-                    </span>
+                    <TagIcon kind="role" value={rKey} size="md" showLabel />
+                    <TagIcon kind="level" value={expKey} size="sm" showLabel />
                   </li>
                 )
               })}
             </ul>
-            {engineLabel ? (
-              <div className="flex flex-wrap gap-2 pt-1">
-                <Badge className="rounded-full border border-lavender/35 bg-lavender/15 px-2.5 py-0.5 text-[11px] font-semibold text-lavender">
-                  Engine: {engineLabel}
-                </Badge>
-              </div>
-            ) : null}
           </div>
-        ) : roleLabel || secondaryRoleLabel || engineLabel ? (
+        ) : roleLabel || secondaryRoleLabel ? (
           <div className="flex flex-wrap items-center gap-2">
-            {roleLabel ? (
-              <Badge className="rounded-full border border-teal/35 bg-teal/15 px-2.5 py-0.5 text-[11px] font-semibold text-teal">
-                Role: {roleLabel}
-              </Badge>
+            {defaultRole ? <TagIcon kind="role" value={defaultRole} size="md" showLabel /> : null}
+            {secondaryRole ? (
+              <span className="inline-flex items-center gap-1.5">
+                <TagIcon kind="role" value={secondaryRole} size="md" showLabel />
+                <span className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">Secondary</span>
+              </span>
             ) : null}
-            {secondaryRoleLabel ? (
-              <Badge className="rounded-full border border-teal/25 bg-teal/10 px-2.5 py-0.5 text-[11px] font-semibold text-teal/90">
-                Secondary: {secondaryRoleLabel}
-              </Badge>
-            ) : null}
-            {engineLabel ? (
-              <Badge className="rounded-full border border-lavender/35 bg-lavender/15 px-2.5 py-0.5 text-[11px] font-semibold text-lavender">
-                Engine: {engineLabel}
-              </Badge>
-            ) : null}
-          </div>
-        ) : engineLabel ? (
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge className="rounded-full border border-lavender/35 bg-lavender/15 px-2.5 py-0.5 text-[11px] font-semibold text-lavender">
-              Engine: {engineLabel}
-            </Badge>
           </div>
         ) : null}
         {subtitle ? <p className="text-sm text-muted-foreground">{subtitle}</p> : null}

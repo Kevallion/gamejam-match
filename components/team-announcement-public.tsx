@@ -4,12 +4,12 @@ import { useState } from "react"
 import Link from "next/link"
 import { Navbar } from "@/components/navbar"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { JoinTeamModal } from "@/components/join-team-modal"
 import { AuthModal } from "@/components/auth-modal"
 import { JamTitleBlock, type TeamCardData } from "@/components/team-card"
 import { engineOptionLabel, languageOptionLabel } from "@/lib/constants"
-import { ArrowLeft, ArrowRight, Cpu, Globe, ShieldCheck } from "lucide-react"
+import { TagIcon } from "@/components/tag-icon"
+import { ArrowLeft, ArrowRight, ShieldCheck } from "lucide-react"
 
 type RoleOption = { key: string; label: string; emoji: string; color: string; filled?: boolean }
 
@@ -73,32 +73,10 @@ export function TeamAnnouncementPublic({ team, isLoggedIn }: TeamAnnouncementPub
 
             <div className="flex flex-col gap-4 px-6 py-4">
               <div className="flex flex-wrap items-center gap-2">
-                <Badge
-                  variant="outline"
-                  className="inline-flex items-center gap-1.5 rounded-full border-border/60 bg-lavender px-3 py-1 text-xs font-semibold text-lavender-foreground"
-                >
-                  <Cpu className="size-3.5" />
-                  {engineLabel}
-                </Badge>
-                <Badge
-                  variant="outline"
-                  className="inline-flex items-center gap-1.5 rounded-full border-border/60 bg-teal/10 px-3 py-1 text-xs font-semibold text-teal"
-                >
-                  <Globe className="size-3.5" />
-                  {languageLabel}
-                </Badge>
-                <span
-                  className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold ${team.level.color}`}
-                >
-                  {team.level.emoji} {team.level.label}
-                </span>
-                {team.teamVibe && (
-                  <span
-                    className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold ${team.teamVibe.color}`}
-                  >
-                    {team.teamVibe.emoji} {team.teamVibe.label}
-                  </span>
-                )}
+                {engineLabel ? <TagIcon kind="engine" value={team.engine} size="md" showLabel /> : null}
+                {languageLabel ? <TagIcon kind="language" value={team.language} size="md" showLabel /> : null}
+                {team.level.key ? <TagIcon kind="level" value={team.level.key} size="md" showLabel /> : null}
+                {team.teamVibe?.key ? <TagIcon kind="style" value={team.teamVibe.key} size="md" showLabel /> : null}
               </div>
 
               <div>
@@ -125,14 +103,13 @@ export function TeamAnnouncementPublic({ team, isLoggedIn }: TeamAnnouncementPub
                           : "bg-secondary/30",
                       ].join(" ")}
                     >
-                      <span
-                        className={[
-                          "inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-semibold",
-                          role.filled ? "opacity-40" : role.color,
-                        ].join(" ")}
-                      >
-                        {role.emoji} {role.label}
-                      </span>
+                      <TagIcon
+                        kind="role"
+                        value={role.key}
+                        size="md"
+                        showLabel
+                        className={role.filled ? "opacity-40" : undefined}
+                      />
                       {role.filled && (
                         <span className="ml-auto text-xs text-muted-foreground">
                           Filled

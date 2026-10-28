@@ -215,7 +215,7 @@ export function DirectoryGrid({
             {Array.from({ length: 9 }).map((_, i) => (
               <div
                 key={i}
-                className="flex min-h-[320px] flex-col gap-4 rounded-xl border border-border/60 bg-card/40 p-4 sm:p-6"
+                className="flex flex-col gap-4 rounded-xl border border-border/60 bg-card/40 p-4 sm:p-6"
               >
                 <div className="flex items-center gap-3.5">
                   <Skeleton className="size-12 shrink-0 rounded-full" />

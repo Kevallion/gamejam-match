@@ -11,8 +11,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import {
-  Globe,
-  Cpu,
   Users,
   ArrowRight,
   ShieldCheck,
@@ -27,6 +25,7 @@ import { UserAvatar } from "@/components/user-avatar"
 
 import { JoinTeamModal } from "@/components/join-team-modal"
 import { engineOptionLabel, languageOptionLabel } from "@/lib/constants"
+import { TagIcon, TagIconRow } from "@/components/tag-icon"
 import { getJamListingStatus } from "@/lib/jam-calendar-status"
 
 type RoleBadge = {
@@ -41,6 +40,7 @@ type LevelBadge = {
   label: string
   emoji: string
   color: string
+  key?: string
 }
 
 export type TeamCardData = {
@@ -58,7 +58,7 @@ export type TeamCardData = {
   maxMembers: number
   roles: RoleBadge[]
   level: LevelBadge
-  teamVibe?: { label: string; emoji: string; color: string; badgeColor?: string }
+  teamVibe?: { label: string; emoji: string; color: string; badgeColor?: string; key?: string }
   filledRoleKeys?: string[]
   jamStartDate?: string | null
   jamEndDate?: string | null
@@ -131,8 +131,6 @@ export function TeamCard({
   const engineLabel = engineOptionLabel(team.engine)
   const languageLabel = languageOptionLabel(team.language)
   const openRoles = availableRoles.filter((r) => !r.filled)
-  const openRolesForCard = openRoles.slice(0, 4)
-  const openRolesOverflow = openRoles.length > 4 ? openRoles.length - 4 : 0
 
   const jamPendingTitle =
     jamStatus?.phase === "dates_pending"
@@ -242,32 +240,10 @@ export function TeamCard({
       <div className="min-w-0 px-4 py-4 sm:px-6">
         <div className="flex flex-col gap-5">
           <div className="flex flex-wrap gap-2">
-            <Badge
-              variant="outline"
-              className="inline-flex items-center gap-1.5 rounded-full border-border/60 bg-lavender/20 px-3 py-1 text-xs font-semibold text-lavender-foreground"
-            >
-              <Cpu className="size-3.5" />
-              {engineLabel}
-            </Badge>
-            <Badge
-              variant="outline"
-              className="inline-flex items-center gap-1.5 rounded-full border-border/60 bg-teal/10 px-3 py-1 text-xs font-semibold text-teal"
-            >
-              <Globe className="size-3.5" />
-              {languageLabel}
-            </Badge>
-            <span
-              className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold ${team.level.color}`}
-            >
-              {team.level.emoji} {team.level.label}
-            </span>
-            {team.teamVibe && (
-              <span
-                className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold ${team.teamVibe.color}`}
-              >
-                {team.teamVibe.emoji} {team.teamVibe.label}
-              </span>
-            )}
+            {engineLabel ? <TagIcon kind="engine" value={team.engine} size="sm" showLabel /> : null}
+            {languageLabel ? <TagIcon kind="language" value={team.language} size="sm" showLabel /> : null}
+            {team.level.key ? <TagIcon kind="level" value={team.level.key} size="sm" showLabel /> : null}
+            {team.teamVibe?.key ? <TagIcon kind="style" value={team.teamVibe.key} size="sm" showLabel /> : null}
             <Badge
               variant="outline"
               className="inline-flex items-center gap-1.5 rounded-full border-border/60 text-xs text-muted-foreground"
@@ -295,14 +271,7 @@ export function TeamCard({
                     role.filled ? "bg-muted/50 opacity-60" : "bg-secondary/30",
                   )}
                 >
-                  <span
-                    className={cn(
-                      "inline-flex min-w-0 items-center gap-1.5 break-words rounded-full px-2 py-0.5 text-xs font-semibold",
-                      role.filled ? "opacity-40" : role.color,
-                    )}
-                  >
-                    {role.emoji} {role.label}
-                  </span>
+                  <TagIcon kind="role" value={role.key ?? role.label} size="sm" showLabel className={role.filled ? "opacity-40" : undefined} />
                   {role.filled && (
                     <span className="ml-auto text-xs text-muted-foreground">Filled</span>
                   )}
@@ -399,31 +368,14 @@ export function TeamCard({
           </Badge>
         )}
 
-        <div className="mb-3.5 flex min-h-[2rem] flex-wrap gap-1.5">
-          <span
-            className={cn(
-              "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold",
-              team.level.color,
-            )}
-          >
-            {team.level.emoji} {team.level.label}
-          </span>
-          {openRolesForCard.map((role, index) => (
-            <span
-              key={`${role.key}-${index}`}
-              className={cn(
-                "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold",
-                role.color,
-              )}
-            >
-              {role.emoji} {role.label}
-            </span>
-          ))}
-          {openRolesOverflow > 0 && (
-            <span className="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
-              +{openRolesOverflow} more
-            </span>
-          )}
+        <div className="mb-3.5 flex min-h-6 flex-wrap items-center gap-1.5">
+          <TagIconRow
+            items={openRoles.map((role, index) => ({
+              kind: "role" as const,
+              value: role.key ?? role.label,
+              key: `${role.key}-${index}`,
+            }))}
+          />
           {isSquadFull && (
             <span className="inline-flex items-center gap-1 rounded-full bg-muted/60 px-2.5 py-0.5 text-xs font-semibold text-muted-foreground">
               <ShieldCheck className="size-3" />
@@ -434,14 +386,9 @@ export function TeamCard({
 
         <div className="mt-auto flex flex-wrap items-center justify-between gap-x-4 gap-y-1.5 border-t border-border/40 pt-3.5">
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <span className="inline-flex items-center gap-1">
-              <Cpu className="size-3.5 text-lavender" aria-hidden />
-              {engineLabel}
-            </span>
-            <span className="inline-flex items-center gap-1">
-              <Globe className="size-3.5 text-teal" aria-hidden />
-              {languageLabel}
-            </span>
+            {team.level.key ? <TagIcon kind="level" value={team.level.key} size="xs" /> : null}
+            {engineLabel ? <TagIcon kind="engine" value={team.engine} size="xs" /> : null}
+            {languageLabel ? <TagIcon kind="language" value={team.language} size="xs" /> : null}
           </div>
 
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
