@@ -37,7 +37,7 @@ export async function GET(request: Request) {
   for (const row of rows ?? []) {
     const id = row.id as string
     const ownerId = row.user_id as string
-    const name = String((row as { team_name?: string | null }).team_name ?? "Your team")
+    const name = String((row as { team_name?: string | null }).team_name ?? "Your squad")
 
     await notifyOwnerJamListingArchived(ownerId, name)
 

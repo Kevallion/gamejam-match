@@ -209,7 +209,7 @@ export async function notifyOwnerNewApplication(
       ? `/dashboard?tab=inbox&highlightRequest=${ctx.joinRequestId}`
       : "/dashboard?tab=inbox"
     const safeName = await resolvePublicJammerName(ctx?.candidateUserId, candidateName)
-    const message = `${safeName} applied to your team "${teamName}".`
+    const message = `${safeName} applied to your squad "${teamName}".`
     void insertNotification(ownerUserId, "application_received", message, inboxLink, {
       sender_id: ctx?.candidateUserId ?? null,
       team_id: ctx?.teamId ?? null,
@@ -225,7 +225,7 @@ export async function notifyOwnerNewApplication(
     const ctaPrimary = `display:inline-block;padding:12px 24px;background-color:#14b8a6;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:bold;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;margin:4px 8px 4px 0;`
     const ctaSecondary = `display:inline-block;padding:12px 24px;background-color:#f3f4f6;color:#111827;text-decoration:none;border-radius:6px;font-weight:600;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;border:1px solid #e5e7eb;margin:4px 8px 4px 0;`
 
-    const subject = "New application for your team! 🚀 | GameJamCrew"
+    const subject = "New application for your squad! 🚀 | GameJamCrew"
     const profileBlock = profileUrl
       ? `<p style="margin:0 0 20px;text-align:center;">
         <a href="${profileUrl}" style="${ctaSecondary}" target="_blank" rel="noopener noreferrer">View profile</a>
@@ -274,8 +274,8 @@ export async function notifyInviteeInvitation(
     const truncatedPersonal =
       personalMessage.length > 160 ? `${personalMessage.slice(0, 157)}...` : personalMessage
     const message = truncatedPersonal
-      ? `You were invited to join the team "${teamName}": ${truncatedPersonal}`
-      : `You were invited to join the team "${teamName}".`
+      ? `You were invited to join the squad "${teamName}": ${truncatedPersonal}`
+      : `You were invited to join the squad "${teamName}".`
     void insertNotification(inviteeUserId, "team_invitation", message, invitationPath, {
       sender_id: ctx.inviterUserId,
       team_id: ctx.teamId,
@@ -292,9 +292,9 @@ export async function notifyInviteeInvitation(
       ? `<p style="margin:0 0 18px;padding:12px 16px;background-color:#f9fafb;border-left:3px solid #14b8a6;color:#374151;font-size:15px;line-height:1.6;font-style:italic;">"${escapeHtml(personalMessage)}"</p>`
       : ""
 
-    const subject = "You've been invited to join a team! 🎮 | GameJamCrew"
+    const subject = "You've been invited to join a squad! 🎮 | GameJamCrew"
     const contentHtml = `
-      <p style="${EMAIL_P}">Hi there! A team leader invited you to join <strong style="${EMAIL_STRONG}">${escapeHtml(
+      <p style="${EMAIL_P}">Hi there! A squad leader invited you to join <strong style="${EMAIL_STRONG}">${escapeHtml(
         teamName,
       )}</strong> for an upcoming jam.</p>
       ${quoteBlock}
@@ -330,7 +330,7 @@ export async function notifyApplicantDeclined(
 
     const message = teamName
       ? `Your application to join "${teamName}" was declined.`
-      : "Your application was declined. New teams are waiting for you in the dashboard."
+      : "Your application was declined. New squads are waiting for you in the dashboard."
     void insertNotification(candidateUserId, "application_declined", message, "/dashboard?tab=inbox", {
       team_id: teamId ?? null,
       sender_id: ownerUserId ?? null,
@@ -344,10 +344,10 @@ export async function notifyApplicantDeclined(
     const subject = "Update on your application 📢 | GameJamCrew"
     const contentHtml = `
       <p style="${EMAIL_P}">Hi there. Thank you for applying!</p>
-      <p style="${EMAIL_P}">Unfortunately, the team leader has decided to move forward with another candidate or the team is now full.</p>
+      <p style="${EMAIL_P}">Unfortunately, the squad leader has decided to move forward with another candidate or the squad is now full.</p>
       <p style="${EMAIL_P}">Don't give up! Browse open squads and find your next jam crew.</p>
       <p style="margin:0 0 24px;text-align:center;">
-        <a href="${teamsUrl}" style="${ctaPrimary}" target="_blank" rel="noopener noreferrer">Find teams</a>
+        <a href="${teamsUrl}" style="${ctaPrimary}" target="_blank" rel="noopener noreferrer">Browse squads</a>
       </p>
       <p style="${EMAIL_P}">Your <a href="${DASHBOARD_URL}" style="${EMAIL_LINK}">dashboard inbox</a> has the full history.</p>
       <p style="${EMAIL_P}">Keep jamming!</p>
@@ -375,7 +375,7 @@ export async function notifyCandidateAccepted(
     const email = await getUserEmail(candidateUserId)
 
     const teamPath = `/teams/${teamId}`
-    const message = `You were accepted into the team "${teamName}".`
+    const message = `You were accepted into the squad "${teamName}".`
     void insertNotification(candidateUserId, "application_accepted", message, teamPath, {
       team_id: teamId,
       sender_id: ownerUserId ?? null,
@@ -393,7 +393,7 @@ export async function notifyCandidateAccepted(
         teamName,
       )}</strong> has been accepted.</p>
       <p style="margin:0 0 24px;text-align:center;">
-        <a href="${squadUrl}" style="${ctaPrimary}" target="_blank" rel="noopener noreferrer">Open team page</a>
+        <a href="${squadUrl}" style="${ctaPrimary}" target="_blank" rel="noopener noreferrer">Open squad page</a>
       </p>
       <p style="${EMAIL_P}">You can also open <a href="${DASHBOARD_URL}" style="${EMAIL_LINK}">your dashboard</a> to see all your squads.</p>
       <p style="${EMAIL_SIGNOFF}">— The GameJamCrew team</p>
@@ -422,10 +422,10 @@ export async function notifyMemberDiscordLink(
     const safeTeamName = escapeHtml(teamName)
     const safeDiscordLink = escapeHtml(discordLink)
 
-    const subject = "Your team shared a Discord invite | GameJamCrew"
+    const subject = "Your squad shared a Discord invite | GameJamCrew"
     const contentHtml = `
-      <p style="${EMAIL_P}">Good news! Your team <strong style="${EMAIL_STRONG}">${safeTeamName}</strong> just shared their Discord invite link with you.</p>
-      <p style="${EMAIL_P}"><a href="${safeDiscordLink}" style="${EMAIL_LINK}">Click here to join the team's Discord server</a> and start coordinating with your teammates.</p>
+      <p style="${EMAIL_P}">Good news! Your squad <strong style="${EMAIL_STRONG}">${safeTeamName}</strong> just shared their Discord invite link with you.</p>
+      <p style="${EMAIL_P}"><a href="${safeDiscordLink}" style="${EMAIL_LINK}">Click here to join the squad's Discord server</a> and start coordinating with your teammates.</p>
       <p style="${EMAIL_SIGNOFF}">— The GameJamCrew team</p>
     `
 
@@ -483,7 +483,7 @@ export async function notifyTeamChatNewMessage(
     const oneHourMs = 60 * 60 * 1000
 
     // In-app notifications for all recipients
-    const notifMessage = `New message in the team chat "${teamRow.team_name}".`
+    const notifMessage = `New message in the squad chat "${teamRow.team_name}".`
     const notifLink = `/teams/${teamId}`
     try {
       await admin.from("notifications").insert(
@@ -522,13 +522,13 @@ export async function notifyTeamChatNewMessage(
       const chatUrl = `${SITE_URL}/teams/${teamId}`
       const ctaPrimary = `display:inline-block;padding:12px 24px;background-color:#14b8a6;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:bold;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;`
 
-      const subject = "New messages in team chat | GameJamCrew"
+      const subject = "New messages in squad chat | GameJamCrew"
       const contentHtml = `
-        <p style="${EMAIL_P}">You have new unread messages in the team chat <strong style="${EMAIL_STRONG}">${escapeHtml(
+        <p style="${EMAIL_P}">You have new unread messages in the squad chat <strong style="${EMAIL_STRONG}">${escapeHtml(
           teamRow.team_name as string,
         )}</strong>.</p>
         <p style="margin:0 0 24px;text-align:center;">
-          <a href="${chatUrl}" style="${ctaPrimary}" target="_blank" rel="noopener noreferrer">Open team chat</a>
+          <a href="${chatUrl}" style="${ctaPrimary}" target="_blank" rel="noopener noreferrer">Open squad chat</a>
         </p>
         <p style="${EMAIL_P}">Or open <a href="${DASHBOARD_URL}" style="${EMAIL_LINK}">your dashboard</a>.</p>
         <p style="${EMAIL_SIGNOFF}">— The GameJamCrew team</p>
@@ -571,7 +571,7 @@ export async function notifyOwnerInvitationDeclined(
 
     const safeName = await resolvePublicJammerName(declinerUserId, playerName)
     const managePath = `/teams/${teamId}/manage`
-    const message = `Player ${safeName} declined your invitation to join the team.`
+    const message = `Player ${safeName} declined your invitation to join the squad.`
     void insertNotification(teamRow.user_id as string, "invitation_declined", message, managePath, {
       team_id: teamId,
       sender_id: declinerUserId ?? null,
@@ -603,7 +603,7 @@ export async function notifyOwnerPlayerJoined(
 
     const safeName = await resolvePublicJammerName(playerUserId, playerName)
     const teamPath = `/teams/${teamId}`
-    const message = `${safeName} has officially joined your team!`
+    const message = `${safeName} has officially joined your squad!`
     void insertNotification(teamRow.user_id as string, "player_joined", message, teamPath, {
       team_id: teamId,
       sender_id: playerUserId ?? null,
@@ -649,7 +649,7 @@ export async function notifyPlayerKicked(
   ownerUserId?: string | null,
 ): Promise<void> {
   try {
-    const message = `You have been removed from the team "${teamName}".`
+    const message = `You have been removed from the squad "${teamName}".`
     void insertNotification(playerUserId, "team_kicked", message, "/dashboard", {
       team_id: teamId ?? null,
       sender_id: ownerUserId ?? null,
@@ -659,14 +659,14 @@ export async function notifyPlayerKicked(
     if (!email) return
 
     const safeTeamName = escapeHtml(teamName)
-    const subject = "You have been removed from a team | GameJamCrew"
+    const subject = "You have been removed from a squad | GameJamCrew"
     const contentHtml = `
-      <p style="${EMAIL_P}">You have been removed from the team <strong style="${EMAIL_STRONG}">${safeTeamName}</strong>.</p>
-      <p style="${EMAIL_P}">You can keep looking for new teams or create your own on <a href="${DASHBOARD_URL}" style="${EMAIL_LINK}">GameJamCrew</a>.</p>
+      <p style="${EMAIL_P}">You have been removed from the squad <strong style="${EMAIL_STRONG}">${safeTeamName}</strong>.</p>
+      <p style="${EMAIL_P}">You can keep looking for new squads or create your own on <a href="${DASHBOARD_URL}" style="${EMAIL_LINK}">GameJamCrew</a>.</p>
       <p style="${EMAIL_SIGNOFF}">— The GameJamCrew team</p>
     `
 
-    void sendEmailWithLayout(email, subject, "Team update", contentHtml)
+    void sendEmailWithLayout(email, subject, "Squad update", contentHtml)
   } catch {
     // Silent error
   }
@@ -707,7 +707,7 @@ export async function notifyTeamDiscordUpdated(
     if (recipientIds.size === 0) return
 
     const allRecipientIds = Array.from(recipientIds)
-    const notifMessage = `The Discord link for your team "${teamName}" has been updated. Join the server!`
+    const notifMessage = `The Discord link for your squad "${teamName}" has been updated. Join the server!`
     const notifLink = `/teams/${teamId}`
 
     try {
@@ -731,13 +731,13 @@ export async function notifyTeamDiscordUpdated(
     const teamPageUrl = `${SITE_URL}/teams/${teamId}`
     const ctaPrimary = `display:inline-block;padding:12px 24px;background-color:#14b8a6;color:#ffffff;text-decoration:none;border-radius:6px;font-weight:bold;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;`
 
-    const subject = "Your team's Discord link was updated | GameJamCrew"
+    const subject = "Your squad's Discord link was updated | GameJamCrew"
     const contentHtml = `
-      <p style="${EMAIL_P}">The Discord link for your team <strong style="${EMAIL_STRONG}">${safeTeamName}</strong> has been updated.</p>
+      <p style="${EMAIL_P}">The Discord link for your squad <strong style="${EMAIL_STRONG}">${safeTeamName}</strong> has been updated.</p>
       <p style="margin:0 0 24px;text-align:center;">
-        <a href="${teamPageUrl}" style="${ctaPrimary}" target="_blank" rel="noopener noreferrer">Open team page</a>
+        <a href="${teamPageUrl}" style="${ctaPrimary}" target="_blank" rel="noopener noreferrer">Open squad page</a>
       </p>
-      <p style="${EMAIL_P}">Grab the new invite from the team page or your <a href="${DASHBOARD_URL}" style="${EMAIL_LINK}">dashboard</a>.</p>
+      <p style="${EMAIL_P}">Grab the new invite from the squad page or your <a href="${DASHBOARD_URL}" style="${EMAIL_LINK}">dashboard</a>.</p>
       <p style="${EMAIL_SIGNOFF}">— The GameJamCrew team</p>
     `
 
@@ -766,7 +766,7 @@ export async function notifyOwnerJamListingArchived(
     const subject = "Your jam announcement has ended! 🏁 | GameJamCrew"
     const contentHtml = `
       <p style="${EMAIL_P}">Your listing for <strong style="${EMAIL_STRONG}">${safeTeamName}</strong> has reached its jam end date and is no longer visible on GameJamCrew.</p>
-      <p style="${EMAIL_P}">Your team data is safe — you can always create a new listing for your next jam from <a href="${DASHBOARD_URL}" style="${EMAIL_LINK}">your dashboard</a>.</p>
+      <p style="${EMAIL_P}">Your squad data is safe — you can always create a new listing for your next jam from <a href="${DASHBOARD_URL}" style="${EMAIL_LINK}">your dashboard</a>.</p>
       <p style="${EMAIL_SIGNOFF}">— The GameJamCrew team</p>
     `
 

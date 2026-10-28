@@ -2,7 +2,8 @@
 
 /* eslint-disable react-hooks/set-state-in-effect */
 
-import { Bell, Gamepad2, Hand, Heart, LayoutDashboard, Loader2, LogIn, LogOut, Menu, Monitor, Moon, PenLine, Sun, UserSearch, Users } from "lucide-react"
+import { Bell, Gamepad2, Hand, Heart, LayoutDashboard, Loader2, LogIn, LogOut, Menu, MessageSquare, Monitor, Moon, PenLine, Sun, UserSearch, Users } from "lucide-react"
+import { FEEDBACK_URL } from "@/components/FeedbackButton"
 import { SupportNavbarPopover } from "@/components/support-navbar-popover"
 import { Button } from "@/components/ui/button"
 import {
@@ -32,6 +33,13 @@ import { useNotifications } from "@/hooks/use-notifications"
 import { NavbarNotificationRow } from "@/components/navbar-notification-row"
 import { JammerLevelBadge, JammerTitleBadge } from "@/components/profile-card"
 import { levelFromTotalXp } from "@/lib/gamification-level"
+
+const NAV_ITEMS = [
+  { href: "/teams", label: "Squads", icon: Users },
+  { href: "/find-members", label: "Members", icon: UserSearch },
+  { href: "/create-team", label: "Create a Squad", icon: PenLine },
+  { href: "/create-profile", label: "Available", icon: Hand },
+] as const
 
 type NavbarProfile = {
   username?: string | null
@@ -133,7 +141,7 @@ export function Navbar() {
   return (
     <>
       {/* Floating Desktop Navbar - Hidden on mobile */}
-      <header className="fixed top-4 left-1/2 z-50 hidden w-max max-w-[calc(100vw-2rem)] -translate-x-1/2 px-2 md:block">
+      <header className="fixed top-4 left-1/2 z-50 hidden w-max max-w-[calc(100vw-2rem)] -translate-x-1/2 px-2 lg:block">
         <nav className="glass-navbar flex min-w-0 w-full items-center gap-2 overflow-x-auto overflow-y-hidden rounded-2xl px-3 py-2 shadow-lg shadow-black/5 scrollbar-none">
           {/* Logo */}
           <Link href="/" className="flex shrink-0 items-center gap-2 px-2 text-foreground transition-colors hover:text-primary">
@@ -148,18 +156,17 @@ export function Navbar() {
 
           {/* Nav Links */}
           <div className="flex shrink-0 items-center gap-0.5">
-            <Button variant="ghost" asChild size="sm" className="gap-1.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-white/10">
-              <Link href="/teams"><Users className="size-3.5" />Teams</Link>
-            </Button>
-            <Button variant="ghost" asChild size="sm" className="gap-1.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-white/10">
-              <Link href="/find-members"><UserSearch className="size-3.5" />Members</Link>
-            </Button>
-            <Button variant="ghost" asChild size="sm" className="gap-1.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-white/10">
-              <Link href="/create-team"><PenLine className="size-3.5" />Post Team</Link>
-            </Button>
-            <Button variant="ghost" asChild size="sm" className="gap-1.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-white/10">
-              <Link href="/create-profile"><Hand className="size-3.5" />Available</Link>
-            </Button>
+            {NAV_ITEMS.map((item) => {
+              const Icon = item.icon
+              return (
+                <Button key={item.href} variant="ghost" asChild size="sm" className="gap-1.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-white/10">
+                  <Link href={item.href}>
+                    <Icon className="size-3.5" />
+                    {item.label}
+                  </Link>
+                </Button>
+              )
+            })}
           </div>
 
           {/* Separator */}
@@ -334,7 +341,7 @@ export function Navbar() {
       </header>
 
       {/* Mobile Header - Simple top bar for branding + actions */}
-      <header className="sticky top-0 z-40 w-full glass-navbar md:hidden">
+      <header className="sticky top-0 z-40 w-full glass-navbar lg:hidden">
         <nav className="flex h-14 min-w-0 items-center justify-between gap-2 px-4">
           {/* Logo */}
           <Link href="/" className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden text-foreground">
@@ -442,7 +449,7 @@ export function Navbar() {
                     <span className="sr-only">Open menu</span>
                   </Button>
                 </SheetTrigger>
-                <SheetContent side="right" className="flex flex-col w-[min(100vw-2rem,320px)] glass-card border-l-0 px-0">
+                <SheetContent side="right" className="flex w-[min(100vw-2rem,320px)] flex-col glass-card border-l-0 px-0 pt-14">
                   <SheetHeader className="sr-only">
                     <SheetTitle>Navigation menu</SheetTitle>
                   </SheetHeader>
@@ -490,38 +497,30 @@ export function Navbar() {
 
                     {/* Nav Links */}
                     <nav className="mt-4 flex flex-col gap-1">
-                      <Link
-                        href="/teams"
+                      {NAV_ITEMS.map((item) => {
+                        const Icon = item.icon
+                        return (
+                          <Link
+                            key={item.href}
+                            href={item.href}
+                            onClick={() => setMobileMenuOpen(false)}
+                            className="flex items-center gap-3 rounded-xl px-3 py-3 text-muted-foreground transition-colors hover:bg-white/5 hover:text-foreground"
+                          >
+                            <Icon className="size-5" />
+                            <span className="font-medium">{item.label}</span>
+                          </Link>
+                        )
+                      })}
+                      <a
+                        href={FEEDBACK_URL}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         onClick={() => setMobileMenuOpen(false)}
                         className="flex items-center gap-3 rounded-xl px-3 py-3 text-muted-foreground transition-colors hover:bg-white/5 hover:text-foreground"
                       >
-                        <Users className="size-5" />
-                        <span className="font-medium">Find Teams</span>
-                      </Link>
-                      <Link
-                        href="/find-members"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center gap-3 rounded-xl px-3 py-3 text-muted-foreground transition-colors hover:bg-white/5 hover:text-foreground"
-                      >
-                        <UserSearch className="size-5" />
-                        <span className="font-medium">Find Members</span>
-                      </Link>
-                      <Link
-                        href="/create-team"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center gap-3 rounded-xl px-3 py-3 text-muted-foreground transition-colors hover:bg-white/5 hover:text-foreground"
-                      >
-                        <PenLine className="size-5" />
-                        <span className="font-medium">Post a Team</span>
-                      </Link>
-                      <Link
-                        href="/create-profile"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center gap-3 rounded-xl px-3 py-3 text-muted-foreground transition-colors hover:bg-white/5 hover:text-foreground"
-                      >
-                        <Hand className="size-5" />
-                        <span className="font-medium">I{"'"}m Available</span>
-                      </Link>
+                        <MessageSquare className="size-5" />
+                        <span className="font-medium">Feedback</span>
+                      </a>
                     </nav>
                   </div>
                 </SheetContent>

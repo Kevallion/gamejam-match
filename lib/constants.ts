@@ -112,6 +112,23 @@ export const JAM_STYLE_OPTIONS = [
   { value: "competitive", label: "Competitive / Win-focused", emoji: "🏆", color: "bg-red-500/15 text-red-500", description: "Aiming for the top, competitive spirit and excellence." },
 ] as const
 
+/** Display label for a stored engine key (`godot` → `Godot`). Unknown values stay as stored. */
+export function engineOptionLabel(value: string | null | undefined): string {
+  const raw = (value ?? "").trim()
+  if (!raw) return ""
+  const key = raw.toLowerCase()
+  return ENGINE_OPTIONS_WITH_ANY.find((option) => option.value === key)?.label ?? raw
+}
+
+/** Display label for a stored spoken-language key (`english` → `English`). */
+export function languageOptionLabel(value: string | null | undefined): string {
+  const raw = (value ?? "").trim()
+  if (!raw) return ""
+  const key = raw.toLowerCase()
+  const canonical = LANGUAGE_OPTION_VALUE_ALIASES[key] ?? key
+  return LANGUAGE_OPTIONS.find((option) => option.value === canonical)?.label ?? raw
+}
+
 export const JAM_STYLE_STYLES: Record<string, { label: string; emoji: string; color: string; badgeColor: string }> = {
   chill: { label: "Chill & Relaxed", emoji: "☕", color: "bg-emerald-500/15 text-emerald-500", badgeColor: "bg-emerald-500/25 text-emerald-600 dark:text-emerald-400 border-emerald-500/50" },
   learning: { label: "Learning & Practice", emoji: "📖", color: "bg-blue-500/15 text-blue-500", badgeColor: "bg-blue-500/25 text-blue-600 dark:text-blue-400 border-blue-500/50" },

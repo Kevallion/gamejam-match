@@ -16,7 +16,7 @@ import {
   Trash2,
 } from "lucide-react"
 import Link from "next/link"
-import { EXPERIENCE_STYLES, ROLE_STYLES } from "@/lib/constants"
+import { EXPERIENCE_STYLES, ROLE_STYLES, engineOptionLabel, languageOptionLabel } from "@/lib/constants"
 import { KudosBadgeRow } from "@/components/kudos-badges"
 import type { KudosCounts } from "@/lib/kudos"
 
@@ -76,10 +76,12 @@ function AnnouncementCard({ post, onDelete, onRenew, isRenewing, profileAvatarUr
             <h3 className="truncate text-lg font-bold text-foreground">
               {username}
             </h3>
-            <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-              <Globe className="size-3.5 text-teal" />
-              {post.language || "—"}
-            </div>
+            {languageOptionLabel(post.language) ? (
+              <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                <Globe className="size-3.5 text-teal" />
+                {languageOptionLabel(post.language)}
+              </div>
+            ) : null}
           </div>
         </div>
 
@@ -126,10 +128,12 @@ function AnnouncementCard({ post, onDelete, onRenew, isRenewing, profileAvatarUr
         )}
 
         {/* Game engine */}
-        <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-          <Cpu className="size-3.5 text-lavender" />
-          {post.engine || "—"}
-        </div>
+        {engineOptionLabel(post.engine) ? (
+          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+            <Cpu className="size-3.5 text-lavender" />
+            {engineOptionLabel(post.engine)}
+          </div>
+        ) : null}
 
         {/* Portfolio */}
         {post.portfolio_link ? (
@@ -228,7 +232,7 @@ export function DashboardMyAvailability({
             variant="outline"
             className="mt-2 gap-2 rounded-xl border-lavender/30 text-lavender hover:bg-lavender/10 hover:text-lavender"
           >
-            <Link href="/create-profile">Let teams find you</Link>
+            <Link href="/create-profile">Let squads find you</Link>
           </Button>
         </Card>
       ) : (

@@ -77,7 +77,7 @@ export function DashboardEmptyState() {
             {/* Secondary/Outline CTA Button */}
             <Button asChild variant="outline" className="mt-2 w-full gap-2 border-pink/30 text-pink hover:border-pink/50 hover:bg-pink/10 hover:text-pink">
               <Link href="/create-team">
-                Create a Team
+                Create a Squad
                 <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
               </Link>
             </Button>

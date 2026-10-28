@@ -10,7 +10,7 @@ export function MockCreateForm() {
           <div className="flex flex-col gap-5">
             {/* Team Name - filled */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-bold text-foreground">Team / Project Name</label>
+              <label className="text-[10px] font-bold text-foreground">Squad name</label>
               <div className="flex h-8 items-center rounded-lg border border-border/60 bg-secondary/50 px-3 text-xs text-foreground">
                 The Pixel Knights
               </div>

@@ -18,6 +18,7 @@ import { Loader2, ArrowLeft, ShieldAlert, Users, Cpu, Globe, Info } from "lucide
 import { toast } from "sonner"
 import { UserAvatar } from "@/components/user-avatar"
 import { Badge } from "@/components/ui/badge"
+import { engineOptionLabel, languageOptionLabel } from "@/lib/constants"
 import { ROLE_STYLES } from "@/lib/constants"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 
@@ -258,7 +259,7 @@ export function TeamDetailClient({ teamId }: { teamId: string }) {
     return (
       <div className="flex min-h-screen flex-col bg-background">
         <Navbar />
-        <main className="flex-1 px-4 py-16 lg:px-6">
+        <main className="flex-1 px-4 py-16 lg:px-6 lg:pt-28">
           <div className="mx-auto max-w-2xl">
             <Card className="rounded-2xl border-border/60 bg-card">
               <CardContent className="flex flex-col items-center gap-4 p-8 text-center">
@@ -294,7 +295,7 @@ export function TeamDetailClient({ teamId }: { teamId: string }) {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <Navbar />
-      <main className="flex-1 px-4 py-8 lg:px-6 lg:py-12">
+      <main className="flex-1 px-4 pb-8 pt-8 lg:px-6 lg:pb-12 lg:pt-28">
         <div className="mx-auto max-w-4xl space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <Button
@@ -332,7 +333,7 @@ export function TeamDetailClient({ teamId }: { teamId: string }) {
                     className="inline-flex items-center gap-1.5 rounded-full border-border/60 bg-lavender px-3 py-1 text-xs font-semibold text-lavender-foreground"
                   >
                     <Cpu className="size-3.5" />
-                    {squad.engine}
+                    {engineOptionLabel(squad.engine)}
                   </Badge>
                 ) : null}
                 {squad.language ? (
@@ -341,7 +342,7 @@ export function TeamDetailClient({ teamId }: { teamId: string }) {
                     className="inline-flex items-center gap-1.5 rounded-full border-border/60 bg-teal/10 px-3 py-1 text-xs font-semibold text-teal"
                   >
                     <Globe className="size-3.5" />
-                    {squad.language}
+                    {languageOptionLabel(squad.language)}
                   </Badge>
                 ) : null}
                 <Badge

@@ -7,13 +7,13 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 
-const FEEDBACK_URL =
+export const FEEDBACK_URL =
   "https://docs.google.com/forms/d/e/1FAIpQLSfPFN9Y_zYZSld-6EEO3ybmPpflPWvTVaF5Le7ooxlIe9a09g/viewform?usp=dialog"
 
 export function FeedbackButton() {
   return (
     <div
-      className="fixed z-50"
+      className="fixed z-50 hidden md:block"
       style={{
         bottom: "max(1.5rem, env(safe-area-inset-bottom, 1.5rem))",
         right: "max(1.5rem, env(safe-area-inset-right, 1.5rem))",

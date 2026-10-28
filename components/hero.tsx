@@ -15,7 +15,7 @@ export function Hero() {
       <div className="relative mx-auto max-w-2xl text-center">
         <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary">
           <Sparkles className="size-4" />
-          Browse teams looking for members
+          Browse squads looking for members
         </div>
 
         <h1 className="text-balance text-4xl font-extrabold tracking-tight text-foreground md:text-5xl lg:text-6xl">

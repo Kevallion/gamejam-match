@@ -43,7 +43,7 @@ const SHOWCASE_SECTIONS: ShowcaseSection[] = [
     numberColor: "text-teal",
     title: "One place to start looking",
     description:
-      "Instead of hopping between forums and random Discord servers, you land here: search by jam, then filter teams by engine, role, experience, and language so the list matches what you actually need.",
+      "Instead of hopping between forums and random Discord servers, you land here: search by jam, then filter squads by engine, role, experience, and language so the list matches what you actually need.",
     url: "gamejamcrew.com",
     cursorPosition: { x: "62%", y: "68%" },
     cursorLabel: "Filtering by English",
@@ -52,7 +52,7 @@ const SHOWCASE_SECTIONS: ShowcaseSection[] = [
   },
   {
     id: "teams",
-    badge: "Step 2: Team listings",
+    badge: "Step 2: Squad listings",
     badgeIcon: Users,
     frameAccent: "border-pink",
     iconColor: "text-pink",
@@ -68,14 +68,14 @@ const SHOWCASE_SECTIONS: ShowcaseSection[] = [
   },
   {
     id: "create",
-    badge: "Step 3: Post a team",
+    badge: "Step 3: Create a Squad",
     badgeIcon: PenLine,
     frameAccent: "border-lavender",
     iconColor: "text-lavender",
     numberColor: "text-lavender",
     title: "Publish a squad listing",
     description:
-      "Need teammates? Walk through engine, roles to fill, experience level, jam timing, optional Discord, and a short brief. One structured post reaches people already searching for a team.",
+      "Need teammates? Walk through engine, roles to fill, experience level, jam timing, optional Discord, and a short brief. One structured post reaches people already searching for a squad.",
     url: "gamejamcrew.com/create-team",
     cursorPosition: { x: "28%", y: "42%" },
     cursorLabel: "Selecting Godot",
@@ -107,7 +107,7 @@ const SHOWCASE_SECTIONS: ShowcaseSection[] = [
     numberColor: "text-peach",
     title: "Squads and applications together",
     description:
-      "Everything you join or manage lives in one hub: your teams, incoming applications, what you have sent, and your availability post. Accept or decline from the same tabs you use to track the jam.",
+      "Everything you join or manage lives in one hub: your squads, incoming applications, what you have sent, and your availability post. Accept or decline from the same tabs you use to track the jam.",
     url: "gamejamcrew.com/dashboard",
     cursorPosition: { x: "72%", y: "56%" },
     cursorLabel: "Accepting SynthWave_Alex",
@@ -291,7 +291,7 @@ export function ShowcaseShell() {
                 <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
                   <Link
                     href="/create-team"
-                    className="inline-flex h-14 min-w-[200px] items-center justify-center gap-2 rounded-lg border-2 border-foreground bg-teal px-8 text-base font-extrabold text-white shadow-[4px_4px_0px_0px_var(--neo-shadow)] transition-all hover:-translate-y-0.5 hover:shadow-[5px_5px_0px_0px_var(--neo-shadow)] active:translate-y-0 active:shadow-[2px_2px_0px_0px_var(--neo-shadow)]"
+                    className="inline-flex h-14 min-w-[200px] items-center justify-center gap-2 rounded-lg border-2 border-foreground bg-teal px-8 text-base font-extrabold text-teal-foreground shadow-[4px_4px_0px_0px_var(--neo-shadow)] transition-all hover:-translate-y-0.5 hover:shadow-[5px_5px_0px_0px_var(--neo-shadow)] active:translate-y-0 active:shadow-[2px_2px_0px_0px_var(--neo-shadow)]"
                   >
                     <Users className="size-5" />
                     Create a Squad

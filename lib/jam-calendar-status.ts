@@ -89,8 +89,8 @@ export function getJamListingStatus(
 
   return {
     phase: "live",
-    label: "Live Now 🔴",
+    label: "Live Now",
     badgeClassName:
-      "animate-pulse border-destructive/40 bg-destructive/15 text-destructive font-semibold",
+      "border-destructive/40 bg-destructive/15 text-destructive font-semibold",
   }
 }

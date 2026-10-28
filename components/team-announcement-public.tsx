@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { JoinTeamModal } from "@/components/join-team-modal"
 import { AuthModal } from "@/components/auth-modal"
 import { JamTitleBlock, type TeamCardData } from "@/components/team-card"
+import { engineOptionLabel, languageOptionLabel } from "@/lib/constants"
 import { ArrowLeft, ArrowRight, Cpu, Globe, ShieldCheck } from "lucide-react"
 
 type RoleOption = { key: string; label: string; emoji: string; color: string; filled?: boolean }
@@ -43,22 +44,24 @@ interface TeamAnnouncementPublicProps {
 export function TeamAnnouncementPublic({ team, isLoggedIn }: TeamAnnouncementPublicProps) {
   const [authModalOpen, setAuthModalOpen] = useState(false)
   const availableRoles = computeAvailableRoles(team)
+  const engineLabel = engineOptionLabel(team.engine)
+  const languageLabel = languageOptionLabel(team.language)
   const isSquadFull =
     availableRoles.length > 0 && availableRoles.every((r) => r.filled)
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <Navbar />
-      <main className="flex-1 px-4 py-8 lg:px-6 lg:py-12">
+      <main className="flex-1 px-4 pb-8 pt-8 lg:px-6 lg:pb-12 lg:pt-28">
         <div className="mx-auto max-w-lg">
           <Button
             asChild
             variant="ghost"
             className="mb-6 gap-2 text-muted-foreground hover:text-foreground"
           >
-            <Link href="/dashboard">
+            <Link href="/teams">
               <ArrowLeft className="size-4" />
-              Back to Dashboard
+              All squads
             </Link>
           </Button>
 
@@ -75,14 +78,14 @@ export function TeamAnnouncementPublic({ team, isLoggedIn }: TeamAnnouncementPub
                   className="inline-flex items-center gap-1.5 rounded-full border-border/60 bg-lavender px-3 py-1 text-xs font-semibold text-lavender-foreground"
                 >
                   <Cpu className="size-3.5" />
-                  {team.engine}
+                  {engineLabel}
                 </Badge>
                 <Badge
                   variant="outline"
                   className="inline-flex items-center gap-1.5 rounded-full border-border/60 bg-teal/10 px-3 py-1 text-xs font-semibold text-teal"
                 >
                   <Globe className="size-3.5" />
-                  {team.language}
+                  {languageLabel}
                 </Badge>
                 <span
                   className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold ${team.level.color}`}
@@ -150,7 +153,7 @@ export function TeamAnnouncementPublic({ team, isLoggedIn }: TeamAnnouncementPub
               {isSquadFull ? (
                 <div className="flex items-center justify-center gap-2 rounded-xl border border-border/60 bg-muted/50 px-4 py-3 text-sm font-bold text-muted-foreground">
                   <ShieldCheck className="size-4 text-primary" />
-                  Team full
+                  Squad full
                 </div>
               ) : !isLoggedIn ? (
                 <Button

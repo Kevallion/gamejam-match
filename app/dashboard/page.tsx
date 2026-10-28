@@ -7,18 +7,18 @@ import { PostActionOnboarding } from "@/components/post-action-onboarding"
 
 export const metadata: Metadata = {
   title: "Dashboard — GameJamCrew",
-  description: "Manage your game jam teams, track incoming applications, and keep your jammer profile up to date.",
+  description: "Manage your game jam squads, track incoming applications, and keep your jammer profile up to date.",
   openGraph: {
     title: "Dashboard — GameJamCrew",
     description:
-      "Manage your game jam teams, track incoming applications, and keep your jammer profile up to date.",
+      "Manage your game jam squads, track incoming applications, and keep your jammer profile up to date.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "Dashboard — GameJamCrew",
     description:
-      "Manage your game jam teams, track incoming applications, and keep your jammer profile up to date.",
+      "Manage your game jam squads, track incoming applications, and keep your jammer profile up to date.",
   },
 }
 

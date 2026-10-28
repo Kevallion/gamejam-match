@@ -14,9 +14,9 @@ export function MockHero() {
           <span className="text-xs font-extrabold tracking-tight text-foreground">GameJamCrew</span>
         </div>
         <div className="hidden items-center gap-3 sm:flex">
-          <span className="text-[10px] text-muted-foreground">Find Teams</span>
+          <span className="text-[10px] text-muted-foreground">Squads</span>
           <span className="text-[10px] text-muted-foreground">Find Members</span>
-          <span className="text-[10px] text-muted-foreground">Post a Team</span>
+          <span className="text-[10px] text-muted-foreground">Create a Squad</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="inline-flex items-center gap-1 rounded-xl bg-teal px-2.5 py-1 text-[10px] font-semibold text-teal-foreground">
@@ -63,7 +63,7 @@ export function MockHero() {
           </div>
           <div className="flex items-center gap-2">
             <SlidersHorizontal className="size-3 text-muted-foreground" />
-            <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Filter teams</span>
+            <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Filter squads</span>
           </div>
           <div className="mt-2 flex flex-wrap gap-2">
             {["Any Engine", "Any Role", "Any Experience", "English"].map((f, i) => (

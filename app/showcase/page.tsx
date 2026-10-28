@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 import { ShowcaseShell } from "@/components/showcase/showcase-shell"
 
 const showcaseDescription =
-  "Step-by-step tour: search teams, post a squad, find members, and manage applications and invites in one place. Built for game jams without hopping between forums and Discord servers."
+  "Step-by-step tour: search squads, create a squad, find members, and manage applications and invites in one place. Built for game jams without hopping between forums and Discord servers."
 
 export const metadata: Metadata = {
   title: "How it works | GameJamCrew",

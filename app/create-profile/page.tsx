@@ -5,16 +5,16 @@ import type { Metadata } from "next"
 
 export const metadata: Metadata = {
   title: "Join a Squad — GameJamCrew",
-  description: "Set up your solo profile and let teams know you're ready to jam. Share your skills and get discovered.",
+  description: "Set up your solo profile and let squads know you're ready to jam. Share your skills and get discovered.",
   openGraph: {
     title: "Join a Squad — GameJamCrew",
-    description: "Set up your solo profile and let teams know you're ready to jam. Share your skills and get discovered.",
+    description: "Set up your solo profile and let squads know you're ready to jam. Share your skills and get discovered.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
     title: "Join a Squad — GameJamCrew",
-    description: "Set up your solo profile and let teams know you're ready to jam. Share your skills and get discovered.",
+    description: "Set up your solo profile and let squads know you're ready to jam. Share your skills and get discovered.",
   },
 }
 

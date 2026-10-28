@@ -94,22 +94,22 @@ export default function PrivacyPage() {
                   to reward engagement on the platform.
                 </li>
                 <li>
-                  <strong className="text-foreground">Teams and recruiting:</strong>{" "}
-                  Content you publish when creating or managing a team (name, game
+                  <strong className="text-foreground">Squads and recruiting:</strong>{" "}
+                  Content you publish when creating or managing a squad (name, game
                   concept, roles sought, description, engine, language, Discord
                   invite link when provided, jam association, dates).
                 </li>
                 <li>
                   <strong className="text-foreground">Join requests and invitations:</strong>{" "}
-                  When you apply to a team or receive or send an invitation, we store
+                  When you apply to a squad or receive or send an invitation, we store
                   the request type, status, targeted role, and any message you attach,
                   plus identifiers needed to connect the request to your account and
-                  the team.
+                  the squad.
                 </li>
                 <li>
-                  <strong className="text-foreground">Team chat:</strong>{" "}
-                  Messages you post in a team&apos;s chat are stored so members can
-                  see the conversation history for that team.
+                  <strong className="text-foreground">Squad chat:</strong>{" "}
+                  Messages you post in a squad&apos;s chat are stored so members can
+                  see the conversation history for that squad.
                 </li>
                 <li>
                   <strong className="text-foreground">Availability posts:</strong>{" "}
@@ -120,7 +120,7 @@ export default function PrivacyPage() {
                 <li>
                   <strong className="text-foreground">In-app notifications:</strong>{" "}
                   We store notification records (type, message, link, read state) so
-                  you can see updates about applications, invitations, team activity,
+                  you can see updates about applications, invitations, squad activity,
                   and similar events in the product.
                 </li>
                 <li>

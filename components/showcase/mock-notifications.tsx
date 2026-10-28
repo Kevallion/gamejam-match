@@ -116,7 +116,7 @@ export function MockNotifications() {
           </div>
           <h1 className="text-lg font-extrabold tracking-tight text-foreground">Dashboard</h1>
           <p className="mt-1 text-xs text-muted-foreground">
-            Manage your teams, track applications, stay organized.
+            Manage your squads, track applications, stay organized.
           </p>
           <div className="mt-4 grid grid-cols-3 gap-2">
             {[1, 2, 3].map((i) => (

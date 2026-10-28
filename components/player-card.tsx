@@ -57,6 +57,11 @@ import type { KudosCounts } from "@/lib/kudos"
 import { ENGINE_OPTIONS_WITH_ANY, LANGUAGE_OPTIONS } from "@/lib/constants"
 import { fetchPendingInvitationTeamIdsForInvitee } from "@/lib/queries"
 
+function isPlaceholderChip(label: string | null | undefined): boolean {
+  const trimmed = label?.trim() ?? ""
+  return trimmed.length === 0 || trimmed === "—" || trimmed === "-"
+}
+
 function languageDisplayLabel(value: string | undefined): string {
   const raw = (value ?? "").trim()
   if (!raw) return ""
@@ -185,7 +190,7 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
     e.stopPropagation()
     const title = player.username
     const enginePart = engineLabel ? ` using ${engineLabel}` : ""
-    const text = `${player.username} is looking for a team as a ${player.role.label}${enginePart}! View their GameJamCrew profile:`
+    const text = `${player.username} is looking for a squad as a ${player.role.label}${enginePart}! View their GameJamCrew profile:`
     const profileUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/jammer/${player.id}`
     const url = profileUrl
     try {
@@ -282,7 +287,7 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
         (err && typeof err === "object" && "code" in err && (err as { code?: string }).code === "23505") ||
         code.includes("already pending")
       const msg = isDup
-        ? "An invitation is already pending for this player on this team."
+        ? "An invitation is already pending for this player on this squad."
         : err instanceof Error
           ? err.message
           : "An error occurred. Please try again."
@@ -298,6 +303,8 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
   const inviteLockedForSquad = (squadId: string) =>
     memberLockedForSquad(squadId) || sentSquadIds.has(squadId) || pendingInviteTeamIds.has(squadId)
   const allSent = mySquads.length > 0 && mySquads.every((s) => inviteLockedForSquad(s.id))
+  const showRoleChip = !isPlaceholderChip(player.role.label)
+  const showLevelChip = !isPlaceholderChip(player.level.label)
   const availabilityInfo = parseAvailability(player.availability)
   function openCreateSquadDialog(e?: React.MouseEvent) {
     if (e) {
@@ -357,8 +364,10 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
                 </Button>
               </div>
 
-              {/* Role + Level + Jam Style badges */}
+              {/* Role + Level + Jam Style badges — empty directory fields stay hidden */}
+              {(showRoleChip || showLevelChip || player.jamStyle) ? (
               <div className="flex flex-wrap items-center gap-1.5">
+                {showRoleChip ? (
                 <Badge
                   variant="secondary"
                   title={`${player.role.emoji} ${player.role.label}`}
@@ -368,6 +377,8 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
                     {player.role.emoji} {player.role.label}
                   </span>
                 </Badge>
+                ) : null}
+                {showLevelChip ? (
                 <span
                   title={`${player.level.emoji} ${player.level.label}`}
                   className={`inline-flex min-w-0 max-w-full shrink items-center gap-1 truncate rounded-full px-2.5 py-1 text-xs font-semibold ${player.level.color}`}
@@ -376,6 +387,7 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
                     {player.level.emoji} {player.level.label}
                   </span>
                 </span>
+                ) : null}
                 {player.jamStyle && (
                   <span
                     className={`inline-flex min-w-0 max-w-full shrink items-center gap-1 truncate rounded-full px-2.5 py-1 text-xs font-semibold ${player.jamStyle.color}`}
@@ -387,6 +399,7 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
                   </span>
                 )}
               </div>
+              ) : null}
 
               <KudosBadgeRow counts={player.kudosCounts} className="gap-1.5" size="xs" />
 
@@ -454,7 +467,7 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
                 >
                   <span className="flex items-center justify-center gap-1.5 text-xs">
                     <Users className="size-3.5" />
-                    <span>Create a squad and invite this jammer</span>
+                    <span>Create a Squad and invite this jammer</span>
                   </span>
                 </Button>
               ) : (
@@ -505,8 +518,9 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
 
           <ScrollArea className="max-h-[60vh] px-6 py-4">
             <div className="flex flex-col gap-4 pr-4">
-              {/* Badges Role, Level, Jam Style, Engine */}
+              {(showRoleChip || showLevelChip || player.jamStyle || engineLabel) ? (
               <div className="flex flex-wrap items-center gap-1.5">
+                {showRoleChip ? (
                 <Badge
                   variant="outline"
                   title={`${player.role.emoji} ${player.role.label}`}
@@ -516,6 +530,8 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
                     {player.role.emoji} {player.role.label}
                   </span>
                 </Badge>
+                ) : null}
+                {showLevelChip ? (
                 <span
                   title={`${player.level.emoji} ${player.level.label}`}
                   className={`inline-flex min-w-0 max-w-full shrink items-center gap-1 truncate rounded-full px-3 py-1 text-xs font-semibold ${player.level.color}`}
@@ -524,6 +540,7 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
                     {player.level.emoji} {player.level.label}
                   </span>
                 </span>
+                ) : null}
                 {player.jamStyle && (
                   <span
                     className={`inline-flex min-w-0 max-w-full shrink items-center gap-1 truncate rounded-full px-3 py-1 text-xs font-semibold ${player.jamStyle.color}`}
@@ -545,6 +562,7 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
                   </Badge>
                 ) : null}
               </div>
+              ) : null}
 
               {/* Availability */}
               {availabilityInfo && (
@@ -615,7 +633,7 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
                 className="flex h-auto w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-primary/40 bg-primary px-4 py-3 text-sm text-primary-foreground shadow-sm hover:bg-primary/90 hover:border-primary"
               >
                 <Users className="size-4" />
-                Create a squad and invite this jammer
+                Create a Squad and invite this jammer
               </Button>
             ) : (
               <div className="flex flex-col gap-2">
@@ -626,7 +644,7 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
                       className="w-full gap-2 rounded-xl bg-primary text-primary-foreground transition-all hover:bg-primary/85"
                     >
                       <Mail className="size-4" />
-                      {allSent ? "All invitations sent ✓" : "Invite to my team"}
+                      {allSent ? "All invitations sent ✓" : "Invite to my squad"}
                       {!allSent && <ChevronDown className="size-3.5 ml-auto" />}
                     </Button>
                   </DropdownMenuTrigger>
@@ -820,7 +838,7 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
       <Dialog open={createSquadDialogOpen} onOpenChange={setCreateSquadDialogOpen}>
         <DialogContent className="top-0 left-0 h-[100dvh] w-screen max-w-none translate-x-0 translate-y-0 overflow-y-auto border-0 bg-card p-0 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden sm:top-[50%] sm:left-[50%] sm:h-auto sm:max-h-[90vh] sm:w-[calc(100%-1rem)] sm:max-w-3xl sm:-translate-x-1/2 sm:-translate-y-1/2 sm:rounded-2xl sm:border sm:border-border/60">
           <DialogHeader className="sr-only">
-            <DialogTitle>Create a squad and invite jammer</DialogTitle>
+            <DialogTitle>Create a Squad and invite this jammer</DialogTitle>
             <DialogDescription>
               Complete the squad form and send an invitation to this jammer.
             </DialogDescription>

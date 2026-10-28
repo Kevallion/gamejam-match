@@ -145,13 +145,13 @@ function senderNameMatchesActor(type: string, jr: JoinRequestEmbed): boolean {
 export function extractDisplayNameFromNotificationMessage(type: string, message: string): string | null {
   const m = message.trim()
   if (type === "application_received") {
-    const cand = /^(.+?)\s+applied to your team\b/i.exec(m)?.[1]?.trim().replace(/^["']|["']$/g, "")
+    const cand = /^(.+?)\s+applied to your (?:team|squad)\b/i.exec(m)?.[1]?.trim().replace(/^["']|["']$/g, "")
     if (cand) return cand
-    const teamOnly = /applied to your team\s+"([^"]+)"/i.exec(m)?.[1]?.trim()
+    const teamOnly = /applied to your (?:team|squad)\s+"([^"]+)"/i.exec(m)?.[1]?.trim()
     return teamOnly || null
   }
   if (type === "player_joined") {
-    const match = /^(.+?)\s+has officially joined your team/i.exec(m)
+    const match = /^(.+?)\s+has officially joined your (?:team|squad)/i.exec(m)
     return match?.[1]?.trim() ?? null
   }
   if (type === "invitation_declined") {
@@ -162,19 +162,19 @@ export function extractDisplayNameFromNotificationMessage(type: string, message:
     return /to join\s+"([^"]+)"\s+was declined/i.exec(m)?.[1]?.trim() ?? null
   }
   if (type === "application_accepted") {
-    return /into the team\s+"([^"]+)"/i.exec(m)?.[1]?.trim() ?? null
+    return /into the (?:team|squad)\s+"([^"]+)"/i.exec(m)?.[1]?.trim() ?? null
   }
   if (type === "team_invitation") {
-    return /join the team\s+"([^"]+)"/i.exec(m)?.[1]?.trim() ?? null
+    return /join the (?:team|squad)\s+"([^"]+)"/i.exec(m)?.[1]?.trim() ?? null
   }
   if (type === "team_kicked") {
-    return /removed from the team\s+"([^"]+)"/i.exec(m)?.[1]?.trim() ?? null
+    return /removed from the (?:team|squad)\s+"([^"]+)"/i.exec(m)?.[1]?.trim() ?? null
   }
   if (type === "team_chat") {
-    return /team chat\s+"([^"]+)"/i.exec(m)?.[1]?.trim() ?? null
+    return /(?:team|squad) chat\s+"([^"]+)"/i.exec(m)?.[1]?.trim() ?? null
   }
   if (type === "discord_updated") {
-    return /your team\s+"([^"]+)"\s+has been updated/i.exec(m)?.[1]?.trim() ?? null
+    return /your (?:team|squad)\s+"([^"]+)"\s+has been updated/i.exec(m)?.[1]?.trim() ?? null
   }
   return null
 }
@@ -294,26 +294,26 @@ function rewriteNotificationMessage(type: string, message: string, safeName: str
   const nameOk = Boolean(safeName && safeName !== "Jammer" && !isEmailDerivedLabel(safeName))
   const leaked = notificationLooksLeaked(message)
   if (type === "player_joined") {
-    if (nameOk) return `${safeName} has officially joined your team!`
-    if (leaked) return "A jammer has officially joined your team!"
+    if (nameOk) return `${safeName} has officially joined your squad!`
+    if (leaked) return "A jammer has officially joined your squad!"
   }
   if (type === "invitation_declined") {
-    if (nameOk) return `Player ${safeName} declined your invitation to join the team.`
-    if (leaked) return "A jammer declined your invitation to join the team."
+    if (nameOk) return `Player ${safeName} declined your invitation to join the squad.`
+    if (leaked) return "A jammer declined your invitation to join the squad."
   }
   if (type === "member_left") {
     if (nameOk) return `${safeName} left your squad.`
     if (leaked) return "A jammer left your squad."
   }
   if (type === "application_received") {
-    const team = /applied to your team\s+"([^"]+)"/i.exec(message)?.[1]?.trim()
+    const team = /applied to your (?:team|squad)\s+"([^"]+)"/i.exec(message)?.[1]?.trim()
     if (nameOk) {
-      if (team && !isEmailDerivedLabel(team)) return `${safeName} applied to your team "${team}".`
-      return `${safeName} applied to your team.`
+      if (team && !isEmailDerivedLabel(team)) return `${safeName} applied to your squad "${team}".`
+      return `${safeName} applied to your squad.`
     }
     if (leaked) {
-      if (team && !isEmailDerivedLabel(team)) return `A jammer applied to your team "${team}".`
-      return "A jammer applied to your team."
+      if (team && !isEmailDerivedLabel(team)) return `A jammer applied to your squad "${team}".`
+      return "A jammer applied to your squad."
     }
   }
   return message

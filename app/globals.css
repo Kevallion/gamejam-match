@@ -98,9 +98,12 @@
   --card-foreground: oklch(0.18 0.02 220);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.18 0.02 220);
-  /* Teal #14b8a6 */
+  /* Teal fill stays the pastel brand color. Labels on that fill are dark so they clear WCAG AA. */
   --primary: oklch(0.70 0.14 185);
-  --primary-foreground: oklch(1 0 0);
+  --primary-foreground: oklch(0.22 0.03 200);
+  /* Darker teal used only as text (text-primary / text-teal) in light mode. ~7:1 on white. */
+  --primary-text: oklch(0.44 0.075 185);
+  --teal-text: oklch(0.44 0.075 185);
   --secondary: oklch(0.94 0.015 220);
   --secondary-foreground: oklch(0.25 0.02 220);
   --muted: oklch(0.94 0.015 220);
@@ -132,7 +135,7 @@
   --sidebar: oklch(0.96 0.008 220);
   --sidebar-foreground: oklch(0.18 0.02 220);
   --sidebar-primary: oklch(0.70 0.14 185);
-  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-primary-foreground: oklch(0.22 0.03 200);
   --sidebar-accent: oklch(0.92 0.01 220);
   --sidebar-accent-foreground: oklch(0.25 0.02 220);
   --sidebar-border: oklch(0.82 0.01 220);
@@ -141,9 +144,9 @@
   /* Coral #f97316 */
   --pink: oklch(0.72 0.16 30);
   --pink-foreground: oklch(1 0 0);
-  /* Teal */
+  /* Teal fill (buttons, badges). Foreground is dark for AA on the pastel fill. */
   --teal: oklch(0.70 0.14 185);
-  --teal-foreground: oklch(1 0 0);
+  --teal-foreground: oklch(0.22 0.03 200);
   /* Lavender */
   --lavender: oklch(0.63 0.12 290);
   --lavender-foreground: oklch(1 0 0);
@@ -389,4 +392,40 @@
   .stack-lg {
     @apply space-y-6;
   }
+}
+
+/*
+  Light mode: `text-primary` and `text-teal` share the fill token, which is too light on white (~2.4:1).
+  These unlayered rules point text utilities at --primary-text / --teal-text (≥4.5:1, including /80 and /90).
+  Fills (`bg-primary`, `bg-teal`) stay on the pastel tokens. Dark mode is unchanged.
+*/
+.light .text-primary,
+.light .hover\:text-primary:hover,
+.light .data-\[state\=active\]\:text-primary[data-state="active"] {
+  color: var(--primary-text);
+}
+.light .text-teal,
+.light .hover\:text-teal:hover,
+.light .data-\[state\=active\]\:text-teal[data-state="active"] {
+  color: var(--teal-text);
+}
+.light .text-primary\/90,
+.light .hover\:text-primary\/90:hover {
+  color: color-mix(in oklab, var(--primary-text) 90%, transparent);
+}
+.light .text-primary\/80,
+.light .hover\:text-primary\/80:hover {
+  color: color-mix(in oklab, var(--primary-text) 80%, transparent);
+}
+.light .text-teal\/90 {
+  color: color-mix(in oklab, var(--teal-text) 90%, transparent);
+}
+.light .text-teal\/80 {
+  color: color-mix(in oklab, var(--teal-text) 80%, transparent);
+}
+.light .\[\&\>svg\]\:text-teal > svg {
+  color: var(--teal-text);
+}
+.light .\[\&\>a\:hover\]\:text-primary > a:hover {
+  color: var(--primary-text);
 }
