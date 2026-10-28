@@ -59,6 +59,23 @@ CREATE TRIGGER join_requests_reject_existing_member
   FOR EACH ROW
   EXECUTE FUNCTION public.reject_join_request_for_existing_member();
 
+-- Keep the newest pending request. Status values are pending, accepted, rejected.
+UPDATE public.join_requests j
+SET status = 'rejected'
+WHERE j.status = 'pending'
+  AND j.id IN (
+    SELECT id FROM (
+      SELECT id,
+             row_number() OVER (
+               PARTITION BY team_id, sender_id
+               ORDER BY created_at DESC
+             ) AS rn
+      FROM public.join_requests
+      WHERE status = 'pending'
+    ) ranked
+    WHERE rn > 1
+  );
+
 -- Reaffirm one pending request per (team, sender). Safe if the index already exists.
 CREATE UNIQUE INDEX IF NOT EXISTS join_requests_one_pending_per_team_sender
   ON public.join_requests (team_id, sender_id)
@@ -113,9 +130,11 @@ WHERE n.type = 'invitation_declined'
   AND n.message ~ '[@+]';
 
 UPDATE public.notifications n
-SET message = p.username || ' applied to your team "' || COALESCE(t.team_name, 'your squad') || '".'
+SET message = p.username || ' applied to your team "' || COALESCE(
+  (SELECT t.team_name FROM public.teams t WHERE t.id = n.team_id),
+  'your squad'
+) || '".'
 FROM public.profiles p
-LEFT JOIN public.teams t ON t.id = n.team_id
 WHERE n.type = 'application_received'
   AND n.sender_id = p.id
   AND NULLIF(btrim(p.username), '') IS NOT NULL
