@@ -77,7 +77,7 @@ export function LandingHero({
 }) {
   return (
     <section
-      className="relative min-h-[90vh] flex items-center overflow-hidden px-4 pt-24 pb-16 lg:px-8 lg:pt-32 lg:pb-24"
+      className="relative flex items-center overflow-hidden px-4 pb-16 pt-24 lg:px-8 lg:pb-24 lg:pt-32"
       style={{ backgroundImage: DOT_PATTERN, backgroundColor: "var(--background)" }}
     >
       <div className="relative z-10 mx-auto w-full max-w-6xl">
@@ -150,7 +150,7 @@ export function LandingHero({
                       <p className="truncate text-sm font-semibold text-foreground">{team.name}</p>
                       <p className="truncate text-xs text-primary">{team.jam || "Upcoming jam"}</p>
                       <p className="text-xs text-muted-foreground">
-                        {team.openRoles} open role{team.openRoles > 1 ? "s" : ""}
+                        {team.openRoles} open spot{team.openRoles === 1 ? "" : "s"}
                       </p>
                     </Link>
                   ))}
@@ -222,7 +222,7 @@ export function LandingHero({
           </div>
 
           {/* ── Right column: role cards ── */}
-          <div className="relative flex-shrink-0 w-full max-w-sm lg:max-w-md">
+          <div className="relative hidden w-full max-w-sm shrink-0 lg:block lg:max-w-md">
             <div className="relative flex flex-col gap-4">
               {roleCards.map((card) => (
                 <RoleCard key={card.role} card={card} />

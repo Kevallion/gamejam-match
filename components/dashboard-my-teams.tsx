@@ -47,6 +47,7 @@ import {
   getJamListingStatus,
   isJamStartBackfilledWithCreatedAt,
 } from "@/lib/jam-calendar-status"
+import { JamStatusBadge } from "@/components/jam-status-badge"
 
 export type TeamData = {
   id: string
@@ -274,20 +275,13 @@ export function DashboardMyTeams({
                         createdAtIso: team.createdAt,
                       })
                       if (!jamStatus) return null
-                      return (
-                        <Badge
-                          variant="outline"
-                          className={`mt-1.5 w-fit max-w-full rounded-full px-2 py-0.5 text-[10px] font-semibold ${jamStatus.badgeClassName}`}
-                        >
-                          {jamStatus.label}
-                        </Badge>
-                      )
+                      return <JamStatusBadge status={jamStatus} className="mt-1.5 max-w-full" />
                     })()}
                   </div>
                   <div className="flex shrink-0 items-center gap-1.5">
                     <Badge
                       variant="outline"
-                      className={`rounded-full text-[10px] font-semibold px-2 py-0.5 ${
+                      className={`rounded-full text-xs font-semibold px-2 py-0.5 ${
                         team.isOwner
                           ? "border-primary/30 bg-primary/10 text-primary"
                           : "border-border/60 bg-muted text-muted-foreground"
@@ -297,7 +291,7 @@ export function DashboardMyTeams({
                     </Badge>
                     <Badge
                       variant="outline"
-                      className="rounded-full border-border/60 text-[10px] text-muted-foreground px-2 py-0.5"
+                      className="rounded-full border-border/60 text-xs text-muted-foreground px-2 py-0.5"
                     >
                       <Users className="mr-1 size-3" />
                       {team.members}/{team.maxMembers}
@@ -315,7 +309,7 @@ export function DashboardMyTeams({
                   team.jamEndDate &&
                   new Date(team.jamEndDate).getTime() > Date.now() && (
                     <p
-                      className="rounded-lg border border-amber-500/30 bg-amber-500/5 px-2.5 py-1.5 text-[10px] leading-snug text-amber-900 dark:text-amber-100/90"
+                      className="rounded-lg border border-amber-500/30 bg-amber-500/5 px-2.5 py-1.5 text-xs leading-snug text-amber-900 dark:text-amber-100/90"
                       role="status"
                     >
                       Please update your Jam dates to show your real progress.
@@ -341,14 +335,14 @@ export function DashboardMyTeams({
                 {/* Role + level badges */}
                 <div className="flex flex-wrap gap-1">
                   <span
-                    className={`inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[10px] font-semibold ${team.level.color}`}
+                    className={`inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-xs font-semibold ${team.level.color}`}
                   >
                     {team.level.emoji} {team.level.label}
                   </span>
                   {team.roles.map((role, roleIdx) => (
                     <span
                       key={`${role.label}-${roleIdx}`}
-                      className={`inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[10px] font-semibold ${role.color}`}
+                      className={`inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-xs font-semibold ${role.color}`}
                     >
                       {role.emoji} {role.label}
                     </span>
@@ -434,7 +428,7 @@ export function DashboardMyTeams({
                           </a>
                         </Button>
                       ) : (
-                        <p className="flex-1 text-center text-[10px] italic text-muted-foreground">
+                        <p className="flex-1 text-center text-xs italic text-muted-foreground">
                           No Discord link yet.
                         </p>
                       )}
@@ -547,16 +541,16 @@ export function DashboardMyTeams({
                           </div>
                           <div className="mt-1.5 flex flex-wrap gap-1.5">
                             <span
-                              className={`inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[10px] font-semibold ${roleStyle.color}`}
+                              className={`inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-xs font-semibold ${roleStyle.color}`}
                             >
                               <span className="shrink-0">{roleStyle.emoji}</span>
                               <span>{roleStyle.label}</span>
                             </span>
-                            <span className="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-[10px] font-medium text-secondary-foreground">
+                            <span className="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground">
                               {engineLabel(p.engine)}
                             </span>
                             <span
-                              className={`inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[10px] font-semibold ${expStyle.color}`}
+                              className={`inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-xs font-semibold ${expStyle.color}`}
                             >
                               <span className="shrink-0">{expStyle.emoji}</span>
                               <span>{expStyle.label}</span>

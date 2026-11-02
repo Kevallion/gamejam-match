@@ -72,7 +72,7 @@ export function DashboardInboxCompact({
               <Inbox className="size-4 text-peach" />
               <h3 className="text-sm font-bold text-foreground">Incoming actions</h3>
             </div>
-            <Badge className="rounded-full bg-peach/15 px-2 py-0 text-[10px] font-bold text-peach">
+            <Badge className="rounded-full bg-peach/15 px-2 py-0 text-xs font-bold text-peach">
               {incomingCount}
             </Badge>
           </div>
@@ -181,7 +181,7 @@ export function DashboardInboxCompact({
               <Send className="size-4 text-teal" />
               <h3 className="text-sm font-bold text-foreground">Sent requests</h3>
             </div>
-            <Badge className="rounded-full bg-teal/15 px-2 py-0 text-[10px] font-bold text-teal">
+            <Badge className="rounded-full bg-teal/15 px-2 py-0 text-xs font-bold text-teal">
               {sentCount}
             </Badge>
           </div>
@@ -197,7 +197,7 @@ export function DashboardInboxCompact({
                   <div key={request.id} className="rounded-lg border border-border/40 bg-background/40 p-2.5">
                     <div className="flex items-center justify-between gap-2">
                       <p className="truncate text-xs font-semibold text-foreground">{request.teamName}</p>
-                      <span className={`rounded-full border px-1.5 py-0 text-[10px] font-semibold ${status.className}`}>
+                      <span className={`rounded-full border px-1.5 py-0 text-xs font-semibold ${status.className}`}>
                         {status.label}
                       </span>
                     </div>
@@ -206,7 +206,7 @@ export function DashboardInboxCompact({
                         type="button"
                         size="sm"
                         variant="outline"
-                        className="mt-2 h-6 w-full cursor-pointer rounded-md text-[10px]"
+                        className="mt-2 h-6 w-full cursor-pointer rounded-md text-xs"
                         disabled={cancellingSentRequestId === request.id}
                         onClick={() => onCancelPendingSentRequest(request.id)}
                       >
@@ -225,7 +225,7 @@ export function DashboardInboxCompact({
                       <p className="truncate text-xs font-semibold text-foreground">
                         Invitation · {request.inviteeUsername}
                       </p>
-                      <span className={`rounded-full border px-1.5 py-0 text-[10px] font-semibold ${status.className}`}>
+                      <span className={`rounded-full border px-1.5 py-0 text-xs font-semibold ${status.className}`}>
                         {status.label}
                       </span>
                     </div>
@@ -235,7 +235,7 @@ export function DashboardInboxCompact({
                         type="button"
                         size="sm"
                         variant="outline"
-                        className="mt-2 h-6 w-full cursor-pointer rounded-md text-[10px]"
+                        className="mt-2 h-6 w-full cursor-pointer rounded-md text-xs"
                         disabled={cancellingSentRequestId === request.id}
                         onClick={() => onCancelPendingSentRequest(request.id)}
                       >
@@ -247,7 +247,7 @@ export function DashboardInboxCompact({
               })}
             </>
           )}
-          <div className="mt-2 inline-flex items-center gap-1 text-[10px] text-muted-foreground">
+          <div className="mt-2 inline-flex items-center gap-1 text-xs text-muted-foreground">
             <Clock3 className="size-3" />
             Status updates stay visible for traceability.
           </div>

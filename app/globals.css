@@ -251,11 +251,15 @@
 @layer components {
   /* Shared interactive card hover system — apply to any card that needs hover state */
   .card-interactive {
-    transition: border-color 0.25s ease, box-shadow 0.25s ease;
+    transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
   }
   .card-interactive:hover {
     border-color: var(--card-hover-border);
-    box-shadow: 0 8px 32px var(--card-glow);
+    box-shadow: 3px 3px 0 0 var(--neo-shadow), 0 8px 32px var(--card-glow);
+    transform: translate(-1px, -1px);
+  }
+  .card-interactive:active {
+    transform: translateY(1px);
   }
 
   /* Semantic status banners — replaces raw palette colors in feedback UI */

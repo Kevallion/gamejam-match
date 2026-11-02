@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { SlidersHorizontal, RotateCcw } from "lucide-react"
-import { ENGINE_OPTIONS, LANGUAGE_OPTIONS, ROLE_OPTIONS } from "@/lib/constants"
+import { ENGINE_OPTIONS, EXPERIENCE_OPTIONS, LANGUAGE_OPTIONS, ROLE_OPTIONS } from "@/lib/constants"
 import { TagFilterChoice } from "@/components/tag-icon"
 import { useIsMobile } from "@/hooks/use-mobile"
 import {
@@ -26,11 +26,13 @@ import {
 interface DirectoryFiltersProps {
   role?: string
   engine?: string
+  level?: string
   language?: string
   hasActiveFilters?: boolean
   resultsCount?: number
   onRoleChange: (val: string) => void
   onEngineChange: (val: string) => void
+  onLevelChange: (val: string) => void
   onLanguageChange: (val: string) => void
   onReset?: () => void
 }
@@ -38,11 +40,13 @@ interface DirectoryFiltersProps {
 export function DirectoryFilters({
   role = "all",
   engine = "all",
+  level = "all",
   language = "all",
   hasActiveFilters = false,
   resultsCount,
   onRoleChange,
   onEngineChange,
+  onLevelChange,
   onLanguageChange,
   onReset,
 }: DirectoryFiltersProps) {
@@ -52,9 +56,10 @@ export function DirectoryFilters({
     let count = 0
     if (role !== "all") count++
     if (engine !== "all") count++
+    if (level !== "all") count++
     if (language !== "all") count++
     return count
-  }, [role, engine, language])
+  }, [role, engine, level, language])
 
   const resultsLabel =
     typeof resultsCount === "number"
@@ -86,6 +91,20 @@ export function DirectoryFilters({
           {ENGINE_OPTIONS.map((opt) => (
             <SelectItem key={opt.value} value={opt.value}>
               <TagFilterChoice kind="engine" value={opt.value} label={opt.label} />
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      <Select onValueChange={onLevelChange} value={level}>
+        <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40 sm:w-[170px]">
+          <SelectValue placeholder="Experience" />
+        </SelectTrigger>
+        <SelectContent className="rounded-xl">
+          <SelectItem value="all">Any Experience</SelectItem>
+          {EXPERIENCE_OPTIONS.map((opt) => (
+            <SelectItem key={opt.value} value={opt.value}>
+              {opt.label}
             </SelectItem>
           ))}
         </SelectContent>

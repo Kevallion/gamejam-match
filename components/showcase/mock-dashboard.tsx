@@ -32,7 +32,7 @@ function InitialsAvatar({ name, className }: { name: string; className?: string 
   return (
     <div
       aria-label={name}
-      className={`flex items-center justify-center rounded-full bg-gradient-to-br text-[10px] font-bold text-white ${gradient} ${className ?? ""}`}
+      className={`flex items-center justify-center rounded-full bg-gradient-to-br text-xs font-bold text-white ${gradient} ${className ?? ""}`}
     >
       {initials}
     </div>
@@ -82,11 +82,11 @@ export function MockDashboard() {
                 <p className="truncate text-sm font-semibold tracking-tight text-foreground">
                   PixelDev42
                 </p>
-                <span className="shrink-0 rounded-full border border-amber-500/40 bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-bold text-amber-600 dark:text-amber-400">
+                <span className="shrink-0 rounded-full border border-amber-500/40 bg-amber-500/15 px-1.5 py-0.5 text-xs font-bold text-amber-600 dark:text-amber-400">
                   Lv. 7
                 </span>
               </div>
-              <p className="mt-0.5 text-[10px] text-muted-foreground">
+              <p className="mt-0.5 text-xs text-muted-foreground">
                 Seasoned Jammer
               </p>
             </div>
@@ -148,7 +148,7 @@ export function MockDashboard() {
           ].map((tab) => (
             <div
               key={tab.label}
-              className={`flex flex-1 items-center justify-center gap-1 rounded-lg px-1.5 py-1.5 text-[9px] font-semibold transition-all ${
+              className={`flex flex-1 items-center justify-center gap-1 rounded-lg px-1.5 py-1.5 text-xs font-semibold transition-all ${
                 tab.active
                   ? "border border-peach/30 bg-background/80 text-peach shadow-sm"
                   : "text-muted-foreground"
@@ -170,9 +170,9 @@ export function MockDashboard() {
             </div>
             <div>
               <h2 className="text-xs font-bold text-foreground">Incoming Applications</h2>
-              <p className="text-[9px] text-muted-foreground">Players who want to join your squads</p>
+              <p className="text-xs text-muted-foreground">Players who want to join your squads</p>
             </div>
-            <span className="ml-auto rounded-full bg-mint px-2 py-0.5 text-[9px] font-bold text-mint-foreground">
+            <span className="ml-auto rounded-full bg-mint px-2 py-0.5 text-xs font-bold text-mint-foreground">
               1 pending
             </span>
           </div>
@@ -206,7 +206,7 @@ export function MockDashboard() {
                           {app.roleEmoji} {app.role}
                         </span>
                       </div>
-                      <div className="mt-1 flex flex-wrap items-center gap-2 text-[9px] text-muted-foreground">
+                      <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                         <span>
                           Applying to <span className="font-semibold text-foreground">{app.team}</span>
                         </span>
@@ -226,7 +226,7 @@ export function MockDashboard() {
                         <MessageSquareText className="size-2.5" />
                         Motivation
                       </div>
-                      <p className="text-[9px] leading-relaxed text-foreground/80">
+                      <p className="text-xs leading-relaxed text-foreground/80">
                         Super excited to join! I&apos;ve been working with Unity for 3 years...
                       </p>
                     </div>
@@ -234,11 +234,11 @@ export function MockDashboard() {
 
                   {/* Action buttons */}
                   <div className="flex items-center gap-2">
-                    <button className="flex items-center gap-1 rounded-lg bg-green-600 px-3 py-1.5 text-[9px] font-semibold text-white shadow-sm transition-all hover:bg-green-700">
+                    <button className="flex items-center gap-1 rounded-lg bg-green-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-all hover:bg-green-700">
                       <Check className="size-3" />
                       Accept
                     </button>
-                    <button className="flex items-center gap-1 rounded-lg border border-red-500/50 px-3 py-1.5 text-[9px] font-semibold text-red-600 transition-all hover:bg-red-500/10">
+                    <button className="flex items-center gap-1 rounded-lg border border-red-500/50 px-3 py-1.5 text-xs font-semibold text-red-600 transition-all hover:bg-red-500/10">
                       <X className="size-3" />
                       Decline
                     </button>
@@ -259,7 +259,7 @@ export function MockDashboard() {
             </div>
             <div>
               <h2 className="text-xs font-bold text-foreground">My Sent Applications</h2>
-              <p className="text-[9px] text-muted-foreground">Track your applications to join a squad</p>
+              <p className="text-xs text-muted-foreground">Track your applications to join a squad</p>
             </div>
           </div>
 
@@ -273,7 +273,7 @@ export function MockDashboard() {
                 className="flex items-center justify-between rounded-xl border border-border/40 bg-background/50 px-3 py-2.5"
               >
                 <div className="flex items-center gap-2 min-w-0">
-                  <span className="text-[10px] font-medium text-foreground truncate">{app.team}</span>
+                  <span className="text-xs font-medium text-foreground truncate">{app.team}</span>
                   <span className={`shrink-0 rounded-full px-1.5 py-0.5 text-[8px] font-semibold ${app.roleColor}`}>
                     {app.role}
                   </span>

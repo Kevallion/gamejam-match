@@ -8,14 +8,15 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { TeamChat } from "@/components/team-chat"
-import { TeamAnnouncementPublic } from "@/components/team-announcement-public"
+import { TeamAnnouncementPublic, type PublicRosterMember } from "@/components/team-announcement-public"
+import { Skeleton } from "@/components/ui/skeleton"
 import { supabase } from "@/lib/supabase"
 import { fetchProfilesMap } from "@/lib/profiles"
 import { fetchTeammateDiscordUsernames } from "@/lib/profile-discord"
 import { fetchTeamDiscordLink } from "@/lib/team-discord"
 import { formatTeamToCardData, type TeamRowDb } from "@/lib/team-utils"
 import type { TeamCardData } from "@/components/team-card"
-import { Loader2, ArrowLeft, ShieldAlert, Users, Cpu, Globe, Info } from "lucide-react"
+import { ArrowLeft, ShieldAlert, Users, Cpu, Globe, Info } from "lucide-react"
 import { toast } from "sonner"
 import { UserAvatar } from "@/components/user-avatar"
 import { Badge } from "@/components/ui/badge"
@@ -57,6 +58,7 @@ export default function TeamPage() {
   const [squad, setSquad] = useState<SquadViewData | null>(null)
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [members, setMembers] = useState<SquadMember[]>([])
+  const [publicRoster, setPublicRoster] = useState<PublicRosterMember[]>([])
   const [clockMs, setClockMs] = useState<number | null>(null)
 
   useEffect(() => {
@@ -131,6 +133,25 @@ export default function TeamPage() {
           memberUserIds.includes(session.user.id))
 
       if (!isMember) {
+        const memberRows = ((teamRow as { team_members?: { user_id?: string | null }[] }).team_members ?? [])
+        const rosterIds = Array.from(
+          new Set(
+            [
+              teamRow.user_id as string,
+              ...memberRows.map((member) => member.user_id).filter((id): id is string => Boolean(id)),
+            ].filter(Boolean),
+          ),
+        )
+        const profiles = await fetchProfilesMap(rosterIds)
+        if (cancelled) return
+        setPublicRoster(
+          rosterIds.map((id) => ({
+            userId: id,
+            username: profiles[id]?.username?.trim() || "Jammer",
+            avatarUrl: profiles[id]?.avatar_url ?? null,
+            isCaptain: id === teamRow.user_id,
+          })),
+        )
         setIsLoggedIn(!!session?.user)
         setViewMode("announcement")
         return
@@ -263,10 +284,13 @@ export default function TeamPage() {
     return (
       <div className="flex min-h-screen flex-col bg-background">
         <Navbar />
-        <div className="flex flex-1 flex-col items-center justify-center gap-3">
-          <Loader2 className="size-8 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground">Loading...</p>
-        </div>
+        <main className="mx-auto w-full max-w-4xl flex-1 px-4 pb-12 pt-24 lg:px-6">
+          <Skeleton className="mb-6 h-9 w-32 rounded-xl" />
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
+            <Skeleton className="h-80 rounded-2xl" />
+            <Skeleton className="h-72 rounded-2xl" />
+          </div>
+        </main>
       </div>
     )
   }
@@ -305,6 +329,7 @@ export default function TeamPage() {
       <TeamAnnouncementPublic
         team={teamCardData}
         isLoggedIn={isLoggedIn}
+        roster={publicRoster}
       />
     )
   }
@@ -452,7 +477,7 @@ export default function TeamPage() {
                                             asChild
                                             variant="outline"
                                             size="sm"
-                                            className="h-6 rounded-lg border-lavender/40 bg-lavender/10 px-2 text-[10px] font-semibold text-lavender hover:bg-lavender/20"
+                                            className="h-6 rounded-lg border-lavender/40 bg-lavender/10 px-2 text-xs font-semibold text-lavender hover:bg-lavender/20"
                                           >
                                             <Link href={`/jammer/${member.userId}`}>Give kudos</Link>
                                           </Button>

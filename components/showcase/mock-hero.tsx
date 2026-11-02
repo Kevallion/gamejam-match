@@ -14,12 +14,12 @@ export function MockHero() {
           <span className="text-xs font-extrabold tracking-tight text-foreground">GameJamCrew</span>
         </div>
         <div className="hidden items-center gap-3 sm:flex">
-          <span className="text-[10px] text-muted-foreground">Squads</span>
-          <span className="text-[10px] text-muted-foreground">Find Members</span>
-          <span className="text-[10px] text-muted-foreground">Create a Squad</span>
+          <span className="text-xs text-muted-foreground">Squads</span>
+          <span className="text-xs text-muted-foreground">Find Members</span>
+          <span className="text-xs text-muted-foreground">Create a Squad</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="inline-flex items-center gap-1 rounded-xl bg-teal px-2.5 py-1 text-[10px] font-semibold text-teal-foreground">
+          <div className="inline-flex items-center gap-1 rounded-xl bg-teal px-2.5 py-1 text-xs font-semibold text-teal-foreground">
             <LogIn className="size-3 shrink-0" />
             Sign In
           </div>
@@ -32,7 +32,7 @@ export function MockHero() {
           <div className="absolute left-1/2 top-0 size-[300px] -translate-x-1/2 -translate-y-1/3 rounded-full bg-primary/20 blur-[80px]" />
         </div>
         <div className="relative mx-auto max-w-lg text-center">
-          <div className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-[10px] font-medium text-primary">
+          <div className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
             <Sparkles className="size-3" />
             Browse teams looking for members
           </div>
@@ -57,19 +57,19 @@ export function MockHero() {
           <div className="relative mb-3">
             <Search className="absolute left-3 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
             <div className="h-8 rounded-xl border border-border/60 bg-card pl-8 pr-3 flex items-center">
-              <span className="text-[10px] text-primary">Ludum Dare</span>
+              <span className="text-xs text-primary">Ludum Dare</span>
               <span className="ml-0.5 h-3.5 w-px animate-pulse bg-primary" />
             </div>
           </div>
           <div className="flex items-center gap-2">
             <SlidersHorizontal className="size-3 text-muted-foreground" />
-            <span className="text-[9px] font-semibold uppercase tracking-wider text-muted-foreground">Filter squads</span>
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Filter squads</span>
           </div>
           <div className="mt-2 flex flex-wrap gap-2">
             {["Any Engine", "Any Role", "Any Experience", "English"].map((f, i) => (
               <div
                 key={f}
-                className={`rounded-lg border px-2.5 py-1 text-[10px] font-medium ${
+                className={`rounded-lg border px-2.5 py-1 text-xs font-medium ${
                   i === 3
                     ? "border-primary/40 bg-primary/10 text-primary"
                     : "border-border/60 bg-card text-muted-foreground"

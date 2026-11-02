@@ -3,16 +3,28 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import Link from "next/link"
 import { TeamCard, type TeamCardData } from "@/components/team-card"
 import { Button } from "@/components/ui/button"
+import { Skeleton } from "@/components/ui/skeleton"
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty"
 import { getRecommendedTeams } from "@/lib/matchmaking"
 import { supabase } from "@/lib/supabase"
 import { fetchProfilesMap } from "@/lib/profiles"
-import { Loader2 } from "lucide-react"
+import { Loader2, Users } from "lucide-react"
 import { toast } from "sonner"
 import { EXPERIENCE_STYLES, JAM_STYLE_STYLES, ROLE_STYLES } from "@/lib/constants"
 
 const PAGE_SIZE = 24
+
+export type TeamSort = "recent" | "starting" | "spots"
 
 interface TeamGridProps {
   searchQuery: string
@@ -21,6 +33,8 @@ interface TeamGridProps {
   levelFilter: string
   languageFilter: string
   styleFilter?: string
+  sort?: TeamSort
+  onReset?: () => void
   onResultsCountChange?: (count: number) => void
 }
 
@@ -177,6 +191,8 @@ export function TeamGrid({
   levelFilter = "all",
   languageFilter = "all",
   styleFilter = "all",
+  sort = "recent",
+  onReset,
   onResultsCountChange,
 }: TeamGridProps) {
   const [teams, setTeams] = useState<TeamWithMeta[]>([])
@@ -308,15 +324,37 @@ export function TeamGrid({
     const recFiltered = recommendedTeams.filter(passes)
     const recommendedIds = new Set(recommendedTeams.map((t) => t.id))
     const regularFiltered = teams.filter((t) => !recommendedIds.has(t.id)).filter(passes)
-    return [...recFiltered, ...regularFiltered]
-  }, [teams, recommendedTeams, filterOpts])
+    const sortedRegular = [...regularFiltered].sort((a, b) => {
+      if (sort === "spots") {
+        return (b.maxMembers - b.members) - (a.maxMembers - a.members)
+      }
+      if (sort === "starting") {
+        const aStart = a.jamStartDate ? new Date(a.jamStartDate).getTime() : Number.POSITIVE_INFINITY
+        const bStart = b.jamStartDate ? new Date(b.jamStartDate).getTime() : Number.POSITIVE_INFINITY
+        return aStart - bStart
+      }
+      const aCreated = a.createdAt ? new Date(a.createdAt).getTime() : 0
+      const bCreated = b.createdAt ? new Date(b.createdAt).getTime() : 0
+      return bCreated - aCreated
+    })
+    return [...recFiltered, ...sortedRegular]
+  }, [teams, recommendedTeams, filterOpts, sort])
 
   useEffect(() => {
     onResultsCountChange?.(displayedTeams.length)
   }, [displayedTeams.length, onResultsCountChange])
 
-  if (!teams.length && hasMore)
-    return <div className="text-center py-20 text-muted-foreground">Loading squads...</div>
+  if (!teams.length && hasMore) {
+    return (
+      <section className="px-4 pb-16 pt-4 lg:px-6" aria-busy="true" aria-label="Loading squads">
+        <div className="mx-auto grid max-w-6xl gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <Skeleton key={index} className="h-44 rounded-xl" />
+          ))}
+        </div>
+      </section>
+    )
+  }
 
   return (
     <section className="px-4 pb-16 pt-4 lg:px-6 lg:pb-24">
@@ -330,9 +368,29 @@ export function TeamGrid({
         </div>
 
         {displayedTeams.length === 0 ? (
-          <div className="text-center py-10 bg-card/50 rounded-3xl border border-dashed border-border">
-            No squads found matching these filters. 😢
-          </div>
+          <Empty className="rounded-3xl border-border bg-card/50">
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <Users />
+              </EmptyMedia>
+              <EmptyTitle>No squads match these filters</EmptyTitle>
+              <EmptyDescription>
+                Reset the filters, or create a squad for the jam you have in mind.
+              </EmptyDescription>
+            </EmptyHeader>
+            <EmptyContent>
+              <div className="flex flex-wrap justify-center gap-2">
+                {onReset ? (
+                  <Button type="button" variant="outline" className="rounded-xl" onClick={onReset}>
+                    Reset filters
+                  </Button>
+                ) : null}
+                <Button asChild className="rounded-xl">
+                  <Link href="/create-team">Create a Squad</Link>
+                </Button>
+              </div>
+            </EmptyContent>
+          </Empty>
         ) : (
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {displayedTeams.map((team) => (

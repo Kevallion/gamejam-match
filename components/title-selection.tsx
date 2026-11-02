@@ -99,7 +99,7 @@ export function TitleSelection({
               <h3 className="text-sm font-semibold tracking-tight text-foreground">
                 Title selection
               </h3>
-              <p className="text-[10px] text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 {unlockedCount} / {totalCount} titles unlocked
               </p>
             </div>
@@ -210,7 +210,7 @@ export function TitleSelection({
 
         {/* Quick equip select */}
         <div className="space-y-1.5">
-          <Label className="text-[10px] font-semibold uppercase tracking-tight text-muted-foreground">
+          <Label className="text-xs font-semibold uppercase tracking-tight text-muted-foreground">
             Quick equip
           </Label>
           <Select

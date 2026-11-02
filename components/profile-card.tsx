@@ -191,7 +191,7 @@ export function ProfileCard({
           <p className="truncate text-base font-semibold tracking-tight text-foreground sm:text-lg">{name}</p>
           {showLevel ? <JammerLevelBadge level={level} /> : null}
           {showVerifiedJammer ? (
-            <Badge className="rounded-full border border-teal/35 bg-teal/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-teal">
+            <Badge className="rounded-full border border-teal/35 bg-teal/15 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-teal">
               Verified Jammer
             </Badge>
           ) : null}
@@ -220,9 +220,9 @@ export function ProfileCard({
                     className="flex flex-wrap items-center gap-2 rounded-xl border border-border/50 bg-muted/20 px-3 py-2"
                   >
                     {isPrimarySlot ? (
-                      <span className="text-[10px] font-bold uppercase tracking-wide text-teal">Primary</span>
+                      <span className="text-xs font-bold uppercase tracking-wide text-teal">Primary</span>
                     ) : (
-                      <span className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
+                      <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
                         Secondary
                       </span>
                     )}

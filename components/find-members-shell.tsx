@@ -7,6 +7,7 @@ import { MemberFilters } from "@/components/member-filters"
 import { MembersGrid } from "@/components/members-grid"
 import { DirectoryFilters } from "@/components/directory-filters"
 import { DirectoryGrid } from "@/components/directory-grid"
+import { ActiveFilterChips, type ActiveFilterChip } from "@/components/active-filter-chips"
 import { BookUser, Search, UserSearch } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -52,7 +53,11 @@ export function FindMembersShell({
   const isDirectory = mode === "directory"
 
   const hasActiveFilters = isDirectory
-    ? searchQuery !== "" || roleFilter !== "all" || engineFilter !== "all" || langFilter !== "all"
+    ? searchQuery !== "" ||
+      roleFilter !== "all" ||
+      engineFilter !== "all" ||
+      levelFilter !== "all" ||
+      langFilter !== "all"
     : searchQuery !== "" ||
       roleFilter !== "all" ||
       engineFilter !== "all" ||
@@ -88,22 +93,23 @@ export function FindMembersShell({
     })
   }
 
-  const activeFilterLabels: string[] = []
+  const activeFilterChips: ActiveFilterChip[] = []
+  if (searchQuery.trim()) activeFilterChips.push({ id: "q", label: `Search: ${searchQuery.trim()}` })
   if (roleFilter !== "all") {
     const roleLabel = ROLE_OPTIONS.find((r) => r.value === roleFilter)?.label ?? roleFilter
-    activeFilterLabels.push(`Role: ${roleLabel}`)
+    activeFilterChips.push({ id: "role", label: `Role: ${roleLabel}` })
   }
   if (engineFilter !== "all") {
     const engineLabel = ENGINE_OPTIONS.find((e) => e.value === engineFilter)?.label ?? engineFilter
-    activeFilterLabels.push(`Engine: ${engineLabel}`)
+    activeFilterChips.push({ id: "engine", label: `Engine: ${engineLabel}` })
   }
-  if (!isDirectory && levelFilter !== "all") {
+  if (levelFilter !== "all") {
     const levelLabel = EXPERIENCE_OPTIONS.find((l) => l.value === levelFilter)?.label ?? levelFilter
-    activeFilterLabels.push(`Experience: ${levelLabel}`)
+    activeFilterChips.push({ id: "level", label: `Experience: ${levelLabel}` })
   }
   if (langFilter !== "all") {
     const langLabel = LANGUAGE_OPTIONS.find((l) => l.value === langFilter)?.label ?? langFilter
-    activeFilterLabels.push(`Language: ${langLabel}`)
+    activeFilterChips.push({ id: "lang", label: `Language: ${langLabel}` })
   }
 
   return (
@@ -188,11 +194,13 @@ export function FindMembersShell({
           <DirectoryFilters
             role={roleFilter}
             engine={engineFilter}
+            level={levelFilter}
             language={langFilter}
             hasActiveFilters={hasActiveFilters}
             resultsCount={resultsCount ?? undefined}
             onRoleChange={(value) => replaceUrlWithFilters({ role: value })}
             onEngineChange={(value) => replaceUrlWithFilters({ engine: value })}
+            onLevelChange={(value) => replaceUrlWithFilters({ level: value })}
             onLanguageChange={(value) => replaceUrlWithFilters({ lang: value })}
             onReset={handleResetFilters}
           />
@@ -213,28 +221,30 @@ export function FindMembersShell({
           />
         )}
 
-        {activeFilterLabels.length > 0 && (
+        {activeFilterChips.length > 0 && (
           <section className="px-4 pt-1 sm:px-6">
             <div className="mx-auto max-w-6xl">
-              <p className="text-xs text-muted-foreground">
-                <span className="font-semibold text-foreground">Active filters:</span>{" "}
-                {activeFilterLabels.join(" • ")}
-              </p>
+              <ActiveFilterChips
+                chips={activeFilterChips}
+                onRemove={(id) => replaceUrlWithFilters({ [id]: null })}
+              />
             </div>
           </section>
         )}
 
         {isDirectory ? (
           <DirectoryGrid
-            key={`${searchQuery}|${roleFilter}|${engineFilter}|${langFilter}`}
+            key={`${searchQuery}|${roleFilter}|${engineFilter}|${levelFilter}|${langFilter}`}
             searchQuery={searchQuery}
             roleFilter={roleFilter}
             engineFilter={engineFilter}
+            levelFilter={levelFilter}
             languageFilter={langFilter}
             initialJammers={initialDirectory}
             initialHasMore={initialDirectoryHasMore}
             onResultsCountChange={setResultsCount}
             onSwitchToAvailable={() => replaceUrlWithFilters({ view: null })}
+            onReset={handleResetFilters}
           />
         ) : (
           <MembersGrid
@@ -250,6 +260,7 @@ export function FindMembersShell({
             onResultsCountChange={setResultsCount}
             isRefreshing={isPending}
             onSwitchToDirectory={() => replaceUrlWithFilters({ view: "directory" })}
+            onReset={handleResetFilters}
           />
         )}
       </main>

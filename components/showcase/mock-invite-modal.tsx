@@ -32,13 +32,13 @@ export function MockInviteModal() {
             </div>
 
             <div className="flex flex-wrap items-center gap-1.5">
-              <span className="text-[10px] text-muted-foreground">Inviting</span>
-              <span className="inline-flex items-center gap-0.5 rounded-full bg-lavender/15 px-2 py-0.5 text-[9px] font-bold text-lavender">
+              <span className="text-xs text-muted-foreground">Inviting</span>
+              <span className="inline-flex items-center gap-0.5 rounded-full bg-lavender/15 px-2 py-0.5 text-xs font-bold text-lavender">
                 <Sparkles className="size-2.5" />
                 BeatMaker99
               </span>
-              <span className="text-[10px] text-muted-foreground">to</span>
-              <span className="rounded-full bg-teal/15 px-2 py-0.5 text-[9px] font-bold text-teal">
+              <span className="text-xs text-muted-foreground">to</span>
+              <span className="rounded-full bg-teal/15 px-2 py-0.5 text-xs font-bold text-teal">
                 Neon Runners
               </span>
             </div>
@@ -51,7 +51,7 @@ export function MockInviteModal() {
               <div className="flex flex-col gap-1.5">
                 <div className="flex items-center gap-1.5">
                   <Target className="size-3 text-primary" />
-                  <span className="text-[10px] font-bold text-foreground">Role offered</span>
+                  <span className="text-xs font-bold text-foreground">Role offered</span>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   {[
@@ -61,7 +61,7 @@ export function MockInviteModal() {
                   ].map((role) => (
                     <span
                       key={role.label}
-                      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[9px] font-semibold ${role.color} ${
+                      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${role.color} ${
                         role.selected ? "ring-2 ring-primary ring-offset-2 ring-offset-card scale-105" : ""
                       }`}
                     >
@@ -75,10 +75,10 @@ export function MockInviteModal() {
               <div className="flex flex-col gap-1.5">
                 <div className="flex items-center gap-1.5">
                   <MessageSquareText className="size-3 text-lavender" />
-                  <span className="text-[10px] font-bold text-foreground">Your message</span>
+                  <span className="text-xs font-bold text-foreground">Your message</span>
                 </div>
                 <div className="relative rounded-lg border border-primary/30 bg-secondary/50 p-3 ring-2 ring-primary/20">
-                  <p className="text-[10px] leading-relaxed text-foreground">
+                  <p className="text-xs leading-relaxed text-foreground">
                     {"Hey! We're building a cyberpunk runner for GMTK and your sound design skills are exactly what we need. Love your chiptune work!"}
                   </p>
                   <span className="absolute bottom-1.5 right-2.5 text-[8px] tabular-nums text-muted-foreground/50">
@@ -91,10 +91,10 @@ export function MockInviteModal() {
 
           {/* Footer */}
           <div className="flex justify-end gap-2 border-t border-border/60 px-5 py-3">
-            <div className="rounded-lg px-3 py-1.5 text-[10px] font-medium text-muted-foreground">
+            <div className="rounded-lg px-3 py-1.5 text-xs font-medium text-muted-foreground">
               Cancel
             </div>
-            <div className="flex items-center gap-1 rounded-lg bg-primary px-4 py-1.5 text-[10px] font-bold text-primary-foreground shadow-lg shadow-primary/25">
+            <div className="flex items-center gap-1 rounded-lg bg-primary px-4 py-1.5 text-xs font-bold text-primary-foreground shadow-lg shadow-primary/25">
               <Send className="size-3" />
               Send Invite
             </div>

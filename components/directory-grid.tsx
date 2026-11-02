@@ -4,6 +4,14 @@ import { useCallback, useEffect, useRef, useState } from "react"
 import { JammerCard, type JammerCardData, type SquadOption } from "@/components/player-card"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty"
 import { BookUser, Loader2 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { toast } from "sonner"
@@ -17,11 +25,13 @@ type DirectoryGridProps = {
   searchQuery: string
   roleFilter: string
   engineFilter: string
+  levelFilter?: string
   languageFilter: string
   initialJammers: DirectoryJammerListItem[]
   initialHasMore: boolean
   onResultsCountChange?: (count: number) => void
   onSwitchToAvailable?: () => void
+  onReset?: () => void
 }
 
 function toCardData(jammer: DirectoryJammerListItem): JammerCardData {
@@ -49,11 +59,13 @@ export function DirectoryGrid({
   searchQuery = "",
   roleFilter = "all",
   engineFilter = "all",
+  levelFilter = "all",
   languageFilter = "all",
   initialJammers,
   initialHasMore,
   onResultsCountChange,
   onSwitchToAvailable,
+  onReset,
 }: DirectoryGridProps) {
   const [jammers, setJammers] = useState<DirectoryJammerListItem[]>(initialJammers)
   const [mySquads, setMySquads] = useState<SquadOption[]>([])
@@ -75,6 +87,7 @@ export function DirectoryGrid({
         searchQuery: debouncedSearch,
         role: roleFilter,
         engine: engineFilter,
+        experience: levelFilter,
         language: languageFilter,
         offset: from,
         limit: PAGE_SIZE,
@@ -91,11 +104,11 @@ export function DirectoryGrid({
       setHasMore(result.hasMore)
       offsetRef.current = result.nextOffset
     },
-    [debouncedSearch, roleFilter, engineFilter, languageFilter],
+    [debouncedSearch, roleFilter, engineFilter, levelFilter, languageFilter],
   )
 
   useEffect(() => {
-    const key = `${debouncedSearch}|${roleFilter}|${engineFilter}|${languageFilter}`
+    const key = `${debouncedSearch}|${roleFilter}|${engineFilter}|${levelFilter}|${languageFilter}`
     const isFirstMount = filtersKeyRef.current === ""
     filtersKeyRef.current = key
 
@@ -118,6 +131,7 @@ export function DirectoryGrid({
     debouncedSearch,
     roleFilter,
     engineFilter,
+    levelFilter,
     languageFilter,
     fetchPage,
     initialJammers.length,
@@ -244,22 +258,31 @@ export function DirectoryGrid({
         </div>
 
         {jammers.length === 0 ? (
-          <div className="rounded-3xl border border-dashed border-border bg-card/50 px-6 py-12 text-center">
-            <BookUser className="mx-auto mb-3 size-8 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">
-              No jammers found matching these filters.
-            </p>
-            {onSwitchToAvailable ? (
-              <Button
-                type="button"
-                variant="outline"
-                className="mt-4 rounded-xl"
-                onClick={onSwitchToAvailable}
-              >
-                Browse available jammers
-              </Button>
-            ) : null}
-          </div>
+          <Empty className="rounded-3xl border-border bg-card/50">
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <BookUser />
+              </EmptyMedia>
+              <EmptyTitle>No jammers match these filters</EmptyTitle>
+              <EmptyDescription>
+                Reset the filters, or look at jammers who posted availability.
+              </EmptyDescription>
+            </EmptyHeader>
+            <EmptyContent>
+              <div className="flex flex-wrap justify-center gap-2">
+                {onReset ? (
+                  <Button type="button" variant="outline" className="rounded-xl" onClick={onReset}>
+                    Reset filters
+                  </Button>
+                ) : null}
+                {onSwitchToAvailable ? (
+                  <Button type="button" variant="outline" className="rounded-xl" onClick={onSwitchToAvailable}>
+                    Browse available jammers
+                  </Button>
+                ) : null}
+              </div>
+            </EmptyContent>
+          </Empty>
         ) : (
           <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {jammers.map((jammer) => (

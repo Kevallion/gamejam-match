@@ -59,6 +59,7 @@ export default async function MembersPage({ searchParams }: MembersPageProps) {
         searchQuery: params.q,
         role: params.role,
         engine: params.engine,
+        experience: params.level,
         language: params.lang,
         offset: 0,
       },

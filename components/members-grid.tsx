@@ -1,9 +1,18 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import Link from "next/link"
 import { JammerCard, type SquadOption } from "@/components/player-card"
 import { Button } from "@/components/ui/button"
-import { Loader2 } from "lucide-react"
+import {
+  Empty,
+  EmptyContent,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty"
+import { Loader2, UserSearch } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { toast } from "sonner"
 import { ROLE_STYLES } from "@/lib/constants"
@@ -24,6 +33,7 @@ interface MembersGridProps {
   onResultsCountChange?: (count: number) => void
   isRefreshing?: boolean
   onSwitchToDirectory?: () => void
+  onReset?: () => void
 }
 
 export function MembersGrid({
@@ -38,6 +48,7 @@ export function MembersGrid({
   onResultsCountChange,
   isRefreshing = false,
   onSwitchToDirectory,
+  onReset,
 }: MembersGridProps) {
   const [members, setMembers] = useState<AvailablePlayerListItem[]>(initialMembers)
   const [mySquads, setMySquads] = useState<SquadOption[]>([])
@@ -164,24 +175,34 @@ export function MembersGrid({
         </div>
 
         {members.length === 0 ? (
-          <div className="rounded-3xl border border-dashed border-border bg-card/50 px-6 py-10 text-center">
-            <p className="text-sm text-muted-foreground">
-              No available jammers match these filters.
-            </p>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Try the Directory to browse every onboarded jammer.
-            </p>
-            {onSwitchToDirectory ? (
-              <Button
-                type="button"
-                variant="outline"
-                className="mt-4 rounded-xl"
-                onClick={onSwitchToDirectory}
-              >
-                Search Directory
-              </Button>
-            ) : null}
-          </div>
+          <Empty className="rounded-3xl border-border bg-card/50">
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <UserSearch />
+              </EmptyMedia>
+              <EmptyTitle>No available jammers match these filters</EmptyTitle>
+              <EmptyDescription>
+                Reset the filters, browse the directory, or post your own availability.
+              </EmptyDescription>
+            </EmptyHeader>
+            <EmptyContent>
+              <div className="flex flex-wrap justify-center gap-2">
+                {onReset ? (
+                  <Button type="button" variant="outline" className="rounded-xl" onClick={onReset}>
+                    Reset filters
+                  </Button>
+                ) : null}
+                {onSwitchToDirectory ? (
+                  <Button type="button" variant="outline" className="rounded-xl" onClick={onSwitchToDirectory}>
+                    Search Directory
+                  </Button>
+                ) : null}
+                <Button asChild className="rounded-xl">
+                  <Link href="/create-profile">Post availability</Link>
+                </Button>
+              </div>
+            </EmptyContent>
+          </Empty>
         ) : (
           <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {members.map((jammer) => (

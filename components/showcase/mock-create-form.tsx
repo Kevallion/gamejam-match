@@ -10,7 +10,7 @@ export function MockCreateForm() {
           <div className="flex flex-col gap-5">
             {/* Team Name - filled */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-bold text-foreground">Squad name</label>
+              <label className="text-xs font-bold text-foreground">Squad name</label>
               <div className="flex h-8 items-center rounded-lg border border-border/60 bg-secondary/50 px-3 text-xs text-foreground">
                 The Pixel Knights
               </div>
@@ -18,7 +18,7 @@ export function MockCreateForm() {
 
             {/* Game Jam Name - filled */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[10px] font-bold text-foreground">Game Jam Name</label>
+              <label className="text-xs font-bold text-foreground">Game Jam Name</label>
               <div className="flex h-8 items-center rounded-lg border border-border/60 bg-secondary/50 px-3 text-xs text-foreground">
                 Ludum Dare 57
               </div>
@@ -27,7 +27,7 @@ export function MockCreateForm() {
             {/* Engine & Language row */}
             <div className="grid grid-cols-2 gap-3">
               <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] font-bold text-foreground">Engine</label>
+                <label className="text-xs font-bold text-foreground">Engine</label>
                 <div className="flex h-8 items-center justify-between rounded-lg border border-primary/40 bg-secondary/50 px-3 ring-2 ring-primary/20">
                   <span className="text-xs text-foreground">Godot</span>
                   <ChevronDown className="size-3 text-muted-foreground" />
@@ -38,7 +38,7 @@ export function MockCreateForm() {
                     {["Godot", "Unity", "Unreal Engine", "GameMaker", "PICO-8"].map((engine, i) => (
                       <div
                         key={engine}
-                        className={`px-3 py-1.5 text-[10px] ${
+                        className={`px-3 py-1.5 text-xs ${
                           i === 0
                             ? "bg-primary/10 font-semibold text-primary"
                             : "text-popover-foreground"
@@ -52,7 +52,7 @@ export function MockCreateForm() {
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="text-[10px] font-bold text-foreground">Spoken Language</label>
+                <label className="text-xs font-bold text-foreground">Spoken Language</label>
                 <div className="flex h-8 items-center justify-between rounded-lg border border-border/60 bg-secondary/50 px-3">
                   <span className="text-xs text-foreground">English</span>
                   <ChevronDown className="size-3 text-muted-foreground" />
@@ -63,8 +63,8 @@ export function MockCreateForm() {
             {/* Roles section - pushed down to avoid dropdown overlap */}
             <div className="mt-16 flex flex-col gap-2">
               <div className="flex items-center justify-between">
-                <label className="text-[10px] font-bold text-foreground">Roles Needed</label>
-                <span className="text-[9px] font-medium text-muted-foreground">2 roles added</span>
+                <label className="text-xs font-bold text-foreground">Roles Needed</label>
+                <span className="text-xs font-medium text-muted-foreground">2 roles added</span>
               </div>
 
               <div className="flex flex-col gap-2">
@@ -74,10 +74,10 @@ export function MockCreateForm() {
                 ].map((entry, i) => (
                   <div key={i} className="flex items-center gap-2 rounded-xl border border-border/40 bg-secondary/30 p-2.5">
                     <div className="flex flex-1 gap-2">
-                      <div className="flex h-7 flex-1 items-center rounded-lg border border-border/50 bg-card px-2 text-[10px] text-foreground">
+                      <div className="flex h-7 flex-1 items-center rounded-lg border border-border/50 bg-card px-2 text-xs text-foreground">
                         {entry.role}
                       </div>
-                      <div className="flex h-7 flex-1 items-center rounded-lg border border-border/50 bg-card px-2 text-[10px] text-foreground">
+                      <div className="flex h-7 flex-1 items-center rounded-lg border border-border/50 bg-card px-2 text-xs text-foreground">
                         {entry.level}
                       </div>
                     </div>
@@ -85,7 +85,7 @@ export function MockCreateForm() {
                 ))}
               </div>
 
-              <div className="flex items-center gap-1.5 self-start rounded-lg border border-dashed border-border/60 px-2.5 py-1 text-[10px] text-muted-foreground">
+              <div className="flex items-center gap-1.5 self-start rounded-lg border border-dashed border-border/60 px-2.5 py-1 text-xs text-muted-foreground">
                 <Plus className="size-3" />
                 Add another role
               </div>

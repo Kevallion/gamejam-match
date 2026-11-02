@@ -79,7 +79,7 @@ export function DashboardAvailabilityCompact({
                       <p className="truncate text-xs font-semibold text-foreground">{post.username ?? "Jammer"}</p>
                     </div>
                     {expiresSoon ? (
-                      <Badge className="rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0 text-[10px] text-amber-500">
+                      <Badge className="rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0 text-xs text-amber-500">
                         Expires soon
                       </Badge>
                     ) : null}
@@ -102,7 +102,7 @@ export function DashboardAvailabilityCompact({
                   </div>
 
                   {post.role ? (
-                    <Badge variant="outline" className="rounded-full px-2 py-0 text-[10px]">
+                    <Badge variant="outline" className="rounded-full px-2 py-0 text-xs">
                       {post.role}
                     </Badge>
                   ) : null}
