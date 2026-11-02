@@ -819,6 +819,7 @@ export type DirectoryJammersFilters = {
   searchQuery?: string
   role?: string
   engine?: string
+  experience?: string
   language?: string
   offset?: number
   limit?: number
@@ -881,13 +882,14 @@ function resolveDirectoryLanguage(profile: DirectoryProfileRow): string {
 
 /**
  * Lists onboarded jammers for the public directory (all completed profiles).
- * Filters by role, engine, and language using profile defaults / primary role.
+ * Filters by role, engine, experience, and language using profile defaults / primary role.
  */
 export async function getDirectoryJammers(
   {
     searchQuery = "",
     role = "all",
     engine = "all",
+    experience = "all",
     language = "all",
     offset = 0,
     limit = DIRECTORY_JAMMERS_DEFAULT_LIMIT,
@@ -896,6 +898,7 @@ export async function getDirectoryJammers(
 ): Promise<DirectoryJammersResult> {
   const cleanRole = normalizedFilterValue(role)
   const cleanEngine = normalizedFilterValue(engine)
+  const cleanExperience = normalizedFilterValue(experience)
   const cleanLanguage = normalizedFilterValue(language)
   const cleanSearch = searchQuery.trim()
   const safeOffset = Math.max(0, offset)
@@ -955,6 +958,15 @@ export async function getDirectoryJammers(
 
   if (cleanEngine && cleanEngine !== "all") {
     query = query.or(`default_engine.eq.${cleanEngine},engine.eq.${cleanEngine}`)
+  }
+
+  if (cleanExperience && cleanExperience !== "all") {
+    const equivalentValues = LEGACY_EXPERIENCE_EQUIVALENTS[cleanExperience] ?? [cleanExperience]
+    const clauses = equivalentValues.flatMap((value) => [
+      `experience.eq.${value}`,
+      `experience_level.eq.${value}`,
+    ])
+    query = query.or(clauses.join(","))
   }
 
   if (languageFilterKey) {

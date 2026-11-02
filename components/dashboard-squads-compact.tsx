@@ -35,13 +35,13 @@ function SquadCardCompact({
           </div>
           <div className="flex items-center gap-1.5">
             {expiringSoon ? (
-              <Badge className="rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0 text-[10px] font-semibold text-amber-500">
+              <Badge className="rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0 text-xs font-semibold text-amber-500">
                 Expiring soon
               </Badge>
             ) : null}
             <Badge
               variant="outline"
-              className="rounded-full border-border/50 px-2 py-0 text-[10px] text-muted-foreground"
+              className="rounded-full border-border/50 px-2 py-0 text-xs text-muted-foreground"
             >
               {team.members}/{team.maxMembers}
             </Badge>
@@ -75,12 +75,12 @@ function SquadCardCompact({
               />
             ))}
             {extraCount > 0 ? (
-              <span className="ml-1 inline-flex size-6 items-center justify-center rounded-full border border-border/50 bg-secondary text-[10px] font-semibold text-muted-foreground">
+              <span className="ml-1 inline-flex size-6 items-center justify-center rounded-full border border-border/50 bg-secondary text-xs font-semibold text-muted-foreground">
                 +{extraCount}
               </span>
             ) : null}
           </div>
-          <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
             <Users2 className="size-3" />
             Open roles: {Math.max(0, team.maxMembers - team.members)}
           </div>

@@ -54,7 +54,7 @@ export function MockPlayers() {
           <div className="absolute left-1/2 top-0 size-[200px] -translate-x-1/2 -translate-y-1/3 rounded-full bg-lavender/20 blur-[80px]" />
         </div>
         <div className="relative">
-          <div className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-lavender/30 bg-lavender px-2.5 py-0.5 text-[9px] font-medium text-lavender-foreground">
+          <div className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-lavender/30 bg-lavender px-2.5 py-0.5 text-xs font-medium text-lavender-foreground">
             <UserSearch className="size-3" />
             Find your next teammate
           </div>
@@ -77,12 +77,12 @@ export function MockPlayers() {
             >
               {/* Avatar + name */}
               <div className="flex items-center gap-2 mb-2">
-                <div className={`flex size-8 items-center justify-center rounded-full text-[9px] font-bold ring-1 ring-border/60 ${player.bgColor}`}>
+                <div className={`flex size-8 items-center justify-center rounded-full text-xs font-bold ring-1 ring-border/60 ${player.bgColor}`}>
                   {player.initials}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h3 className="truncate text-[10px] font-bold text-foreground">{player.name}</h3>
-                  <div className="flex items-center gap-1 text-[9px] text-muted-foreground">
+                  <h3 className="truncate text-xs font-bold text-foreground">{player.name}</h3>
+                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
                     <Globe className="size-2.5 text-teal" />
                     {player.language}
                   </div>
@@ -100,17 +100,17 @@ export function MockPlayers() {
               </div>
 
               {/* Engine */}
-              <div className="flex items-center gap-1 text-[9px] text-muted-foreground mb-1.5">
+              <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1.5">
                 <Cpu className="size-2.5 text-lavender" />
                 {player.engine}
               </div>
 
               {/* Bio */}
-              <p className="flex-1 text-[9px] leading-relaxed text-muted-foreground line-clamp-2 mb-2">
+              <p className="flex-1 text-xs leading-relaxed text-muted-foreground line-clamp-2 mb-2">
                 {player.bio}
               </p>
 
-              <div className="flex items-center justify-center gap-1 rounded-lg border border-primary/30 bg-primary/5 px-2 py-1.5 text-[10px] font-semibold text-primary">
+              <div className="flex items-center justify-center gap-1 rounded-lg border border-primary/30 bg-primary/5 px-2 py-1.5 text-xs font-semibold text-primary">
                 <ArrowRight className="size-3" />
                 View details
               </div>

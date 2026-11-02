@@ -47,7 +47,7 @@ export function BrowserFrame({
           />
         </svg>
         {cursorLabel && (
-          <span className="ml-5 mt-1 inline-block whitespace-nowrap rounded-lg bg-foreground px-2.5 py-1 text-[10px] font-bold text-background shadow-lg">
+          <span className="ml-5 mt-1 inline-block whitespace-nowrap rounded-lg bg-foreground px-2.5 py-1 text-xs font-bold text-background shadow-lg">
             {cursorLabel}
           </span>
         )}

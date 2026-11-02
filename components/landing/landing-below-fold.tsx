@@ -10,10 +10,10 @@ import { LandingMaker } from "@/components/landing/landing-maker"
 export function LandingBelowFold() {
   return (
     <>
-      <LandingMaker />
       <LandingFeatures />
       <LandingShowcase />
       <LandingHowItWorks />
+      <LandingMaker />
       <LandingCTA />
     </>
   )

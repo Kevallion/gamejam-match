@@ -27,6 +27,7 @@ import { JoinTeamModal } from "@/components/join-team-modal"
 import { engineOptionLabel, languageOptionLabel } from "@/lib/constants"
 import { TagIcon, TagIconRow } from "@/components/tag-icon"
 import { getJamListingStatus } from "@/lib/jam-calendar-status"
+import { JamStatusBadge } from "@/components/jam-status-badge"
 
 type RoleBadge = {
   label: string
@@ -214,7 +215,7 @@ export function TeamCard({
                   <p className="truncate text-xs font-semibold text-foreground">
                     {team.ownerUsername || "Squad owner"}
                   </p>
-                  <p className="truncate text-[10px] text-muted-foreground">
+                  <p className="truncate text-xs text-muted-foreground">
                     View profile
                   </p>
                 </div>
@@ -224,16 +225,7 @@ export function TeamCard({
         </div>
 
         {jamStatus && (
-          <Badge
-            variant="outline"
-            title={jamPendingTitle}
-            className={cn(
-              "mt-2 w-fit rounded-full px-2.5 py-0.5 text-xs font-semibold",
-              jamStatus.badgeClassName,
-            )}
-          >
-            {jamStatus.label}
-          </Badge>
+          <JamStatusBadge status={jamStatus} title={jamPendingTitle} className="mt-2" />
         )}
       </DialogHeader>
 
@@ -326,7 +318,7 @@ export function TeamCard({
                 <Badge
                   variant="outline"
                   aria-label="Perfect match for your profile"
-                  className="shrink-0 gap-0.5 border-teal/20 bg-teal/10 px-1.5 py-0 text-[10px] font-semibold text-teal"
+                  className="shrink-0 gap-0.5 border-teal/20 bg-teal/10 px-1.5 py-0 text-xs font-semibold text-teal"
                 >
                   <Sparkles className="size-2.5" aria-hidden />
                   Match
@@ -356,16 +348,7 @@ export function TeamCard({
         </div>
 
         {jamStatus && (
-          <Badge
-            variant="outline"
-            title={jamPendingTitle}
-            className={cn(
-              "mb-3.5 w-fit rounded-full px-2.5 py-0.5 text-xs font-semibold",
-              jamStatus.badgeClassName,
-            )}
-          >
-            {jamStatus.label}
-          </Badge>
+          <JamStatusBadge status={jamStatus} title={jamPendingTitle} className="mb-3.5" />
         )}
 
         <div className="mb-3.5 flex min-h-6 flex-wrap items-center gap-1.5">

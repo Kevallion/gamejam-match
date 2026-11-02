@@ -91,7 +91,7 @@ export function NavbarNotificationRow({
               {displayName}
             </span>
           )}
-          <Badge variant="outline" className="rounded-full px-2 py-0 text-[10px] font-semibold uppercase tracking-wide">
+          <Badge variant="outline" className="rounded-full px-2 py-0 text-xs font-semibold uppercase tracking-wide">
             {n.type.replace(/_/g, " ")}
           </Badge>
         </div>

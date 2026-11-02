@@ -106,7 +106,7 @@ function ActivityRow({
               {displayName}
             </span>
           )}
-          <Badge variant="outline" className="rounded-full px-2 py-0 text-[10px] font-semibold uppercase">
+          <Badge variant="outline" className="rounded-full px-2 py-0 text-xs font-semibold uppercase">
             {item.type.replace(/_/g, " ")}
           </Badge>
           {timeLabel ? (

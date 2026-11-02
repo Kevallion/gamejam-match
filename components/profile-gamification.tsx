@@ -267,7 +267,7 @@ function GamificationBadgeGrid({
             {!unlocked ? (
               <p
                 className={cn(
-                  "mt-1 text-[10px] text-muted-foreground/85",
+                  "mt-1 text-xs text-muted-foreground/85",
                   meta.lockedHint
                     ? "font-medium leading-snug"
                     : "font-semibold uppercase tracking-wide text-muted-foreground/70",
@@ -276,7 +276,7 @@ function GamificationBadgeGrid({
                 {meta.lockedHint ?? "Locked — keep jamming to unlock"}
               </p>
             ) : earned?.earned_at ? (
-              <p className="mt-auto pt-1 text-[10px] text-muted-foreground/80">
+              <p className="mt-auto pt-1 text-xs text-muted-foreground/80">
                 Unlocked{" "}
                 {new Date(earned.earned_at).toLocaleDateString(undefined, {
                   month: "short",

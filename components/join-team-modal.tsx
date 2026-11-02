@@ -438,7 +438,7 @@ export function JoinTeamModal({
                     >
                       {role.filled && <Lock className="size-3" />}
                       {role.emoji} {role.label}
-                      {role.filled && <span className="ml-0.5 text-[10px]">Filled</span>}
+                      {role.filled && <span className="ml-0.5 text-xs">Filled</span>}
                     </button>
                   )
                 })}

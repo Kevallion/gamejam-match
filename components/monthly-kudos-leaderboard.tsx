@@ -93,7 +93,7 @@ export function MonthlyKudosLeaderboard() {
         <div className="flex items-center gap-2">
           <Sparkles className="size-4 text-peach" />
           <h3 className="text-sm font-bold text-foreground">Monthly Kudos Leaderboard</h3>
-          <Badge variant="outline" className="ml-auto rounded-full text-[10px]">
+          <Badge variant="outline" className="ml-auto rounded-full text-xs">
             {monthLabel}
           </Badge>
         </div>

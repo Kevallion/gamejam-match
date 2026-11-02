@@ -2,7 +2,7 @@
 
 /* eslint-disable react-hooks/set-state-in-effect */
 
-import { Bell, Gamepad2, Hand, Heart, LayoutDashboard, Loader2, LogIn, LogOut, Menu, MessageSquare, Monitor, Moon, PenLine, Sun, UserSearch, Users } from "lucide-react"
+import { Bell, Gamepad2, Hand, Heart, LayoutDashboard, Loader2, LogIn, LogOut, Menu, MessageSquare, Monitor, Moon, PenLine, Sparkles, Sun, UserSearch, Users } from "lucide-react"
 import { FEEDBACK_URL } from "@/components/FeedbackButton"
 import { SupportNavbarPopover } from "@/components/support-navbar-popover"
 import { Button } from "@/components/ui/button"
@@ -39,6 +39,7 @@ const NAV_ITEMS = [
   { href: "/find-members", label: "Members", icon: UserSearch },
   { href: "/create-team", label: "Create a Squad", icon: PenLine },
   { href: "/create-profile", label: "Available", icon: Hand },
+  { href: "/showcase", label: "How it works", icon: Sparkles },
 ] as const
 
 type NavbarProfile = {
@@ -225,7 +226,7 @@ export function Navbar() {
                   <Button variant="ghost" size="icon" className="relative size-8 rounded-xl hover:bg-white/10">
                     <Bell className="size-4" />
                     {unreadCount > 0 && (
-                      <span className="absolute -right-0.5 -top-0.5 flex min-h-4 min-w-4 items-center justify-center rounded-full bg-peach text-peach-foreground px-1 text-[10px] font-bold">
+                      <span className="absolute -right-0.5 -top-0.5 flex min-h-4 min-w-4 items-center justify-center rounded-full bg-peach text-peach-foreground px-1 text-xs font-bold">
                         {unreadCount > 9 ? "9+" : unreadCount}
                       </span>
                     )}
@@ -392,7 +393,7 @@ export function Navbar() {
                   <Button variant="ghost" size="icon" className="relative size-9 rounded-xl" aria-label="Notifications">
                     <Bell className="size-4" />
                     {unreadCount > 0 && (
-                      <span className="absolute -right-0.5 -top-0.5 flex min-h-4 min-w-4 items-center justify-center rounded-full bg-peach text-peach-foreground px-1 text-[10px] font-bold">
+                      <span className="absolute -right-0.5 -top-0.5 flex min-h-4 min-w-4 items-center justify-center rounded-full bg-peach text-peach-foreground px-1 text-xs font-bold">
                         {unreadCount > 9 ? "9+" : unreadCount}
                       </span>
                     )}

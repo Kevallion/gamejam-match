@@ -314,7 +314,7 @@ function DashboardBottomBar({
               type="button"
               onClick={() => onTabChange(value)}
               className={cn(
-                "relative flex flex-col items-center gap-0.5 rounded-xl px-3 py-1.5 text-[10px] font-semibold transition-colors active:scale-95",
+                "relative flex flex-col items-center gap-0.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-colors active:scale-95",
                 isActive ? activeColor : "text-muted-foreground",
               )}
             >
@@ -324,7 +324,7 @@ function DashboardBottomBar({
               <span className="relative">
                 <Icon className="size-5" />
                 {showBadge && (
-                  <span className="absolute -right-2.5 -top-1.5 flex min-h-[16px] min-w-[16px] items-center justify-center rounded-full bg-peach px-1 text-[9px] font-bold text-peach-foreground">
+                  <span className="absolute -right-2.5 -top-1.5 flex min-h-[16px] min-w-[16px] items-center justify-center rounded-full bg-peach px-1 text-xs font-bold text-peach-foreground">
                     {inboxCount > 9 ? "9+" : inboxCount}
                   </span>
                 )}
@@ -429,7 +429,7 @@ function MobileSectionTitle({ activeTab, inboxCount }: { activeTab: string; inbo
       <Icon className={cn("size-5", section.color)} />
       <h2 className="text-lg font-bold tracking-tight text-foreground">{section.label}</h2>
       {activeTab === "inbox" && inboxCount > 0 && (
-        <span className="flex min-h-5 min-w-5 items-center justify-center rounded-full bg-peach px-1.5 text-[10px] font-bold text-peach-foreground">
+        <span className="flex min-h-5 min-w-5 items-center justify-center rounded-full bg-peach px-1.5 text-xs font-bold text-peach-foreground">
           {inboxCount}
         </span>
       )}
@@ -476,7 +476,7 @@ function DashboardIdentityHeader({
             </p>
             <JammerLevelBadge
               level={level}
-              className="level-badge-animated shrink-0 border-amber-800/35 bg-amber-600/12 px-1.5 py-0.5 text-[10px] font-bold text-amber-950 dark:border-amber-500/40 dark:bg-amber-500/15 dark:text-amber-400"
+              className="level-badge-animated shrink-0 border-amber-800/35 bg-amber-600/12 px-1.5 py-0.5 text-xs font-bold text-amber-950 dark:border-amber-500/40 dark:bg-amber-500/15 dark:text-amber-400"
             />
           </div>
           <div className="mt-1 flex items-center gap-2">
@@ -537,7 +537,7 @@ function DashboardSidebarProgress({
       <CardContent className="space-y-3 p-4">
         <div className="flex items-center justify-between">
           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Progress</p>
-          <span className="rounded-full border border-teal/35 bg-teal/10 px-2 py-0.5 text-[10px] font-bold text-teal">
+          <span className="rounded-full border border-teal/35 bg-teal/10 px-2 py-0.5 text-xs font-bold text-teal">
             Level {level}
           </span>
         </div>
@@ -587,7 +587,7 @@ function DashboardRecentActivity({
                 className="rounded-lg border border-border/40 bg-background/40 px-2.5 py-2"
               >
                 <p className="line-clamp-2 text-xs text-foreground">{item.message}</p>
-                <p className="mt-1 text-[10px] text-muted-foreground">{relativeDateLabel(item.created_at)}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{relativeDateLabel(item.created_at)}</p>
               </div>
             ))}
           </div>
@@ -620,12 +620,12 @@ function DashboardMiniKpi({
             {icon}
           </div>
           <div className="min-w-0">
-            <p className="text-[10px] font-semibold leading-none text-muted-foreground">{label}</p>
+            <p className="text-xs font-semibold leading-none text-muted-foreground">{label}</p>
             <p className="text-base font-extrabold tabular-nums leading-tight text-foreground">{value}</p>
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-1">
-          {helper ? <span className="text-[10px] text-muted-foreground">{helper}</span> : null}
+          {helper ? <span className="text-xs text-muted-foreground">{helper}</span> : null}
           {rightSlot}
         </div>
       </CardContent>

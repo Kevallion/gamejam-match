@@ -314,7 +314,7 @@ export function TeamChat({ teamId, currentUserId }: TeamChatProps) {
                             {isOwn ? "You" : message.sender_username}
                           </span>
                           {timeLabel && (
-                            <span className="shrink-0 text-[10px] text-muted-foreground/80">
+                            <span className="shrink-0 text-xs text-muted-foreground/80">
                               {timeLabel}
                             </span>
                           )}

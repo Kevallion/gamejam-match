@@ -7,7 +7,15 @@ import { useSearchParams } from "next/navigation"
 import { Hero } from "@/components/hero"
 import { Search } from "@/components/search"
 import { Filters } from "@/components/filters"
-import { TeamGrid } from "@/components/team-grid"
+import { ActiveFilterChips, type ActiveFilterChip } from "@/components/active-filter-chips"
+import { TeamGrid, type TeamSort } from "@/components/team-grid"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { ENGINE_OPTIONS, EXPERIENCE_OPTIONS, JAM_STYLE_OPTIONS, LANGUAGE_OPTIONS, ROLE_OPTIONS } from "@/lib/constants"
 
 export function HomeShell() {
@@ -19,6 +27,7 @@ export function HomeShell() {
   const [levelFilter, setLevelFilter] = useState("all")
   const [languageFilter, setLanguageFilter] = useState("all")
   const [styleFilter, setStyleFilter] = useState("all")
+  const [sort, setSort] = useState<TeamSort>("recent")
   const [resultsCount, setResultsCount] = useState<number | null>(null)
 
   // Sync URL to state on load and when URL changes
@@ -107,26 +116,36 @@ export function HomeShell() {
     window.history.replaceState(null, "", window.location.pathname)
   }
 
-  const activeFilterLabels: string[] = []
+  const activeFilterChips: ActiveFilterChip[] = []
+  if (searchQuery.trim()) activeFilterChips.push({ id: "q", label: `Search: ${searchQuery.trim()}` })
   if (engineFilter !== "all") {
     const engineLabel = ENGINE_OPTIONS.find((e) => e.value === engineFilter)?.label ?? engineFilter
-    activeFilterLabels.push(`Engine: ${engineLabel}`)
+    activeFilterChips.push({ id: "engine", label: `Engine: ${engineLabel}` })
   }
   if (roleFilter !== "all") {
     const roleLabel = ROLE_OPTIONS.find((r) => r.value === roleFilter)?.label ?? roleFilter
-    activeFilterLabels.push(`Role: ${roleLabel}`)
+    activeFilterChips.push({ id: "role", label: `Role: ${roleLabel}` })
   }
   if (levelFilter !== "all") {
     const levelLabel = EXPERIENCE_OPTIONS.find((l) => l.value === levelFilter)?.label ?? levelFilter
-    activeFilterLabels.push(`Experience: ${levelLabel}`)
+    activeFilterChips.push({ id: "level", label: `Experience: ${levelLabel}` })
   }
   if (languageFilter !== "all") {
     const languageLabel = LANGUAGE_OPTIONS.find((l) => l.value === languageFilter)?.label ?? languageFilter
-    activeFilterLabels.push(`Language: ${languageLabel}`)
+    activeFilterChips.push({ id: "language", label: `Language: ${languageLabel}` })
   }
   if (styleFilter !== "all") {
     const styleLabel = JAM_STYLE_OPTIONS.find((s) => s.value === styleFilter)?.label ?? styleFilter
-    activeFilterLabels.push(`Jam style: ${styleLabel}`)
+    activeFilterChips.push({ id: "style", label: `Jam style: ${styleLabel}` })
+  }
+
+  const removeFilterChip = (id: string) => {
+    if (id === "q") handleSearchChange("")
+    if (id === "engine") handleEngineChange("all")
+    if (id === "role") handleRoleChange("all")
+    if (id === "level") handleLevelChange("all")
+    if (id === "language") handleLanguageChange("all")
+    if (id === "style") handleStyleChange("all")
   }
 
   return (
@@ -160,12 +179,19 @@ export function HomeShell() {
               onStyleChange={handleStyleChange}
               onReset={handleResetFilters}
             />
-            {activeFilterLabels.length > 0 && (
-              <p className="text-xs text-muted-foreground">
-                <span className="font-semibold text-foreground">Active filters:</span>{" "}
-                {activeFilterLabels.join(" • ")}
-              </p>
-            )}
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <ActiveFilterChips chips={activeFilterChips} onRemove={removeFilterChip} />
+              <Select value={sort} onValueChange={(value) => setSort(value as TeamSort)}>
+                <SelectTrigger className="h-10 w-full rounded-xl border-border/60 bg-card sm:w-[180px]">
+                  <SelectValue placeholder="Sort" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl">
+                  <SelectItem value="recent">Recent</SelectItem>
+                  <SelectItem value="starting">Starting soon</SelectItem>
+                  <SelectItem value="spots">Open spots</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
 
@@ -178,6 +204,8 @@ export function HomeShell() {
             levelFilter={levelFilter}
             languageFilter={languageFilter}
             styleFilter={styleFilter}
+            sort={sort}
+            onReset={handleResetFilters}
             onResultsCountChange={setResultsCount}
           />
         </div>

@@ -349,7 +349,7 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
                       </Link>
                     </h3>
                     {typeof player.jammerLevel === "number" ? (
-                      <JammerLevelBadge level={player.jammerLevel} className="text-[10px]" />
+                      <JammerLevelBadge level={player.jammerLevel} className="text-xs" />
                     ) : null}
                   </div>
                   {player.jammerTitle?.trim() ? (
