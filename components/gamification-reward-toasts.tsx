@@ -2,6 +2,7 @@
 
 import { Star, Sparkles, Trophy } from "lucide-react"
 import { toast } from "sonner"
+import { BadgeMedallion } from "@/components/badge-medallion"
 import type { GamificationRewardSummary } from "@/lib/gamification-reward-types"
 import { gamificationRewardHasToast } from "@/lib/gamification-reward-types"
 import {
@@ -111,9 +112,10 @@ async function showGamificationRewardsAsync(
   for (const badgeId of badges) {
     await delay(t)
     t += STAGGER_MS
-    toast.message(`🏆 Achievement unlocked: ${formatBadgeLabel(badgeId)}`, {
-      icon: <Trophy className="size-5 shrink-0 text-amber-500" aria-hidden />,
+    toast.message(`Badge unlocked: ${formatBadgeLabel(badgeId)}`, {
+      icon: <BadgeMedallion badgeId={badgeId} animate />,
       classNames: {
+        icon: "!h-auto !w-auto !mr-2",
         toast:
           "group gamification-toast-achievement border-amber-500/50 bg-amber-950/20 dark:bg-amber-950/35 backdrop-blur-sm shadow-lg shadow-amber-500/15",
       },

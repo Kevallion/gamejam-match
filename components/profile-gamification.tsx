@@ -1,20 +1,8 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
-import {
-  Coffee,
-  Crown,
-  Flag,
-  Flame,
-  Handshake,
-  HeartHandshake,
-  Megaphone,
-  Sparkles,
-  Sunrise,
-  Trophy,
-  Wrench,
-  type LucideIcon,
-} from "lucide-react"
+import { Sparkles, Trophy } from "lucide-react"
+import { BadgeMedallion, type BadgeRarity } from "@/components/badge-medallion"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
@@ -23,7 +11,7 @@ import { supabase } from "@/lib/supabase"
 import { gamificationLevelProgress } from "@/lib/gamification-level"
 import { cn } from "@/lib/utils"
 
-export type BadgeRarity = "common" | "uncommon" | "rare" | "epic" | "special"
+export type { BadgeRarity }
 
 export type BadgeCatalogMeta = {
   emoji: string
@@ -36,19 +24,6 @@ export type BadgeCatalogMeta = {
   locked: string
   /** Shown instead of the generic “keep jamming” line when locked */
   lockedHint?: string
-}
-
-const BADGE_ICONS: Record<string, LucideIcon> = {
-  early_bird: Sunrise,
-  team_player: Handshake,
-  founder: Flag,
-  stalwart: Flame,
-  multi_tool: Wrench,
-  recruiter: Megaphone,
-  captain: Crown,
-  jam_champion: Trophy,
-  supporter: Coffee,
-  golden_heart: HeartHandshake,
 }
 
 const RARITY_RANK: Record<BadgeRarity, number> = {
@@ -65,18 +40,6 @@ const RARITY_LABEL: Record<BadgeRarity, string> = {
   rare: "Rare",
   epic: "Epic",
   special: "Special",
-}
-
-const RARITY_RING: Record<BadgeRarity, string> = {
-  common: "ring-border",
-  uncommon: "ring-teal",
-  rare: "ring-lavender",
-  epic: "ring-amber-400",
-  special: "ring-pink",
-}
-
-function badgeIcon(badgeId: string): LucideIcon {
-  return BADGE_ICONS[badgeId] ?? Trophy
 }
 
 function formatUnlocked(iso: string): string {
@@ -241,19 +204,7 @@ function GamificationBadgeGrid({
             )}
           >
             <div className="flex items-center gap-2">
-              <span
-                className={cn(
-                  "flex size-9 shrink-0 items-center justify-center rounded-full bg-background/40 ring-2",
-                  RARITY_RING[meta.rarity],
-                  !unlocked && "opacity-50 saturate-0",
-                )}
-                aria-hidden
-              >
-                {(() => {
-                  const Icon = badgeIcon(badgeId)
-                  return <Icon className="size-4" strokeWidth={1.75} />
-                })()}
-              </span>
+              <BadgeMedallion badgeId={badgeId} rarity={meta.rarity} locked={!unlocked} />
               <span
                 className={cn(
                   "font-bold leading-tight",
@@ -312,20 +263,16 @@ function CompactBadgeRow({ badges }: { badges: BadgeRow[] }) {
     <Dialog>
       <div className="flex flex-wrap items-center gap-2">
         {top.map(({ badge, meta }) => {
-          const Icon = badgeIcon(badge.badge_id)
           return (
             <Tooltip key={badge.badge_id}>
               <TooltipTrigger asChild>
                 <DialogTrigger asChild>
                   <button
                     type="button"
-                    className={cn(
-                      "flex size-9 items-center justify-center rounded-full bg-background/50 ring-2 transition-transform hover:scale-105",
-                      RARITY_RING[meta.rarity],
-                    )}
+                    className="rounded-full transition-transform hover:-translate-y-0.5 active:translate-y-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
                     aria-label={`${meta.label}, ${RARITY_LABEL[meta.rarity]}`}
                   >
-                    <Icon className="size-4" strokeWidth={1.75} aria-hidden />
+                    <BadgeMedallion badgeId={badge.badge_id} rarity={meta.rarity} />
                   </button>
                 </DialogTrigger>
               </TooltipTrigger>
@@ -342,7 +289,7 @@ function CompactBadgeRow({ badges }: { badges: BadgeRow[] }) {
           <DialogTrigger asChild>
             <button
               type="button"
-              className="inline-flex h-9 items-center rounded-full bg-muted px-2.5 text-xs font-bold text-muted-foreground"
+              className="inline-flex h-9 items-center rounded-full border-2 border-foreground bg-card px-2.5 text-xs font-bold text-foreground shadow-[2px_2px_0px_0px_var(--neo-shadow)] transition-transform hover:-translate-y-0.5 active:translate-y-px"
               aria-label={`Show ${extra} more badges`}
             >
               +{extra}

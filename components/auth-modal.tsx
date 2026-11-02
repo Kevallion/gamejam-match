@@ -41,9 +41,12 @@ function GoogleIcon({ className }: { className?: string }) {
 export interface AuthModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+  /** Path to return to after sign-in (defaults to /dashboard). */
+  next?: string
 }
 
-export function AuthModal({ open, onOpenChange }: AuthModalProps) {
+export function AuthModal({ open, onOpenChange, next }: AuthModalProps) {
+  const returnTo = next && next.startsWith("/") ? next : "/dashboard"
   const [isLoading, setIsLoading] = useState(false)
   const [email, setEmail] = useState("")
   const [isMagicLoading, setIsMagicLoading] = useState(false)
@@ -53,7 +56,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
     if (isLoading) return
     setIsLoading(true)
     try {
-      await signInWithDiscord()
+      await signInWithDiscord({ next: returnTo })
     } catch (error) {
       toast.error("Sign-in error", {
         description: error instanceof Error ? error.message : "Something went wrong. Please try again.",
@@ -66,7 +69,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
     if (isLoading) return
     setIsLoading(true)
     try {
-      await signInWithGoogle()
+      await signInWithGoogle({ next: returnTo })
     } catch (error) {
       toast.error("Sign-in error", {
         description: error instanceof Error ? error.message : "Something went wrong. Please try again.",
@@ -86,12 +89,12 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
           ? window.location.origin
           : process.env.NEXT_PUBLIC_SITE_URL || "https://gamejamcrew.com"
 
-      const redirectTo = `${baseUrl}/auth/callback?next=${encodeURIComponent("/dashboard")}`
+      const redirectTo = `${baseUrl}/auth/callback?next=${encodeURIComponent(returnTo)}`
 
       const { error } = await supabase.auth.signInWithOtp({
         email: email.trim(),
         options: {
-          // En production, cela donnera https://gamejamcrew.com/auth/callback?next=/dashboard
+          // En production : https://gamejamcrew.com/auth/callback?next=<returnTo>
           emailRedirectTo: redirectTo,
         },
       })

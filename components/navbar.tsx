@@ -145,11 +145,12 @@ export function Navbar() {
       <header className="fixed top-4 left-1/2 z-50 hidden w-max max-w-[calc(100vw-2rem)] -translate-x-1/2 px-2 lg:block">
         <nav className="glass-navbar flex min-w-0 w-full items-center gap-2 overflow-x-auto overflow-y-hidden rounded-2xl px-3 py-2 shadow-lg shadow-black/5 scrollbar-none">
           {/* Logo */}
-          <Link href="/" className="flex shrink-0 items-center gap-2 px-2 text-foreground transition-colors hover:text-primary">
+          <Link href="/" aria-label="GameJamCrew home" className="flex shrink-0 items-center gap-2 px-2 text-foreground transition-colors hover:text-primary">
             <div className="flex size-8 items-center justify-center rounded-xl bg-primary/15">
               <Gamepad2 className="size-4 text-primary" />
             </div>
-            <span className="text-base font-extrabold tracking-tight">GameJamCrew</span>
+            {/* Wordmark only from xl: keeps the bar within the viewport at lg (1024-1279 px) */}
+            <span className="hidden text-base font-extrabold tracking-tight xl:inline">GameJamCrew</span>
           </Link>
 
           {/* Separator */}
@@ -162,7 +163,7 @@ export function Navbar() {
               return (
                 <Button key={item.href} variant="ghost" asChild size="sm" className="gap-1.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-white/10">
                   <Link href={item.href}>
-                    <Icon className="size-3.5" />
+                    <Icon className="hidden size-3.5 xl:block" />
                     {item.label}
                   </Link>
                 </Button>
