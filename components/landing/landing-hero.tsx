@@ -98,11 +98,9 @@ export function LandingHero({
             </h1>
 
             {/* Subheadline */}
-            <p className="mx-auto mt-5 max-w-2xl text-pretty text-lg leading-relaxed text-muted-foreground lg:mx-0">
-              No more digging through scattered Discord servers or forums. GameJamCrew
-              helps developers, artists, and audio creators find their perfect squad.
-              Whether you&apos;re a beginner gaining XP or a veteran building a portfolio,
-              stop jamming alone and join our cozy community of passionate creators.
+            <p className="mx-auto mt-5 max-w-xl text-pretty text-lg leading-relaxed text-muted-foreground lg:mx-0">
+              Skip the scattered Discord servers. Meet developers, artists and audio
+              creators for your next jam, whether you&apos;re earning XP or building a portfolio.
             </p>
 
             {/* CTA */}
@@ -144,7 +142,7 @@ export function LandingHero({
                     <Link
                       key={team.id}
                       href={`/teams/${team.id}`}
-                      className="rounded-xl border border-border/60 bg-card/80 px-3 py-2 transition-colors hover:border-teal/40"
+                      className="card-interactive rounded-xl border-2 border-border bg-card/80 px-3 py-2"
                       onClick={() => track("Landing Featured Team Clicked", { team_id: team.id })}
                     >
                       <p className="truncate text-sm font-semibold text-foreground">{team.name}</p>
@@ -179,7 +177,7 @@ export function LandingHero({
                           href={jam.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="block rounded-xl border border-border/60 bg-card/80 px-3 py-2 transition-colors hover:border-teal/40"
+                          className="card-interactive block rounded-xl border-2 border-border bg-card/80 px-3 py-2"
                         >
                           {content}
                         </a>
@@ -188,7 +186,7 @@ export function LandingHero({
                     return (
                       <div
                         key={jam.id}
-                        className="rounded-xl border border-border/60 bg-card/80 px-3 py-2"
+                        className="rounded-xl border-2 border-border bg-card/80 px-3 py-2"
                       >
                         {content}
                       </div>

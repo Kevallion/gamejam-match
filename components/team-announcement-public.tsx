@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { Navbar } from "@/components/navbar"
 import { Button } from "@/components/ui/button"
@@ -70,6 +70,16 @@ export function TeamAnnouncementPublic({
   roster = [],
 }: TeamAnnouncementPublicProps) {
   const [authModalOpen, setAuthModalOpen] = useState(false)
+  // Returning from sign-in with ?apply=1: reopen the application modal, then clean the URL.
+  const [applyIntent] = useState(
+    () => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("apply") === "1",
+  )
+  useEffect(() => {
+    if (!applyIntent) return
+    const url = new URL(window.location.href)
+    url.searchParams.delete("apply")
+    window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`)
+  }, [applyIntent])
   const availableRoles = computeAvailableRoles(team)
   const engineLabel = engineOptionLabel(team.engine)
   const languageLabel = languageOptionLabel(team.language)
@@ -260,6 +270,7 @@ export function TeamAnnouncementPublic({
                     teamName={team.name}
                     availableRoles={availableRoles}
                     ownerUserId={team.user_id}
+                    autoOpen={applyIntent}
                   >
                     <Button className="w-full gap-2 rounded-xl bg-primary text-primary-foreground transition-all hover:bg-primary/85 active:scale-[0.98]">
                       Apply
@@ -272,7 +283,11 @@ export function TeamAnnouncementPublic({
           </div>
         </div>
       </main>
-      <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />
+      <AuthModal
+        open={authModalOpen}
+        onOpenChange={setAuthModalOpen}
+        next={`/teams/${team.id}?apply=1`}
+      />
     </div>
   )
 }

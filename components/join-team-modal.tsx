@@ -80,6 +80,8 @@ interface JoinTeamModalProps {
   /** True when opened from the smart-match / recommended section (TeamCard). */
   isRecommended?: boolean
   children: React.ReactNode
+  /** Opens the modal on mount (e.g. returning from sign-in with ?apply=1). */
+  autoOpen?: boolean
 }
 
 export function JoinTeamModal({
@@ -90,12 +92,13 @@ export function JoinTeamModal({
   applicantProfile,
   isRecommended = false,
   children,
+  autoOpen = false,
 }: JoinTeamModalProps) {
   const [selectedRoleIdx, setSelectedRoleIdx] = useState<number | null>(null)
   const selectedRole = selectedRoleIdx !== null ? availableRoles[selectedRoleIdx] ?? null : null
   const [message, setMessage] = useState("")
   const [loading, setLoading] = useState(false)
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(autoOpen)
   const [isOwnTeam, setIsOwnTeam] = useState(false)
   const [statusMsg, setStatusMsg] = useState<{
     type: "error" | "success"
