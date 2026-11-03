@@ -41,32 +41,32 @@ export function DashboardAvailabilityCompact({
   profileAvatarUrl?: string | null
 }) {
   return (
-    <div className="space-y-4">
-      <Card className="border-border/40 bg-card/70 shadow-sm backdrop-blur-sm">
-        <CardContent className="flex flex-wrap items-center justify-between gap-2 p-3">
-          <div className="flex items-center gap-2">
-            <Hand className="size-4 text-lavender" />
-            <p className="text-xs font-semibold text-foreground">My availability posts ({posts.length}/3)</p>
+    <div className="min-w-0 max-w-full space-y-4">
+      <Card className="min-w-0 max-w-full border-border/40 bg-card/70 shadow-sm backdrop-blur-sm">
+        <CardContent className="flex min-w-0 flex-wrap items-center justify-between gap-2 p-3">
+          <div className="flex min-w-0 items-center gap-2">
+            <Hand className="size-4 shrink-0 text-lavender" />
+            <p className="min-w-0 text-xs font-semibold text-foreground">My availability posts ({posts.length}/3)</p>
           </div>
-          <Button asChild size="sm" className="h-8 cursor-pointer rounded-lg text-xs">
+          <Button asChild size="sm" className="h-8 max-w-full cursor-pointer rounded-lg text-xs">
             <Link href="/create-profile">Post availability</Link>
           </Button>
         </CardContent>
       </Card>
 
       {posts.length === 0 ? (
-        <Card className="border-border/40 bg-card/70 shadow-sm backdrop-blur-sm">
+        <Card className="min-w-0 max-w-full border-border/40 bg-card/70 shadow-sm backdrop-blur-sm">
           <CardContent className="p-5 text-center text-sm text-muted-foreground">
             No availability posts yet.
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid min-w-0 gap-3 sm:grid-cols-2">
           {posts.map((post) => {
             const renewing = renewingPostId === post.id
             const expiresSoon = isExpiringSoon(post.expires_at)
             return (
-              <Card key={post.id} className="border-border/40 bg-card/70 shadow-sm backdrop-blur-sm">
+              <Card key={post.id} className="min-w-0 border-border/40 bg-card/70 shadow-sm backdrop-blur-sm">
                 <CardHeader className="pb-2">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="flex min-w-0 items-center gap-2">

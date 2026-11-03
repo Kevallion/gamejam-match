@@ -26,7 +26,7 @@ function SquadCardCompact({
   const expiringSoon = isExpiringSoon(team.expiresAt ?? null)
 
   return (
-    <Card className="border-border/40 bg-card/70 shadow-sm backdrop-blur-sm">
+    <Card className="min-w-0 max-w-full border-border/40 bg-card/70 shadow-sm backdrop-blur-sm">
       <CardContent className="space-y-3 p-4">
         <div className="flex flex-wrap items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
@@ -145,7 +145,7 @@ export function DashboardSquadsCompact({
 }) {
   if (teams.length === 0) {
     return (
-      <Card className="border-border/40 bg-card/70 shadow-sm backdrop-blur-sm">
+      <Card className="min-w-0 max-w-full border-border/40 bg-card/70 shadow-sm backdrop-blur-sm">
         <CardContent className="flex flex-col items-center gap-3 p-6 text-center">
           <p className="text-sm text-muted-foreground">No squads yet. Create one or join a squad to get started.</p>
           <Button asChild size="sm" className="h-8 cursor-pointer rounded-lg">
@@ -157,7 +157,7 @@ export function DashboardSquadsCompact({
   }
 
   return (
-    <div className="grid gap-3 sm:grid-cols-2">
+    <div className="grid min-w-0 gap-3 sm:grid-cols-2">
       {teams.map((team) => (
         <SquadCardCompact key={team.id} team={team} onLeave={onLeave} />
       ))}

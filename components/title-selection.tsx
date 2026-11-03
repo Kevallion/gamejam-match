@@ -84,14 +84,14 @@ export function TitleSelection({
   return (
     <Card
       className={cn(
-        "border border-border/50 bg-white/[0.05] shadow-sm backdrop-blur-xl dark:border-border/60 dark:bg-slate-900/45 light:bg-white/75",
+        "min-w-0 max-w-full border border-border/50 bg-white/[0.05] shadow-sm backdrop-blur-xl dark:border-border/60 dark:bg-slate-900/45 light:bg-white/75",
         className,
       )}
     >
-      <CardContent className="space-y-3 p-4">
+      <CardContent className="min-w-0 space-y-3 p-4">
         {/* Header row */}
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
+        <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
+          <div className="flex min-w-0 items-center gap-2">
             <div className="flex size-8 items-center justify-center rounded-lg bg-amber-500/15 ring-1 ring-amber-500/25">
               <Sparkles className="size-3.5 text-amber-500" />
             </div>
@@ -218,7 +218,7 @@ export function TitleSelection({
             onValueChange={(v) => void handleEquip(v)}
             disabled={disabled || pending}
           >
-            <SelectTrigger className="h-9 rounded-xl border-border/50 bg-background/80 text-sm backdrop-blur-sm dark:bg-background/60">
+            <SelectTrigger className="h-9 w-full min-w-0 max-w-full rounded-xl border-border/50 bg-background/80 text-sm backdrop-blur-sm dark:bg-background/60">
               <SelectValue placeholder="Choose a title" />
             </SelectTrigger>
             <SelectContent className="rounded-xl">
