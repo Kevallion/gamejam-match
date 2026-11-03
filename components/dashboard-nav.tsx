@@ -1,7 +1,6 @@
 "use client"
 
-import Link from "next/link"
-import { Gamepad2, Inbox, LayoutDashboard, Settings2, Trophy, UserSearch } from "lucide-react"
+import { Inbox, LayoutDashboard, Settings2, Trophy, UserSearch } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 export const DASHBOARD_NAV_ITEMS = [
@@ -59,15 +58,8 @@ function InboxCount({ count }: { count: number }) {
 
 export function DashboardSidebar({ activeTab, onTabChange, inboxCount }: DashboardNavProps) {
   return (
-    <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r border-border/50 bg-card/50 lg:flex">
-      <div className="flex h-full min-h-0 flex-col px-3 py-4">
-        <Link href="/" className="mb-6 flex min-w-0 items-center gap-2 px-2 text-foreground">
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary/15">
-            <Gamepad2 className="size-4 text-primary" aria-hidden />
-          </span>
-          <span className="truncate text-base font-extrabold tracking-tight">GameJamCrew</span>
-        </Link>
-        <nav aria-label="Dashboard" className="flex min-w-0 flex-1 flex-col gap-1">
+    <aside className="hidden w-60 shrink-0 self-stretch border-r border-border/50 bg-card/50 pt-20 lg:block">
+      <nav aria-label="Dashboard" className="sticky top-20 flex flex-col gap-1 px-3 pb-4">
           {DASHBOARD_NAV_ITEMS.map((item) => {
             const Icon = item.icon
             const isActive = activeTab === item.value
@@ -88,8 +80,7 @@ export function DashboardSidebar({ activeTab, onTabChange, inboxCount }: Dashboa
               </button>
             )
           })}
-        </nav>
-      </div>
+      </nav>
     </aside>
   )
 }

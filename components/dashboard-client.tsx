@@ -200,9 +200,9 @@ function resolveDashboardTab(raw: string | null | undefined): (typeof VALID_TABS
 
 function DashboardLoadingSkeleton() {
   return (
-    <div className="flex min-h-screen min-w-0 flex-col overflow-x-clip bg-background lg:flex-row">
-      <div className="hidden w-60 shrink-0 border-r border-border/50 lg:block" />
-      <div className="min-w-0 flex-1 px-4 py-6 lg:px-6 lg:pt-24">
+    <div className="flex min-h-screen min-w-0 bg-background lg:flex-row">
+      <div className="hidden w-60 shrink-0 self-stretch border-r border-border/50 bg-card/50 lg:block" />
+      <div className="min-w-0 flex-1 overflow-x-clip px-4 py-6 lg:px-6 lg:pt-24">
         <div className="mx-auto w-full min-w-0 max-w-6xl space-y-4">
           <Skeleton className="h-24 w-full rounded-2xl" />
           <div className="grid min-w-0 gap-4 lg:grid-cols-12">
@@ -1314,13 +1314,13 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
   const nextStep = setupSteps.find((step) => !step.done) ?? setupSteps[0]
 
   return (
-    <div className="flex min-h-screen min-w-0 overflow-x-clip bg-background lg:flex-row">
+    <div className="flex min-h-full w-full min-w-0 flex-1 bg-background lg:flex-row">
       <DashboardSidebar
         activeTab={activeTab}
         onTabChange={handleTabChange}
         inboxCount={toActionCount}
       />
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col overflow-x-clip">
         <Navbar offsetForSidebar />
         <main className="min-w-0 flex-1 pb-24 lg:pb-10 lg:pt-20">
           <section className="mx-auto w-full min-w-0 max-w-6xl px-4 py-4 md:py-6 lg:px-6">
