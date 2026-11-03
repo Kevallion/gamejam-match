@@ -1,6 +1,8 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
+import { parseProgrammingLanguages } from "@/lib/constants"
+import { isMissingColumnError } from "@/lib/optional-column"
 import { upsertOwnDiscordUsername } from "@/lib/profile-discord"
 import {
   saveProfileSettingsSchema,
@@ -8,7 +10,7 @@ import {
 } from "@/lib/profile-settings-schema"
 
 export type SaveProfileSettingsResult =
-  | { success: true }
+  | { success: true; programmingLanguagesSaved?: boolean }
   | {
       success: false
       error: string
@@ -117,24 +119,37 @@ export async function saveProfileSettings(
   }
 
   const normalizedPortfolioUrl = normalizePortfolioUrl(payload.portfolioUrl)
+  const programmingLanguages = parseProgrammingLanguages(payload.programmingLanguages ?? [])
 
-  const { error: profileError } = await supabase
+  const profilePatch = {
+    username: payload.username.trim(),
+    discord_username: normalizeText(payload.discordUsername),
+    default_role: primaryRole,
+    main_role: primaryRole,
+    role: primaryRole,
+    experience_level: primaryExperienceLevel,
+    experience: primaryExperienceLevel,
+    default_engine: normalizeText(payload.defaultEngine),
+    default_language: normalizeText(payload.defaultLanguage),
+    portfolio_url: normalizedPortfolioUrl,
+    portfolio_link: normalizedPortfolioUrl,
+    jam_style: normalizeText(payload.jamStyle),
+  }
+
+  let programmingLanguagesSaved = true
+  let { error: profileError } = await supabase
     .from("profiles")
     .update({
-      username: payload.username.trim(),
-      discord_username: normalizeText(payload.discordUsername),
-      default_role: primaryRole,
-      main_role: primaryRole,
-      role: primaryRole,
-      experience_level: primaryExperienceLevel,
-      experience: primaryExperienceLevel,
-      default_engine: normalizeText(payload.defaultEngine),
-      default_language: normalizeText(payload.defaultLanguage),
-      portfolio_url: normalizedPortfolioUrl,
-      portfolio_link: normalizedPortfolioUrl,
-      jam_style: normalizeText(payload.jamStyle),
+      ...profilePatch,
+      programming_languages: programmingLanguages,
     })
     .eq("id", user.id)
+
+  if (profileError && isMissingColumnError(profileError, "programming_languages")) {
+    programmingLanguagesSaved = false
+    const retry = await supabase.from("profiles").update(profilePatch).eq("id", user.id)
+    profileError = retry.error
+  }
 
   if (profileError) {
     if (profileError.code === "23505") {
@@ -149,5 +164,5 @@ export async function saveProfileSettings(
 
   await upsertOwnDiscordUsername(supabase, user.id, normalizeText(payload.discordUsername))
 
-  return { success: true }
+  return { success: true, programmingLanguagesSaved }
 }

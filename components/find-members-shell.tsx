@@ -15,6 +15,7 @@ import {
   ENGINE_OPTIONS,
   EXPERIENCE_OPTIONS,
   LANGUAGE_OPTIONS,
+  PROGRAMMING_LANGUAGE_OPTIONS,
   ROLE_OPTIONS,
 } from "@/lib/constants"
 import type { AvailablePlayerListItem, DirectoryJammerListItem } from "@/lib/queries"
@@ -49,6 +50,7 @@ export function FindMembersShell({
   const engineFilter = searchParams.get("engine") ?? "all"
   const levelFilter = searchParams.get("level") ?? "all"
   const langFilter = searchParams.get("lang") ?? "all"
+  const codeFilter = searchParams.get("code") ?? "all"
   const jamIdFilter = searchParams.get("jam_id") ?? ""
   const isDirectory = mode === "directory"
 
@@ -57,12 +59,14 @@ export function FindMembersShell({
       roleFilter !== "all" ||
       engineFilter !== "all" ||
       levelFilter !== "all" ||
-      langFilter !== "all"
+      langFilter !== "all" ||
+      codeFilter !== "all"
     : searchQuery !== "" ||
       roleFilter !== "all" ||
       engineFilter !== "all" ||
       levelFilter !== "all" ||
       langFilter !== "all" ||
+      codeFilter !== "all" ||
       jamIdFilter !== ""
 
   const replaceUrlWithFilters = (updates: Record<string, string | null>) => {
@@ -89,6 +93,7 @@ export function FindMembersShell({
       engine: null,
       level: null,
       lang: null,
+      code: null,
       jam_id: null,
     })
   }
@@ -110,6 +115,10 @@ export function FindMembersShell({
   if (langFilter !== "all") {
     const langLabel = LANGUAGE_OPTIONS.find((l) => l.value === langFilter)?.label ?? langFilter
     activeFilterChips.push({ id: "lang", label: `Language: ${langLabel}` })
+  }
+  if (codeFilter !== "all") {
+    const codeLabel = PROGRAMMING_LANGUAGE_OPTIONS.find((l) => l.value === codeFilter)?.label ?? codeFilter
+    activeFilterChips.push({ id: "code", label: `Code: ${codeLabel}` })
   }
 
   return (
@@ -196,12 +205,14 @@ export function FindMembersShell({
             engine={engineFilter}
             level={levelFilter}
             language={langFilter}
+            programmingLanguage={codeFilter}
             hasActiveFilters={hasActiveFilters}
             resultsCount={resultsCount ?? undefined}
             onRoleChange={(value) => replaceUrlWithFilters({ role: value })}
             onEngineChange={(value) => replaceUrlWithFilters({ engine: value })}
             onLevelChange={(value) => replaceUrlWithFilters({ level: value })}
             onLanguageChange={(value) => replaceUrlWithFilters({ lang: value })}
+            onProgrammingLanguageChange={(value) => replaceUrlWithFilters({ code: value })}
             onReset={handleResetFilters}
           />
         ) : (
@@ -210,6 +221,7 @@ export function FindMembersShell({
             engine={engineFilter}
             level={levelFilter}
             language={langFilter}
+            programmingLanguage={codeFilter}
             hasActiveFilters={hasActiveFilters}
             resultsCount={resultsCount ?? undefined}
             isUpdating={isPending}
@@ -217,6 +229,7 @@ export function FindMembersShell({
             onEngineChange={(value) => replaceUrlWithFilters({ engine: value })}
             onLevelChange={(value) => replaceUrlWithFilters({ level: value })}
             onLanguageChange={(value) => replaceUrlWithFilters({ lang: value })}
+            onProgrammingLanguageChange={(value) => replaceUrlWithFilters({ code: value })}
             onReset={handleResetFilters}
           />
         )}
@@ -234,12 +247,13 @@ export function FindMembersShell({
 
         {isDirectory ? (
           <DirectoryGrid
-            key={`${searchQuery}|${roleFilter}|${engineFilter}|${levelFilter}|${langFilter}`}
+            key={`${searchQuery}|${roleFilter}|${engineFilter}|${levelFilter}|${langFilter}|${codeFilter}`}
             searchQuery={searchQuery}
             roleFilter={roleFilter}
             engineFilter={engineFilter}
             levelFilter={levelFilter}
             languageFilter={langFilter}
+            programmingLanguageFilter={codeFilter}
             initialJammers={initialDirectory}
             initialHasMore={initialDirectoryHasMore}
             onResultsCountChange={setResultsCount}
@@ -248,7 +262,7 @@ export function FindMembersShell({
           />
         ) : (
           <MembersGrid
-            key={`${searchQuery}|${roleFilter}|${engineFilter}|${levelFilter}|${langFilter}|${jamIdFilter}`}
+            key={`${searchQuery}|${roleFilter}|${engineFilter}|${levelFilter}|${langFilter}|${codeFilter}|${jamIdFilter}`}
             initialMembers={initialMembers}
             initialHasMore={initialHasMore}
             searchQuery={searchQuery}
@@ -256,6 +270,7 @@ export function FindMembersShell({
             engineFilter={engineFilter}
             levelFilter={levelFilter}
             langFilter={langFilter}
+            programmingLanguageFilter={codeFilter}
             jamIdFilter={jamIdFilter}
             onResultsCountChange={setResultsCount}
             isRefreshing={isPending}

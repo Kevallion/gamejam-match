@@ -94,7 +94,7 @@ export async function fetchPublicTeamsPage(): Promise<{
   const ownerIds = formatted.map((t) => t.user_id).filter(Boolean)
   // Use anon client path via profiles table directly (fetchProfilesMap uses browser client).
   const uniqueOwnerIds = Array.from(new Set(ownerIds))
-  let profilesMap: Record<string, { username: string; avatar_url: string | null }> = {}
+  const profilesMap: Record<string, { username: string; avatar_url: string | null }> = {}
   if (uniqueOwnerIds.length > 0) {
     const { data: profiles } = await supabase
       .from("profiles")

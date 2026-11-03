@@ -90,10 +90,10 @@ export function MonthlyKudosLeaderboard() {
   return (
     <Card className="glass-card border-peach/25 bg-peach/5">
       <CardHeader className="pb-2">
-        <div className="flex items-center gap-2">
-          <Sparkles className="size-4 text-peach" />
-          <h3 className="text-sm font-bold text-foreground">Monthly Kudos Leaderboard</h3>
-          <Badge variant="outline" className="ml-auto rounded-full text-xs">
+        <div className="flex flex-wrap items-center gap-2">
+          <Sparkles className="size-4 shrink-0 text-peach" />
+          <h3 className="min-w-0 text-sm font-bold text-foreground">Monthly Kudos Leaderboard</h3>
+          <Badge variant="outline" className="ml-auto max-w-full rounded-full text-xs">
             {monthLabel}
           </Badge>
         </div>
@@ -110,17 +110,17 @@ export function MonthlyKudosLeaderboard() {
                 key={row.userId}
                 className="flex items-center justify-between rounded-xl border border-border/50 bg-card/50 px-3 py-2"
               >
-                <div className="flex items-center gap-2">
+                <div className="flex min-w-0 items-center gap-2">
                   {idx === 0 ? (
-                    <Crown className="size-4 text-amber-500" />
+                    <Crown className="size-4 shrink-0 text-amber-500" />
                   ) : (
-                    <Medal className="size-4 text-muted-foreground" />
+                    <Medal className="size-4 shrink-0 text-muted-foreground" />
                   )}
-                  <Link href={`/jammer/${row.userId}`} className="text-sm font-semibold text-foreground hover:text-primary">
+                  <Link href={`/jammer/${row.userId}`} className="min-w-0 truncate text-sm font-semibold text-foreground hover:text-primary">
                     {idx + 1}. {row.username}
                   </Link>
                 </div>
-                <span className="text-xs font-semibold text-muted-foreground">{row.total} kudos</span>
+                <span className="shrink-0 text-xs font-semibold text-muted-foreground">{row.total} kudos</span>
               </div>
             ))}
           </div>

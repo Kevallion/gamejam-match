@@ -7,8 +7,12 @@ import {
   LANGUAGE_OPTION_VALUE_ALIASES,
   LANGUAGE_OPTIONS,
   ROLE_STYLES,
+  parseProgrammingLanguages,
+  programmingLanguageOption,
+  type ProgrammingLanguageValue,
 } from "@/lib/constants"
 import { levelFromTotalXp } from "@/lib/gamification-level"
+import { isMissingColumnError } from "@/lib/optional-column"
 import { kudosCountsMapFromRpcRows, type KudosCounts } from "@/lib/kudos"
 import { discordLinkFromEmbed, type TeamDiscordEmbed } from "@/lib/team-discord"
 
@@ -446,6 +450,7 @@ type AvailablePlayerProfile = {
   engine: string | null
   language: string | null
   default_language?: string | null
+  programming_languages?: string[] | null
   bio: string | null
   portfolio_link: string | null
   external_jams?:
@@ -487,6 +492,7 @@ export type AvailablePlayerListItem = {
   rawEngine: string
   rawLevel: string
   availabilityPostId: string
+  programmingLanguages?: ProgrammingLanguageValue[]
 }
 
 export type AvailablePlayersFilters = {
@@ -496,6 +502,8 @@ export type AvailablePlayersFilters = {
   experience?: string
   /** Spoken language key (e.g. from LANGUAGE_OPTIONS); matches `availability_posts.language` or `profiles.default_language`. */
   language?: string
+  /** Programming language key from `profiles.programming_languages`. */
+  programmingLanguage?: string
   jamId?: string
   offset?: number
   limit?: number
@@ -567,6 +575,7 @@ export async function getAvailablePlayers(
     engine = "all",
     experience = "all",
     language = "all",
+    programmingLanguage = "all",
     jamId,
     offset = 0,
     limit = AVAILABLE_PLAYERS_DEFAULT_LIMIT,
@@ -577,6 +586,7 @@ export async function getAvailablePlayers(
   const cleanEngine = normalizedFilterValue(engine)
   const cleanExperience = normalizedFilterValue(experience)
   const cleanLanguage = normalizedFilterValue(language)
+  const codeFilterKey = programmingLanguageOption(programmingLanguage)?.value ?? null
   const cleanSearch = searchQuery.trim()
   const cleanJamId = jamId?.trim()
   const safeOffset = Math.max(0, offset)
@@ -612,6 +622,38 @@ export async function getAvailablePlayers(
 
     if (profileIdsFilter.length === 0) {
       return { players: [], hasMore: false, nextOffset: 0, error: null }
+    }
+  }
+
+  if (codeFilterKey) {
+    const { data: codeProfiles, error: codeError } = await client
+      .from("profiles")
+      .select("id")
+      .contains("programming_languages", [codeFilterKey])
+
+    if (codeError && isMissingColumnError(codeError, "programming_languages")) {
+      console.warn("[getAvailablePlayers:codeFilter] programming_languages column is not available yet")
+    } else if (codeError) {
+      console.error("[getAvailablePlayers:codeFilter]", codeError.message)
+      return {
+        players: [],
+        hasMore: false,
+        nextOffset: safeOffset,
+        error: codeError.message,
+      }
+    } else {
+      const codeIds = (codeProfiles ?? [])
+        .map((row) => row.id)
+        .filter((id): id is string => Boolean(id))
+      if (profileIdsFilter) {
+        const allowed = new Set(codeIds)
+        profileIdsFilter = profileIdsFilter.filter((id) => allowed.has(id))
+      } else {
+        profileIdsFilter = codeIds
+      }
+      if (profileIdsFilter.length === 0) {
+        return { players: [], hasMore: false, nextOffset: 0, error: null }
+      }
     }
   }
 
@@ -694,12 +736,20 @@ export async function getAvailablePlayers(
   const profilesByUserId = new Map<string, AvailablePlayerProfile>()
 
   if (userIds.length > 0) {
-    const { data: profilesData, error: profilesError } = await client
+    const profileHydrateColumns =
+      "id, username, avatar_url, jam_id, xp, current_title, role, experience, experience_level, jam_style, engine, language, default_language, bio, portfolio_link, external_jams(id, title, url)"
+    const profilesWithLanguages = await client
       .from("profiles")
-      .select(
-        "id, username, avatar_url, jam_id, xp, current_title, role, experience, experience_level, jam_style, engine, language, default_language, bio, portfolio_link, external_jams(id, title, url)",
-      )
+      .select(`${profileHydrateColumns}, programming_languages`)
       .in("id", userIds)
+
+    const profilesResult =
+      profilesWithLanguages.error && isMissingColumnError(profilesWithLanguages.error, "programming_languages")
+        ? await client.from("profiles").select(profileHydrateColumns).in("id", userIds)
+        : profilesWithLanguages
+
+    const profilesData = (profilesResult.data ?? null) as AvailablePlayerProfile[] | null
+    const profilesError = profilesResult.error
 
     if (profilesError) {
       console.error("[getAvailablePlayers:profilesHydration]", profilesError.message)
@@ -765,6 +815,7 @@ export async function getAvailablePlayers(
       jammerTitle: profile?.current_title?.trim() || "Rookie Jammer",
       jammerLevel: levelFromTotalXp(xp),
       kudosCounts: kudosByUser.get(row.user_id) ?? null,
+      programmingLanguages: parseProgrammingLanguages(profile?.programming_languages),
       rawRole: roleRaw,
       rawEngine: engineRaw,
       rawLevel: levelRaw,
@@ -813,6 +864,7 @@ export type DirectoryJammerListItem = {
   rawRole: string
   rawEngine: string
   rawLanguage: string
+  programmingLanguages?: ProgrammingLanguageValue[]
 }
 
 export type DirectoryJammersFilters = {
@@ -821,6 +873,7 @@ export type DirectoryJammersFilters = {
   engine?: string
   experience?: string
   language?: string
+  programmingLanguage?: string
   offset?: number
   limit?: number
 }
@@ -849,6 +902,7 @@ type DirectoryProfileRow = {
   default_engine: string | null
   language: string | null
   default_language: string | null
+  programming_languages?: string[] | null
   bio: string | null
   portfolio_link: string | null
   portfolio_url: string | null
@@ -891,6 +945,7 @@ export async function getDirectoryJammers(
     engine = "all",
     experience = "all",
     language = "all",
+    programmingLanguage = "all",
     offset = 0,
     limit = DIRECTORY_JAMMERS_DEFAULT_LIMIT,
   }: DirectoryJammersFilters = {},
@@ -900,6 +955,7 @@ export async function getDirectoryJammers(
   const cleanEngine = normalizedFilterValue(engine)
   const cleanExperience = normalizedFilterValue(experience)
   const cleanLanguage = normalizedFilterValue(language)
+  const codeFilterKey = programmingLanguageOption(programmingLanguage)?.value ?? null
   const cleanSearch = searchQuery.trim()
   const safeOffset = Math.max(0, offset)
   const safeLimit = Math.max(1, limit)
@@ -932,13 +988,17 @@ export async function getDirectoryJammers(
     ]
   }
 
-  let query = client
-    .from("profiles")
-    .select(
-      "id, username, avatar_url, jam_id, xp, current_title, role, main_role, default_role, experience, experience_level, jam_style, engine, default_engine, language, default_language, bio, portfolio_link, portfolio_url, external_jams(id, title, url), profile_roles(role, is_primary)",
-    )
-    .eq("has_completed_onboarding", true)
-    .order("username", { ascending: true })
+  const directoryColumns =
+    "id, username, avatar_url, jam_id, xp, current_title, role, main_role, default_role, experience, experience_level, jam_style, engine, default_engine, language, default_language, bio, portfolio_link, portfolio_url, external_jams(id, title, url), profile_roles(role, is_primary)"
+
+  const buildDirectoryQuery = (includeProgrammingLanguages: boolean) => {
+    let query = client
+      .from("profiles")
+      .select(
+        includeProgrammingLanguages ? `${directoryColumns}, programming_languages` : directoryColumns,
+      )
+      .eq("has_completed_onboarding", true)
+      .order("username", { ascending: true })
 
   if (cleanSearch) {
     query = query.ilike("username", `%${cleanSearch}%`)
@@ -975,14 +1035,32 @@ export async function getDirectoryJammers(
     )
   }
 
-  const { data, error } = await query.range(safeOffset, safeOffset + safeLimit)
+  if (includeProgrammingLanguages && codeFilterKey) {
+    query = query.contains("programming_languages", [codeFilterKey])
+  }
+
+  return query
+  }
+
+  const directoryWithLanguages = await buildDirectoryQuery(true).range(safeOffset, safeOffset + safeLimit)
+  const directoryMissingColumn =
+    directoryWithLanguages.error != null &&
+    isMissingColumnError(directoryWithLanguages.error, "programming_languages")
+  if (directoryMissingColumn) {
+    console.warn("[getDirectoryJammers] programming_languages column is not available yet")
+  }
+  const includeProgrammingLanguages = !directoryMissingColumn
+  const directoryResult = directoryMissingColumn
+    ? await buildDirectoryQuery(false).range(safeOffset, safeOffset + safeLimit)
+    : directoryWithLanguages
+  const { data, error } = directoryResult
 
   if (error) {
     console.error("[getDirectoryJammers]", error.message)
     return { jammers: [], hasMore: false, nextOffset: safeOffset, error: error.message }
   }
 
-  const rows = (data ?? []) as DirectoryProfileRow[]
+  const rows = (data ?? []) as unknown as DirectoryProfileRow[]
   const hasMore = rows.length > safeLimit
   const pageRows = hasMore ? rows.slice(0, safeLimit) : rows
   const userIds = pageRows.map((row) => row.id)
@@ -1024,6 +1102,9 @@ export async function getDirectoryJammers(
       jammerTitle: profile.current_title?.trim() || "Rookie Jammer",
       jammerLevel: levelFromTotalXp(xp),
       kudosCounts: kudosByUser.get(profile.id) ?? null,
+      programmingLanguages: includeProgrammingLanguages
+        ? parseProgrammingLanguages(profile.programming_languages)
+        : [],
       rawRole: roleRaw,
       rawEngine: engineRaw,
       rawLanguage: languageRaw,

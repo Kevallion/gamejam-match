@@ -47,7 +47,8 @@ type SquadMember = {
 type ViewMode = "loading" | "not_found" | "announcement" | "squad"
 
 export function TeamDetailClient({ teamId }: { teamId: string }) {
-  const [viewMode, setViewMode] = useState<ViewMode>("loading")
+  const teamIdMissing = !teamId || teamId.length < 2
+  const [viewMode, setViewMode] = useState<ViewMode>(teamIdMissing ? "not_found" : "loading")
   const [teamCardData, setTeamCardData] = useState<TeamCardData | null>(null)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [squad, setSquad] = useState<SquadViewData | null>(null)
@@ -55,10 +56,7 @@ export function TeamDetailClient({ teamId }: { teamId: string }) {
   const [members, setMembers] = useState<SquadMember[]>([])
 
   useEffect(() => {
-    if (!teamId || teamId.length < 2) {
-      setViewMode("not_found")
-      return
-    }
+    if (!teamId || teamId.length < 2) return
 
     let cancelled = false
 

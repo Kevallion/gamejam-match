@@ -85,26 +85,26 @@ export function DashboardNextSteps({
           <div
             key={step.id}
             className={cn(
-              "flex items-center justify-between gap-3 rounded-xl border px-3 py-2",
+              "flex flex-wrap items-center justify-between gap-2 rounded-xl border px-3 py-2 sm:gap-3",
               step.done ? "border-teal/25 bg-teal/10" : "border-border/50 bg-card/40",
             )}
           >
-            <div className="flex items-center gap-2">
+            <div className="flex min-w-0 flex-1 items-start gap-2">
               {step.done ? (
-                <CheckCircle2 className="size-4 text-teal" />
+                <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-teal" />
               ) : (
-                <Circle className="size-4 text-muted-foreground" />
+                <Circle className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
               )}
               <p
                 className={cn(
-                  "text-sm",
+                  "min-w-0 text-sm",
                   step.done ? "text-foreground/90" : "text-muted-foreground",
                 )}
               >
                 {step.label}
               </p>
             </div>
-            <Button asChild variant="ghost" size="sm" className="h-8 rounded-lg px-2 text-xs">
+            <Button asChild variant="ghost" size="sm" className="h-8 shrink-0 rounded-lg px-2 text-xs">
               <Link href={step.href}>{step.action}</Link>
             </Button>
           </div>

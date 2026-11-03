@@ -138,7 +138,7 @@ export function DashboardMyTeams({
         })
       }
 
-      let pendingKeys = new Set<string>()
+      const pendingKeys = new Set<string>()
       if (eligible.length > 0) {
         const ownedIds = eligible.map((t) => t.id)
         const { data: pendRows } = await supabase

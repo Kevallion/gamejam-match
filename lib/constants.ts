@@ -43,6 +43,46 @@ export const LANGUAGE_OPTIONS = [
   { value: "chinese", label: "Chinese" },
 ] as const
 
+/**
+ * Programming languages stored in `profiles.programming_languages` (text[]).
+ * `javascript` covers JavaScript and TypeScript as one jammer choice.
+ */
+export const PROGRAMMING_LANGUAGE_OPTIONS = [
+  { value: "csharp", label: "C#", short: "C#" },
+  { value: "cpp", label: "C++", short: "C++" },
+  { value: "gdscript", label: "GDScript", short: "GD" },
+  { value: "lua", label: "Lua", short: "Lua" },
+  { value: "javascript", label: "JavaScript / TypeScript", short: "JS" },
+  { value: "python", label: "Python", short: "Py" },
+  { value: "haxe", label: "Haxe", short: "Hx" },
+  { value: "rust", label: "Rust", short: "Rs" },
+  { value: "java", label: "Java", short: "Ja" },
+  { value: "other", label: "Other", short: "…" },
+] as const
+
+export type ProgrammingLanguageValue = (typeof PROGRAMMING_LANGUAGE_OPTIONS)[number]["value"]
+
+const PROGRAMMING_LANGUAGE_KEYS = new Set<string>(
+  PROGRAMMING_LANGUAGE_OPTIONS.map((option) => option.value),
+)
+
+export function programmingLanguageOption(value: string | null | undefined) {
+  const key = (value ?? "").trim().toLowerCase()
+  return PROGRAMMING_LANGUAGE_OPTIONS.find((option) => option.value === key) ?? null
+}
+
+/** Keeps only known keys, in catalog order, dropping nulls and duplicates. */
+export function parseProgrammingLanguages(value: unknown): ProgrammingLanguageValue[] {
+  if (!Array.isArray(value)) return []
+  const present = new Set<string>()
+  for (const item of value) {
+    if (typeof item !== "string") continue
+    const key = item.trim().toLowerCase()
+    if (PROGRAMMING_LANGUAGE_KEYS.has(key)) present.add(key)
+  }
+  return PROGRAMMING_LANGUAGE_OPTIONS.map((option) => option.value).filter((key) => present.has(key))
+}
+
 /** ISO-style shortcuts → same keys as `LANGUAGE_OPTIONS` `value` (DB stores canonical keys, not `fr`). */
 export const LANGUAGE_OPTION_VALUE_ALIASES: Readonly<Record<string, string>> = {
   en: "english",

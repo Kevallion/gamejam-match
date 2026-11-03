@@ -41,6 +41,8 @@ export interface ProfileRow {
   main_role?: string | null
   default_engine?: string | null
   default_language?: string | null
+  /** `public.profiles.programming_languages` — nullable text[]. Absent until the migration runs. */
+  programming_languages?: string[] | null
   portfolio_url?: string | null
   xp?: number | null
   level?: number | null

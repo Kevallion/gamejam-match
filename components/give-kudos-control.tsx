@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { SignInButton } from "@/components/sign-in-button"
 import { KUDOS_CATEGORY_ORDER, KUDOS_CATEGORY_UI, type KudosCategoryDb } from "@/lib/kudos"
+import { neoButton } from "@/lib/neo-style"
+import { cn } from "@/lib/utils"
 import { ChevronDown, Loader2, Sparkles } from "lucide-react"
 import { toast } from "sonner"
 
@@ -75,7 +77,7 @@ export function GiveKudosControl({
       <DropdownMenuTrigger asChild>
         <Button
           variant="outline"
-          className="w-full gap-2 rounded-xl border-lavender/35 bg-lavender/5 hover:bg-lavender/10 sm:w-auto"
+          className={cn(neoButton, "w-full gap-2 bg-lavender text-lavender-foreground hover:bg-lavender/90 sm:w-auto")}
           disabled={pending}
         >
           {pending ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4 text-lavender" />}

@@ -7,7 +7,9 @@ import {
   ENGINE_OPTIONS_WITH_ANY,
   LANGUAGE_OPTIONS,
   ROLE_OPTIONS,
+  parseProgrammingLanguages,
 } from "@/lib/constants"
+import { neoButton } from "@/lib/neo-style"
 import { cn } from "@/lib/utils"
 import { ExternalLink } from "lucide-react"
 import { TagIcon } from "@/components/tag-icon"
@@ -42,6 +44,8 @@ export type ProfileCardProps = {
   jamStyle?: string | null
   /** From dashboard settings: language key (english, french, …). */
   defaultLanguage?: string | null
+  /** Programming language keys from `profiles.programming_languages`. */
+  programmingLanguages?: string[] | null
   /** From `profile_roles`: roles + per-role experience (dashboard). */
   roleSlots?: ProfileRoleSlot[] | null
   defaultEngine?: string | null
@@ -116,15 +120,19 @@ export function JammerTitleBadge({
 export function JammerLevelBadge({
   level,
   className,
+  neo = false,
 }: {
   level: number
   className?: string
+  /** Profile pages use the neo-brutalist medallion. Dashboard keeps the soft badge. */
+  neo?: boolean
 }) {
   return (
     <span
       className={cn(
-        "inline-flex shrink-0 items-center rounded-lg border border-teal/40 bg-teal/15 px-2 py-0.5 text-xs font-extrabold tabular-nums text-teal",
-        "shadow-[0_0_16px_-4px_rgba(45,212,191,0.35)]",
+        neo
+          ? "inline-flex shrink-0 items-center rounded-lg border-2 border-foreground bg-teal px-2 py-0.5 text-xs font-extrabold tabular-nums text-teal-foreground shadow-[2px_2px_0_0_var(--neo-shadow)]"
+          : "inline-flex shrink-0 items-center rounded-lg border border-teal/40 bg-teal/15 px-2 py-0.5 text-xs font-extrabold tabular-nums text-teal shadow-[0_0_16px_-4px_rgba(45,212,191,0.35)]",
         className,
       )}
     >
@@ -146,6 +154,7 @@ export function ProfileCard({
   secondaryRole,
   jamStyle,
   defaultLanguage,
+  programmingLanguages,
   roleSlots,
   defaultEngine,
   portfolioUrl,
@@ -163,6 +172,7 @@ export function ProfileCard({
   const secondaryRoleLabel = defaultRoleLabel(secondaryRole)
   const engineLabel = defaultEngineLabel(defaultEngine)
   const langLabel = languageLabel(defaultLanguage)
+  const codeKeys = parseProgrammingLanguages(programmingLanguages)
   const safePortfolioUrl = normalizePortfolioUrl(portfolioUrl)
 
   const slots = (roleSlots ?? []).filter((s) => s?.role?.trim())
@@ -173,14 +183,14 @@ export function ProfileCard({
       src={avatarUrl}
       fallbackName={fb}
       size={avatarPropSize[size]}
-      className={cn(avatarSize[size], "shrink-0 ring-2 ring-border/50 shadow-md")}
+      className={cn(avatarSize[size], "shrink-0 border-2 border-foreground shadow-[2px_2px_0_0_var(--neo-shadow)]")}
     />
   )
 
   return (
-    <div className={cn("flex items-start gap-3 sm:items-center sm:gap-5", className)}>
+    <div className={cn("flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:gap-5", className)}>
       {framedAvatar ? (
-        <div className="shrink-0 rounded-2xl border border-amber-500/25 bg-gradient-to-br from-amber-500/10 via-card to-teal/10 p-1 shadow-lg shadow-amber-500/10 ring-1 ring-amber-400/20">
+        <div className="shrink-0 rounded-2xl border-2 border-foreground bg-peach/25 p-1 shadow-[3px_3px_0_0_var(--neo-shadow)]">
           {avatar}
         </div>
       ) : (
@@ -188,10 +198,10 @@ export function ProfileCard({
       )}
       <div className="min-w-0 flex-1 space-y-2">
         <div className="flex flex-wrap items-center gap-2 gap-y-1">
-          <p className="truncate text-base font-semibold tracking-tight text-foreground sm:text-lg">{name}</p>
-          {showLevel ? <JammerLevelBadge level={level} /> : null}
+          <p className="truncate text-base font-extrabold tracking-tight text-foreground sm:text-lg">{name}</p>
+          {showLevel ? <JammerLevelBadge level={level} neo /> : null}
           {showVerifiedJammer ? (
-            <Badge className="rounded-full border border-teal/35 bg-teal/15 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-teal">
+            <Badge className="rounded-full border-2 border-foreground bg-mint px-2 py-0.5 text-xs font-extrabold uppercase tracking-wide text-mint-foreground shadow-[2px_2px_0_0_var(--neo-shadow)]">
               Verified Jammer
             </Badge>
           ) : null}
@@ -206,6 +216,14 @@ export function ProfileCard({
           {engineLabel ? <TagIcon kind="engine" value={defaultEngine} size="md" showLabel /> : null}
         </div>
 
+        {codeKeys.length > 0 ? (
+          <div className="flex flex-wrap items-center gap-2">
+            {codeKeys.map((key) => (
+              <TagIcon key={key} kind="code" value={key} size="sm" showLabel />
+            ))}
+          </div>
+        ) : null}
+
         {showRoleSlots ? (
           <div className="space-y-2">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Roles & experience</p>
@@ -217,7 +235,7 @@ export function ProfileCard({
                 return (
                   <li
                     key={`${slot.role}-${idx}`}
-                    className="flex flex-wrap items-center gap-2 rounded-xl border border-border/50 bg-muted/20 px-3 py-2"
+                    className="flex flex-wrap items-center gap-2 rounded-xl border-2 border-foreground bg-secondary/40 px-3 py-2 shadow-[2px_2px_0_0_var(--neo-shadow)]"
                   >
                     {isPrimarySlot ? (
                       <span className="text-xs font-bold uppercase tracking-wide text-teal">Primary</span>
@@ -251,7 +269,7 @@ export function ProfileCard({
               asChild
               size="sm"
               variant="outline"
-              className="mt-1 w-full gap-2 rounded-lg border-border/60 bg-background/40 sm:w-auto"
+              className={cn(neoButton, "mt-1 w-full gap-2 bg-card text-foreground hover:bg-card sm:w-auto")}
             >
               <a href={safePortfolioUrl} target="_blank" rel="noopener noreferrer">
                 Portfolio
