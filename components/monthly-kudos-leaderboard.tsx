@@ -20,11 +20,17 @@ function monthStartIso(): string {
   return start.toISOString()
 }
 
-export function MonthlyKudosLeaderboard() {
-  const [rows, setRows] = useState<LeaderRow[]>([])
-  const [loading, setLoading] = useState(true)
+export function MonthlyKudosLeaderboard({
+  snapshotRows,
+}: {
+  /** Dev preview only. Skips the Supabase read when provided. */
+  snapshotRows?: LeaderRow[] | null
+} = {}) {
+  const [rows, setRows] = useState<LeaderRow[]>(snapshotRows ?? [])
+  const [loading, setLoading] = useState(snapshotRows == null)
 
   useEffect(() => {
+    if (snapshotRows) return
     let cancelled = false
     ;(async () => {
       setLoading(true)
@@ -82,7 +88,7 @@ export function MonthlyKudosLeaderboard() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [snapshotRows])
 
   const monthLabel = useMemo(() => {
     return new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" }).format(new Date())

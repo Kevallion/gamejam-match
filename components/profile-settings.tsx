@@ -551,7 +551,7 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
         </section>
 
         {/* Save Button */}
-        <div className="sticky bottom-[4.75rem] z-30 -mx-4 border-t border-border/60 bg-background/95 px-4 py-3 backdrop-blur lg:bottom-4 lg:mx-0 lg:rounded-2xl lg:border">
+        <div className="sticky bottom-0 z-30 -mx-4 border-t border-border/60 bg-background/95 px-4 py-3 backdrop-blur lg:bottom-4 lg:mx-0 lg:rounded-2xl lg:border">
           <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="min-w-0 text-sm text-muted-foreground">Save your public profile and preferences.</p>
           <Button

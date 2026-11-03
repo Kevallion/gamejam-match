@@ -4,10 +4,8 @@ import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { UserAvatar } from "@/components/user-avatar"
 import type { TeamData } from "@/components/dashboard-my-teams"
 import { Link2, MessageCircle, Settings2, UserMinus, Users2 } from "lucide-react"
-import { Progress } from "@/components/ui/progress"
 
 function isExpiringSoon(expiresAt: string | null | undefined): boolean {
   if (!expiresAt) return false
@@ -37,20 +35,16 @@ function squadStatus(team: TeamData): { label: string; className: string } {
 function SquadCardCompact({
   team,
   onLeave,
-  accent,
 }: {
   team: TeamData
   onLeave?: (id: string) => Promise<void> | void
-  accent: "teal" | "pink"
 }) {
   const openRoles = Math.max(0, team.maxMembers - team.members)
   const neededRole = team.roles[0]?.label
-  const rosterPercent = team.maxMembers > 0 ? Math.min(100, Math.round((team.members / team.maxMembers) * 100)) : 0
   const status = squadStatus(team)
 
   return (
-    <Card className="min-w-0 max-w-full overflow-hidden border-border/60 bg-card shadow-sm">
-      <div className={accent === "pink" ? "h-1 bg-pink" : "h-1 bg-teal"} aria-hidden />
+    <Card className="min-w-0 max-w-full border-border/60 bg-card shadow-sm">
       <CardContent className="space-y-3 p-4">
         <div className="flex min-w-0 flex-wrap items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
@@ -72,33 +66,15 @@ function SquadCardCompact({
           </span>
         </div>
 
-        <div className="space-y-1">
-          <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-            <span>Roster</span>
-            <span className="tabular-nums">{rosterPercent}%</span>
-          </div>
-          <Progress value={rosterPercent} className="h-1.5 bg-muted/80" />
-        </div>
+        <p className="min-w-0 truncate text-[11px] text-muted-foreground">
+          {[team.engine || "Any engine", team.language || "Any language"].join(" · ")}
+        </p>
 
-        <div className="flex min-w-0 items-center gap-2">
-          <UserAvatar
-            src={null}
-            fallbackName={team.name}
-            size="xs"
-            className="size-7 shrink-0 border border-background ring-1 ring-border/40"
-          />
-          <p className="min-w-0 truncate text-[11px] text-muted-foreground">
-            {[team.engine || "Any engine", team.language || "Any language", team.teamVibe?.trim() || team.level.label]
-              .filter(Boolean)
-              .join(" · ")}
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          <Button asChild size="sm" className="h-7 cursor-pointer rounded-lg px-2.5 text-xs">
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          <Button asChild size="sm" className="h-9 max-w-full rounded-lg px-2.5 text-xs">
             <Link href={`/teams/${team.id}`}>
               <MessageCircle className="size-3.5" />
-              Open
+              View squad
             </Link>
           </Button>
           {team.discord_link ? (
@@ -106,7 +82,7 @@ function SquadCardCompact({
               asChild
               size="sm"
               variant="outline"
-              className="h-7 cursor-pointer rounded-lg border-primary/30 px-2.5 text-xs text-primary hover:bg-primary/10 hover:text-primary"
+              className="h-9 max-w-full rounded-lg border-primary/30 px-2.5 text-xs text-primary hover:bg-primary/10 hover:text-primary"
             >
               <a href={team.discord_link} target="_blank" rel="noopener noreferrer">
                 <Link2 className="size-3.5" />
@@ -119,7 +95,7 @@ function SquadCardCompact({
               asChild
               size="sm"
               variant="outline"
-              className="h-7 cursor-pointer rounded-lg px-2.5 text-xs"
+              className="h-9 max-w-full rounded-lg px-2.5 text-xs"
             >
               <Link href={`/teams/${team.id}/manage`}>
                 <Settings2 className="size-3.5" />
@@ -131,7 +107,7 @@ function SquadCardCompact({
               type="button"
               size="sm"
               variant="outline"
-              className="h-7 cursor-pointer rounded-lg border-destructive/30 px-2.5 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
+              className="h-9 max-w-full rounded-lg border-destructive/30 px-2.5 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
               onClick={() => void onLeave(team.id)}
             >
               <UserMinus className="size-3.5" />
@@ -169,8 +145,8 @@ export function DashboardSquadsCompact({
 
   return (
     <div className="grid min-w-0 gap-3 sm:grid-cols-2">
-      {teams.map((team, index) => (
-        <SquadCardCompact key={team.id} team={team} onLeave={onLeave} accent={index % 2 === 0 ? "teal" : "pink"} />
+      {teams.map((team) => (
+        <SquadCardCompact key={team.id} team={team} onLeave={onLeave} />
       ))}
     </div>
   )

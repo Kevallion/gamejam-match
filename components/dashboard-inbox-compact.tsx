@@ -128,7 +128,7 @@ export function DashboardInboxCompact({
                       </p>
                     </div>
                   </div>
-                  <div className="flex shrink-0 gap-2">
+                  <div className="flex min-w-0 flex-wrap gap-2">
                     <Button
                       type="button"
                       size="sm"
@@ -173,7 +173,7 @@ export function DashboardInboxCompact({
                       </p>
                     </div>
                   </div>
-                  <div className="flex shrink-0 gap-2">
+                  <div className="flex min-w-0 flex-wrap gap-2">
                     <Button
                       type="button"
                       size="sm"

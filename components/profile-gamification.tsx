@@ -318,11 +318,15 @@ export function ProfileGamification({
   badgesOnly = false,
   unlockedOnly = false,
   compact = false,
-}: ProfileGamificationProps) {
-  const [xp, setXp] = useState<number | null>(null)
+  snapshotBadges,
+}: ProfileGamificationProps & {
+  /** Dev preview only. Skips the Supabase read when provided. */
+  snapshotBadges?: BadgeRow[] | null
+}) {
+  const [xp, setXp] = useState<number | null>(snapshotBadges ? 0 : null)
   const [currentTitle, setCurrentTitle] = useState<string>("Rookie Jammer")
-  const [badges, setBadges] = useState<BadgeRow[]>([])
-  const [loading, setLoading] = useState(true)
+  const [badges, setBadges] = useState<BadgeRow[]>(snapshotBadges ?? [])
+  const [loading, setLoading] = useState(snapshotBadges == null)
   const [error, setError] = useState<string | null>(null)
 
   const load = useCallback(async () => {
@@ -374,8 +378,9 @@ export function ProfileGamification({
   }, [userId, badgesOnly])
 
   useEffect(() => {
+    if (snapshotBadges) return
     void load()
-  }, [load])
+  }, [load, snapshotBadges])
 
   const earnedIds = useMemo(() => new Set(badges.map((b) => b.badge_id)), [badges])
 
