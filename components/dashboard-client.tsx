@@ -15,24 +15,12 @@ import type {
   SentApplicationOutboxItem,
   SentInvitationOutboxItem,
 } from "@/components/dashboard-sent-outbox"
-import {
-  Clock3,
-  Compass,
-  Hand,
-  Info,
-  Inbox,
-  Plus,
-  Settings2,
-  Trash2,
-  Trophy,
-  UserMinus,
-  UserSearch,
-  Users2,
-} from "lucide-react"
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+import { Bell, Trash2, Trophy, UserMinus } from "lucide-react"
+import { Progress } from "@/components/ui/progress"
+import { UserAvatar } from "@/components/user-avatar"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 import {
   AlertDialog,
@@ -55,7 +43,6 @@ import {
 } from "@/components/ui/drawer"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
 import { supabase } from "@/lib/supabase"
 import { cancelJoinRequest } from "@/app/actions/join-request-actions"
 import {
@@ -76,9 +63,9 @@ import { ProfileGamification } from "@/components/profile-gamification"
 import {
   GamificationDashboardFull,
 } from "@/components/gamification-dashboard"
-import { DashboardEmptyState } from "@/components/dashboard-empty-state"
 import { PushNotificationBanner } from "@/components/push-notification-banner"
-import { DashboardNextSteps } from "@/components/dashboard-next-steps"
+import { DashboardEmptyState } from "@/components/dashboard-empty-state"
+import { buildDashboardNextSteps, DashboardNextSteps } from "@/components/dashboard-next-steps"
 import { MonthlyKudosLeaderboard } from "@/components/monthly-kudos-leaderboard"
 import type { Session } from "@supabase/supabase-js"
 import { showGamificationRewards } from "@/components/gamification-reward-toasts"
@@ -86,9 +73,8 @@ import { gamificationRewardHasToast } from "@/lib/gamification-reward-types"
 import { toast } from "sonner"
 import { ENGINE_OPTIONS, EXPERIENCE_STYLES, ROLE_STYLES, parseProgrammingLanguages } from "@/lib/constants"
 import { isMissingColumnError } from "@/lib/optional-column"
-import { UserAvatar } from "@/components/user-avatar"
 import { JammerTitleBadge, JammerLevelBadge } from "@/components/profile-card"
-import { levelFromTotalXp, gamificationLevelProgress } from "@/lib/gamification-level"
+import { levelFromTotalXp } from "@/lib/gamification-level"
 import {
   fetchDashboardJoinRequests,
   getRecommendedTeams,
@@ -101,7 +87,6 @@ import {
   NOTIFICATION_ENRICHED_SELECT,
   fetchNotificationsAsNormalized,
   type EnrichedNotificationRow,
-  type NormalizedNotificationFeedItem,
 } from "@/lib/notifications-enriched"
 
 const LEVEL_STYLES = EXPERIENCE_STYLES
@@ -181,15 +166,32 @@ export type AvailabilityPostRow = {
   kudosCounts?: KudosCounts | null
 }
 
-type DashboardClientProps = {
-  defaultTab?: string | null
+export type DashboardFixture = {
+  displayName: string
+  profile: ProfileSettingsProfile
+  teams: TeamData[]
+  availabilityPosts: AvailabilityPostRow[]
+  applications: ApplicationData[]
+  invitations: InvitationData[]
+  sentApplications: SentApplicationOutboxItem[]
+  sentInvitations: SentInvitationOutboxItem[]
+  recommendedTeams: SmartRecommendedTeam[]
+  gamification: { xp: number; currentTitle: string; unlockedTitles: string[] }
+  badges: { badge_id: string; earned_at: string }[]
+  kudos: { userId: string; username: string; total: number }[]
+  activity?: { id: string; message: string; created_at: string }[]
 }
 
-const VALID_TABS = ["squads", "inbox", "availability", "achievements", "settings"] as const
+type DashboardClientProps = {
+  defaultTab?: string | null
+  /** Dev-only populated preview. Production dashboard never passes this. */
+  fixture?: DashboardFixture | null
+}
+
+const VALID_TABS = ["overview", "squads", "inbox", "availability", "achievements", "settings"] as const
 
 const LEGACY_TAB_TO_CURRENT: Record<string, (typeof VALID_TABS)[number]> = {
   requests: "inbox",
-  overview: "squads",
   teams: "squads",
   profile: "settings",
   available: "availability",
@@ -202,144 +204,191 @@ function resolveDashboardTab(raw: string | null | undefined): (typeof VALID_TABS
   if ((VALID_TABS as readonly string[]).includes(key)) {
     return key as (typeof VALID_TABS)[number]
   }
-  return "squads"
-}
-
-function DashboardTabTrigger({
-  value,
-  tooltipLabel,
-  showTooltip,
-  className,
-  icon,
-  label,
-}: {
-  value: string
-  tooltipLabel: string
-  showTooltip: boolean
-  className: string
-  icon: ReactNode
-  label: string
-}) {
-  const trigger = (
-    <TabsTrigger
-      value={value}
-      title={tooltipLabel}
-      className={className}
-    >
-      {icon}
-      <span className="max-[380px]:sr-only">{label}</span>
-    </TabsTrigger>
-  )
-  if (!showTooltip) return trigger
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>{trigger}</TooltipTrigger>
-      <TooltipContent side="bottom" className="text-xs font-semibold tracking-tight">
-        {tooltipLabel}
-      </TooltipContent>
-    </Tooltip>
-  )
+  return "overview"
 }
 
 function DashboardLoadingSkeleton() {
   return (
     <div className="flex min-h-screen min-w-0 flex-col overflow-x-clip bg-background">
       <Navbar />
-      <main className="flex-1">
-        <section className="px-4 py-6 pb-24 md:py-10 md:pb-10 lg:px-6 lg:py-12">
-          <div className="mx-auto max-w-5xl space-y-6">
-            {/* Identity header skeleton */}
-            <div className="glass-card flex items-center gap-4 rounded-2xl p-4 md:p-6">
-              <Skeleton className="size-12 shrink-0 rounded-xl md:size-16 md:rounded-2xl" />
-              <div className="flex flex-1 flex-col gap-2">
-                <Skeleton className="h-5 w-32" />
-                <Skeleton className="h-4 w-48" />
-              </div>
-            </div>
-            {/* KPI cards skeleton */}
-            <div className="grid grid-cols-3 gap-2 md:gap-4">
-              <Skeleton className="h-[72px] rounded-xl" />
-              <Skeleton className="h-[72px] rounded-xl" />
-              <Skeleton className="h-[72px] rounded-xl" />
-            </div>
-            {/* Section title skeleton (mobile) */}
-            <Skeleton className="h-6 w-28 rounded-lg md:hidden" />
-            {/* Tabs skeleton (desktop) */}
-            <Skeleton className="hidden h-12 w-full rounded-xl md:block" />
-            <Skeleton className="h-48 w-full rounded-xl" />
-          </div>
-        </section>
-      </main>
-      {/* Bottom bar skeleton for mobile */}
-      <div className="fixed inset-x-0 bottom-0 z-40 glass-navbar border-t border-border/50 pb-[env(safe-area-inset-bottom)] md:hidden">
-        <div className="flex items-center justify-around px-1 py-2.5">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="flex flex-col items-center gap-1">
-              <Skeleton className="size-5 rounded" />
-              <Skeleton className="h-2.5 w-8 rounded" />
-            </div>
-          ))}
+      <main className="min-w-0 flex-1">
+        <div className="mx-auto w-full min-w-0 max-w-6xl space-y-4 px-4 py-6 lg:px-6 lg:pt-24">
+          <Skeleton className="h-16 w-full rounded-2xl" />
+          <Skeleton className="h-20 w-full rounded-2xl" />
+          <Skeleton className="h-10 w-full rounded-xl" />
+          <Skeleton className="h-48 w-full rounded-2xl" />
         </div>
+      </main>
+    </div>
+  )
+}
+
+function greetingLabel(date: Date): string {
+  const hour = date.getHours()
+  if (hour < 12) return "Good morning"
+  if (hour < 18) return "Good afternoon"
+  return "Good evening"
+}
+
+function DashboardHeader({
+  displayName,
+  avatarUrl,
+  level,
+  title,
+  inboxCount,
+}: {
+  displayName: string
+  avatarUrl: string | null
+  level: number
+  title: string
+  inboxCount: number
+}) {
+  const now = new Date()
+  const greeting = greetingLabel(now)
+  const firstName = displayName.split(/\s+/)[0] || displayName
+  const dateLabel = new Intl.DateTimeFormat("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  }).format(now)
+
+  return (
+    <div className="flex min-w-0 flex-col gap-4">
+      <div className="flex min-w-0 items-center gap-3">
+        <UserAvatar
+          src={avatarUrl}
+          fallbackName={displayName}
+          size="md"
+          className="size-12 shrink-0 rounded-2xl ring-2 ring-border/40"
+        />
+        <div className="min-w-0">
+          <p className="truncate text-sm font-bold text-foreground">{displayName}</p>
+          <div className="mt-0.5 flex min-w-0 items-center gap-2">
+            <JammerTitleBadge title={title} className="min-w-0 truncate text-xs" />
+            <JammerLevelBadge level={level} className="shrink-0" />
+          </div>
+        </div>
+      </div>
+      <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div className="min-w-0">
+          <p suppressHydrationWarning className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            {dateLabel}
+          </p>
+          <h1 suppressHydrationWarning className="mt-1 min-w-0 truncate text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
+            {greeting}, {firstName}
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">Your next great jam squad is one step away.</p>
+        </div>
+        {inboxCount > 0 ? (
+          <Button
+            asChild
+            variant="outline"
+            className="h-10 w-full min-w-0 max-w-full shrink rounded-xl border-peach/40 text-peach hover:bg-peach/10 hover:text-peach sm:w-auto"
+          >
+            <Link href="/dashboard?tab=inbox">
+              <Bell className="size-4 shrink-0" aria-hidden />
+              <span className="truncate">{inboxCount} new inbox update{inboxCount === 1 ? "" : "s"}</span>
+            </Link>
+          </Button>
+        ) : null}
       </div>
     </div>
   )
 }
 
-// ─── Mobile Bottom Navigation Bar ────────────────────────────────────────────
-const BOTTOM_NAV_TABS = [
-  { value: "squads", label: "Squads", icon: Users2, activeColor: "text-teal" },
-  { value: "inbox", label: "Inbox", icon: Inbox, activeColor: "text-peach" },
-  { value: "availability", label: "Available", icon: UserSearch, activeColor: "text-lavender" },
-  { value: "achievements", label: "Achieve", icon: Trophy, activeColor: "text-amber-500" },
-  { value: "settings", label: "Settings", icon: Settings2, activeColor: "text-slate-300" },
-] as const
+function relativeDateLabel(dateIso: string): string {
+  const diffMs = Date.now() - new Date(dateIso).getTime()
+  if (!Number.isFinite(diffMs)) return "now"
+  const minutes = Math.floor(diffMs / 60000)
+  if (minutes < 1) return "just now"
+  if (minutes < 60) return `${minutes}m ago`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `${hours}h ago`
+  const days = Math.floor(hours / 24)
+  if (days === 1) return "Yesterday"
+  return `${days}d ago`
+}
 
-function DashboardBottomBar({
-  activeTab,
-  onTabChange,
-  inboxCount,
+function DashboardMomentumCard({
+  completed,
+  total,
+  nextHref,
+  nextLabel,
 }: {
-  activeTab: string
-  onTabChange: (tab: string) => void
-  inboxCount: number
+  completed: number
+  total: number
+  nextHref: string
+  nextLabel: string
 }) {
+  const percent = total > 0 ? Math.round((completed / total) * 100) : 0
+  const remaining = Math.max(0, total - completed)
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 glass-navbar border-t border-border/50 pb-[env(safe-area-inset-bottom)] md:hidden">
-      <div className="grid grid-cols-5">
-        {BOTTOM_NAV_TABS.map(({ value, label, icon: Icon, activeColor }) => {
-          const isActive = activeTab === value
-          const showBadge = value === "inbox" && inboxCount > 0
-          return (
-            <button
-              key={value}
-              type="button"
-              onClick={() => onTabChange(value)}
-              className={cn(
-                "relative flex min-h-11 min-w-0 flex-col items-center justify-center gap-0.5 px-0.5 py-1.5 text-[10px] font-semibold leading-tight transition-colors active:scale-95 sm:text-xs",
-                isActive ? activeColor : "text-muted-foreground",
-              )}
-            >
-              {isActive && (
-                <span className="absolute inset-x-1.5 -top-1 h-0.5 rounded-full bg-current" />
-              )}
-              <span className="relative">
-                <Icon className="size-5" />
-                {showBadge && (
-                  <span className="absolute -right-2.5 -top-1.5 flex min-h-[16px] min-w-[16px] items-center justify-center rounded-full bg-peach px-1 text-xs font-bold text-peach-foreground">
-                    {inboxCount > 9 ? "9+" : inboxCount}
-                  </span>
-                )}
-              </span>
-              <span className="max-w-full truncate">{label}</span>
-            </button>
-          )
-        })}
-      </div>
-    </nav>
+    <Card className="min-w-0 border border-amber-500/35 bg-card shadow-sm">
+      <CardContent className="space-y-4 p-5">
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Your momentum</p>
+        <p className="text-4xl font-extrabold tracking-tight text-amber-500">
+          {percent}% <span className="text-lg font-semibold text-muted-foreground">complete</span>
+        </p>
+        <Progress value={percent} className="h-2 bg-muted/80" />
+        <p className="text-sm text-muted-foreground">
+          {remaining > 0 ? `Complete ${remaining} more step${remaining === 1 ? "" : "s"}` : "Setup complete"}
+        </p>
+        <Button asChild className="h-11 w-full rounded-xl bg-teal text-teal-foreground hover:bg-teal/90">
+          <Link href={nextHref}>{remaining > 0 ? "Continue setup" : nextLabel}</Link>
+        </Button>
+      </CardContent>
+    </Card>
   )
 }
 
-// ─── Responsive Confirm Drawer/Dialog ────────────────────────────────────────
+function DashboardRecentActivity({
+  items,
+}: {
+  items: { id: string; message: string; created_at: string }[]
+}) {
+  const tones = ["bg-teal", "bg-peach", "bg-amber-500", "bg-lavender"]
+  const latest = items.slice(0, 4)
+  return (
+    <Card className="min-w-0 border-border/60 bg-card shadow-sm">
+      <CardContent className="space-y-3 p-5">
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Recent activity</p>
+        {latest.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No recent activity yet.</p>
+        ) : (
+          <ul className="space-y-3">
+            {latest.map((item, index) => (
+              <li key={item.id} className="flex min-w-0 gap-2">
+                <span className={cn("mt-1.5 size-2 shrink-0 rounded-full", tones[index % tones.length])} aria-hidden />
+                <div className="min-w-0">
+                  <p className="line-clamp-2 text-sm text-foreground">{item.message}</p>
+                  <p className="text-xs text-muted-foreground">{relativeDateLabel(item.created_at)}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+        <Button asChild variant="link" className="h-auto px-0 text-sm text-teal">
+          <Link href="/dashboard?tab=inbox">View activity</Link>
+        </Button>
+      </CardContent>
+    </Card>
+  )
+}
+
+function DashboardGuideCard() {
+  return (
+    <Card className="min-w-0 border-border/60 bg-card shadow-sm">
+      <CardContent className="space-y-2 p-5">
+        <p className="text-sm font-bold text-foreground">New to game jams?</p>
+        <p className="text-sm text-muted-foreground">Check out the quick guide for finding your crew.</p>
+        <Button asChild variant="link" className="h-auto px-0 text-sm text-teal">
+          <Link href="/showcase">Read the guide</Link>
+        </Button>
+      </CardContent>
+    </Card>
+  )
+}
+
 function ResponsiveConfirmDrawer({
   open,
   isMobile,
@@ -413,228 +462,8 @@ function ResponsiveConfirmDrawer({
 }
 
 // ─── Mobile Section Title (shown when bottom bar is active) ──────────────────
-const SECTION_TITLES: Record<string, { label: string; icon: typeof Users2; color: string }> = {
-  squads: { label: "My Squads", icon: Users2, color: "text-teal" },
-  inbox: { label: "Inbox", icon: Inbox, color: "text-peach" },
-  availability: { label: "Available", icon: UserSearch, color: "text-lavender" },
-  achievements: { label: "Achievements", icon: Trophy, color: "text-amber-500" },
-  settings: { label: "Settings", icon: Settings2, color: "text-slate-300" },
-}
 
-function MobileSectionTitle({ activeTab, inboxCount }: { activeTab: string; inboxCount: number }) {
-  const section = SECTION_TITLES[activeTab]
-  if (!section) return null
-  const Icon = section.icon
-  return (
-    <div className="mb-4 flex items-center gap-2.5 md:hidden">
-      <Icon className={cn("size-5", section.color)} />
-      <h2 className="text-lg font-bold tracking-tight text-foreground">{section.label}</h2>
-      {activeTab === "inbox" && inboxCount > 0 && (
-        <span className="flex min-h-5 min-w-5 items-center justify-center rounded-full bg-peach px-1.5 text-xs font-bold text-peach-foreground">
-          {inboxCount}
-        </span>
-      )}
-    </div>
-  )
-}
-
-// Compact Identity Header for Overview
-function DashboardIdentityHeader({
-  displayName,
-  avatarUrl,
-  currentTitle,
-  xp,
-}: {
-  displayName: string
-  avatarUrl: string | null
-  currentTitle: string
-  xp: number
-}) {
-  const level = levelFromTotalXp(xp)
-  const progress = gamificationLevelProgress(xp)
-  const title = currentTitle?.trim() || "Rookie Jammer"
-
-  return (
-    <div className="glass-card overflow-hidden rounded-2xl">
-      {/* XP Progress bar */}
-      <div className="h-1 w-full bg-muted/50">
-        <div
-          className="h-full bg-gradient-to-r from-teal to-peach transition-all duration-500"
-          style={{ width: `${progress.progressPercent}%` }}
-        />
-      </div>
-      <div className="flex items-center gap-3 p-4 md:gap-4 md:p-5">
-        <UserAvatar
-          src={avatarUrl}
-          fallbackName={displayName}
-          size="lg"
-          className="size-12 shrink-0 rounded-xl ring-2 ring-border/30 md:size-14"
-        />
-        <div className="min-w-0 flex-1">
-          <div className="flex min-w-0 items-center gap-2">
-            <p className="min-w-0 truncate text-base font-semibold tracking-tight text-foreground md:text-lg">
-              {displayName}
-            </p>
-            <JammerLevelBadge
-              level={level}
-              className="level-badge-animated shrink-0 border-amber-800/35 bg-amber-600/12 px-1.5 py-0.5 text-xs font-bold text-amber-950 dark:border-amber-500/40 dark:bg-amber-500/15 dark:text-amber-400"
-            />
-          </div>
-          <div className="mt-1 flex min-w-0 items-center gap-2">
-            <JammerTitleBadge title={title} className="min-w-0 text-sm" />
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function DashboardQuickActions() {
-  const actions = [
-    { href: "/create-team", label: "Create a Squad", icon: Plus },
-    { href: "/teams", label: "Browse Squads", icon: Compass },
-    { href: "/create-profile", label: "Post Availability", icon: Hand },
-  ]
-
-  return (
-    <Card className="min-w-0 max-w-full border-border/40 bg-card/70 shadow-sm backdrop-blur-sm">
-      <CardContent className="min-w-0 p-3">
-        <div className="flex min-w-0 flex-wrap items-center gap-2">
-          {actions.map((action) => {
-            const Icon = action.icon
-            return (
-              <Button
-                key={action.href}
-                asChild
-                variant="outline"
-                size="sm"
-                className="h-8 max-w-full cursor-pointer rounded-lg border-border/60 bg-background/50 px-2.5 text-xs"
-              >
-                <Link href={action.href}>
-                  <Icon className="size-3.5" />
-                  {action.label}
-                </Link>
-              </Button>
-            )
-          })}
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
-
-function DashboardSidebarProgress({
-  xp,
-  currentTitle,
-}: {
-  xp: number
-  currentTitle: string
-}) {
-  const level = levelFromTotalXp(xp)
-  const progress = gamificationLevelProgress(xp)
-
-  return (
-    <Card className="border-border/40 bg-card/70 shadow-sm backdrop-blur-sm">
-      <CardContent className="space-y-3 p-4">
-        <div className="flex items-center justify-between">
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Progress</p>
-          <span className="rounded-full border border-teal/35 bg-teal/10 px-2 py-0.5 text-xs font-bold text-teal">
-            Level {level}
-          </span>
-        </div>
-        <p className="truncate text-sm font-semibold text-foreground">{currentTitle || "Rookie Jammer"}</p>
-        <Progress value={progress.progressPercent} className="h-1.5 bg-muted/80" />
-        <p className="text-[11px] text-muted-foreground">
-          {progress.xpInLevel}/{progress.xpInLevel + progress.xpToNextLevel} XP
-        </p>
-      </CardContent>
-    </Card>
-  )
-}
-
-function relativeDateLabel(dateIso: string): string {
-  const diffMs = Date.now() - new Date(dateIso).getTime()
-  if (!Number.isFinite(diffMs)) return "now"
-  const minutes = Math.floor(diffMs / 60000)
-  if (minutes < 1) return "now"
-  if (minutes < 60) return `${minutes}m`
-  const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `${hours}h`
-  const days = Math.floor(hours / 24)
-  return `${days}d`
-}
-
-function DashboardRecentActivity({
-  items,
-}: {
-  items: NormalizedNotificationFeedItem[]
-}) {
-  const latest = items.slice(0, 4)
-
-  return (
-    <Card className="border-border/40 bg-card/70 shadow-sm backdrop-blur-sm">
-      <CardContent className="space-y-3 p-4">
-        <div className="flex items-center justify-between">
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Recent activity</p>
-          <Clock3 className="size-3.5 text-muted-foreground" />
-        </div>
-        {latest.length === 0 ? (
-          <p className="text-xs text-muted-foreground">No recent notifications.</p>
-        ) : (
-          <div className="space-y-2">
-            {latest.map((item) => (
-              <div
-                key={item.id}
-                className="rounded-lg border border-border/40 bg-background/40 px-2.5 py-2"
-              >
-                <p className="line-clamp-2 text-xs text-foreground">{item.message}</p>
-                <p className="mt-1 text-xs text-muted-foreground">{relativeDateLabel(item.created_at)}</p>
-              </div>
-            ))}
-          </div>
-        )}
-      </CardContent>
-    </Card>
-  )
-}
-
-function DashboardMiniKpi({
-  icon,
-  label,
-  value,
-  toneClassName,
-  helper,
-  rightSlot,
-}: {
-  icon: ReactNode
-  label: string
-  value: number
-  toneClassName: string
-  helper?: string
-  rightSlot?: ReactNode
-}) {
-  return (
-    <Card className={cn("glass-card min-w-0 !gap-0 !py-0 border shadow-sm", toneClassName)}>
-      <CardContent className="flex items-center justify-between gap-1.5 p-2 sm:gap-2 sm:p-2.5">
-        <div className="flex min-w-0 items-center gap-1.5 sm:gap-2">
-          <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-background/60">
-            {icon}
-          </div>
-          <div className="min-w-0">
-            <p className="truncate text-xs font-semibold leading-none text-muted-foreground">{label}</p>
-            <p className="text-base font-extrabold tabular-nums leading-tight text-foreground">{value}</p>
-          </div>
-        </div>
-        <div className="flex shrink-0 items-center gap-1">
-          {helper ? <span className="hidden text-xs text-muted-foreground min-[420px]:inline">{helper}</span> : null}
-          {rightSlot}
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
-
-export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientProps = {}) {
+export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: DashboardClientProps = {}) {
   const pathname = usePathname()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -656,7 +485,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
     const mapped = LEGACY_TAB_TO_CURRENT[raw]
     if (!mapped) return
     const params = new URLSearchParams(searchParams.toString())
-    if (mapped === "squads") {
+    if (mapped === "overview") {
       params.delete("tab")
     } else {
       params.set("tab", mapped)
@@ -674,7 +503,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
       const next = resolveDashboardTab(value)
       setActiveTab(next)
       const params = new URLSearchParams(searchParams.toString())
-      if (next === "squads") {
+      if (next === "overview") {
         params.delete("tab")
       } else {
         params.set("tab", next)
@@ -685,40 +514,36 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
     [pathname, router, searchParams],
   )
 
-  const [session, setSession] = useState<Session | null>(null)
-  const [teams, setTeams] = useState<TeamData[]>([])
-  const [availabilityPosts, setAvailabilityPosts] = useState<AvailabilityPostRow[]>([])
-  const [applications, setApplications] = useState<ApplicationData[]>([])
-  const [invitations, setInvitations] = useState<InvitationData[]>([])
-  const [sentApplications, setSentApplications] = useState<SentApplicationOutboxItem[]>([])
+  const [session, setSession] = useState<Session | null>(
+    fixture
+      ? ({ user: { id: "preview-user", user_metadata: { username: fixture.displayName } } } as unknown as Session)
+      : null,
+  )
+  const [teams, setTeams] = useState<TeamData[]>(fixture?.teams ?? [])
+  const [availabilityPosts, setAvailabilityPosts] = useState<AvailabilityPostRow[]>(fixture?.availabilityPosts ?? [])
+  const [applications, setApplications] = useState<ApplicationData[]>(fixture?.applications ?? [])
+  const [invitations, setInvitations] = useState<InvitationData[]>(fixture?.invitations ?? [])
+  const [sentApplications, setSentApplications] = useState<SentApplicationOutboxItem[]>(fixture?.sentApplications ?? [])
   const [busyInboxRequestId, setBusyInboxRequestId] = useState<string | null>(null)
   const [leaveTeamId, setLeaveTeamId] = useState<string | null>(null)
   const [leavingTeam, setLeavingTeam] = useState(false)
-  const [sentInvitationsOutbox, setSentInvitationsOutbox] = useState<SentInvitationOutboxItem[]>([])
+  const [sentInvitationsOutbox, setSentInvitationsOutbox] = useState<SentInvitationOutboxItem[]>(fixture?.sentInvitations ?? [])
   const [cancellingSentRequestId, setCancellingSentRequestId] = useState<string | null>(null)
-  const [activityNotifications, setActivityNotifications] = useState<NormalizedNotificationFeedItem[]>([])
-  const [loading, setLoading] = useState(true)
+  const [activityItems, setActivityItems] = useState<{ id: string; message: string; created_at: string }[]>(
+    fixture?.activity ?? [],
+  )
+  const [loading, setLoading] = useState(!fixture)
   const [showAvailabilityModal, setShowAvailabilityModal] = useState(false)
   const [availabilityModalContext, setAvailabilityModalContext] = useState<string | null>(null)
   const [hasShownAvailabilityPrompt, setHasShownAvailabilityPrompt] = useState(false)
   const [availabilityPostIdToDelete, setAvailabilityPostIdToDelete] = useState<string | null>(null)
   const [renewingAvailabilityPostId, setRenewingAvailabilityPostId] = useState<string | null>(null)
-  const [recommendedTeams, setRecommendedTeams] = useState<SmartRecommendedTeam[]>([])
+  const [recommendedTeams, setRecommendedTeams] = useState<SmartRecommendedTeam[]>(fixture?.recommendedTeams ?? [])
   const [showOnboardingModal, setShowOnboardingModal] = useState(false)
-  const [profile, setProfile] = useState<ProfileSettingsProfile | null>(null)
+  const [profile, setProfile] = useState<ProfileSettingsProfile | null>(fixture?.profile ?? null)
 
   const dailyXpClaimRef = useRef(false)
-  const [compactTabBar, setCompactTabBar] = useState(false)
   const isMobile = useIsMobile()
-
-  useEffect(() => {
-    if (typeof window === "undefined") return
-    const mq = window.matchMedia("(max-width: 639px)")
-    const apply = () => setCompactTabBar(mq.matches)
-    apply()
-    mq.addEventListener("change", apply)
-    return () => mq.removeEventListener("change", apply)
-  }, [])
 
   const mapTeamRow = (t: TeamRow, authUserId: string): TeamData => {
     type LookingForEntry = { level?: string | null; role?: string | null }
@@ -892,9 +717,11 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
           supabase,
           notifRaw as EnrichedNotificationRow[],
         )
-        setActivityNotifications(normalized)
+        setActivityItems(
+          normalized.map((item) => ({ id: item.id, message: item.message, created_at: item.created_at })),
+        )
       } else {
-        setActivityNotifications([])
+        setActivityItems([])
       }
 
       if (joinBundleResult.error) {
@@ -1127,12 +954,13 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
   }, [])
 
   useEffect(() => {
+    if (fixture) return
     void loadData()
-  }, [loadData])
+  }, [loadData, fixture])
 
   useEffect(() => {
     const uid = session?.user?.id
-    if (!uid) return
+    if (!uid || fixture) return
     let cancelled = false
     const refreshActivity = async () => {
       const { data, error } = await supabase
@@ -1146,7 +974,11 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
         supabase,
         data as EnrichedNotificationRow[],
       )
-      if (!cancelled) setActivityNotifications(normalized)
+      if (!cancelled) {
+        setActivityItems(
+          normalized.map((item) => ({ id: item.id, message: item.message, created_at: item.created_at })),
+        )
+      }
     }
     const channel = supabase
       .channel(`dashboard-activity-${uid}`)
@@ -1162,7 +994,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
       cancelled = true
       void supabase.removeChannel(channel)
     }
-  }, [session?.user?.id])
+  }, [session?.user?.id, fixture])
 
   useEffect(() => {
     if (loading || activeTab !== "inbox" || !highlightRequestId?.trim()) return
@@ -1182,7 +1014,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
   // Offer to disable availability when user has joined a team (application accepted)
   // Persist in localStorage so the prompt is not shown again after the user has responded (e.g. on refresh)
   useEffect(() => {
-    if (loading) return
+    if (loading || fixture) return
     const userId = session?.user?.id
     const storageKey = userId ? `gamejam_availability_prompt_seen_${userId}` : null
     if (storageKey && typeof window !== "undefined") {
@@ -1203,7 +1035,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
         localStorage.setItem(storageKey, "true")
       }
     }
-  }, [loading, session?.user?.id, sentApplications, availabilityPosts, hasShownAvailabilityPrompt])
+  }, [loading, fixture, session?.user?.id, sentApplications, availabilityPosts, hasShownAvailabilityPrompt])
 
   const handleCancelPendingSentRequest = async (id: string) => {
     setCancellingSentRequestId(id)
@@ -1508,248 +1340,176 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
     meta?.full_name?.trim() ||
     meta?.name?.trim() ||
     "Jammer"
-  const headerXp = typeof profile?.xp === "number" ? profile.xp : 0
   const headerTitle = profile?.current_title?.trim() || "Rookie Jammer"
-  const hasKpiSignal = teams.length > 0 || activityTotal > 0 || availabilityPosts.length > 0
+  const headerLevel = levelFromTotalXp(typeof profile?.xp === "number" ? profile.xp : 0)
+  const setupSteps = buildDashboardNextSteps({
+    hasTeam: teams.length > 0,
+    hasAvailability: availabilityPosts.length > 0,
+    hasDiscord: Boolean(profile?.discord_username?.trim()),
+    hasPortfolio: Boolean(profile?.portfolio_url?.trim()),
+    hasInboxActivity: activityTotal > 0,
+  })
+  const nextStep = setupSteps.find((step) => !step.done)
 
   return (
     <div className="flex min-h-screen min-w-0 flex-col overflow-x-clip bg-background">
       <Navbar />
-      
-      <main className="min-w-0 flex-1 lg:pt-16">
-        {/* Hero section with identity + KPIs */}
-        <section className="min-w-0 px-4 py-6 md:py-8 lg:px-6">
-          <div className="mx-auto min-w-0 max-w-5xl space-y-4 md:space-y-6">
-            {/* Compact Identity Header */}
-            {session?.user?.id && profile ? (
-              <DashboardIdentityHeader
-                displayName={displayName}
-                avatarUrl={profile.avatar_url ?? null}
-                currentTitle={headerTitle}
-                xp={headerXp}
-              />
-            ) : null}
-
-            {/* 3 KPI cards (hidden if no useful signal) */}
-            {hasKpiSignal ? (
-              <div className="grid min-w-0 grid-cols-3 gap-1.5 md:gap-2">
-                <DashboardMiniKpi
-                  icon={<Users2 className="size-3.5 text-teal" />}
-                  label="Squads"
-                  value={teams.length}
-                  helper={teams.length > 0 ? "active" : undefined}
-                  toneClassName="border-teal/20 bg-teal/5"
-                />
-                <DashboardMiniKpi
-                  icon={<Inbox className="size-3.5 text-peach" />}
-                  label="Activity"
-                  value={activityTotal}
-                  toneClassName="border-peach/20 bg-peach/5"
-                  rightSlot={
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <button
-                          type="button"
-                          className="cursor-pointer rounded-full p-0.5 text-muted-foreground hover:text-foreground"
-                          aria-label="Activity info"
-                        >
-                          <Info className="size-3" aria-hidden />
-                        </button>
-                      </TooltipTrigger>
-                      <TooltipContent side="top" className="max-w-56 text-xs">
-                        <p><span className="font-semibold">{toActionCount}</span> to action</p>
-                        <p><span className="font-semibold">{waitingResponseCount}</span> waiting</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  }
-                />
-                <DashboardMiniKpi
-                  icon={<UserSearch className="size-3.5 text-lavender" />}
-                  label="Available"
-                  value={availabilityPosts.length}
-                  helper={availabilityPosts.length > 0 ? "posts" : undefined}
-                  toneClassName="border-lavender/20 bg-lavender/5"
-                />
-              </div>
-            ) : (
-              <Card className="glass-card !gap-0 !py-0 border-border/40 bg-card/60 shadow-sm">
-                <CardContent className="p-2.5 text-[11px] text-muted-foreground">
-                  No active squads or requests yet. Use quick actions to create your first momentum.
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        </section>
-
-        {/* Tabs Section */}
-        <section className="min-w-0 px-4 pb-24 md:pb-8 lg:px-6 lg:pb-12">
-          <div className="mx-auto w-full min-w-0 max-w-5xl">
-            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full min-w-0 max-w-full">
-              <TabsList className="glass mb-4 hidden h-auto w-full min-w-0 max-w-full touch-pan-x items-center justify-start gap-1 overflow-x-auto overscroll-x-contain rounded-xl p-1.5 [-webkit-overflow-scrolling:touch] md:mb-6 md:flex md:w-fit">
-                <DashboardTabTrigger
-                  value="squads"
-                  tooltipLabel="My Squads"
-                  showTooltip={compactTabBar}
-                  className={cn(
-                    "shrink-0 items-center rounded-lg border border-transparent px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground",
-                    "data-[state=active]:border-teal/30 data-[state=active]:bg-background/80 data-[state=active]:text-teal data-[state=active]:shadow-sm",
-                  )}
-                  icon={<Users2 className="mr-1.5 size-4 shrink-0 text-teal" aria-hidden />}
-                  label="Squads"
-                />
-                <DashboardTabTrigger
-                  value="inbox"
-                  tooltipLabel="Inbox"
-                  showTooltip={compactTabBar}
-                  className={cn(
-                    "shrink-0 items-center rounded-lg border border-transparent px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground",
-                    "data-[state=active]:border-peach/30 data-[state=active]:bg-background/80 data-[state=active]:text-peach data-[state=active]:shadow-sm",
-                  )}
-                  icon={<Inbox className="mr-1.5 size-4 shrink-0 text-peach" aria-hidden />}
-                  label="Inbox"
-                />
-                <DashboardTabTrigger
-                  value="availability"
-                  tooltipLabel="Availability"
-                  showTooltip={compactTabBar}
-                  className={cn(
-                    "shrink-0 items-center rounded-lg border border-transparent px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground",
-                    "data-[state=active]:border-lavender/30 data-[state=active]:bg-background/80 data-[state=active]:text-lavender data-[state=active]:shadow-sm",
-                  )}
-                  icon={<UserSearch className="mr-1.5 size-4 shrink-0 text-lavender" aria-hidden />}
-                  label="Available"
-                />
-                <DashboardTabTrigger
-                  value="achievements"
-                  tooltipLabel="Achievements"
-                  showTooltip={compactTabBar}
-                  className={cn(
-                    "shrink-0 items-center rounded-lg border border-transparent px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground",
-                    "data-[state=active]:border-amber-500/30 data-[state=active]:bg-background/80 data-[state=active]:text-amber-500 data-[state=active]:shadow-sm",
-                  )}
-                  icon={<Trophy className="mr-1.5 size-4 shrink-0 text-amber-500" aria-hidden />}
-                  label="Achievements"
-                />
-                <DashboardTabTrigger
-                  value="settings"
-                  tooltipLabel="Settings"
-                  showTooltip={compactTabBar}
-                  className={cn(
-                    "shrink-0 items-center rounded-lg border border-transparent px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground",
-                    "data-[state=active]:border-slate-400/30 data-[state=active]:bg-background/80 data-[state=active]:text-slate-500 data-[state=active]:shadow-sm dark:data-[state=active]:text-slate-300",
-                  )}
-                  icon={<Settings2 className="mr-1.5 size-4 shrink-0 text-slate-400" aria-hidden />}
-                  label="Settings"
-                />
+      <main className="min-w-0 flex-1 overflow-x-clip">
+        <section className="mx-auto w-full min-w-0 max-w-6xl space-y-4 px-4 py-6 lg:space-y-6 lg:px-6 lg:pt-24">
+          <DashboardHeader
+            displayName={displayName}
+            avatarUrl={profile?.avatar_url ?? null}
+            level={headerLevel}
+            title={headerTitle}
+            inboxCount={toActionCount}
+          />
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="min-w-0 max-w-full gap-4">
+            <div className="min-w-0 max-w-full overflow-x-auto overscroll-x-contain">
+              <TabsList className="h-auto w-max min-w-full max-w-none flex-nowrap justify-start gap-1 rounded-xl bg-card p-1 md:w-max md:min-w-0 md:justify-start">
+                {(
+                  [
+                    ["overview", "Overview"],
+                    ["squads", "Squads"],
+                    ["inbox", "Inbox"],
+                    ["availability", "Availability"],
+                    ["achievements", "Achievements"],
+                    ["settings", "Settings"],
+                  ] as const
+                ).map(([value, label]) => (
+                  <TabsTrigger
+                    key={value}
+                    value={value}
+                    className="h-10 shrink-0 gap-1.5 rounded-lg px-3 text-sm font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+                  >
+                    {label}
+                    {value === "inbox" && toActionCount > 0 ? (
+                      <span className="flex min-h-5 min-w-5 items-center justify-center rounded-full bg-peach px-1 text-[11px] font-bold text-peach-foreground">
+                        {toActionCount > 9 ? "9+" : toActionCount}
+                      </span>
+                    ) : null}
+                  </TabsTrigger>
+                ))}
               </TabsList>
+            </div>
 
-              {/* Mobile section title — visible only when bottom bar is used */}
-              <MobileSectionTitle activeTab={activeTab} inboxCount={toActionCount} />
-
-              <TabsContent value="squads" className="mt-0 min-w-0 max-w-full">
-                <div className="grid min-w-0 max-w-full gap-4 lg:grid-cols-12">
-                  <div className="min-w-0 space-y-4 lg:col-span-8">
-                    <DashboardQuickActions />
-                    <DashboardNextSteps
-                      hasTeam={teams.length > 0}
-                      hasAvailability={availabilityPosts.length > 0}
-                      hasDiscord={Boolean(profile?.discord_username?.trim())}
-                      hasPortfolio={Boolean(profile?.portfolio_url?.trim())}
-                      hasInboxActivity={activityTotal > 0}
-                    />
-                    {teams.length === 0 && availabilityPosts.length === 0 ? (
-                      <DashboardEmptyState />
-                    ) : (
-                      <DashboardSquadsCompact teams={teams} onLeave={handleLeaveTeam} />
-                    )}
-                  </div>
-                  <aside className="hidden space-y-4 lg:col-span-4 lg:sticky lg:top-24 lg:block lg:self-start">
-                    <DashboardSidebarProgress xp={headerXp} currentTitle={headerTitle} />
-                    <DashboardRecentActivity items={activityNotifications} />
-                  </aside>
+            <TabsContent value="overview" className="mt-0 min-w-0 max-w-full">
+              <div className="grid min-w-0 items-start gap-4 lg:grid-cols-3">
+                <div className="min-w-0 space-y-4 lg:col-span-2">
+                  <section className="min-w-0 space-y-3">
+                    <div className="flex min-w-0 items-end justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Your crew</p>
+                        <h2 className="text-xl font-extrabold tracking-tight text-foreground">Squads</h2>
+                      </div>
+                      <Button asChild variant="link" className="h-auto shrink-0 px-0 text-sm text-teal">
+                        <Link href="/teams">Explore squads</Link>
+                      </Button>
+                    </div>
+                    <DashboardSquadsCompact teams={teams.slice(0, 2)} variant="feature" />
+                  </section>
+                  <DashboardNextSteps
+                    hasTeam={teams.length > 0}
+                    hasAvailability={availabilityPosts.length > 0}
+                    hasDiscord={Boolean(profile?.discord_username?.trim())}
+                    hasPortfolio={Boolean(profile?.portfolio_url?.trim())}
+                    hasInboxActivity={activityTotal > 0}
+                  />
+                  <DashboardEmptyState />
                 </div>
-              </TabsContent>
-
-              <TabsContent value="inbox" className="mt-0 flex min-w-0 max-w-full flex-col gap-4 md:gap-6">
-                <div className="grid min-w-0 max-w-full gap-4 lg:grid-cols-12">
-                  <div className="min-w-0 space-y-4 lg:col-span-8">
-                    <PushNotificationBanner />
-                    <DashboardInboxCompact
-                      applications={applications}
-                      invitations={invitations}
-                      sentApplications={sentApplications}
-                      sentInvitations={sentInvitationsOutbox}
-                      cancellingSentRequestId={cancellingSentRequestId}
-                      onAcceptApplication={handleAcceptApplication}
-                      onDeclineApplication={handleDeclineApplication}
-                      onAcceptInvitation={handleAcceptInvitation}
-                      onDeclineInvitation={handleDeclineInvitation}
-                      busyRequestId={busyInboxRequestId}
-                      onCancelPendingSentRequest={handleCancelPendingSentRequest}
-                    />
-                  </div>
-                  <aside className="hidden space-y-4 lg:col-span-4 lg:sticky lg:top-24 lg:block lg:self-start">
-                    <DashboardRecentActivity items={activityNotifications} />
-                  </aside>
+                <div className="min-w-0 space-y-4">
+                  <DashboardMomentumCard
+                    completed={setupSteps.filter((step) => step.done).length}
+                    total={setupSteps.length}
+                    nextHref={nextStep?.href ?? "/teams"}
+                    nextLabel={nextStep?.label ?? "Browse squads"}
+                  />
+                  <DashboardRecentActivity items={activityItems} />
+                  <DashboardGuideCard />
                 </div>
-              </TabsContent>
+              </div>
+            </TabsContent>
 
-              <TabsContent value="availability" className="mt-0 flex min-w-0 max-w-full flex-col gap-4 md:gap-6">
-                <div className="grid min-w-0 max-w-full gap-4 lg:grid-cols-12">
-                  <div className="min-w-0 space-y-4 lg:col-span-8">
-                    <DashboardAvailabilityCompact
-                      posts={availabilityPosts}
-                      onDeletePost={handleDeleteAvailabilityPostClick}
-                      onRenewPost={handleRenewAvailabilityPost}
-                      renewingPostId={renewingAvailabilityPostId}
-                      profileAvatarUrl={profile?.avatar_url ?? null}
-                    />
-                  </div>
-                  <aside className="hidden space-y-4 lg:col-span-4 lg:sticky lg:top-24 lg:block lg:self-start">
-                    <DashboardRecommendedTeams teams={recommendedTeams} compact />
-                    <DashboardRecentActivity items={activityNotifications} />
-                  </aside>
-                </div>
-              </TabsContent>
+            <TabsContent value="squads" className="mt-0 min-w-0 max-w-full space-y-4">
+              <div className="min-w-0">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Your crew</p>
+                <h2 className="text-xl font-extrabold tracking-tight text-foreground">Squads</h2>
+              </div>
+              <DashboardSquadsCompact teams={teams} onLeave={handleLeaveTeam} />
+            </TabsContent>
 
-              <TabsContent value="achievements" className="mt-0 flex min-w-0 max-w-full flex-col gap-4 md:gap-6">
-                {session?.user?.id ? (
-                  <>
-                    <GamificationDashboardFull
-                      userId={session.user.id}
-                      onDataChanged={() => void loadData()}
-                    />
-                    <MonthlyKudosLeaderboard />
-                    <ProfileGamification userId={session.user.id} badgesOnly />
-                  </>
-                ) : null}
-              </TabsContent>
+            <TabsContent value="inbox" className="mt-0 flex min-w-0 max-w-full flex-col gap-4">
+              <PushNotificationBanner />
+              <DashboardInboxCompact
+                applications={applications}
+                invitations={invitations}
+                sentApplications={sentApplications}
+                sentInvitations={sentInvitationsOutbox}
+                cancellingSentRequestId={cancellingSentRequestId}
+                onAcceptApplication={handleAcceptApplication}
+                onDeclineApplication={handleDeclineApplication}
+                onAcceptInvitation={handleAcceptInvitation}
+                onDeclineInvitation={handleDeclineInvitation}
+                busyRequestId={busyInboxRequestId}
+                onCancelPendingSentRequest={handleCancelPendingSentRequest}
+              />
+            </TabsContent>
 
-              <TabsContent value="settings" className="mt-0 flex w-full min-w-0 max-w-full flex-col">
-                <ProfileSettings
-                  profile={profile}
-                  onProfileUpdated={(patch) => {
-                    if (patch && "discord_username" in patch) {
-                      setProfile((prev) =>
-                        prev ? { ...prev, discord_username: patch.discord_username ?? null } : prev,
-                      )
-                    }
-                    void loadData()
-                  }}
-                  displayNameFallback={displayName}
-                />
-              </TabsContent>
-            </Tabs>
-          </div>
+            <TabsContent value="availability" className="mt-0 flex min-w-0 max-w-full flex-col gap-4">
+              <DashboardAvailabilityCompact
+                posts={availabilityPosts}
+                onDeletePost={handleDeleteAvailabilityPostClick}
+                onRenewPost={handleRenewAvailabilityPost}
+                renewingPostId={renewingAvailabilityPostId}
+                profileAvatarUrl={profile?.avatar_url ?? null}
+              />
+              <DashboardRecommendedTeams teams={recommendedTeams} compact className="min-w-0 max-w-full" />
+            </TabsContent>
+
+            <TabsContent value="achievements" className="mt-0 flex min-w-0 max-w-full flex-col gap-4">
+              {session?.user?.id ? (
+                <>
+                  <GamificationDashboardFull
+                    userId={session.user.id}
+                    onDataChanged={() => void loadData()}
+                    snapshot={fixture?.gamification ?? null}
+                  />
+                  <MonthlyKudosLeaderboard snapshotRows={fixture?.kudos ?? null} />
+                  <ProfileGamification
+                    userId={session.user.id}
+                    badgesOnly
+                    snapshotBadges={fixture?.badges ?? null}
+                  />
+                </>
+              ) : (
+                <Card className="min-w-0 border-border/60 bg-card shadow-sm">
+                  <CardContent className="flex flex-col items-center gap-3 p-6 text-center">
+                    <Trophy className="size-6 text-amber-500" aria-hidden />
+                    <p className="max-w-sm text-sm text-muted-foreground">Sign in to see your level, titles, and badges.</p>
+                    <Button asChild className="h-11 rounded-xl bg-teal text-teal-foreground hover:bg-teal/90">
+                      <Link href="/">Sign in</Link>
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
+
+            <TabsContent value="settings" className="mt-0 flex w-full min-w-0 max-w-full flex-col">
+              <ProfileSettings
+                profile={profile}
+                onProfileUpdated={(patch) => {
+                  if (patch && "discord_username" in patch) {
+                    setProfile((prev) =>
+                      prev ? { ...prev, discord_username: patch.discord_username ?? null } : prev,
+                    )
+                  }
+                  void loadData()
+                }}
+                displayNameFallback={displayName}
+              />
+            </TabsContent>
+          </Tabs>
         </section>
       </main>
-
-      {/* Mobile Bottom Navigation */}
-      <DashboardBottomBar
-        activeTab={activeTab}
-        onTabChange={handleTabChange}
-        inboxCount={toActionCount}
-      />
 
       <OnboardingModal
         open={showOnboardingModal}

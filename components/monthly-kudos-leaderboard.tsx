@@ -5,6 +5,7 @@ import Link from "next/link"
 import { Crown, Medal, Sparkles } from "lucide-react"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { supabase } from "@/lib/supabase"
 
 type LeaderRow = {
@@ -19,11 +20,17 @@ function monthStartIso(): string {
   return start.toISOString()
 }
 
-export function MonthlyKudosLeaderboard() {
-  const [rows, setRows] = useState<LeaderRow[]>([])
-  const [loading, setLoading] = useState(true)
+export function MonthlyKudosLeaderboard({
+  snapshotRows,
+}: {
+  /** Dev preview only. Skips the Supabase read when provided. */
+  snapshotRows?: LeaderRow[] | null
+} = {}) {
+  const [rows, setRows] = useState<LeaderRow[]>(snapshotRows ?? [])
+  const [loading, setLoading] = useState(snapshotRows == null)
 
   useEffect(() => {
+    if (snapshotRows) return
     let cancelled = false
     ;(async () => {
       setLoading(true)
@@ -81,7 +88,7 @@ export function MonthlyKudosLeaderboard() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [snapshotRows])
 
   const monthLabel = useMemo(() => {
     return new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric" }).format(new Date())
@@ -102,7 +109,13 @@ export function MonthlyKudosLeaderboard() {
         {loading ? (
           <p className="text-sm text-muted-foreground">Loading leaderboard...</p>
         ) : rows.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No kudos yet this month.</p>
+          <div className="flex flex-col items-center gap-3 py-6 text-center">
+            <Medal className="size-6 text-muted-foreground" aria-hidden />
+            <p className="max-w-xs text-sm text-muted-foreground">No kudos yet this month.</p>
+            <Button asChild variant="outline" className="h-11 rounded-xl">
+              <Link href="/teams">Open squads</Link>
+            </Button>
+          </div>
         ) : (
           <div className="space-y-2">
             {rows.map((row, idx) => (

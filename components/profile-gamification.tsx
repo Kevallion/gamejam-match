@@ -59,7 +59,7 @@ export const BADGE_DICTIONARY: Record<string, BadgeCatalogMeta> = {
     blurb: "Created your first squad listing.",
     unlocked:
       "border-amber-500/50 bg-gradient-to-br from-amber-500/20 via-amber-600/10 to-yellow-500/5 shadow-[0_0_24px_-4px_rgba(245,158,11,0.35)]",
-    locked: "border-border/40 bg-muted/20 opacity-45 grayscale",
+    locked: "border-dashed border-border/70 bg-card/60",
   },
   captain: {
     emoji: "👑",
@@ -68,7 +68,7 @@ export const BADGE_DICTIONARY: Record<string, BadgeCatalogMeta> = {
     blurb: "Filled every open role on your squad listing.",
     unlocked:
       "border-violet-500/45 bg-gradient-to-br from-violet-500/20 via-purple-600/10 to-fuchsia-500/5 shadow-[0_0_24px_-4px_rgba(139,92,246,0.35)]",
-    locked: "border-border/40 bg-muted/20 opacity-45 grayscale",
+    locked: "border-dashed border-border/70 bg-card/60",
   },
   team_player: {
     emoji: "🤝",
@@ -77,7 +77,7 @@ export const BADGE_DICTIONARY: Record<string, BadgeCatalogMeta> = {
     blurb: "Joined a squad on GameJamCrew.",
     unlocked:
       "border-teal/50 bg-gradient-to-br from-teal/25 via-teal/10 to-cyan-500/5 shadow-[0_0_20px_-4px_rgba(45,212,191,0.3)]",
-    locked: "border-border/40 bg-muted/20 opacity-45 grayscale",
+    locked: "border-dashed border-border/70 bg-card/60",
   },
   early_bird: {
     emoji: "🌅",
@@ -86,7 +86,7 @@ export const BADGE_DICTIONARY: Record<string, BadgeCatalogMeta> = {
     blurb: "Completed your jammer onboarding.",
     unlocked:
       "border-pink/40 bg-gradient-to-br from-peach/25 via-pink/15 to-lavender/10 shadow-[0_0_22px_-4px_rgba(244,114,182,0.28)]",
-    locked: "border-border/40 bg-muted/20 opacity-45 grayscale",
+    locked: "border-dashed border-border/70 bg-card/60",
   },
   stalwart: {
     emoji: "💎",
@@ -95,7 +95,7 @@ export const BADGE_DICTIONARY: Record<string, BadgeCatalogMeta> = {
     blurb: "Logged in 5 days in a row.",
     unlocked:
       "border-sky-500/45 bg-gradient-to-br from-sky-500/20 via-cyan-500/10 to-teal-500/5 shadow-[0_0_22px_-4px_rgba(14,165,233,0.3)]",
-    locked: "border-border/40 bg-muted/20 opacity-45 grayscale",
+    locked: "border-dashed border-border/70 bg-card/60",
   },
   recruiter: {
     emoji: "📣",
@@ -104,7 +104,7 @@ export const BADGE_DICTIONARY: Record<string, BadgeCatalogMeta> = {
     blurb: "Sent 5 squad invitations to other jammers.",
     unlocked:
       "border-orange-500/40 bg-gradient-to-br from-orange-500/20 via-amber-500/10 to-yellow-500/5 shadow-[0_0_22px_-4px_rgba(249,115,22,0.28)]",
-    locked: "border-border/40 bg-muted/20 opacity-45 grayscale",
+    locked: "border-dashed border-border/70 bg-card/60",
   },
   multi_tool: {
     emoji: "🛠️",
@@ -113,7 +113,7 @@ export const BADGE_DICTIONARY: Record<string, BadgeCatalogMeta> = {
     blurb: "Joined squads in 3 different role slots.",
     unlocked:
       "border-emerald-500/40 bg-gradient-to-br from-emerald-500/20 via-teal/15 to-lime-500/5 shadow-[0_0_22px_-4px_rgba(16,185,129,0.28)]",
-    locked: "border-border/40 bg-muted/20 opacity-45 grayscale",
+    locked: "border-dashed border-border/70 bg-card/60",
   },
   jam_champion: {
     emoji: "🏆",
@@ -122,7 +122,7 @@ export const BADGE_DICTIONARY: Record<string, BadgeCatalogMeta> = {
     blurb: "Claimed jam completion rewards on a squad you own.",
     unlocked:
       "border-amber-500/45 bg-gradient-to-br from-amber-500/20 via-peach/15 to-teal/10 shadow-[0_0_22px_-4px_rgba(245,158,11,0.3)]",
-    locked: "border-border/40 bg-muted/20 opacity-45 grayscale",
+    locked: "border-dashed border-border/70 bg-card/60",
   },
   supporter: {
     emoji: "☕",
@@ -132,7 +132,7 @@ export const BADGE_DICTIONARY: Record<string, BadgeCatalogMeta> = {
     lockedHint: "Unlock by supporting the project on Buy Me a Coffee (use the email on your account).",
     unlocked:
       "border-amber-600/45 bg-gradient-to-br from-amber-500/25 via-orange-500/15 to-rose-500/10 shadow-[0_0_24px_-4px_rgba(245,158,11,0.35)]",
-    locked: "border-border/40 bg-muted/20 opacity-45 grayscale",
+    locked: "border-dashed border-border/70 bg-card/60",
   },
   golden_heart: {
     emoji: "💛",
@@ -141,7 +141,7 @@ export const BADGE_DICTIONARY: Record<string, BadgeCatalogMeta> = {
     blurb: "Verified supporter — thank you for backing the community.",
     unlocked:
       "border-rose-500/45 bg-gradient-to-br from-rose-500/25 via-pink-500/15 to-amber-400/10 shadow-[0_0_26px_-4px_rgba(244,63,94,0.35)]",
-    locked: "border-border/40 bg-muted/20 opacity-45 grayscale",
+    locked: "border-dashed border-border/70 bg-card/60",
   },
 }
 
@@ -318,11 +318,15 @@ export function ProfileGamification({
   badgesOnly = false,
   unlockedOnly = false,
   compact = false,
-}: ProfileGamificationProps) {
-  const [xp, setXp] = useState<number | null>(null)
+  snapshotBadges,
+}: ProfileGamificationProps & {
+  /** Dev preview only. Skips the Supabase read when provided. */
+  snapshotBadges?: BadgeRow[] | null
+}) {
+  const [xp, setXp] = useState<number | null>(snapshotBadges ? 0 : null)
   const [currentTitle, setCurrentTitle] = useState<string>("Rookie Jammer")
-  const [badges, setBadges] = useState<BadgeRow[]>([])
-  const [loading, setLoading] = useState(true)
+  const [badges, setBadges] = useState<BadgeRow[]>(snapshotBadges ?? [])
+  const [loading, setLoading] = useState(snapshotBadges == null)
   const [error, setError] = useState<string | null>(null)
 
   const load = useCallback(async () => {
@@ -374,8 +378,9 @@ export function ProfileGamification({
   }, [userId, badgesOnly])
 
   useEffect(() => {
+    if (snapshotBadges) return
     void load()
-  }, [load])
+  }, [load, snapshotBadges])
 
   const earnedIds = useMemo(() => new Set(badges.map((b) => b.badge_id)), [badges])
 

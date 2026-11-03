@@ -128,11 +128,15 @@ export function GamificationDashboardFull({
   readOnly = false,
   className,
   onDataChanged,
-}: GamificationDashboardProps) {
-  const [xp, setXp] = useState<number | null>(null)
-  const [currentTitle, setCurrentTitle] = useState("Rookie Jammer")
-  const [unlockedTitles, setUnlockedTitles] = useState<string[]>(["Rookie Jammer"])
-  const [loading, setLoading] = useState(true)
+  snapshot,
+}: GamificationDashboardProps & {
+  /** Dev preview only. Skips the Supabase read when provided. */
+  snapshot?: { xp: number; currentTitle: string; unlockedTitles: string[] } | null
+}) {
+  const [xp, setXp] = useState<number | null>(snapshot ? snapshot.xp : null)
+  const [currentTitle, setCurrentTitle] = useState(snapshot?.currentTitle ?? "Rookie Jammer")
+  const [unlockedTitles, setUnlockedTitles] = useState<string[]>(snapshot?.unlockedTitles ?? ["Rookie Jammer"])
+  const [loading, setLoading] = useState(!snapshot)
   const [error, setError] = useState<string | null>(null)
 
   const load = useCallback(async () => {
@@ -168,8 +172,9 @@ export function GamificationDashboardFull({
   }, [userId])
 
   useEffect(() => {
+    if (snapshot) return
     void load()
-  }, [load])
+  }, [load, snapshot])
 
   const progress = gamificationLevelProgress(xp ?? 0)
   const level = levelFromTotalXp(xp ?? 0)

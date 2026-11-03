@@ -56,7 +56,7 @@ export function DashboardRecommendedTeams({ teams, className, compact = false }:
               "shadow-[0_0_24px_-10px_rgba(45,212,191,0.45)] dark:shadow-[0_0_28px_-10px_rgba(34,211,238,0.35)]",
             )}
           >
-            <div className={cn("space-y-1.5 leading-relaxed text-foreground", compact ? "text-xs" : "text-sm md:text-[15px]")}>
+            <div className={cn("min-w-0 space-y-1.5 break-words leading-relaxed text-foreground", compact ? "text-xs" : "text-sm md:text-[15px]")}>
               <p>
                 The squad <span className="font-semibold text-teal">{t.team_name}</span> is looking for a{" "}
                 <span className="font-medium">{t.role_label}</span>.
