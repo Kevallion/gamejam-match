@@ -8,7 +8,7 @@
 import { spawn } from "node:child_process"
 
 const WIDTHS = [320, 360, 390, 414, 768, 1024, 1280, 1440]
-const TABS = ["squads", "inbox", "availability", "achievements", "settings"]
+const TABS = ["overview", "squads", "inbox", "availability", "achievements", "settings"]
 const BASE = process.env.DASHBOARD_PREVIEW_URL ?? "http://localhost:3000/dev/dashboard-preview"
 
 function sleep(ms) {
@@ -110,7 +110,7 @@ try {
       sessionId,
     )
     for (const tab of TABS) {
-      const url = tab === "squads" ? BASE : `${BASE}?tab=${tab}`
+      const url = `${BASE}?tab=${tab}`
       await send("Page.navigate", { url }, sessionId)
       await sleep(1600)
       const evaled = await send("Runtime.evaluate", { expression: MEASURE, returnByValue: true }, sessionId)

@@ -132,4 +132,21 @@ export const dashboardFixture: DashboardFixture = {
     { userId: "maya", username: "Maya Chen-Okafor", total: 6 },
     { userId: "alex", username: "Alexandra Riverstone", total: 3 },
   ],
+  activity: [
+    {
+      id: "act-1",
+      message: "You joined Pixel Pioneers",
+      created_at: new Date(Date.now() - 26 * 60 * 60 * 1000).toISOString(),
+    },
+    {
+      id: "act-2",
+      message: "Alexandra Riverstone applied to your squad",
+      created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+    },
+    {
+      id: "act-3",
+      message: "You earned First Steps",
+      created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+    },
+  ],
 }

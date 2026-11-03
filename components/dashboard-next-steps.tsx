@@ -58,13 +58,13 @@ export function DashboardNextSteps(props: {
         </div>
       </CardHeader>
       <CardContent className="min-w-0 pt-4">
-        <ol className="grid min-w-0 gap-2 sm:grid-cols-2">
+        <ol className="grid min-w-0 gap-2 sm:grid-cols-2 sm:gap-3">
           {steps.map((step, index) => (
             <li key={step.id} className="min-w-0">
               <Link
                 href={step.href}
                 className={cn(
-                  "flex min-h-11 min-w-0 items-center gap-3 rounded-xl border px-3 py-2 transition-colors motion-reduce:transition-none",
+                  "flex min-h-14 min-w-0 items-center gap-3 rounded-xl border px-3 py-3 transition-colors motion-reduce:transition-none",
                   step.done
                     ? "border-teal/30 bg-teal/10 text-foreground"
                     : "border-border/60 bg-background/40 text-foreground hover:border-teal/40",

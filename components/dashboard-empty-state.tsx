@@ -14,9 +14,9 @@ export function DashboardEmptyState() {
           Choose your path
         </h3>
       </div>
-      <div className="grid w-full min-w-0 grid-cols-1 gap-3 md:grid-cols-2">
+      <div className="grid w-full min-w-0 grid-cols-1 gap-4 md:grid-cols-2">
         <Card className="min-w-0 border border-teal/30 bg-card shadow-sm">
-          <CardContent className="flex min-w-0 flex-col items-start gap-4 p-5">
+          <CardContent className="flex min-h-[200px] min-w-0 flex-col items-start justify-between gap-4 p-6">
             <div className="flex size-12 items-center justify-center rounded-2xl bg-teal/15 text-teal">
               <Search className="size-6" aria-hidden />
             </div>
@@ -35,7 +35,7 @@ export function DashboardEmptyState() {
           </CardContent>
         </Card>
         <Card className="min-w-0 border border-pink/30 bg-card shadow-sm">
-          <CardContent className="flex min-w-0 flex-col items-start gap-4 p-5">
+          <CardContent className="flex min-h-[200px] min-w-0 flex-col items-start justify-between gap-4 p-6">
             <div className="flex size-12 items-center justify-center rounded-2xl bg-pink/15 text-pink">
               <Plus className="size-6" aria-hidden />
             </div>

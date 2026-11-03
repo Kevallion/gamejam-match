@@ -15,7 +15,9 @@ import type {
   SentApplicationOutboxItem,
   SentInvitationOutboxItem,
 } from "@/components/dashboard-sent-outbox"
-import { Trash2, Trophy, UserMinus } from "lucide-react"
+import { Bell, Trash2, Trophy, UserMinus } from "lucide-react"
+import { Progress } from "@/components/ui/progress"
+import { UserAvatar } from "@/components/user-avatar"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -62,6 +64,7 @@ import {
   GamificationDashboardFull,
 } from "@/components/gamification-dashboard"
 import { PushNotificationBanner } from "@/components/push-notification-banner"
+import { DashboardEmptyState } from "@/components/dashboard-empty-state"
 import { buildDashboardNextSteps, DashboardNextSteps } from "@/components/dashboard-next-steps"
 import { MonthlyKudosLeaderboard } from "@/components/monthly-kudos-leaderboard"
 import type { Session } from "@supabase/supabase-js"
@@ -84,7 +87,6 @@ import {
   NOTIFICATION_ENRICHED_SELECT,
   fetchNotificationsAsNormalized,
   type EnrichedNotificationRow,
-  type NormalizedNotificationFeedItem,
 } from "@/lib/notifications-enriched"
 
 const LEVEL_STYLES = EXPERIENCE_STYLES
@@ -177,6 +179,7 @@ export type DashboardFixture = {
   gamification: { xp: number; currentTitle: string; unlockedTitles: string[] }
   badges: { badge_id: string; earned_at: string }[]
   kudos: { userId: string; username: string; total: number }[]
+  activity?: { id: string; message: string; created_at: string }[]
 }
 
 type DashboardClientProps = {
@@ -185,11 +188,10 @@ type DashboardClientProps = {
   fixture?: DashboardFixture | null
 }
 
-const VALID_TABS = ["squads", "inbox", "availability", "achievements", "settings"] as const
+const VALID_TABS = ["overview", "squads", "inbox", "availability", "achievements", "settings"] as const
 
 const LEGACY_TAB_TO_CURRENT: Record<string, (typeof VALID_TABS)[number]> = {
   requests: "inbox",
-  overview: "squads",
   teams: "squads",
   profile: "settings",
   available: "availability",
@@ -202,7 +204,7 @@ function resolveDashboardTab(raw: string | null | undefined): (typeof VALID_TABS
   if ((VALID_TABS as readonly string[]).includes(key)) {
     return key as (typeof VALID_TABS)[number]
   }
-  return "squads"
+  return "overview"
 }
 
 function DashboardLoadingSkeleton() {
@@ -230,19 +232,20 @@ function greetingLabel(date: Date): string {
 
 function DashboardHeader({
   displayName,
+  avatarUrl,
   level,
   title,
-  actionHref,
-  actionLabel,
+  inboxCount,
 }: {
   displayName: string
+  avatarUrl: string | null
   level: number
   title: string
-  actionHref: string
-  actionLabel: string
+  inboxCount: number
 }) {
   const now = new Date()
   const greeting = greetingLabel(now)
+  const firstName = displayName.split(/\s+/)[0] || displayName
   const dateLabel = new Intl.DateTimeFormat("en-US", {
     weekday: "long",
     month: "long",
@@ -250,63 +253,139 @@ function DashboardHeader({
   }).format(now)
 
   return (
-    <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <div className="min-w-0">
-        <p suppressHydrationWarning className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-          {dateLabel}
-        </p>
-        <div className="mt-1 flex min-w-0 items-center gap-2">
-          <h1 suppressHydrationWarning className="min-w-0 truncate text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
-            {greeting}, {displayName}
-          </h1>
-          <JammerLevelBadge level={level} className="shrink-0" />
+    <div className="flex min-w-0 flex-col gap-4">
+      <div className="flex min-w-0 items-center gap-3">
+        <UserAvatar
+          src={avatarUrl}
+          fallbackName={displayName}
+          size="md"
+          className="size-12 shrink-0 rounded-2xl ring-2 ring-border/40"
+        />
+        <div className="min-w-0">
+          <p className="truncate text-sm font-bold text-foreground">{displayName}</p>
+          <div className="mt-0.5 flex min-w-0 items-center gap-2">
+            <JammerTitleBadge title={title} className="min-w-0 truncate text-xs" />
+            <JammerLevelBadge level={level} className="shrink-0" />
+          </div>
         </div>
-        <JammerTitleBadge title={title} className="mt-1 min-w-0 truncate text-sm" />
       </div>
-      <Button asChild className="h-11 w-full min-w-0 max-w-full rounded-xl bg-teal text-teal-foreground hover:bg-teal/90 sm:w-auto">
-        <Link href={actionHref}>{actionLabel}</Link>
-      </Button>
+      <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div className="min-w-0">
+          <p suppressHydrationWarning className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            {dateLabel}
+          </p>
+          <h1 suppressHydrationWarning className="mt-1 min-w-0 truncate text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
+            {greeting}, {firstName}
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">Your next great jam squad is one step away.</p>
+        </div>
+        {inboxCount > 0 ? (
+          <Button
+            asChild
+            variant="outline"
+            className="h-10 w-full min-w-0 max-w-full shrink rounded-xl border-peach/40 text-peach hover:bg-peach/10 hover:text-peach sm:w-auto"
+          >
+            <Link href="/dashboard?tab=inbox">
+              <Bell className="size-4 shrink-0" aria-hidden />
+              <span className="truncate">{inboxCount} new inbox update{inboxCount === 1 ? "" : "s"}</span>
+            </Link>
+          </Button>
+        ) : null}
+      </div>
     </div>
   )
 }
 
-function DashboardStats({
-  toAnswer,
-  waiting,
-  squads,
-  posts,
-  onSelect,
+function relativeDateLabel(dateIso: string): string {
+  const diffMs = Date.now() - new Date(dateIso).getTime()
+  if (!Number.isFinite(diffMs)) return "now"
+  const minutes = Math.floor(diffMs / 60000)
+  if (minutes < 1) return "just now"
+  if (minutes < 60) return `${minutes}m ago`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `${hours}h ago`
+  const days = Math.floor(hours / 24)
+  if (days === 1) return "Yesterday"
+  return `${days}d ago`
+}
+
+function DashboardMomentumCard({
+  completed,
+  total,
+  nextHref,
+  nextLabel,
 }: {
-  toAnswer: number
-  waiting: number
-  squads: number
-  posts: number
-  onSelect: (tab: string) => void
+  completed: number
+  total: number
+  nextHref: string
+  nextLabel: string
 }) {
-  const items = [
-    { id: "inbox", label: "To answer", value: toAnswer, hint: "Applications and invites", urgent: toAnswer > 0 },
-    { id: "inbox", label: "Waiting", value: waiting, hint: "Sent, still pending", urgent: false },
-    { id: "squads", label: "Squads", value: squads, hint: "You belong to", urgent: false },
-    { id: "availability", label: "Posts", value: posts, hint: "Availability, max 3", urgent: false },
-  ]
+  const percent = total > 0 ? Math.round((completed / total) * 100) : 0
+  const remaining = Math.max(0, total - completed)
   return (
-    <div className="grid min-w-0 grid-cols-2 gap-2 sm:grid-cols-4">
-      {items.map((item) => (
-        <button
-          key={item.label}
-          type="button"
-          onClick={() => onSelect(item.id)}
-          className={cn(
-            "min-w-0 rounded-2xl border bg-card px-3 py-3 text-left shadow-sm transition-colors motion-reduce:transition-none",
-            item.urgent ? "border-peach/40 bg-peach/10" : "border-border/60 hover:border-teal/30",
-          )}
-        >
-          <p className="truncate text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{item.label}</p>
-          <p className="mt-1 text-2xl font-extrabold tabular-nums text-foreground">{item.value}</p>
-          <p className="truncate text-xs text-muted-foreground">{item.hint}</p>
-        </button>
-      ))}
-    </div>
+    <Card className="min-w-0 border border-amber-500/35 bg-card shadow-sm">
+      <CardContent className="space-y-4 p-5">
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Your momentum</p>
+        <p className="text-4xl font-extrabold tracking-tight text-amber-500">
+          {percent}% <span className="text-lg font-semibold text-muted-foreground">complete</span>
+        </p>
+        <Progress value={percent} className="h-2 bg-muted/80" />
+        <p className="text-sm text-muted-foreground">
+          {remaining > 0 ? `Complete ${remaining} more step${remaining === 1 ? "" : "s"}` : "Setup complete"}
+        </p>
+        <Button asChild className="h-11 w-full rounded-xl bg-teal text-teal-foreground hover:bg-teal/90">
+          <Link href={nextHref}>{remaining > 0 ? "Continue setup" : nextLabel}</Link>
+        </Button>
+      </CardContent>
+    </Card>
+  )
+}
+
+function DashboardRecentActivity({
+  items,
+}: {
+  items: { id: string; message: string; created_at: string }[]
+}) {
+  const tones = ["bg-teal", "bg-peach", "bg-amber-500", "bg-lavender"]
+  const latest = items.slice(0, 4)
+  return (
+    <Card className="min-w-0 border-border/60 bg-card shadow-sm">
+      <CardContent className="space-y-3 p-5">
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Recent activity</p>
+        {latest.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No recent activity yet.</p>
+        ) : (
+          <ul className="space-y-3">
+            {latest.map((item, index) => (
+              <li key={item.id} className="flex min-w-0 gap-2">
+                <span className={cn("mt-1.5 size-2 shrink-0 rounded-full", tones[index % tones.length])} aria-hidden />
+                <div className="min-w-0">
+                  <p className="line-clamp-2 text-sm text-foreground">{item.message}</p>
+                  <p className="text-xs text-muted-foreground">{relativeDateLabel(item.created_at)}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+        <Button asChild variant="link" className="h-auto px-0 text-sm text-teal">
+          <Link href="/dashboard?tab=inbox">View activity</Link>
+        </Button>
+      </CardContent>
+    </Card>
+  )
+}
+
+function DashboardGuideCard() {
+  return (
+    <Card className="min-w-0 border-border/60 bg-card shadow-sm">
+      <CardContent className="space-y-2 p-5">
+        <p className="text-sm font-bold text-foreground">New to game jams?</p>
+        <p className="text-sm text-muted-foreground">Check out the quick guide for finding your crew.</p>
+        <Button asChild variant="link" className="h-auto px-0 text-sm text-teal">
+          <Link href="/showcase">Read the guide</Link>
+        </Button>
+      </CardContent>
+    </Card>
   )
 }
 
@@ -406,7 +485,7 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
     const mapped = LEGACY_TAB_TO_CURRENT[raw]
     if (!mapped) return
     const params = new URLSearchParams(searchParams.toString())
-    if (mapped === "squads") {
+    if (mapped === "overview") {
       params.delete("tab")
     } else {
       params.set("tab", mapped)
@@ -424,7 +503,7 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
       const next = resolveDashboardTab(value)
       setActiveTab(next)
       const params = new URLSearchParams(searchParams.toString())
-      if (next === "squads") {
+      if (next === "overview") {
         params.delete("tab")
       } else {
         params.set("tab", next)
@@ -450,7 +529,9 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
   const [leavingTeam, setLeavingTeam] = useState(false)
   const [sentInvitationsOutbox, setSentInvitationsOutbox] = useState<SentInvitationOutboxItem[]>(fixture?.sentInvitations ?? [])
   const [cancellingSentRequestId, setCancellingSentRequestId] = useState<string | null>(null)
-  const [, setActivityNotifications] = useState<NormalizedNotificationFeedItem[]>([])
+  const [activityItems, setActivityItems] = useState<{ id: string; message: string; created_at: string }[]>(
+    fixture?.activity ?? [],
+  )
   const [loading, setLoading] = useState(!fixture)
   const [showAvailabilityModal, setShowAvailabilityModal] = useState(false)
   const [availabilityModalContext, setAvailabilityModalContext] = useState<string | null>(null)
@@ -636,9 +717,11 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
           supabase,
           notifRaw as EnrichedNotificationRow[],
         )
-        setActivityNotifications(normalized)
+        setActivityItems(
+          normalized.map((item) => ({ id: item.id, message: item.message, created_at: item.created_at })),
+        )
       } else {
-        setActivityNotifications([])
+        setActivityItems([])
       }
 
       if (joinBundleResult.error) {
@@ -891,7 +974,11 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
         supabase,
         data as EnrichedNotificationRow[],
       )
-      if (!cancelled) setActivityNotifications(normalized)
+      if (!cancelled) {
+        setActivityItems(
+          normalized.map((item) => ({ id: item.id, message: item.message, created_at: item.created_at })),
+        )
+      }
     }
     const channel = supabase
       .channel(`dashboard-activity-${uid}`)
@@ -1263,11 +1350,6 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
     hasInboxActivity: activityTotal > 0,
   })
   const nextStep = setupSteps.find((step) => !step.done)
-  const primary = toActionCount > 0
-    ? { href: "/dashboard?tab=inbox", label: `Review inbox (${toActionCount})` }
-    : nextStep
-      ? { href: nextStep.href, label: nextStep.label }
-      : { href: "/teams", label: "Browse squads" }
 
   return (
     <div className="flex min-h-screen min-w-0 flex-col overflow-x-clip bg-background">
@@ -1276,26 +1358,20 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
         <section className="mx-auto w-full min-w-0 max-w-6xl space-y-4 px-4 py-6 lg:space-y-6 lg:px-6 lg:pt-24">
           <DashboardHeader
             displayName={displayName}
+            avatarUrl={profile?.avatar_url ?? null}
             level={headerLevel}
             title={headerTitle}
-            actionHref={primary.href}
-            actionLabel={primary.label}
-          />
-          <DashboardStats
-            toAnswer={toActionCount}
-            waiting={waitingResponseCount}
-            squads={teams.length}
-            posts={availabilityPosts.length}
-            onSelect={handleTabChange}
+            inboxCount={toActionCount}
           />
           <Tabs value={activeTab} onValueChange={handleTabChange} className="min-w-0 max-w-full gap-4">
             <div className="min-w-0 max-w-full overflow-x-auto overscroll-x-contain">
               <TabsList className="h-auto w-max min-w-full max-w-none flex-nowrap justify-start gap-1 rounded-xl bg-card p-1 md:w-max md:min-w-0 md:justify-start">
                 {(
                   [
+                    ["overview", "Overview"],
                     ["squads", "Squads"],
-                    ["inbox", toActionCount > 0 ? `Inbox ${toActionCount}` : "Inbox"],
-                    ["availability", "Available"],
+                    ["inbox", "Inbox"],
+                    ["availability", "Availability"],
                     ["achievements", "Achievements"],
                     ["settings", "Settings"],
                   ] as const
@@ -1303,25 +1379,62 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
                   <TabsTrigger
                     key={value}
                     value={value}
-                    className="h-10 shrink-0 rounded-lg px-3 text-sm font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+                    className="h-10 shrink-0 gap-1.5 rounded-lg px-3 text-sm font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
                   >
                     {label}
+                    {value === "inbox" && toActionCount > 0 ? (
+                      <span className="flex min-h-5 min-w-5 items-center justify-center rounded-full bg-peach px-1 text-[11px] font-bold text-peach-foreground">
+                        {toActionCount > 9 ? "9+" : toActionCount}
+                      </span>
+                    ) : null}
                   </TabsTrigger>
                 ))}
               </TabsList>
             </div>
 
+            <TabsContent value="overview" className="mt-0 min-w-0 max-w-full">
+              <div className="grid min-w-0 items-start gap-4 lg:grid-cols-3">
+                <div className="min-w-0 space-y-4 lg:col-span-2">
+                  <section className="min-w-0 space-y-3">
+                    <div className="flex min-w-0 items-end justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Your crew</p>
+                        <h2 className="text-xl font-extrabold tracking-tight text-foreground">Squads</h2>
+                      </div>
+                      <Button asChild variant="link" className="h-auto shrink-0 px-0 text-sm text-teal">
+                        <Link href="/teams">Explore squads</Link>
+                      </Button>
+                    </div>
+                    <DashboardSquadsCompact teams={teams.slice(0, 2)} variant="feature" />
+                  </section>
+                  <DashboardNextSteps
+                    hasTeam={teams.length > 0}
+                    hasAvailability={availabilityPosts.length > 0}
+                    hasDiscord={Boolean(profile?.discord_username?.trim())}
+                    hasPortfolio={Boolean(profile?.portfolio_url?.trim())}
+                    hasInboxActivity={activityTotal > 0}
+                  />
+                  <DashboardEmptyState />
+                </div>
+                <div className="min-w-0 space-y-4">
+                  <DashboardMomentumCard
+                    completed={setupSteps.filter((step) => step.done).length}
+                    total={setupSteps.length}
+                    nextHref={nextStep?.href ?? "/teams"}
+                    nextLabel={nextStep?.label ?? "Browse squads"}
+                  />
+                  <DashboardRecentActivity items={activityItems} />
+                  <DashboardGuideCard />
+                </div>
+              </div>
+            </TabsContent>
+
             <TabsContent value="squads" className="mt-0 min-w-0 max-w-full space-y-4">
+              <div className="min-w-0">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Your crew</p>
+                <h2 className="text-xl font-extrabold tracking-tight text-foreground">Squads</h2>
+              </div>
               <DashboardSquadsCompact teams={teams} onLeave={handleLeaveTeam} />
-              {nextStep ? (
-                <DashboardNextSteps
-                  hasTeam={teams.length > 0}
-                  hasAvailability={availabilityPosts.length > 0}
-                  hasDiscord={Boolean(profile?.discord_username?.trim())}
-                  hasPortfolio={Boolean(profile?.portfolio_url?.trim())}
-                  hasInboxActivity={activityTotal > 0}
-                />
-              ) : null}
             </TabsContent>
 
             <TabsContent value="inbox" className="mt-0 flex min-w-0 max-w-full flex-col gap-4">

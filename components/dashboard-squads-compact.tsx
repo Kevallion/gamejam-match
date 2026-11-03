@@ -2,10 +2,12 @@
 
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
+import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import type { TeamData } from "@/components/dashboard-my-teams"
 import { Link2, MessageCircle, Settings2, UserMinus, Users2 } from "lucide-react"
+import { Progress } from "@/components/ui/progress"
 
 function isExpiringSoon(expiresAt: string | null | undefined): boolean {
   if (!expiresAt) return false
@@ -35,23 +37,29 @@ function squadStatus(team: TeamData): { label: string; className: string } {
 function SquadCardCompact({
   team,
   onLeave,
+  accent,
+  feature,
 }: {
   team: TeamData
   onLeave?: (id: string) => Promise<void> | void
+  accent: "teal" | "pink"
+  feature: boolean
 }) {
   const openRoles = Math.max(0, team.maxMembers - team.members)
   const neededRole = team.roles[0]?.label
   const status = squadStatus(team)
+  const readiness = team.maxMembers > 0 ? Math.min(100, Math.round((team.members / team.maxMembers) * 100)) : 0
 
   return (
-    <Card className="min-w-0 max-w-full border-border/60 bg-card shadow-sm">
-      <CardContent className="space-y-3 p-4">
+    <Card className="min-w-0 max-w-full overflow-hidden border-border/60 bg-card shadow-sm">
+      <div className={accent === "pink" ? "h-1 bg-pink" : "h-1 bg-teal"} aria-hidden />
+      <CardContent className={cn("space-y-3", feature ? "p-5" : "p-4")}>
         <div className="flex min-w-0 flex-wrap items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-bold text-foreground">{team.name}</p>
+            <p className={cn("truncate font-bold text-foreground", feature ? "text-base" : "text-sm")}>{team.name}</p>
             <p className="truncate text-xs text-muted-foreground">{team.jam || "Upcoming jam"}</p>
           </div>
-          <Badge className={`shrink-0 rounded-full border px-2 py-0 text-[11px] font-semibold ${status.className}`}>
+          <Badge className={`shrink-0 rounded-full border px-2 py-0 text-[10px] font-semibold uppercase tracking-wide ${status.className}`}>
             {status.label}
           </Badge>
         </div>
@@ -66,10 +74,21 @@ function SquadCardCompact({
           </span>
         </div>
 
-        <p className="min-w-0 truncate text-[11px] text-muted-foreground">
-          {[team.engine || "Any engine", team.language || "Any language"].join(" · ")}
-        </p>
+        {feature ? (
+          <div className="space-y-1.5 pt-1">
+            <div className="flex items-center justify-between gap-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+              <span>Jam readiness</span>
+              <span className="tabular-nums">{readiness}%</span>
+            </div>
+            <Progress value={readiness} className="h-1.5 bg-muted/80" />
+          </div>
+        ) : (
+          <p className="min-w-0 truncate text-[11px] text-muted-foreground">
+            {[team.engine || "Any engine", team.language || "Any language"].join(" · ")}
+          </p>
+        )}
 
+        {feature ? null : (
         <div className="flex min-w-0 flex-wrap items-center gap-2">
           <Button asChild size="sm" className="h-9 max-w-full rounded-lg px-2.5 text-xs">
             <Link href={`/teams/${team.id}`}>
@@ -115,6 +134,7 @@ function SquadCardCompact({
             </Button>
           ) : null}
         </div>
+        )}
       </CardContent>
     </Card>
   )
@@ -123,9 +143,11 @@ function SquadCardCompact({
 export function DashboardSquadsCompact({
   teams,
   onLeave,
+  variant = "manage",
 }: {
   teams: TeamData[]
   onLeave?: (id: string) => Promise<void> | void
+  variant?: "feature" | "manage"
 }) {
   if (teams.length === 0) {
     return (
@@ -145,8 +167,14 @@ export function DashboardSquadsCompact({
 
   return (
     <div className="grid min-w-0 gap-3 sm:grid-cols-2">
-      {teams.map((team) => (
-        <SquadCardCompact key={team.id} team={team} onLeave={onLeave} />
+      {teams.map((team, index) => (
+        <SquadCardCompact
+          key={team.id}
+          team={team}
+          onLeave={onLeave}
+          accent={index % 2 === 0 ? "teal" : "pink"}
+          feature={variant === "feature"}
+        />
       ))}
     </div>
   )
