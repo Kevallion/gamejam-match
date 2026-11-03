@@ -42,22 +42,32 @@ export function DashboardAvailabilityCompact({
 }) {
   return (
     <div className="min-w-0 max-w-full space-y-4">
-      <Card className="min-w-0 max-w-full border-border/40 bg-card/70 shadow-sm backdrop-blur-sm">
+      <Card className="min-w-0 max-w-full border-border/60 bg-card shadow-sm">
         <CardContent className="flex min-w-0 flex-wrap items-center justify-between gap-2 p-3">
           <div className="flex min-w-0 items-center gap-2">
-            <Hand className="size-4 shrink-0 text-lavender" />
-            <p className="min-w-0 text-xs font-semibold text-foreground">My availability posts ({posts.length}/3)</p>
+            <Hand className="size-4 shrink-0 text-lavender" aria-hidden />
+            <p className="min-w-0 text-sm font-semibold text-foreground">My posts ({posts.length}/3)</p>
           </div>
-          <Button asChild size="sm" className="h-8 max-w-full cursor-pointer rounded-lg text-xs">
-            <Link href="/create-profile">Post availability</Link>
-          </Button>
+          {posts.length > 0 ? (
+            <Button asChild size="sm" className="h-11 max-w-full rounded-xl bg-lavender text-lavender-foreground hover:bg-lavender/90">
+              <Link href="/create-profile">Post availability</Link>
+            </Button>
+          ) : null}
         </CardContent>
       </Card>
 
       {posts.length === 0 ? (
-        <Card className="min-w-0 max-w-full border-border/40 bg-card/70 shadow-sm backdrop-blur-sm">
-          <CardContent className="p-5 text-center text-sm text-muted-foreground">
-            No availability posts yet.
+        <Card className="min-w-0 max-w-full border-border/60 bg-card shadow-sm">
+          <CardContent className="flex flex-col items-center gap-3 p-6 text-center">
+            <div className="flex size-12 items-center justify-center rounded-2xl bg-lavender/15 text-lavender">
+              <Hand className="size-6" aria-hidden />
+            </div>
+            <p className="max-w-sm text-sm text-muted-foreground">
+              You have no availability posts yet. Publish one so squads can invite you.
+            </p>
+            <Button asChild className="h-11 rounded-xl bg-lavender text-lavender-foreground hover:bg-lavender/90">
+              <Link href="/create-profile">Post availability</Link>
+            </Button>
           </CardContent>
         </Card>
       ) : (

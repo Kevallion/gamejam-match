@@ -65,7 +65,7 @@ function getDisplayName(user: User | null, profile: NavbarProfile | null): strin
   return "Jammer"
 }
 
-export function Navbar() {
+export function Navbar({ offsetForSidebar = false }: { offsetForSidebar?: boolean } = {}) {
   const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<NavbarProfile | null>(null)
@@ -142,8 +142,14 @@ export function Navbar() {
   return (
     <>
       {/* Floating Desktop Navbar - Hidden on mobile */}
-      <header className="fixed top-4 left-1/2 z-50 hidden w-max max-w-[calc(100vw-2rem)] -translate-x-1/2 px-2 lg:block">
-        <nav className="glass-navbar flex min-w-0 w-full items-center gap-2 overflow-x-auto overflow-y-hidden rounded-2xl px-3 py-2 shadow-lg shadow-black/5 scrollbar-none">
+      <header
+        className={
+          offsetForSidebar
+            ? "fixed top-4 right-0 left-60 z-50 hidden justify-center px-4 lg:flex"
+            : "fixed top-4 left-1/2 z-50 hidden w-max max-w-[calc(100vw-2rem)] -translate-x-1/2 px-2 lg:block"
+        }
+      >
+        <nav className="glass-navbar flex min-w-0 w-max max-w-full items-center gap-2 overflow-x-auto overflow-y-hidden rounded-2xl px-3 py-2 shadow-lg shadow-black/5 scrollbar-none">
           {/* Logo */}
           <Link href="/" aria-label="GameJamCrew home" className="flex shrink-0 items-center gap-2 px-2 text-foreground transition-colors hover:text-primary">
             <div className="flex size-8 items-center justify-center rounded-xl bg-primary/15">

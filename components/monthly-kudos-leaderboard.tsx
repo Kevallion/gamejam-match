@@ -5,6 +5,7 @@ import Link from "next/link"
 import { Crown, Medal, Sparkles } from "lucide-react"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { supabase } from "@/lib/supabase"
 
 type LeaderRow = {
@@ -102,7 +103,13 @@ export function MonthlyKudosLeaderboard() {
         {loading ? (
           <p className="text-sm text-muted-foreground">Loading leaderboard...</p>
         ) : rows.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No kudos yet this month.</p>
+          <div className="flex flex-col items-center gap-3 py-6 text-center">
+            <Medal className="size-6 text-muted-foreground" aria-hidden />
+            <p className="max-w-xs text-sm text-muted-foreground">No kudos yet this month.</p>
+            <Button asChild variant="outline" className="h-11 rounded-xl">
+              <Link href="/teams">Open squads</Link>
+            </Button>
+          </div>
         ) : (
           <div className="space-y-2">
             {rows.map((row, idx) => (

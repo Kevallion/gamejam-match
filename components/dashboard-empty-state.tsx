@@ -1,89 +1,63 @@
 "use client"
 
-import { Search, Users, Sparkles, ArrowRight } from "lucide-react"
+import Link from "next/link"
+import { ArrowRight, Plus, Search } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import Link from "next/link"
 
 export function DashboardEmptyState() {
   return (
-    <div className="flex w-full min-w-0 max-w-full flex-col items-center gap-8 py-8">
-      {/* Gamification Badge */}
-      <div className="flex w-full min-w-0 justify-center">
-        <Badge
-          variant="outline"
-          className="h-auto max-w-full shrink whitespace-normal border-teal/30 bg-teal/10 px-4 py-1.5 text-center text-sm font-medium leading-snug text-teal"
-        >
-          <Sparkles className="mr-1.5 size-3.5 shrink-0" />
-          Step 1: Select your path to discover teams and developers
-        </Badge>
+    <section className="min-w-0 space-y-3" aria-labelledby="choose-your-path-heading">
+      <div className="min-w-0">
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Find your people</p>
+        <h3 id="choose-your-path-heading" className="text-base font-bold text-foreground">
+          Choose your path
+        </h3>
       </div>
-
-      {/* Two Cards Container */}
-      <div className="grid w-full min-w-0 max-w-4xl grid-cols-1 gap-6 md:grid-cols-2">
-        {/* Card 1: Looking for a Team */}
-        <Card className="card-interactive group relative min-w-0 overflow-hidden border-2 border-teal/20 bg-gradient-to-br from-card via-card to-teal/5">
-          {/* Decorative glow effect */}
-          <div className="pointer-events-none absolute -right-20 -top-20 size-40 rounded-full bg-teal/10 blur-3xl transition-all duration-500 group-hover:bg-teal/20" />
-          
-          <CardContent className="relative flex flex-col items-center gap-6 p-8 text-center">
-            {/* Icon Container */}
-            <div className="flex size-16 items-center justify-center rounded-2xl bg-teal/15 text-teal ring-4 ring-teal/10 transition-transform duration-300 group-hover:scale-110">
-              <Search className="size-8" />
+      <div className="grid w-full min-w-0 grid-cols-1 gap-3 md:grid-cols-2">
+        <Card className="min-w-0 border border-teal/30 bg-card shadow-sm">
+          <CardContent className="flex min-w-0 flex-col items-start gap-4 p-5">
+            <div className="flex size-12 items-center justify-center rounded-2xl bg-teal/15 text-teal">
+              <Search className="size-6" aria-hidden />
             </div>
-
-            {/* Title */}
-            <h3 className="text-xl font-bold tracking-tight text-foreground">
-              I&apos;m looking for a team
-            </h3>
-
-            {/* Description */}
-            <p className="text-sm leading-relaxed text-muted-foreground">
-              Post your availability so teams can invite you directly.
-            </p>
-
-            {/* Primary CTA Button */}
-            <Button asChild className="mt-2 w-full gap-2 bg-teal text-teal-foreground hover:bg-teal/90">
-              <Link href="/create-profile">
-                Post Availability
-                <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+            <div className="min-w-0 space-y-1">
+              <h4 className="text-lg font-bold tracking-tight text-foreground">I&apos;m looking for a team</h4>
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                Browse open squads that match your skills.
+              </p>
+            </div>
+            <Button asChild className="w-full bg-teal text-teal-foreground hover:bg-teal/90 sm:w-auto">
+              <Link href="/teams">
+                Find a squad
+                <ArrowRight className="size-4" aria-hidden />
               </Link>
             </Button>
           </CardContent>
         </Card>
-
-        {/* Card 2: Looking for Members */}
-        <Card className="card-interactive group relative min-w-0 overflow-hidden border-2 border-pink/20 bg-gradient-to-br from-card via-card to-pink/5">
-          {/* Decorative glow effect */}
-          <div className="pointer-events-none absolute -right-20 -top-20 size-40 rounded-full bg-pink/10 blur-3xl transition-all duration-500 group-hover:bg-pink/20" />
-          
-          <CardContent className="relative flex flex-col items-center gap-6 p-8 text-center">
-            {/* Icon Container */}
-            <div className="flex size-16 items-center justify-center rounded-2xl bg-pink/15 text-pink ring-4 ring-pink/10 transition-transform duration-300 group-hover:scale-110">
-              <Users className="size-8" />
+        <Card className="min-w-0 border border-pink/30 bg-card shadow-sm">
+          <CardContent className="flex min-w-0 flex-col items-start gap-4 p-5">
+            <div className="flex size-12 items-center justify-center rounded-2xl bg-pink/15 text-pink">
+              <Plus className="size-6" aria-hidden />
             </div>
-
-            {/* Title */}
-            <h3 className="text-xl font-bold tracking-tight text-foreground">
-              I want to create a team
-            </h3>
-
-            {/* Description */}
-            <p className="text-sm leading-relaxed text-muted-foreground">
-              Start a squad and recruit available developers and artists.
-            </p>
-
-            {/* Secondary/Outline CTA Button */}
-            <Button asChild variant="outline" className="mt-2 w-full gap-2 border-pink/30 text-pink hover:border-pink/50 hover:bg-pink/10 hover:text-pink">
+            <div className="min-w-0 space-y-1">
+              <h4 className="text-lg font-bold tracking-tight text-foreground">I want to create a team</h4>
+              <p className="text-sm leading-relaxed text-muted-foreground">
+                Start a squad and invite your dream crew.
+              </p>
+            </div>
+            <Button
+              asChild
+              variant="outline"
+              className="w-full border-pink/40 text-pink hover:bg-pink/10 hover:text-pink sm:w-auto"
+            >
               <Link href="/create-team">
-                Create a Squad
-                <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
+                Create a squad
+                <ArrowRight className="size-4" aria-hidden />
               </Link>
             </Button>
           </CardContent>
         </Card>
       </div>
-    </div>
+    </section>
   )
 }
