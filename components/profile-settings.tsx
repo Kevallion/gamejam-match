@@ -229,7 +229,7 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
     "Jammer"
 
   return (
-    <div className="flex w-full flex-col space-y-10 py-8">
+    <div className="flex w-full min-w-0 max-w-full flex-col space-y-10 py-8">
       {/* Page Header */}
       <div className="space-y-1">
         <h1 className="text-2xl font-semibold tracking-tight text-foreground">Settings</h1>
@@ -271,7 +271,7 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
 
               {/* Form Fields */}
               <div className="space-y-6">
-                <div className="grid gap-6 md:grid-cols-2">
+                <div className="grid min-w-0 gap-6 md:grid-cols-2">
                   <div className="space-y-2">
                     <Label htmlFor="profile-username" className="text-sm font-medium">
                       Username
@@ -350,7 +350,7 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
 
           <Card className={cn(neoPanel, "gap-0 py-0")}>
             <CardContent className="p-4 sm:p-6 md:p-8">
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid min-w-0 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 <div className="space-y-2 sm:col-span-2 lg:col-span-1">
                   <Label htmlFor="profile-primary-role" className="text-sm font-medium">
                     Primary Role
@@ -510,7 +510,7 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
                   <div
                     role="group"
                     aria-labelledby="profile-programming-languages"
-                    className="flex flex-wrap gap-2"
+                    className="flex min-w-0 flex-wrap gap-2"
                   >
                     {PROGRAMMING_LANGUAGE_OPTIONS.map((option) => {
                       const selected = programmingLanguages.includes(option.value)
@@ -527,7 +527,7 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
                             )
                           }
                           className={cn(
-                            "inline-flex min-h-11 items-center gap-1.5 rounded-full border-2 border-foreground px-3 text-xs font-extrabold shadow-[2px_2px_0_0_var(--neo-shadow)] transition-transform hover:-translate-y-px active:translate-y-px motion-reduce:transition-none motion-reduce:hover:transform-none",
+                            "inline-flex max-w-full min-h-11 items-center gap-1.5 rounded-full border-2 border-foreground px-3 text-xs font-extrabold shadow-[2px_2px_0_0_var(--neo-shadow)] transition-transform hover:-translate-y-px active:translate-y-px motion-reduce:transition-none motion-reduce:hover:transform-none",
                             selected
                               ? "bg-lavender text-lavender-foreground"
                               : "bg-card text-foreground",

@@ -88,7 +88,7 @@ export function MonthlyKudosLeaderboard() {
   }, [])
 
   return (
-    <Card className="glass-card border-peach/25 bg-peach/5">
+    <Card className="glass-card min-w-0 max-w-full border-peach/25 bg-peach/5">
       <CardHeader className="pb-2">
         <div className="flex flex-wrap items-center gap-2">
           <Sparkles className="size-4 shrink-0 text-peach" />
@@ -108,7 +108,7 @@ export function MonthlyKudosLeaderboard() {
             {rows.map((row, idx) => (
               <div
                 key={row.userId}
-                className="flex items-center justify-between rounded-xl border border-border/50 bg-card/50 px-3 py-2"
+                className="flex min-w-0 items-center justify-between gap-2 rounded-xl border border-border/50 bg-card/50 px-3 py-2"
               >
                 <div className="flex min-w-0 items-center gap-2">
                   {idx === 0 ? (

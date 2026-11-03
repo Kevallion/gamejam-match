@@ -181,14 +181,14 @@ export function GamificationDashboardFull({
   }
 
   return (
-    <div className={cn("flex flex-col gap-3", className)}>
+    <div className={cn("flex min-w-0 max-w-full flex-col gap-3", className)}>
       {/* Compact XP + level card */}
-      <Card className="relative overflow-hidden border-border/50 bg-white/[0.05] shadow-sm shadow-teal/5 backdrop-blur-xl light:bg-white/70 dark:bg-slate-900/45">
+      <Card className="relative min-w-0 max-w-full overflow-hidden border-border/50 bg-white/[0.05] shadow-sm shadow-teal/5 backdrop-blur-xl light:bg-white/70 dark:bg-slate-900/45">
         <div
           className="pointer-events-none absolute -right-12 -top-12 size-32 rounded-full bg-gradient-to-br from-amber-500/15 via-teal/10 to-peach/10 blur-2xl"
           aria-hidden
         />
-        <CardContent className="relative flex items-center gap-4 p-4">
+        <CardContent className="relative flex min-w-0 flex-wrap items-center gap-4 p-4">
           {/* Trophy icon */}
           <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-amber-600/15 ring-1 ring-amber-800/25 dark:bg-amber-500/15 dark:ring-amber-500/30">
             <Trophy className="size-5 text-amber-800 dark:text-amber-400" aria-hidden />

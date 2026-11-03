@@ -497,9 +497,9 @@ function DashboardQuickActions() {
   ]
 
   return (
-    <Card className="border-border/40 bg-card/70 shadow-sm backdrop-blur-sm">
-      <CardContent className="p-3">
-        <div className="flex flex-wrap items-center gap-2">
+    <Card className="min-w-0 max-w-full border-border/40 bg-card/70 shadow-sm backdrop-blur-sm">
+      <CardContent className="min-w-0 p-3">
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
           {actions.map((action) => {
             const Icon = action.icon
             return (
@@ -508,7 +508,7 @@ function DashboardQuickActions() {
                 asChild
                 variant="outline"
                 size="sm"
-                className="h-8 cursor-pointer rounded-lg border-border/60 bg-background/50 px-2.5 text-xs"
+                className="h-8 max-w-full cursor-pointer rounded-lg border-border/60 bg-background/50 px-2.5 text-xs"
               >
                 <Link href={action.href}>
                   <Icon className="size-3.5" />
@@ -1516,9 +1516,9 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
     <div className="flex min-h-screen min-w-0 flex-col overflow-x-clip bg-background">
       <Navbar />
       
-      <main className="flex-1 lg:pt-16">
+      <main className="min-w-0 flex-1 lg:pt-16">
         {/* Hero section with identity + KPIs */}
-        <section className="px-4 py-6 md:py-8 lg:px-6">
+        <section className="min-w-0 px-4 py-6 md:py-8 lg:px-6">
           <div className="mx-auto min-w-0 max-w-5xl space-y-4 md:space-y-6">
             {/* Compact Identity Header */}
             {session?.user?.id && profile ? (
@@ -1582,9 +1582,9 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
         </section>
 
         {/* Tabs Section */}
-        <section className="px-4 pb-24 md:pb-8 lg:px-6 lg:pb-12">
-          <div className="mx-auto min-w-0 max-w-5xl">
-            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+        <section className="min-w-0 px-4 pb-24 md:pb-8 lg:px-6 lg:pb-12">
+          <div className="mx-auto w-full min-w-0 max-w-5xl">
+            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full min-w-0 max-w-full">
               <TabsList className="glass mb-4 hidden h-auto w-full min-w-0 max-w-full touch-pan-x items-center justify-start gap-1 overflow-x-auto overscroll-x-contain rounded-xl p-1.5 [-webkit-overflow-scrolling:touch] md:mb-6 md:flex md:w-fit">
                 <DashboardTabTrigger
                   value="squads"
@@ -1646,9 +1646,9 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
               {/* Mobile section title — visible only when bottom bar is used */}
               <MobileSectionTitle activeTab={activeTab} inboxCount={toActionCount} />
 
-              <TabsContent value="squads" className="mt-0">
-                <div className="grid gap-4 lg:grid-cols-12">
-                  <div className="space-y-4 lg:col-span-8">
+              <TabsContent value="squads" className="mt-0 min-w-0 max-w-full">
+                <div className="grid min-w-0 max-w-full gap-4 lg:grid-cols-12">
+                  <div className="min-w-0 space-y-4 lg:col-span-8">
                     <DashboardQuickActions />
                     <DashboardNextSteps
                       hasTeam={teams.length > 0}
@@ -1670,9 +1670,9 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
                 </div>
               </TabsContent>
 
-              <TabsContent value="inbox" className="mt-0 flex flex-col gap-4 md:gap-6">
-                <div className="grid gap-4 lg:grid-cols-12">
-                  <div className="space-y-4 lg:col-span-8">
+              <TabsContent value="inbox" className="mt-0 flex min-w-0 max-w-full flex-col gap-4 md:gap-6">
+                <div className="grid min-w-0 max-w-full gap-4 lg:grid-cols-12">
+                  <div className="min-w-0 space-y-4 lg:col-span-8">
                     <PushNotificationBanner />
                     <DashboardInboxCompact
                       applications={applications}
@@ -1694,9 +1694,9 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
                 </div>
               </TabsContent>
 
-              <TabsContent value="availability" className="mt-0 flex flex-col gap-4 md:gap-6">
-                <div className="grid gap-4 lg:grid-cols-12">
-                  <div className="space-y-4 lg:col-span-8">
+              <TabsContent value="availability" className="mt-0 flex min-w-0 max-w-full flex-col gap-4 md:gap-6">
+                <div className="grid min-w-0 max-w-full gap-4 lg:grid-cols-12">
+                  <div className="min-w-0 space-y-4 lg:col-span-8">
                     <DashboardAvailabilityCompact
                       posts={availabilityPosts}
                       onDeletePost={handleDeleteAvailabilityPostClick}
@@ -1712,7 +1712,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
                 </div>
               </TabsContent>
 
-              <TabsContent value="achievements" className="mt-0 flex flex-col gap-4 md:gap-6">
+              <TabsContent value="achievements" className="mt-0 flex min-w-0 max-w-full flex-col gap-4 md:gap-6">
                 {session?.user?.id ? (
                   <>
                     <GamificationDashboardFull
@@ -1725,7 +1725,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
                 ) : null}
               </TabsContent>
 
-              <TabsContent value="settings" className="mt-0 flex w-full flex-col">
+              <TabsContent value="settings" className="mt-0 flex w-full min-w-0 max-w-full flex-col">
                 <ProfileSettings
                   profile={profile}
                   onProfileUpdated={(patch) => {

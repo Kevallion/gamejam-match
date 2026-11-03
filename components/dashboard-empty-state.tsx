@@ -8,22 +8,22 @@ import Link from "next/link"
 
 export function DashboardEmptyState() {
   return (
-    <div className="flex flex-col items-center gap-8 py-8">
+    <div className="flex w-full min-w-0 max-w-full flex-col items-center gap-8 py-8">
       {/* Gamification Badge */}
-      <div className="flex items-center gap-2">
+      <div className="flex w-full min-w-0 justify-center">
         <Badge
           variant="outline"
-          className="border-teal/30 bg-teal/10 px-4 py-1.5 text-sm font-medium text-teal"
+          className="h-auto max-w-full shrink whitespace-normal border-teal/30 bg-teal/10 px-4 py-1.5 text-center text-sm font-medium leading-snug text-teal"
         >
-          <Sparkles className="mr-1.5 size-3.5" />
+          <Sparkles className="mr-1.5 size-3.5 shrink-0" />
           Step 1: Select your path to discover teams and developers
         </Badge>
       </div>
 
       {/* Two Cards Container */}
-      <div className="grid w-full max-w-4xl grid-cols-1 gap-6 md:grid-cols-2">
+      <div className="grid w-full min-w-0 max-w-4xl grid-cols-1 gap-6 md:grid-cols-2">
         {/* Card 1: Looking for a Team */}
-        <Card className="card-interactive group relative overflow-hidden border-2 border-teal/20 bg-gradient-to-br from-card via-card to-teal/5">
+        <Card className="card-interactive group relative min-w-0 overflow-hidden border-2 border-teal/20 bg-gradient-to-br from-card via-card to-teal/5">
           {/* Decorative glow effect */}
           <div className="pointer-events-none absolute -right-20 -top-20 size-40 rounded-full bg-teal/10 blur-3xl transition-all duration-500 group-hover:bg-teal/20" />
           
@@ -54,7 +54,7 @@ export function DashboardEmptyState() {
         </Card>
 
         {/* Card 2: Looking for Members */}
-        <Card className="card-interactive group relative overflow-hidden border-2 border-pink/20 bg-gradient-to-br from-card via-card to-pink/5">
+        <Card className="card-interactive group relative min-w-0 overflow-hidden border-2 border-pink/20 bg-gradient-to-br from-card via-card to-pink/5">
           {/* Decorative glow effect */}
           <div className="pointer-events-none absolute -right-20 -top-20 size-40 rounded-full bg-pink/10 blur-3xl transition-all duration-500 group-hover:bg-pink/20" />
           

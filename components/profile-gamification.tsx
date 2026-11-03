@@ -188,7 +188,7 @@ function GamificationBadgeGrid({
     : sortedBadgeIds
 
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+    <div className="grid min-w-0 grid-cols-2 gap-3 sm:grid-cols-3">
       {visibleBadgeIds.map((badgeId) => {
         const meta = BADGE_DICTIONARY[badgeId]
         if (!meta) return null
@@ -198,16 +198,16 @@ function GamificationBadgeGrid({
           <div
             key={badgeId}
             className={cn(
-              "relative flex flex-col gap-1 rounded-2xl border p-4 transition-all duration-300",
+              "relative flex min-w-0 flex-col gap-1 rounded-2xl border p-4 transition-all duration-300",
               unlocked ? meta.unlocked : meta.locked,
               !unlocked && "border-dashed",
             )}
           >
-            <div className="flex items-center gap-2">
+            <div className="flex min-w-0 items-center gap-2">
               <BadgeMedallion badgeId={badgeId} rarity={meta.rarity} locked={!unlocked} />
               <span
                 className={cn(
-                  "font-bold leading-tight",
+                  "min-w-0 break-words font-bold leading-tight",
                   unlocked ? "text-foreground" : "text-muted-foreground",
                 )}
               >
@@ -420,7 +420,7 @@ export function ProfileGamification({
                 <div className="h-3 w-full rounded-full bg-muted" />
               </>
             )}
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            <div className="grid min-w-0 grid-cols-2 gap-3 sm:grid-cols-3">
               {[1, 2, 3].map((i) => (
                 <div key={i} className="h-24 rounded-2xl bg-muted" />
               ))}
