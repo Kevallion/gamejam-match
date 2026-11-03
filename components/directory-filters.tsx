@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { SlidersHorizontal, RotateCcw } from "lucide-react"
-import { ENGINE_OPTIONS, EXPERIENCE_OPTIONS, LANGUAGE_OPTIONS, ROLE_OPTIONS } from "@/lib/constants"
+import { ENGINE_OPTIONS, EXPERIENCE_OPTIONS, LANGUAGE_OPTIONS, PROGRAMMING_LANGUAGE_OPTIONS, ROLE_OPTIONS } from "@/lib/constants"
 import { TagFilterChoice } from "@/components/tag-icon"
 import { useIsMobile } from "@/hooks/use-mobile"
 import {
@@ -28,12 +28,14 @@ interface DirectoryFiltersProps {
   engine?: string
   level?: string
   language?: string
+  programmingLanguage?: string
   hasActiveFilters?: boolean
   resultsCount?: number
   onRoleChange: (val: string) => void
   onEngineChange: (val: string) => void
   onLevelChange: (val: string) => void
   onLanguageChange: (val: string) => void
+  onProgrammingLanguageChange: (val: string) => void
   onReset?: () => void
 }
 
@@ -42,12 +44,14 @@ export function DirectoryFilters({
   engine = "all",
   level = "all",
   language = "all",
+  programmingLanguage = "all",
   hasActiveFilters = false,
   resultsCount,
   onRoleChange,
   onEngineChange,
   onLevelChange,
   onLanguageChange,
+  onProgrammingLanguageChange,
   onReset,
 }: DirectoryFiltersProps) {
   const isMobile = useIsMobile()
@@ -58,8 +62,9 @@ export function DirectoryFilters({
     if (engine !== "all") count++
     if (level !== "all") count++
     if (language !== "all") count++
+    if (programmingLanguage !== "all") count++
     return count
-  }, [role, engine, level, language])
+  }, [role, engine, level, language, programmingLanguage])
 
   const resultsLabel =
     typeof resultsCount === "number"
@@ -119,6 +124,20 @@ export function DirectoryFilters({
           {LANGUAGE_OPTIONS.map((opt) => (
             <SelectItem key={opt.value} value={opt.value}>
               <TagFilterChoice kind="language" value={opt.value} label={opt.label} />
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      <Select onValueChange={onProgrammingLanguageChange} value={programmingLanguage}>
+        <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40 sm:w-[190px]">
+          <SelectValue placeholder="Code" />
+        </SelectTrigger>
+        <SelectContent className="rounded-xl">
+          <SelectItem value="all">Any code</SelectItem>
+          {PROGRAMMING_LANGUAGE_OPTIONS.map((opt) => (
+            <SelectItem key={opt.value} value={opt.value}>
+              <TagFilterChoice kind="code" value={opt.value} label={opt.label} />
             </SelectItem>
           ))}
         </SelectContent>

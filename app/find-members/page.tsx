@@ -32,6 +32,7 @@ type MembersPageProps = {
     engine?: string
     level?: string
     lang?: string
+    code?: string
     jam_id?: string
     view?: string
   }>
@@ -49,6 +50,7 @@ export default async function MembersPage({ searchParams }: MembersPageProps) {
         engine: params.engine,
         experience: params.level,
         language: params.lang,
+        programmingLanguage: params.code,
         jamId: params.jam_id,
         offset: 0,
       },
@@ -61,6 +63,7 @@ export default async function MembersPage({ searchParams }: MembersPageProps) {
         engine: params.engine,
         experience: params.level,
         language: params.lang,
+        programmingLanguage: params.code,
         offset: 0,
       },
       supabase,

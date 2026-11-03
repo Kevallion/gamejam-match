@@ -84,7 +84,8 @@ import type { Session } from "@supabase/supabase-js"
 import { showGamificationRewards } from "@/components/gamification-reward-toasts"
 import { gamificationRewardHasToast } from "@/lib/gamification-reward-types"
 import { toast } from "sonner"
-import { ENGINE_OPTIONS, EXPERIENCE_STYLES, ROLE_STYLES } from "@/lib/constants"
+import { ENGINE_OPTIONS, EXPERIENCE_STYLES, ROLE_STYLES, parseProgrammingLanguages } from "@/lib/constants"
+import { isMissingColumnError } from "@/lib/optional-column"
 import { UserAvatar } from "@/components/user-avatar"
 import { JammerTitleBadge, JammerLevelBadge } from "@/components/profile-card"
 import { levelFromTotalXp, gamificationLevelProgress } from "@/lib/gamification-level"
@@ -242,7 +243,7 @@ function DashboardTabTrigger({
 
 function DashboardLoadingSkeleton() {
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="flex min-h-screen min-w-0 flex-col overflow-x-clip bg-background">
       <Navbar />
       <main className="flex-1">
         <section className="px-4 py-6 pb-24 md:py-10 md:pb-10 lg:px-6 lg:py-12">
@@ -304,7 +305,7 @@ function DashboardBottomBar({
 }) {
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 glass-navbar border-t border-border/50 pb-[env(safe-area-inset-bottom)] md:hidden">
-      <div className="flex items-center justify-around px-1 py-1">
+      <div className="grid grid-cols-5">
         {BOTTOM_NAV_TABS.map(({ value, label, icon: Icon, activeColor }) => {
           const isActive = activeTab === value
           const showBadge = value === "inbox" && inboxCount > 0
@@ -314,7 +315,7 @@ function DashboardBottomBar({
               type="button"
               onClick={() => onTabChange(value)}
               className={cn(
-                "relative flex flex-col items-center gap-0.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-colors active:scale-95",
+                "relative flex min-h-11 min-w-0 flex-col items-center justify-center gap-0.5 px-0.5 py-1.5 text-[10px] font-semibold leading-tight transition-colors active:scale-95 sm:text-xs",
                 isActive ? activeColor : "text-muted-foreground",
               )}
             >
@@ -329,7 +330,7 @@ function DashboardBottomBar({
                   </span>
                 )}
               </span>
-              <span>{label}</span>
+              <span className="max-w-full truncate">{label}</span>
             </button>
           )
         })}
@@ -470,8 +471,8 @@ function DashboardIdentityHeader({
           className="size-12 shrink-0 rounded-xl ring-2 ring-border/30 md:size-14"
         />
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <p className="truncate text-base font-semibold tracking-tight text-foreground md:text-lg">
+          <div className="flex min-w-0 items-center gap-2">
+            <p className="min-w-0 truncate text-base font-semibold tracking-tight text-foreground md:text-lg">
               {displayName}
             </p>
             <JammerLevelBadge
@@ -479,8 +480,8 @@ function DashboardIdentityHeader({
               className="level-badge-animated shrink-0 border-amber-800/35 bg-amber-600/12 px-1.5 py-0.5 text-xs font-bold text-amber-950 dark:border-amber-500/40 dark:bg-amber-500/15 dark:text-amber-400"
             />
           </div>
-          <div className="mt-1 flex items-center gap-2">
-            <JammerTitleBadge title={title} className="text-sm" />
+          <div className="mt-1 flex min-w-0 items-center gap-2">
+            <JammerTitleBadge title={title} className="min-w-0 text-sm" />
           </div>
         </div>
       </div>
@@ -613,19 +614,19 @@ function DashboardMiniKpi({
   rightSlot?: ReactNode
 }) {
   return (
-    <Card className={cn("glass-card !gap-0 !py-0 border shadow-sm", toneClassName)}>
-      <CardContent className="flex items-center justify-between gap-2 p-2.5">
-        <div className="flex min-w-0 items-center gap-2">
+    <Card className={cn("glass-card min-w-0 !gap-0 !py-0 border shadow-sm", toneClassName)}>
+      <CardContent className="flex items-center justify-between gap-1.5 p-2 sm:gap-2 sm:p-2.5">
+        <div className="flex min-w-0 items-center gap-1.5 sm:gap-2">
           <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-background/60">
             {icon}
           </div>
           <div className="min-w-0">
-            <p className="text-xs font-semibold leading-none text-muted-foreground">{label}</p>
+            <p className="truncate text-xs font-semibold leading-none text-muted-foreground">{label}</p>
             <p className="text-base font-extrabold tabular-nums leading-tight text-foreground">{value}</p>
           </div>
         </div>
         <div className="flex shrink-0 items-center gap-1">
-          {helper ? <span className="text-xs text-muted-foreground">{helper}</span> : null}
+          {helper ? <span className="hidden text-xs text-muted-foreground min-[420px]:inline">{helper}</span> : null}
           {rightSlot}
         </div>
       </CardContent>
@@ -819,13 +820,19 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
         { data: notifRaw, error: notifErr },
       ] = await Promise.all([
         supabase.from("team_members").select("team_id").eq("user_id", uid),
-        supabase
-          .from("profiles")
-          .select(
-            "id, has_completed_onboarding, onboarding_version, jam_id, username, avatar_url, default_role, default_engine, engine, default_language, portfolio_url, jam_style, xp, current_title, profile_roles(role, experience_level, is_primary)",
-          )
-          .eq("id", uid)
-          .maybeSingle(),
+        (async () => {
+          const withRoles =
+            "id, has_completed_onboarding, onboarding_version, jam_id, username, avatar_url, default_role, default_engine, engine, default_language, portfolio_url, jam_style, xp, current_title, profile_roles(role, experience_level, is_primary)"
+          const withLanguages = await supabase
+            .from("profiles")
+            .select(`${withRoles}, programming_languages`)
+            .eq("id", uid)
+            .maybeSingle()
+          if (withLanguages.error && isMissingColumnError(withLanguages.error, "programming_languages")) {
+            return supabase.from("profiles").select(withRoles).eq("id", uid).maybeSingle()
+          }
+          return withLanguages
+        })(),
         fetchDashboardJoinRequests(uid, supabase),
         supabase
           .from("availability_posts")
@@ -852,6 +859,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
             default_engine?: string | null
             engine?: string | null
             default_language?: string | null
+            programming_languages?: string[] | null
             portfolio_url?: string | null
             jam_style?: string | null
             xp?: number | null
@@ -992,6 +1000,9 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
               ),
               default_engine: (profileData as { default_engine?: string | null }).default_engine,
               default_language: (profileData as { default_language?: string | null }).default_language,
+              programming_languages: parseProgrammingLanguages(
+                (profileData as { programming_languages?: unknown }).programming_languages,
+              ),
               portfolio_url: (profileData as { portfolio_url?: string | null }).portfolio_url,
               xp: typeof (profileData as { xp?: number | null }).xp === "number" ? (profileData as { xp: number }).xp : 0,
               current_title: (profileData as { current_title?: string | null }).current_title ?? null,
@@ -1009,6 +1020,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
                 profile_roles: [],
                 default_engine: null,
                 default_language: null,
+                programming_languages: [],
                 portfolio_url: null,
                 xp: 0,
                 current_title: null,
@@ -1501,13 +1513,13 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
   const hasKpiSignal = teams.length > 0 || activityTotal > 0 || availabilityPosts.length > 0
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="flex min-h-screen min-w-0 flex-col overflow-x-clip bg-background">
       <Navbar />
       
       <main className="flex-1 lg:pt-16">
         {/* Hero section with identity + KPIs */}
         <section className="px-4 py-6 md:py-8 lg:px-6">
-          <div className="mx-auto max-w-5xl space-y-4 md:space-y-6">
+          <div className="mx-auto min-w-0 max-w-5xl space-y-4 md:space-y-6">
             {/* Compact Identity Header */}
             {session?.user?.id && profile ? (
               <DashboardIdentityHeader
@@ -1520,7 +1532,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
 
             {/* 3 KPI cards (hidden if no useful signal) */}
             {hasKpiSignal ? (
-              <div className="grid grid-cols-3 gap-1.5 md:gap-2">
+              <div className="grid min-w-0 grid-cols-3 gap-1.5 md:gap-2">
                 <DashboardMiniKpi
                   icon={<Users2 className="size-3.5 text-teal" />}
                   label="Squads"
@@ -1571,9 +1583,9 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
 
         {/* Tabs Section */}
         <section className="px-4 pb-24 md:pb-8 lg:px-6 lg:pb-12">
-          <div className="mx-auto max-w-5xl">
+          <div className="mx-auto min-w-0 max-w-5xl">
             <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-              <TabsList className="glass mb-4 hidden h-auto w-full touch-pan-x items-center justify-start gap-1 overflow-x-auto overscroll-x-contain rounded-xl p-1.5 [-webkit-overflow-scrolling:touch] md:mb-6 md:flex md:w-fit">
+              <TabsList className="glass mb-4 hidden h-auto w-full min-w-0 max-w-full touch-pan-x items-center justify-start gap-1 overflow-x-auto overscroll-x-contain rounded-xl p-1.5 [-webkit-overflow-scrolling:touch] md:mb-6 md:flex md:w-fit">
                 <DashboardTabTrigger
                   value="squads"
                   tooltipLabel="My Squads"

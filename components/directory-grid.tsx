@@ -27,6 +27,7 @@ type DirectoryGridProps = {
   engineFilter: string
   levelFilter?: string
   languageFilter: string
+  programmingLanguageFilter?: string
   initialJammers: DirectoryJammerListItem[]
   initialHasMore: boolean
   onResultsCountChange?: (count: number) => void
@@ -52,6 +53,7 @@ function toCardData(jammer: DirectoryJammerListItem): JammerCardData {
     jammerTitle: jammer.jammerTitle,
     jammerLevel: jammer.jammerLevel,
     kudosCounts: jammer.kudosCounts,
+    programmingLanguages: jammer.programmingLanguages,
   }
 }
 
@@ -61,6 +63,7 @@ export function DirectoryGrid({
   engineFilter = "all",
   levelFilter = "all",
   languageFilter = "all",
+  programmingLanguageFilter = "all",
   initialJammers,
   initialHasMore,
   onResultsCountChange,
@@ -89,6 +92,7 @@ export function DirectoryGrid({
         engine: engineFilter,
         experience: levelFilter,
         language: languageFilter,
+        programmingLanguage: programmingLanguageFilter,
         offset: from,
         limit: PAGE_SIZE,
       })
@@ -104,11 +108,11 @@ export function DirectoryGrid({
       setHasMore(result.hasMore)
       offsetRef.current = result.nextOffset
     },
-    [debouncedSearch, roleFilter, engineFilter, levelFilter, languageFilter],
+    [debouncedSearch, roleFilter, engineFilter, levelFilter, languageFilter, programmingLanguageFilter],
   )
 
   useEffect(() => {
-    const key = `${debouncedSearch}|${roleFilter}|${engineFilter}|${levelFilter}|${languageFilter}`
+    const key = `${debouncedSearch}|${roleFilter}|${engineFilter}|${levelFilter}|${languageFilter}|${programmingLanguageFilter}`
     const isFirstMount = filtersKeyRef.current === ""
     filtersKeyRef.current = key
 
@@ -133,6 +137,7 @@ export function DirectoryGrid({
     engineFilter,
     levelFilter,
     languageFilter,
+    programmingLanguageFilter,
     fetchPage,
     initialJammers.length,
     onResultsCountChange,

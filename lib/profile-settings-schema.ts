@@ -1,9 +1,15 @@
 import { z } from "zod"
-import { EXPERIENCE_OPTIONS, JAM_STYLE_OPTIONS, ROLE_OPTIONS } from "@/lib/constants"
+import {
+  EXPERIENCE_OPTIONS,
+  JAM_STYLE_OPTIONS,
+  PROGRAMMING_LANGUAGE_OPTIONS,
+  ROLE_OPTIONS,
+} from "@/lib/constants"
 
 const ROLE_VALUES = ROLE_OPTIONS.map((option) => option.value)
 const EXPERIENCE_VALUES = EXPERIENCE_OPTIONS.map((option) => option.value)
 const JAM_STYLE_VALUES = JAM_STYLE_OPTIONS.map((option) => option.value)
+const PROGRAMMING_LANGUAGE_VALUES = PROGRAMMING_LANGUAGE_OPTIONS.map((option) => option.value)
 
 const profileRoleSchema = z.object({
   role: z.enum(ROLE_VALUES as [string, ...string[]]),
@@ -17,6 +23,10 @@ export const saveProfileSettingsSchema = z
     discordUsername: z.string().trim().max(100).nullable().optional(),
     defaultEngine: z.string().trim().max(100).nullable().optional(),
     defaultLanguage: z.string().trim().max(100).nullable().optional(),
+    programmingLanguages: z
+      .array(z.enum(PROGRAMMING_LANGUAGE_VALUES as [string, ...string[]]))
+      .max(10)
+      .optional(),
     portfolioUrl: z.string().trim().max(500).nullable().optional(),
     jamStyle: z.enum(JAM_STYLE_VALUES as [string, ...string[]]).nullable().optional(),
     roles: z.array(profileRoleSchema).max(2, "You can only keep up to 2 roles."),

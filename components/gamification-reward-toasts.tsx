@@ -1,8 +1,9 @@
 "use client"
 
-import { Star, Sparkles, Trophy } from "lucide-react"
+import { Star, Trophy } from "lucide-react"
 import { toast } from "sonner"
 import { BadgeMedallion } from "@/components/badge-medallion"
+import { announceLevelUp } from "@/lib/level-up-bus"
 import type { GamificationRewardSummary } from "@/lib/gamification-reward-types"
 import { gamificationRewardHasToast } from "@/lib/gamification-reward-types"
 import {
@@ -75,16 +76,7 @@ async function showGamificationRewardsAsync(
   }
 
   if (reward.levelUp && reward.newLevel != null) {
-    await delay(t)
-    t += STAGGER_MS
-    toast.success(`🎊 Level up! You are now level ${reward.newLevel}`, {
-      icon: <Sparkles className="size-5 shrink-0 text-teal-400" aria-hidden />,
-      classNames: {
-        toast:
-          "group gamification-toast-level border-teal-400/45 bg-teal-950/30 dark:bg-teal-950/45 backdrop-blur-sm shadow-lg shadow-teal-500/15",
-      },
-      duration: 4800,
-    })
+    announceLevelUp(reward.newLevel)
   }
 
   const badges = reward.newBadges?.length ? reward.newBadges : reward.newBadge ? [reward.newBadge] : []
@@ -125,7 +117,8 @@ async function showGamificationRewardsAsync(
 }
 
 /**
- * Shows stacked Sonner toasts for XP, level-up, titles, and badges.
+ * Shows stacked Sonner toasts for XP, titles, and badges.
+ * A level-up opens the celebration dialog once instead of a toast.
  * Call from client code after a server action returns `reward` / `gamification`.
  */
 export function showGamificationRewards(

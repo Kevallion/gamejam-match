@@ -1,12 +1,18 @@
 "use client"
 
 import type { ReactNode } from "react"
+import { LevelUpCelebration } from "@/components/level-up-celebration"
 
 /**
- * Placeholder for future gamification context. Reward toasts use global Sonner:
+ * Hosts the level-up celebration. Reward toasts use global Sonner:
  * call `showGamificationRewards` / `showGamificationRewardBatch` from
  * `@/components/gamification-reward-toasts` after server actions return `reward` / `gamification`.
  */
 export function GamificationProvider({ children }: { children: ReactNode }) {
-  return children
+  return (
+    <>
+      {children}
+      <LevelUpCelebration />
+    </>
+  )
 }

@@ -65,7 +65,7 @@ export function DashboardInboxCompact({
 
   return (
     <div className="grid gap-4 lg:grid-cols-12">
-      <Card className="border-border/40 bg-card/70 shadow-sm backdrop-blur-sm lg:col-span-8">
+      <Card className="min-w-0 border-border/40 bg-card/70 shadow-sm backdrop-blur-sm lg:col-span-8">
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
@@ -86,7 +86,7 @@ export function DashboardInboxCompact({
                 <div
                   key={app.id}
                   id={`inbox-request-${app.id}`}
-                  className="flex items-center justify-between gap-2 rounded-lg border border-border/40 bg-background/40 p-2.5"
+                  className="flex min-w-0 items-center justify-between gap-2 rounded-lg border border-border/40 bg-background/40 p-2.5"
                 >
                   <div className="min-w-0 flex items-center gap-2">
                     <UserAvatar src={app.avatar_url} fallbackName={app.username} size="xs" className="size-7" />
@@ -129,7 +129,7 @@ export function DashboardInboxCompact({
                 <div
                   key={inv.id}
                   id={`inbox-request-${inv.id}`}
-                  className="flex items-center justify-between gap-2 rounded-lg border border-border/40 bg-background/40 p-2.5"
+                  className="flex min-w-0 items-center justify-between gap-2 rounded-lg border border-border/40 bg-background/40 p-2.5"
                 >
                   <div className="min-w-0 flex items-center gap-2">
                     <div className="flex size-7 items-center justify-center rounded-full bg-lavender/15">
@@ -174,7 +174,7 @@ export function DashboardInboxCompact({
         </CardContent>
       </Card>
 
-      <Card className="border-border/40 bg-card/70 shadow-sm backdrop-blur-sm lg:col-span-4">
+      <Card className="min-w-0 border-border/40 bg-card/70 shadow-sm backdrop-blur-sm lg:col-span-4">
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">

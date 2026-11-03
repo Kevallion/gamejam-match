@@ -28,6 +28,7 @@ import {
   LANGUAGE_OPTION_VALUE_ALIASES,
   ROLE_OPTIONS,
   ROLE_STYLES,
+  programmingLanguageOption,
   engineOptionLabel,
   languageOptionLabel,
 } from "@/lib/constants"
@@ -35,7 +36,7 @@ import { cn } from "@/lib/utils"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 
-export type TagKind = "role" | "engine" | "language" | "level" | "style"
+export type TagKind = "role" | "engine" | "language" | "level" | "style" | "code"
 
 type TagSize = "xs" | "sm" | "md"
 
@@ -170,7 +171,7 @@ export function TagIcon({
       <span
         className={cn(
           "inline-flex shrink-0 items-center justify-center rounded-full font-bold tracking-wide",
-          resolved.gauge ? "h-6 px-1.5" : PILL[size],
+          resolved.wide ? "h-6 min-w-6 px-1.5 text-[10px] leading-none" : resolved.gauge ? "h-6 px-1.5" : PILL[size],
           resolved.neutral && "bg-secondary text-foreground",
           resolved.mono && "bg-secondary text-muted-foreground",
           resolved.brandHover && "transition-colors hover:text-[var(--engine-brand)]",
@@ -216,6 +217,8 @@ type ResolvedTag = {
   mono?: boolean
   neutral?: boolean
   gauge?: boolean
+  /** Short text pill (programming languages) instead of a fixed square. */
+  wide?: boolean
   brandHover?: string
   /** Full name shown beside a non-official engine mark. */
   forceLabel?: boolean
@@ -250,6 +253,17 @@ function resolveTag(kind: TagKind, raw: string): ResolvedTag | null {
       label: levelLabel(key),
       gauge: true,
       node: () => <ExperiencePips rank={rank || 1} />,
+    }
+  }
+
+  if (kind === "code") {
+    const option = programmingLanguageOption(key)
+    if (!option) return null
+    return {
+      label: option.label,
+      wide: true,
+      tone: "--lavender",
+      node: () => <span aria-hidden>{option.short}</span>,
     }
   }
 

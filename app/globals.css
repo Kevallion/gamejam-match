@@ -311,6 +311,42 @@
     }
   }
 
+  @keyframes level-up-confetti {
+    0% {
+      transform: translateY(-20%) rotate(0deg);
+      opacity: 0;
+    }
+    18% {
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(220%) rotate(140deg);
+      opacity: 0;
+    }
+  }
+
+  .level-up-confetti-piece {
+    position: absolute;
+    top: 0;
+    width: 0.65rem;
+    height: 0.8rem;
+    border: 2px solid var(--foreground);
+    animation: level-up-confetti 1.1s ease-in forwards;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .level-up-confetti-piece {
+      animation: none;
+      display: none;
+    }
+
+    .level-up-dialog,
+    .level-up-dialog[data-state="open"],
+    .level-up-dialog[data-state="closed"] {
+      animation: none !important;
+    }
+  }
+
   /* Gamification level badge — soft pulse + sweeping shine */
   @keyframes level-badge-glow {
     0%,

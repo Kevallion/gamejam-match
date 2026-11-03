@@ -14,6 +14,7 @@ import {
   ENGINE_OPTIONS,
   EXPERIENCE_OPTIONS,
   LANGUAGE_OPTIONS,
+  PROGRAMMING_LANGUAGE_OPTIONS,
   ROLE_OPTIONS,
 } from "@/lib/constants"
 import { TagFilterChoice } from "@/components/tag-icon"
@@ -33,6 +34,7 @@ interface MemberFiltersProps {
   engine?: string
   level?: string
   language?: string
+  programmingLanguage?: string
   hasActiveFilters?: boolean
   resultsCount?: number
   isUpdating?: boolean
@@ -40,6 +42,7 @@ interface MemberFiltersProps {
   onEngineChange: (val: string) => void
   onLevelChange: (val: string) => void
   onLanguageChange: (val: string) => void
+  onProgrammingLanguageChange: (val: string) => void
   onReset?: () => void
 }
 
@@ -48,6 +51,7 @@ export function MemberFilters({
   engine = "all",
   level = "all",
   language = "all",
+  programmingLanguage = "all",
   hasActiveFilters = false,
   resultsCount,
   isUpdating = false,
@@ -55,6 +59,7 @@ export function MemberFilters({
   onEngineChange,
   onLevelChange,
   onLanguageChange,
+  onProgrammingLanguageChange,
   onReset,
 }: MemberFiltersProps) {
   const isMobile = useIsMobile()
@@ -65,8 +70,25 @@ export function MemberFilters({
     if (engine !== "all") count++
     if (level !== "all") count++
     if (language !== "all") count++
+    if (programmingLanguage !== "all") count++
     return count
-  }, [role, engine, level, language])
+  }, [role, engine, level, language, programmingLanguage])
+
+  const codeSelect = (triggerClassName: string) => (
+    <Select onValueChange={onProgrammingLanguageChange} value={programmingLanguage} disabled={isUpdating}>
+      <SelectTrigger className={triggerClassName}>
+        <SelectValue placeholder="Code" />
+      </SelectTrigger>
+      <SelectContent className="rounded-xl">
+        <SelectItem value="all">Any code</SelectItem>
+        {PROGRAMMING_LANGUAGE_OPTIONS.map((opt) => (
+          <SelectItem key={opt.value} value={opt.value}>
+            <TagFilterChoice kind="code" value={opt.value} label={opt.label} />
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  )
 
   const resultsLabel =
     typeof resultsCount === "number"
@@ -172,6 +194,8 @@ export function MemberFilters({
                     ))}
                   </SelectContent>
                 </Select>
+
+                {codeSelect("h-12 w-full rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40")}
               </div>
 
               <DrawerFooter className="flex flex-row gap-3 px-4 pb-6 pt-0">
@@ -268,6 +292,8 @@ export function MemberFilters({
               ))}
             </SelectContent>
           </Select>
+
+          {codeSelect("h-12 w-full rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40 sm:w-[190px]")}
 
           {hasActiveFilters && onReset && (
             <Button variant="ghost" size="sm" onClick={onReset} disabled={isUpdating} className="gap-2 rounded-xl text-muted-foreground hover:text-foreground">

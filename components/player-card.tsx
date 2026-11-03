@@ -113,6 +113,8 @@ export type JammerCardData = {
   jammerLevel?: number
   /** Endorsement counts by category (public aggregate). */
   kudosCounts?: KudosCounts | null
+  /** Programming language keys from the jammer profile. */
+  programmingLanguages?: string[]
 }
 
 export type SquadOption = {
@@ -381,6 +383,14 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
                   ...(languageLabel ? [{ kind: "language" as const, value: player.language }] : []),
                 ]}
               />
+
+              {player.programmingLanguages && player.programmingLanguages.length > 0 ? (
+                <TagIconRow
+                  items={player.programmingLanguages.map((value) => ({ kind: "code" as const, value }))}
+                  max={6}
+                  size="xs"
+                />
+              ) : null}
 
               <KudosBadgeRow counts={player.kudosCounts} className="gap-1.5" size="xs" />
 

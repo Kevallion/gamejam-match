@@ -28,12 +28,12 @@ function SquadCardCompact({
   return (
     <Card className="border-border/40 bg-card/70 shadow-sm backdrop-blur-sm">
       <CardContent className="space-y-3 p-4">
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0">
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-bold text-foreground">{team.name}</p>
             <p className="truncate text-xs text-primary">{team.jam || "Upcoming jam"}</p>
           </div>
-          <div className="flex items-center gap-1.5">
+          <div className="flex max-w-full flex-wrap items-center gap-1.5">
             {expiringSoon ? (
               <Badge className="rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0 text-xs font-semibold text-amber-500">
                 Expiring soon
@@ -63,7 +63,7 @@ function SquadCardCompact({
           </span>
         </div>
 
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center -space-x-2">
             {Array.from({ length: visibleMembers }).map((_, index) => (
               <UserAvatar
