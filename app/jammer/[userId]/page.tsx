@@ -13,8 +13,6 @@ import { parseProgrammingLanguages } from "@/lib/constants"
 import { levelFromTotalXp } from "@/lib/gamification-level"
 import { usersShareATeam } from "@/lib/kudos-collaboration"
 import { isMissingColumnError } from "@/lib/optional-column"
-import { neoButton, neoPanel, neoPanelInteractive } from "@/lib/neo-style"
-import { cn } from "@/lib/utils"
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
@@ -216,7 +214,7 @@ export default async function JammerPublicProfilePage({ params }: PageProps) {
             <div className="absolute bottom-0 right-1/4 size-[380px] translate-y-1/3 rounded-full bg-lavender/15 blur-[90px]" />
           </div>
           <div className="relative mx-auto max-w-3xl">
-            <Button variant="outline" size="sm" className={cn(neoButton, "mb-5 w-full gap-2 bg-card text-foreground hover:bg-card sm:mb-7 sm:w-auto")} asChild>
+            <Button variant="ghost" size="sm" className="-ml-2 mb-5 gap-2 text-muted-foreground sm:mb-7" asChild>
               <Link href="/find-members">
                 <ArrowLeft className="size-4" />
                 Find teammates
@@ -226,7 +224,7 @@ export default async function JammerPublicProfilePage({ params }: PageProps) {
               <p className="text-center text-xs font-semibold uppercase tracking-widest text-muted-foreground sm:text-left">
                 Public profile
               </p>
-              <div className={cn(neoPanel, "w-full p-4 sm:p-6")}>
+              <div className="w-full rounded-2xl border border-border/50 bg-card/70 p-4 shadow-lg shadow-primary/5 backdrop-blur-sm sm:p-6">
                 <h1 className="sr-only">{displayName}</h1>
                 <ProfileCard
                   avatarUrl={profile.avatar_url ?? null}
@@ -256,7 +254,7 @@ export default async function JammerPublicProfilePage({ params }: PageProps) {
                 <ProfileGamification userId={userId} badgesOnly unlockedOnly compact className="pt-3" />
                 <div className="flex flex-col gap-3 pt-4 sm:flex-row sm:flex-wrap sm:items-center">
                   {publicPortfolioUrl ? (
-                    <Button asChild variant="outline" className={cn(neoButton, "w-full gap-2 bg-card text-foreground hover:bg-card sm:w-auto")}>
+                    <Button asChild variant="outline" className="w-full gap-2 rounded-xl sm:w-auto">
                       <a href={publicPortfolioUrl} target="_blank" rel="noopener noreferrer">
                         Portfolio
                         <ExternalLink className="size-4" />
@@ -291,7 +289,7 @@ export default async function JammerPublicProfilePage({ params }: PageProps) {
 
         <section className="px-3 py-6 sm:px-4 sm:py-8 lg:px-6 lg:py-10">
           <div className="mx-auto max-w-3xl space-y-6">
-            <div className={cn(neoPanel, "p-4 sm:p-5")}>
+            <div className="rounded-2xl border border-border/50 bg-card/60 p-4 sm:p-5">
               <h2 className="text-base font-bold text-foreground sm:text-lg">Jam History</h2>
               {completedJamTeams.length === 0 ? (
                 <p className="mt-2 text-sm text-muted-foreground">No completed jams shared yet.</p>
@@ -301,7 +299,7 @@ export default async function JammerPublicProfilePage({ params }: PageProps) {
                     <Link
                       key={team.id}
                       href={`/teams/${team.id}`}
-                      className={cn(neoPanelInteractive, "flex min-h-11 flex-wrap items-center justify-between gap-2 bg-secondary/40 px-3 py-2")}
+                      className="flex items-center justify-between gap-2 rounded-xl border border-border/50 bg-card/70 px-3 py-2 transition-colors hover:border-teal/40"
                     >
                       <div className="min-w-0">
                         <p className="truncate text-sm font-semibold text-foreground">

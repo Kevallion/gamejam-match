@@ -329,7 +329,7 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
     <>
       <Dialog>
         <DialogTrigger asChild>
-          <Card className="card-interactive group relative flex w-full flex-col cursor-pointer overflow-hidden border-2 border-border py-4 sm:py-6">
+          <Card className="card-interactive group relative flex w-full flex-col cursor-pointer overflow-hidden py-4 transition-all hover:ring-2 hover:ring-primary/50 sm:py-6">
             <CardContent className="flex flex-1 flex-col gap-4 px-4 pt-0 sm:px-6 sm:pt-0">
               {/* Avatar + Username + Share */}
               <div className="flex min-w-0 items-center gap-3.5">

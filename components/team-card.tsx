@@ -305,7 +305,7 @@ export function TeamCard({
           }
         }}
         className={cn(
-          "card-interactive group relative flex h-full cursor-pointer flex-col rounded-xl border-2 border-border bg-card p-5 outline-none transition-all focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+          "card-interactive group relative flex h-full cursor-pointer flex-col rounded-xl border border-border/60 bg-card p-5 outline-none transition-all focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
           isRecommended &&
             "border-teal/40 bg-gradient-to-br from-card to-teal/5 shadow-[0_0_18px_-4px_rgba(20,184,166,0.12)]",
         )}

@@ -11,7 +11,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import { neoButton, neoPanelInteractive } from "@/lib/neo-style"
 import { cn } from "@/lib/utils"
 import { Loader2, MailPlus, Users } from "lucide-react"
 import { toast } from "sonner"
@@ -77,14 +76,14 @@ export function InviteToSquadControl({
       <DialogTrigger asChild>
         <Button
           variant="outline"
-          className={cn(neoButton, "w-full gap-2 bg-teal text-teal-foreground hover:bg-teal/90 sm:w-auto")}
+          className="w-full gap-2 rounded-xl border-teal/30 bg-teal/5 hover:bg-teal/10 sm:w-auto"
           disabled={isPending}
         >
           {isPending ? <Loader2 className="size-4 animate-spin" /> : <MailPlus className="size-4 text-teal" />}
           Invite to Squad
         </Button>
       </DialogTrigger>
-      <DialogContent className="rounded-2xl border-2 border-foreground shadow-[4px_4px_0_0_var(--neo-shadow)] sm:max-w-md">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Invite to Squad</DialogTitle>
           <DialogDescription>
@@ -105,7 +104,7 @@ export function InviteToSquadControl({
               return (
                 <div
                   key={squad.id}
-                  className={cn(neoPanelInteractive, "flex flex-col items-stretch gap-2 px-4 py-3 sm:flex-row sm:items-center")}
+                  className="flex flex-col items-stretch gap-2 rounded-xl border border-border/60 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-3"
                 >
                   <span className="min-w-0 flex-1 truncate font-medium">{squad.teamName}</span>
                   {isMember || isAlreadyInvited ? (
@@ -113,7 +112,7 @@ export function InviteToSquadControl({
                       type="button"
                       variant="secondary"
                       disabled
-                      className="h-11 w-full shrink-0 justify-center rounded-lg sm:w-36"
+                      className="w-full shrink-0 justify-center rounded-lg sm:w-36"
                     >
                       {isMember ? "Already a member" : "Pending / Joined"}
                     </Button>
@@ -123,7 +122,10 @@ export function InviteToSquadControl({
                       variant="outline"
                       disabled={isPending}
                       onClick={() => handleInvite(squad.id)}
-                      className="h-11 w-full shrink-0 justify-center rounded-lg sm:w-36"
+                      className={cn(
+                        "w-full shrink-0 justify-center rounded-lg border-border/60 sm:w-36",
+                        "hover:border-primary/40 hover:bg-primary/5",
+                      )}
                     >
                       {busy ? (
                         <>
