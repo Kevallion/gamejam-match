@@ -10,8 +10,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { subscribeLevelUp } from "@/lib/level-up-bus"
-import { neoButton } from "@/lib/neo-style"
-import { cn } from "@/lib/utils"
 
 const CONFETTI = [
   { left: "8%", delay: "0ms", color: "bg-teal", duration: "900ms" },
@@ -60,7 +58,7 @@ export function LevelUpCelebration() {
   return (
     <Dialog open={state.open} onOpenChange={(open) => { if (!open) dismiss() }}>
       <DialogContent
-        className="level-up-dialog max-w-sm overflow-hidden rounded-2xl border-2 border-foreground bg-card p-0 shadow-[6px_6px_0_0_var(--neo-shadow)]"
+        className="level-up-dialog max-w-sm overflow-hidden rounded-2xl border border-border/60 bg-card p-0 shadow-2xl shadow-teal/10"
       >
         <div className="pointer-events-none absolute inset-0 overflow-hidden motion-reduce:hidden" aria-hidden>
           {CONFETTI.map((piece, index) => (
@@ -76,7 +74,7 @@ export function LevelUpCelebration() {
           ))}
         </div>
         <div className="relative flex flex-col items-center gap-3 px-6 pb-6 pt-8 text-center">
-          <span className="inline-flex items-center gap-2 rounded-full border-2 border-foreground bg-peach px-3 py-1 text-xs font-extrabold text-peach-foreground shadow-[2px_2px_0_0_var(--neo-shadow)]">
+          <span className="inline-flex items-center gap-2 rounded-full border border-peach/40 bg-peach/15 px-3 py-1 text-xs font-bold text-peach">
             <Sparkles className="size-3.5" aria-hidden />
             Level up
           </span>
@@ -86,7 +84,11 @@ export function LevelUpCelebration() {
           <DialogDescription className="max-w-xs text-sm text-muted-foreground">
             You reached level {state.level}. Nice work — your jammer rank just went up.
           </DialogDescription>
-          <Button type="button" className={cn(neoButton, "mt-2 w-full bg-teal text-teal-foreground hover:bg-teal/90")} onClick={dismiss}>
+          <Button
+            type="button"
+            className="mt-2 w-full rounded-xl bg-teal text-teal-foreground hover:bg-teal/90"
+            onClick={dismiss}
+          >
             Keep jamming
           </Button>
         </div>

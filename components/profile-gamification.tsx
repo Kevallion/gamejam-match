@@ -289,7 +289,7 @@ function CompactBadgeRow({ badges }: { badges: BadgeRow[] }) {
           <DialogTrigger asChild>
             <button
               type="button"
-              className="inline-flex h-9 items-center rounded-full border-2 border-foreground bg-card px-2.5 text-xs font-bold text-foreground shadow-[2px_2px_0px_0px_var(--neo-shadow)] transition-transform hover:-translate-y-0.5 active:translate-y-px"
+              className="inline-flex h-9 items-center rounded-full bg-muted px-2.5 text-xs font-bold text-muted-foreground"
               aria-label={`Show ${extra} more badges`}
             >
               +{extra}

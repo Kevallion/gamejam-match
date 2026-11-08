@@ -36,7 +36,6 @@ import {
   parseProgrammingLanguages,
   type ProgrammingLanguageValue,
 } from "@/lib/constants"
-import { neoButton, neoField, neoIconTile, neoPanel } from "@/lib/neo-style"
 import { Loader2, Trash2, User, Settings, Bell, AlertTriangle, Link2, CodeXml } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
@@ -240,8 +239,8 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
         {/* Section: Public Profile */}
         <section className="space-y-6">
           <div className="flex items-center gap-3">
-            <div className={cn(neoIconTile, "bg-teal/25 text-teal")}>
-              <User className="size-4" />
+            <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10">
+              <User className="size-4 text-primary" />
             </div>
             <div>
               <h2 className="text-base font-medium text-foreground">Public Profile</h2>
@@ -249,8 +248,8 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
             </div>
           </div>
 
-          <Card className={cn(neoPanel, "gap-0 py-0")}>
-            <CardContent className="p-4 sm:p-6 md:p-8">
+          <Card className="border-border/50 bg-muted/30">
+            <CardContent className="p-6 md:p-8">
               {/* Avatar + jammer title / level */}
               <div className="mb-8">
                 <ProfileCard
@@ -286,7 +285,7 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
                       aria-invalid={showUsernameError}
                       aria-describedby="profile-username-hint"
                       className={cn(
-                        neoField,
+                        "h-11 rounded-lg border-border/50 bg-background transition-colors focus:border-primary/50",
                         showUsernameError && "border-destructive/60 focus-visible:ring-destructive/20"
                       )}
                     />
@@ -306,7 +305,7 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
                       value={discordUsername}
                       onChange={(e) => setDiscordUsername(e.target.value)}
                       placeholder="e.g. gamer123"
-                      className={neoField}
+                      className="h-11 rounded-lg border-border/50 bg-background transition-colors focus:border-primary/50"
                     />
                     <p className="text-xs text-muted-foreground">
                       Visible to teammates for group chat invites
@@ -325,7 +324,7 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
                     value={portfolioUrl}
                     onChange={(e) => setPortfolioUrl(e.target.value)}
                     placeholder="https://yourname.itch.io or https://yourportfolio.com"
-                    className="h-12 rounded-xl border-2 border-foreground bg-secondary/50 shadow-[2px_2px_0_0_var(--neo-shadow)] transition-colors focus:border-primary/50"
+                    className="h-11 rounded-lg border-border/50 bg-background transition-colors focus:border-primary/50"
                   />
                   <p className="text-xs text-muted-foreground">
                     Showcase your work to potential teammates
@@ -339,8 +338,8 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
         {/* Section: Default Preferences */}
         <section className="space-y-6">
           <div className="flex items-center gap-3">
-            <div className={cn(neoIconTile, "bg-lavender/30 text-foreground")}>
-              <Settings className="size-4" />
+            <div className="flex size-9 items-center justify-center rounded-lg bg-secondary">
+              <Settings className="size-4 text-secondary-foreground" />
             </div>
             <div>
               <h2 className="text-base font-medium text-foreground">Default Preferences</h2>
@@ -348,15 +347,15 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
             </div>
           </div>
 
-          <Card className={cn(neoPanel, "gap-0 py-0")}>
-            <CardContent className="p-4 sm:p-6 md:p-8">
+          <Card className="border-border/50 bg-muted/30">
+            <CardContent className="p-6 md:p-8">
               <div className="grid min-w-0 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 <div className="space-y-2 sm:col-span-2 lg:col-span-1">
                   <Label htmlFor="profile-primary-role" className="text-sm font-medium">
                     Primary Role
                   </Label>
                   <Select value={primaryRole || "any"} onValueChange={(v) => setPrimaryRole(v === "any" ? "" : v)}>
-                    <SelectTrigger id="profile-primary-role" className="h-12 rounded-xl border-2 border-foreground bg-secondary/50 shadow-[2px_2px_0_0_var(--neo-shadow)]">
+                    <SelectTrigger id="profile-primary-role" className="h-11 rounded-lg border-border/50 bg-background">
                       <SelectValue placeholder="None / No default" />
                     </SelectTrigger>
                     <SelectContent className="rounded-lg">
@@ -375,7 +374,7 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
                     Primary Role Experience
                   </Label>
                   <Select value={primaryExperience} onValueChange={setPrimaryExperience}>
-                    <SelectTrigger id="profile-primary-experience" className="h-12 rounded-xl border-2 border-foreground bg-secondary/50 shadow-[2px_2px_0_0_var(--neo-shadow)]">
+                    <SelectTrigger id="profile-primary-experience" className="h-11 rounded-lg border-border/50 bg-background">
                       <SelectValue placeholder="Select your experience level" />
                     </SelectTrigger>
                     <SelectContent className="rounded-lg">
@@ -398,7 +397,7 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
                     <SelectTrigger
                       id="profile-secondary-role"
                       className={cn(
-                        "h-12 rounded-xl border-2 border-foreground bg-secondary/50 shadow-[2px_2px_0_0_var(--neo-shadow)]",
+                        "h-11 rounded-lg border-border/50 bg-background",
                         duplicateRoleSelected && "border-destructive/60 focus-visible:ring-destructive/20",
                       )}
                     >
@@ -429,7 +428,7 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
                     onValueChange={setSecondaryExperience}
                     disabled={!secondaryRole.trim()}
                   >
-                    <SelectTrigger id="profile-secondary-experience" className="h-12 rounded-xl border-2 border-foreground bg-secondary/50 shadow-[2px_2px_0_0_var(--neo-shadow)]">
+                    <SelectTrigger id="profile-secondary-experience" className="h-11 rounded-lg border-border/50 bg-background">
                       <SelectValue placeholder="Select your experience level" />
                     </SelectTrigger>
                     <SelectContent className="rounded-lg">
@@ -449,7 +448,7 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
                     Jam Style
                   </Label>
                   <Select value={jamStyle || "any"} onValueChange={(v) => setJamStyle(v === "any" ? "" : v)}>
-                    <SelectTrigger id="profile-jam-style" className="h-12 rounded-xl border-2 border-foreground bg-secondary/50 shadow-[2px_2px_0_0_var(--neo-shadow)]">
+                    <SelectTrigger id="profile-jam-style" className="h-11 rounded-lg border-border/50 bg-background">
                       <SelectValue placeholder="None / No preference" />
                     </SelectTrigger>
                     <SelectContent className="rounded-lg">
@@ -470,7 +469,7 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
                     Default Engine
                   </Label>
                   <Select value={defaultEngine || "any"} onValueChange={(v) => setDefaultEngine(v === "any" ? "" : v)}>
-                    <SelectTrigger id="profile-default-engine" className="h-12 rounded-xl border-2 border-foreground bg-secondary/50 shadow-[2px_2px_0_0_var(--neo-shadow)]">
+                    <SelectTrigger id="profile-default-engine" className="h-11 rounded-lg border-border/50 bg-background">
                       <SelectValue placeholder="Any / No Preference" />
                     </SelectTrigger>
                     <SelectContent className="rounded-lg">
@@ -488,7 +487,7 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
                     Default Language
                   </Label>
                   <Select value={defaultLanguage || "any"} onValueChange={(v) => setDefaultLanguage(v === "any" ? "" : v)}>
-                    <SelectTrigger id="profile-default-language" className="h-12 rounded-xl border-2 border-foreground bg-secondary/50 shadow-[2px_2px_0_0_var(--neo-shadow)]">
+                    <SelectTrigger id="profile-default-language" className="h-11 rounded-lg border-border/50 bg-background">
                       <SelectValue placeholder="None / No default" />
                     </SelectTrigger>
                     <SelectContent className="rounded-lg">
@@ -527,10 +526,10 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
                             )
                           }
                           className={cn(
-                            "inline-flex max-w-full min-h-11 items-center gap-1.5 rounded-full border-2 border-foreground px-3 text-xs font-extrabold shadow-[2px_2px_0_0_var(--neo-shadow)] transition-transform hover:-translate-y-px active:translate-y-px motion-reduce:transition-none motion-reduce:hover:transform-none",
+                            "inline-flex max-w-full min-h-9 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition-colors",
                             selected
-                              ? "bg-lavender text-lavender-foreground"
-                              : "bg-card text-foreground",
+                              ? "border-lavender/40 bg-lavender/15 text-lavender"
+                              : "border-border/60 bg-card text-muted-foreground hover:border-border hover:text-foreground",
                           )}
                         >
                           <span aria-hidden>{option.short}</span>
@@ -554,7 +553,7 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
             type="submit"
             disabled={saving}
             size="lg"
-            className={cn(neoButton, "w-full min-w-0 gap-2 bg-teal text-teal-foreground hover:bg-teal/90 sm:w-auto sm:min-w-[160px]")}
+            className="min-w-[160px] gap-2 rounded-lg font-medium shadow-sm transition-all hover:shadow-md"
           >
             {saving ? (
               <>
@@ -571,8 +570,8 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
       {/* Section: Notifications */}
       <section className="space-y-6">
         <div className="flex items-center gap-3">
-          <div className={cn(neoIconTile, "bg-peach/40 text-foreground")}>
-            <Bell className="size-4" />
+          <div className="flex size-9 items-center justify-center rounded-lg bg-accent">
+            <Bell className="size-4 text-accent-foreground" />
           </div>
           <div>
             <h2 className="text-base font-medium text-foreground">Notifications</h2>
@@ -580,8 +579,8 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
           </div>
         </div>
 
-        <Card className={cn(neoPanel, "gap-0 py-0")}>
-          <CardContent className="p-4 sm:p-6 md:p-8">
+        <Card className="border-border/50 bg-muted/30">
+          <CardContent className="p-6 md:p-8">
             <PushNotificationManager />
           </CardContent>
         </Card>
@@ -590,8 +589,8 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
       {/* Section: Danger Zone */}
       <section className="space-y-6">
         <div className="flex items-center gap-3">
-          <div className={cn(neoIconTile, "bg-destructive/15 text-destructive")}>
-            <AlertTriangle className="size-4" />
+          <div className="flex size-9 items-center justify-center rounded-lg bg-destructive/10">
+            <AlertTriangle className="size-4 text-destructive" />
           </div>
           <div>
             <h2 className="text-base font-medium text-destructive">Danger Zone</h2>
@@ -599,8 +598,8 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
           </div>
         </div>
 
-        <Card className="gap-0 rounded-2xl border-2 border-foreground bg-destructive/10 py-0 shadow-[4px_4px_0_0_var(--neo-shadow)]">
-          <CardContent className="p-4 sm:p-6 md:p-8">
+        <Card className="border-destructive/20 bg-destructive/5">
+          <CardContent className="p-6 md:p-8">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div className="space-y-1">
                 <p className="text-sm font-medium text-foreground">Delete Account</p>
@@ -612,7 +611,7 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
                 type="button"
                 variant="destructive"
                 onClick={() => setShowDeleteAccountDialog(true)}
-                className={cn(neoButton, "w-full shrink-0 gap-2 sm:w-auto")}
+                className="shrink-0 gap-2 rounded-lg font-medium"
               >
                 <Trash2 className="size-4" />
                 Delete Account
@@ -624,7 +623,7 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
 
       {/* Delete Account Dialog */}
       <AlertDialog open={showDeleteAccountDialog} onOpenChange={(open) => !deletingAccount && setShowDeleteAccountDialog(open)}>
-        <AlertDialogContent className="rounded-2xl border-2 border-foreground shadow-[4px_4px_0_0_var(--neo-shadow)]">
+        <AlertDialogContent className="rounded-2xl border-border/50">
           <AlertDialogHeader>
             <div className="flex items-center gap-4">
               <div className="flex size-12 items-center justify-center rounded-xl bg-destructive/10">

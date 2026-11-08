@@ -43,13 +43,12 @@ export const BADGE_RARITY: Record<string, BadgeRarity> = {
   golden_heart: "special",
 }
 
-/** Neo-brutalist medallion fill per rarity (same palette as the landing). */
-const RARITY_FILL: Record<BadgeRarity, string> = {
-  common: "bg-muted text-foreground",
-  uncommon: "bg-teal text-teal-foreground",
-  rare: "bg-lavender text-lavender-foreground",
-  epic: "bg-amber-400 text-amber-950",
-  special: "bg-pink text-pink-foreground",
+const RARITY_RING: Record<BadgeRarity, string> = {
+  common: "ring-border",
+  uncommon: "ring-teal",
+  rare: "ring-lavender",
+  epic: "ring-amber-400",
+  special: "ring-pink",
 }
 
 const SIZE: Record<"sm" | "md", { box: string; icon: string }> = {
@@ -66,8 +65,8 @@ export function badgeRarity(badgeId: string): BadgeRarity {
 }
 
 /**
- * Flat badge medallion in the landing's neo-brutalist style:
- * 2 px outline, offset shadow, pastel fill by rarity, Lucide pictogram.
+ * Soft badge medallion for dashboard / profile / reward toasts:
+ * subtle ring by rarity, muted fill, Lucide pictogram.
  */
 export function BadgeMedallion({
   badgeId,
@@ -89,16 +88,16 @@ export function BadgeMedallion({
   return (
     <span
       className={cn(
-        "inline-flex shrink-0 items-center justify-center rounded-full border-2 border-foreground shadow-[2px_2px_0px_0px_var(--neo-shadow)]",
+        "inline-flex shrink-0 items-center justify-center rounded-full bg-background/40 ring-2",
         SIZE[size].box,
-        RARITY_FILL[tier],
-        locked && "border-dashed opacity-50 saturate-0 shadow-none",
+        RARITY_RING[tier],
+        locked && "opacity-50 saturate-0",
         animate && "badge-medallion-pop",
         className,
       )}
       aria-hidden
     >
-      {createElement(badgeIcon(badgeId), { className: SIZE[size].icon, strokeWidth: 2 })}
+      {createElement(badgeIcon(badgeId), { className: SIZE[size].icon, strokeWidth: 1.75 })}
     </span>
   )
 }
