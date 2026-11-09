@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, type ReactNode } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -24,6 +24,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible"
 import { deleteUserAccount } from "@/app/actions/auth-actions"
 import { saveProfileSettings } from "@/app/actions/profile-settings-actions"
 import {
@@ -36,7 +41,7 @@ import {
   parseProgrammingLanguages,
   type ProgrammingLanguageValue,
 } from "@/lib/constants"
-import { Loader2, Trash2, User, Settings, Bell, AlertTriangle, Link2, CodeXml } from "lucide-react"
+import { ChevronDown, Loader2, Trash2, User, Settings, Bell, AlertTriangle, Link2, CodeXml, MessageSquare } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
@@ -67,6 +72,48 @@ type ProfileSettingsProps = {
   onProfileUpdated?: (patch?: { discord_username?: string | null }) => void
   /** Fallback when profile.username is empty (e.g. OAuth name before profile is saved) */
   displayNameFallback?: string | null
+}
+
+function SettingsSection({
+  title,
+  description,
+  icon,
+  defaultOpen = false,
+  children,
+}: {
+  title: string
+  description: string
+  icon: ReactNode
+  defaultOpen?: boolean
+  children: ReactNode
+}) {
+  const [open, setOpen] = useState(defaultOpen)
+
+  return (
+    <Collapsible open={open} onOpenChange={setOpen} className="space-y-4">
+      <CollapsibleTrigger asChild>
+        <button
+          type="button"
+          className="flex w-full items-center gap-3 rounded-xl border border-border/40 bg-card/40 px-3 py-3 text-left transition-colors hover:bg-card/70"
+        >
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
+            {icon}
+          </div>
+          <div className="min-w-0 flex-1">
+            <h2 className="text-base font-medium text-foreground">{title}</h2>
+            <p className="text-sm text-muted-foreground">{description}</p>
+          </div>
+          <ChevronDown
+            className={cn(
+              "size-4 shrink-0 text-muted-foreground transition-transform",
+              open && "rotate-180",
+            )}
+          />
+        </button>
+      </CollapsibleTrigger>
+      <CollapsibleContent className="space-y-4">{children}</CollapsibleContent>
+    </Collapsible>
+  )
 }
 
 export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback }: ProfileSettingsProps) {
@@ -228,29 +275,22 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
     "Jammer"
 
   return (
-    <div className="flex w-full min-w-0 max-w-full flex-col space-y-10 py-8">
-      {/* Page Header */}
-      <div className="space-y-1">
+    <div className="flex w-full min-w-0 max-w-full flex-col space-y-8 py-2 md:space-y-10 md:py-8">
+      {/* Page Header — hidden on mobile (MobileSectionTitle already shows Settings) */}
+      <div className="hidden space-y-1 md:block">
         <h1 className="text-2xl font-semibold tracking-tight text-foreground">Settings</h1>
         <p className="text-sm text-muted-foreground">Manage your profile and preferences</p>
       </div>
 
-      <form onSubmit={handleSaveProfile} className="space-y-8">
-        {/* Section: Public Profile */}
-        <section className="space-y-6">
-          <div className="flex items-center gap-3">
-            <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10">
-              <User className="size-4 text-primary" />
-            </div>
-            <div>
-              <h2 className="text-base font-medium text-foreground">Public Profile</h2>
-              <p className="text-sm text-muted-foreground">This is how others will see you on the platform.</p>
-            </div>
-          </div>
-
+      <form onSubmit={handleSaveProfile} className="space-y-6">
+        <SettingsSection
+          title="Public profile"
+          description="This is how others will see you on the platform."
+          icon={<User className="size-4 text-primary" />}
+          defaultOpen
+        >
           <Card className="border-border/50 bg-muted/30">
             <CardContent className="p-6 md:p-8">
-              {/* Avatar + jammer title / level */}
               <div className="mb-8">
                 <ProfileCard
                   avatarUrl={profile?.avatar_url ?? null}
@@ -268,54 +308,62 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
                 />
               </div>
 
-              {/* Form Fields */}
-              <div className="space-y-6">
-                <div className="grid min-w-0 gap-6 md:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="profile-username" className="text-sm font-medium">
-                      Username
-                    </Label>
-                    <Input
-                      id="profile-username"
-                      value={username}
-                      onChange={(e) => setUsername(e.target.value)}
-                      onBlur={() => setUsernameTouched(true)}
-                      placeholder="e.g. PixelWizard42"
-                      autoComplete="username"
-                      aria-invalid={showUsernameError}
-                      aria-describedby="profile-username-hint"
-                      className={cn(
-                        "h-11 rounded-lg border-border/50 bg-background transition-colors focus:border-primary/50",
-                        showUsernameError && "border-destructive/60 focus-visible:ring-destructive/20"
-                      )}
-                    />
-                    <p id="profile-username-hint" className="text-xs text-muted-foreground">
-                      Your unique display name across the platform
-                    </p>
-                    {showUsernameError && usernameErrorMessage ? (
-                      <p className="text-xs font-medium text-destructive">{usernameErrorMessage}</p>
-                    ) : null}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="profile-discord" className="text-sm font-medium">
-                      Discord Username
-                    </Label>
-                    <Input
-                      id="profile-discord"
-                      value={discordUsername}
-                      onChange={(e) => setDiscordUsername(e.target.value)}
-                      placeholder="e.g. gamer123"
-                      className="h-11 rounded-lg border-border/50 bg-background transition-colors focus:border-primary/50"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      Visible to teammates for group chat invites
-                    </p>
-                  </div>
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="profile-username" className="text-sm font-medium">
+                  Username
+                </Label>
+                <Input
+                  id="profile-username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  onBlur={() => setUsernameTouched(true)}
+                  placeholder="e.g. PixelWizard42"
+                  autoComplete="username"
+                  aria-invalid={showUsernameError}
+                  aria-describedby="profile-username-hint"
+                  className={cn(
+                    "h-11 rounded-lg border-border/50 bg-background transition-colors focus:border-primary/50",
+                    showUsernameError && "border-destructive/60 focus-visible:ring-destructive/20",
+                  )}
+                />
+                <p id="profile-username-hint" className="text-xs text-muted-foreground">
+                  Your unique display name across the platform
+                </p>
+                {showUsernameError && usernameErrorMessage ? (
+                  <p className="text-xs font-medium text-destructive">{usernameErrorMessage}</p>
+                ) : null}
+              </div>
+            </CardContent>
+          </Card>
+        </SettingsSection>
 
+        <SettingsSection
+          title="Links"
+          description="Discord and portfolio links for teammates"
+          icon={<Link2 className="size-4 text-primary" />}
+        >
+          <Card className="border-border/50 bg-muted/30">
+            <CardContent className="space-y-6 p-6 md:p-8">
+              <div className="grid min-w-0 gap-6 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="profile-discord" className="flex items-center gap-2 text-sm font-medium">
+                    <MessageSquare className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
+                    Discord Username
+                  </Label>
+                  <Input
+                    id="profile-discord"
+                    value={discordUsername}
+                    onChange={(e) => setDiscordUsername(e.target.value)}
+                    placeholder="e.g. gamer123"
+                    className="h-11 w-full rounded-lg border-border/50 bg-background transition-colors focus:border-primary/50"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Visible to teammates for group chat invites
+                  </p>
+                </div>
                 <div className="space-y-2">
                   <Label htmlFor="profile-portfolio-url" className="flex items-center gap-2 text-sm font-medium">
-                    <Link2 className="size-3.5 text-muted-foreground" />
+                    <Link2 className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
                     Portfolio URL
                   </Label>
                   <Input
@@ -324,7 +372,7 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
                     value={portfolioUrl}
                     onChange={(e) => setPortfolioUrl(e.target.value)}
                     placeholder="https://yourname.itch.io or https://yourportfolio.com"
-                    className="h-11 rounded-lg border-border/50 bg-background transition-colors focus:border-primary/50"
+                    className="h-11 w-full rounded-lg border-border/50 bg-background transition-colors focus:border-primary/50"
                   />
                   <p className="text-xs text-muted-foreground">
                     Showcase your work to potential teammates
@@ -333,20 +381,13 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
               </div>
             </CardContent>
           </Card>
-        </section>
+        </SettingsSection>
 
-        {/* Section: Default Preferences */}
-        <section className="space-y-6">
-          <div className="flex items-center gap-3">
-            <div className="flex size-9 items-center justify-center rounded-lg bg-secondary">
-              <Settings className="size-4 text-secondary-foreground" />
-            </div>
-            <div>
-              <h2 className="text-base font-medium text-foreground">Default Preferences</h2>
-              <p className="text-sm text-muted-foreground">Pre-fill your availability posts automatically</p>
-            </div>
-          </div>
-
+        <SettingsSection
+          title="Default preferences"
+          description="Pre-fill your availability posts automatically"
+          icon={<Settings className="size-4 text-primary" />}
+        >
           <Card className="border-border/50 bg-muted/30">
             <CardContent className="p-6 md:p-8">
               <div className="grid min-w-0 gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -545,9 +586,8 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
               </div>
             </CardContent>
           </Card>
-        </section>
+        </SettingsSection>
 
-        {/* Save Button */}
         <div className="flex justify-end pt-2">
           <Button
             type="submit"
@@ -567,7 +607,6 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
         </div>
       </form>
 
-      {/* Section: Notifications */}
       <section className="space-y-6">
         <div className="flex items-center gap-3">
           <div className="flex size-9 items-center justify-center rounded-lg bg-accent">
@@ -586,7 +625,6 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
         </Card>
       </section>
 
-      {/* Section: Danger Zone */}
       <section className="space-y-6">
         <div className="flex items-center gap-3">
           <div className="flex size-9 items-center justify-center rounded-lg bg-destructive/10">
@@ -621,7 +659,6 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
         </Card>
       </section>
 
-      {/* Delete Account Dialog */}
       <AlertDialog open={showDeleteAccountDialog} onOpenChange={(open) => !deletingAccount && setShowDeleteAccountDialog(open)}>
         <AlertDialogContent className="rounded-2xl border-border/50">
           <AlertDialogHeader>

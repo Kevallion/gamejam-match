@@ -89,13 +89,20 @@ export function MonthlyKudosLeaderboard() {
 
   return (
     <Card className="glass-card min-w-0 max-w-full border-peach/25 bg-peach/5">
-      <CardHeader className="pb-2">
-        <div className="flex flex-wrap items-center gap-2">
-          <Sparkles className="size-4 shrink-0 text-peach" />
-          <h3 className="min-w-0 text-sm font-bold text-foreground">Monthly Kudos Leaderboard</h3>
-          <Badge variant="outline" className="ml-auto max-w-full rounded-full text-xs">
-            {monthLabel}
-          </Badge>
+      <CardHeader className="min-w-0 overflow-hidden pb-2">
+        <div className="flex min-w-0 items-start gap-2 sm:items-center">
+          <Sparkles className="mt-0.5 size-4 shrink-0 text-peach sm:mt-0" />
+          <div className="flex min-w-0 flex-1 flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-2">
+            <h3 className="min-w-0 text-sm font-bold leading-snug text-foreground">
+              Monthly Kudos Leaderboard
+            </h3>
+            <Badge
+              variant="outline"
+              className="w-fit max-w-full shrink truncate rounded-full px-2.5 text-xs sm:ml-auto"
+            >
+              {monthLabel}
+            </Badge>
+          </div>
         </div>
       </CardHeader>
       <CardContent>

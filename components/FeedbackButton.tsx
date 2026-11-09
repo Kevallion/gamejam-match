@@ -1,6 +1,7 @@
 "use client"
 
 import { MessageSquare } from "lucide-react"
+import { usePathname } from "next/navigation"
 import {
   Tooltip,
   TooltipContent,
@@ -11,6 +12,9 @@ export const FEEDBACK_URL =
   "https://docs.google.com/forms/d/e/1FAIpQLSfPFN9Y_zYZSld-6EEO3ybmPpflPWvTVaF5Le7ooxlIe9a09g/viewform?usp=dialog"
 
 export function FeedbackButton() {
+  const pathname = usePathname()
+  if (pathname?.startsWith("/dashboard")) return null
+
   return (
     <div
       className="fixed z-50 hidden md:block"
