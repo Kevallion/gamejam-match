@@ -38,10 +38,10 @@ export function DashboardRecommendedTeams({ teams, className, compact = false }:
             id="smart-matchmaking-heading"
             className={cn("font-semibold tracking-tight", compact ? "text-sm md:text-base" : "text-lg md:text-xl")}
           >
-            Smart Matchmaking
+            Squads looking for your role
           </h2>
           <p className={cn("text-muted-foreground", compact ? "text-xs" : "text-sm")}>
-            Open squads that need your default role.
+            Open squads that match your profile.
           </p>
         </div>
       </div>

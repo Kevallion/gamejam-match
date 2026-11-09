@@ -842,6 +842,68 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
   )
 }
 
+/** Read-only member card for settings / marketing previews (no invite actions). */
+export function JammerCardPreview({ player, className }: { player: JammerCardData; className?: string }) {
+  const languageLabel = languageDisplayLabel(player.language)
+  const engineLabel = engineDisplayLabel(player.engine)
+  const showRoleChip = !isPlaceholderChip(player.role.label)
+  const showLevelChip = !isPlaceholderChip(player.level.label)
+
+  return (
+    <Card
+      className={cn(
+        "relative flex w-full flex-col overflow-hidden rounded-2xl border-border/50 bg-card py-4 shadow-md shadow-lavender/5",
+        className,
+      )}
+    >
+      <CardContent className="flex flex-1 flex-col gap-4 px-4 pt-0 sm:px-5">
+        <div className="flex min-w-0 items-center gap-3.5">
+          <UserAvatar src={player.avatar_url} fallbackName={player.username} size="md" />
+          <div className="min-w-0 flex-1">
+            <div className="flex min-w-0 flex-wrap items-center gap-2 gap-y-1">
+              <h3 className="truncate text-lg font-bold text-foreground">{player.username}</h3>
+              {typeof player.jammerLevel === "number" ? (
+                <JammerLevelBadge level={player.jammerLevel} className="text-xs" />
+              ) : null}
+            </div>
+            {player.jammerTitle?.trim() ? (
+              <JammerTitleBadge title={player.jammerTitle.trim()} className="text-xs" />
+            ) : null}
+            {languageLabel ? (
+              <div className="flex min-w-0 items-center gap-1.5 text-sm text-muted-foreground">
+                <Globe className="size-3.5 shrink-0 text-teal" />
+                <span className="truncate">{languageLabel}</span>
+              </div>
+            ) : null}
+          </div>
+        </div>
+
+        <TagIconRow
+          items={[
+            ...(showRoleChip && player.role.key ? [{ kind: "role" as const, value: player.role.key }] : []),
+            ...(showLevelChip && player.level.key ? [{ kind: "level" as const, value: player.level.key }] : []),
+            ...(player.jamStyle?.key ? [{ kind: "style" as const, value: player.jamStyle.key }] : []),
+            ...(engineLabel ? [{ kind: "engine" as const, value: player.engine }] : []),
+            ...(languageLabel ? [{ kind: "language" as const, value: player.language }] : []),
+          ]}
+        />
+
+        {player.programmingLanguages && player.programmingLanguages.length > 0 ? (
+          <TagIconRow
+            items={player.programmingLanguages.map((value) => ({ kind: "code" as const, value }))}
+            max={6}
+            size="xs"
+          />
+        ) : null}
+
+        {player.bio?.trim() ? (
+          <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">{player.bio}</p>
+        ) : null}
+      </CardContent>
+    </Card>
+  )
+}
+
 // Backward-compatible aliases
 export { JammerCard as PlayerCard }
 export type { JammerCardData as PlayerCardData }

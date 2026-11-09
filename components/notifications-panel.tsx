@@ -10,6 +10,7 @@ import {
   DrawerContent,
   DrawerHeader,
   DrawerTitle,
+  DrawerTrigger,
 } from "@/components/ui/drawer"
 import {
   Popover,
@@ -21,6 +22,7 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
+  SheetTrigger,
 } from "@/components/ui/sheet"
 import { Skeleton } from "@/components/ui/skeleton"
 import type { NormalizedNotificationRow } from "@/hooks/use-notifications"
@@ -222,46 +224,38 @@ export function NotificationsPanel({
 
   if (variant === "mobile") {
     return (
-      <>
-        <button type="button" onClick={() => setOpen(true)} className="contents">
-          {children}
-        </button>
-        <Drawer open={open} onOpenChange={setOpen}>
-          <DrawerContent className="flex max-h-[85vh] flex-col rounded-t-3xl border-border/50 bg-card pb-[env(safe-area-inset-bottom,0px)]">
-            <DrawerHeader className="flex-row items-center justify-between text-left">
-              <DrawerTitle className="flex items-center gap-2 text-lg font-bold">
-                <AppIcon icon={ICON.notifications} size="md" tone="primary" />
-                Notifications
-              </DrawerTitle>
-            </DrawerHeader>
-            <div className="min-h-0 flex-1 px-4 pb-4">{body}</div>
-          </DrawerContent>
-        </Drawer>
-      </>
+      <Drawer open={open} onOpenChange={setOpen}>
+        <DrawerTrigger asChild>{children}</DrawerTrigger>
+        <DrawerContent className="flex max-h-[85vh] flex-col rounded-t-3xl border-border/50 bg-card pb-[env(safe-area-inset-bottom,0px)]">
+          <DrawerHeader className="flex-row items-center justify-between text-left">
+            <DrawerTitle className="flex items-center gap-2 text-lg font-bold">
+              <AppIcon icon={ICON.notifications} size="md" tone="primary" />
+              Notifications
+            </DrawerTitle>
+          </DrawerHeader>
+          <div className="min-h-0 flex-1 px-4 pb-4">{body}</div>
+        </DrawerContent>
+      </Drawer>
     )
   }
 
   if (variant === "tablet") {
     return (
-      <>
-        <button type="button" onClick={() => setOpen(true)} className="contents">
-          {children}
-        </button>
-        <Sheet open={open} onOpenChange={setOpen}>
-          <SheetContent
-            side="right"
-            className="flex w-[min(100vw-5.5rem,400px)] flex-col border-border/50 bg-card p-0 sm:max-w-[400px]"
-          >
-            <SheetHeader className="border-b border-border/40 px-4 py-4 text-left">
-              <SheetTitle className="flex items-center gap-2 text-lg font-bold">
-                <AppIcon icon={ICON.notifications} size="md" tone="primary" />
-                Notifications
-              </SheetTitle>
-            </SheetHeader>
-            <div className="min-h-0 flex-1 px-4 py-4">{body}</div>
-          </SheetContent>
-        </Sheet>
-      </>
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetTrigger asChild>{children}</SheetTrigger>
+        <SheetContent
+          side="right"
+          className="flex w-[min(100vw-5.5rem,400px)] flex-col border-border/50 bg-card p-0 sm:max-w-[400px]"
+        >
+          <SheetHeader className="border-b border-border/40 px-4 py-4 text-left">
+            <SheetTitle className="flex items-center gap-2 text-lg font-bold">
+              <AppIcon icon={ICON.notifications} size="md" tone="primary" />
+              Notifications
+            </SheetTitle>
+          </SheetHeader>
+          <div className="min-h-0 flex-1 px-4 py-4">{body}</div>
+        </SheetContent>
+      </Sheet>
     )
   }
 

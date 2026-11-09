@@ -456,8 +456,8 @@ export function Navbar() {
               </DropdownMenu>
             )}
 
-            {/* Menu — hidden when signed in (app shell / Me hub replaces burger). */}
-            {mounted && !user ? (
+            {/* Burger menu — kept for signed-in users outside AppShell routes (Explore, etc.). */}
+            {mounted ? (
               <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
                 <SheetTrigger asChild>
                   <Button variant="ghost" size="icon" className="size-9 rounded-xl">
@@ -472,7 +472,7 @@ export function Navbar() {
                   <div className="flex min-h-0 flex-1 flex-col pt-4 px-4">
                     {/* User Info */}
                     <div className="border-b border-border/40 pb-4">
-                      {!mounted || loading ? (
+                      {loading ? (
                         <LoaderCircle className="size-5 animate-spin text-muted-foreground" />
                       ) : user ? (
                         <div className="space-y-2">
@@ -545,16 +545,10 @@ export function Navbar() {
                   </div>
                 </SheetContent>
               </Sheet>
-            ) : !user ? (
+            ) : (
               <Button variant="ghost" size="icon" className="size-9 rounded-xl" disabled aria-label="Open menu">
                 <Menu className="size-5" />
                 <span className="sr-only">Open menu</span>
-              </Button>
-            ) : (
-              <Button asChild variant="ghost" size="icon" className="size-9 rounded-xl" aria-label="Me">
-                <Link href="/dashboard?hub=me">
-                  <LayoutDashboard className="size-5" />
-                </Link>
               </Button>
             )}
           </div>

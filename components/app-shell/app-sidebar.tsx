@@ -123,6 +123,7 @@ export function AppSidebar({
                   <li key={item.id}>
                     <Link
                       href={item.href}
+                      aria-current={active ? "page" : undefined}
                       className={cn(
                         "flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-semibold transition-colors",
                         active

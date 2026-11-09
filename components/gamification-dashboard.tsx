@@ -1,7 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
-import { Star, Trophy } from "lucide-react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { UserAvatar } from "@/components/user-avatar"
@@ -10,7 +9,19 @@ import { gamificationLevelProgress, levelFromTotalXp } from "@/lib/gamification-
 import { parseUnlockedTitlesJson } from "@/lib/gamification-titles-catalog"
 import { TitleSelection } from "@/components/title-selection"
 import { JammerTitleBadge, JammerLevelBadge } from "@/components/profile-card"
+import { ProfileGamification } from "@/components/profile-gamification"
+import { MonthlyKudosLeaderboard } from "@/components/monthly-kudos-leaderboard"
+import { SectionAnchorNav } from "@/components/section-anchor-nav"
+import { useSectionScrollSpy } from "@/hooks/use-section-scroll-spy"
+import { AppIcon } from "@/components/ui/app-icon"
+import { ICON } from "@/lib/icons"
 import { cn } from "@/lib/utils"
+
+export const ACHIEVEMENTS_SECTION_IDS = {
+  title: "achievements-title",
+  badges: "achievements-badges",
+  leaderboard: "achievements-leaderboard",
+} as const
 
 // ---------------------------------------------------------------------------
 // Thin XP bar (4px) — header or top-of-container
@@ -182,55 +193,48 @@ export function GamificationDashboardFull({
   return (
     <div className={cn("flex min-w-0 max-w-full flex-col gap-3", className)}>
       {/* Compact XP + level card */}
-      <Card className="relative min-w-0 max-w-full overflow-hidden border-border/50 bg-white/[0.05] shadow-sm shadow-teal/5 backdrop-blur-xl light:bg-white/70 dark:bg-slate-900/45">
+      <Card className="relative min-h-[92px] min-w-0 max-w-full overflow-hidden border-border/50 bg-white/[0.05] shadow-sm shadow-teal/5 backdrop-blur-xl light:bg-white/70 dark:bg-slate-900/45">
         <div
           className="pointer-events-none absolute -right-12 -top-12 size-32 rounded-full bg-gradient-to-br from-amber-500/15 via-teal/10 to-peach/10 blur-2xl"
           aria-hidden
         />
-        <CardContent className="relative flex min-w-0 flex-wrap items-center gap-4 p-4">
-          {/* Trophy icon */}
-          <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-peach/15 ring-1 ring-peach/25">
-            <Trophy className="size-5 text-peach" aria-hidden />
+        <CardContent className="relative flex min-h-[72px] min-w-0 items-center gap-3 px-4 py-2.5">
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-peach/15 ring-1 ring-peach/25">
+            <AppIcon icon={ICON.achievement} size="md" tone="peach" />
           </div>
-
-          {/* Level + title + XP text */}
-          <div className="min-w-0 flex-1 space-y-1">
-            <div className="flex flex-wrap items-center gap-1.5">
-              <span className="text-xl font-bold tracking-tight text-amber-900 dark:text-amber-400">
+          <div className="min-w-0 flex-1 space-y-0.5">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-lg font-bold tracking-tight text-amber-900 dark:text-amber-400">
                 Level {level}
               </span>
               <JammerLevelBadge
                 level={level}
-                className="border-amber-800/35 bg-amber-600/12 px-2 py-0.5 text-[11px] text-amber-950 shadow-none dark:border-amber-500/40 dark:bg-amber-500/15 dark:text-amber-300 dark:shadow-[0_0_14px_-4px_rgba(245,158,11,0.3)]"
+                className="border-amber-800/35 bg-amber-600/12 px-2 py-0.5 text-[10px] text-amber-950 shadow-none dark:border-amber-500/40 dark:bg-amber-500/15 dark:text-amber-300"
               />
+              <span className="ml-auto shrink-0 text-[11px] font-semibold tabular-nums text-amber-950 dark:text-amber-400/90">
+                {Math.round(progress.progressPercent)}%
+              </span>
             </div>
             <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-              <JammerTitleBadge title={currentTitle} className="text-sm" />
+              <JammerTitleBadge title={currentTitle} className="text-xs sm:text-sm" />
               {error ? (
-                <p className="text-xs text-destructive">{error}</p>
+                <p className="text-[11px] text-destructive">{error}</p>
               ) : (
-                <span className="inline-flex items-center gap-1 text-xs text-foreground/75 dark:text-muted-foreground">
-                  <Star className="size-3 shrink-0 text-lavender" aria-hidden />
+                <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                  <AppIcon icon={ICON.xp} size="xs" tone="lavender" />
                   {xpLabel}
                 </span>
               )}
             </div>
           </div>
-
-          {/* XP percent */}
-          <span className="shrink-0 text-xs font-semibold tabular-nums text-amber-950 dark:text-amber-400/90">
-            {Math.round(progress.progressPercent)}%
-          </span>
         </CardContent>
-
-        {/* Thin XP bar at the bottom */}
         <div
           className={cn(
-            "[&_[data-slot=progress]]:h-2 [&_[data-slot=progress]]:rounded-none [&_[data-slot=progress]]:bg-foreground/12 dark:[&_[data-slot=progress]]:bg-muted/60",
-            "[&_[data-slot=progress-indicator]]:rounded-none [&_[data-slot=progress-indicator]]:bg-gradient-to-r [&_[data-slot=progress-indicator]]:from-teal-500 [&_[data-slot=progress-indicator]]:to-peach [&_[data-slot=progress-indicator]]:shadow-[0_0_12px_rgba(20,184,166,0.25)]",
+            "[&_[data-slot=progress]]:h-1.5 [&_[data-slot=progress]]:rounded-none [&_[data-slot=progress]]:bg-foreground/12 dark:[&_[data-slot=progress]]:bg-muted/60",
+            "[&_[data-slot=progress-indicator]]:rounded-none [&_[data-slot=progress-indicator]]:bg-gradient-to-r [&_[data-slot=progress-indicator]]:from-teal-500 [&_[data-slot=progress-indicator]]:to-peach",
           )}
         >
-          <Progress value={progress.progressPercent} className="h-2 rounded-none bg-transparent" />
+          <Progress value={progress.progressPercent} className="h-1.5 rounded-none bg-transparent" />
         </div>
       </Card>
 
@@ -251,4 +255,49 @@ export function GamificationDashboardFull({
 /** @deprecated Prefer `GamificationDashboardFull` or `GamificationDashboardCompact` explicitly. */
 export function GamificationDashboard(props: GamificationDashboardProps) {
   return <GamificationDashboardFull {...props} />
+}
+
+export type DashboardAchievementsTabProps = {
+  userId: string
+  onDataChanged?: () => void
+  className?: string
+}
+
+const ACHIEVEMENT_ANCHORS = [
+  { id: ACHIEVEMENTS_SECTION_IDS.title, label: "Title" },
+  { id: ACHIEVEMENTS_SECTION_IDS.badges, label: "Badges" },
+  { id: ACHIEVEMENTS_SECTION_IDS.leaderboard, label: "Leaderboard" },
+]
+
+export function DashboardAchievementsTab({ userId, onDataChanged, className }: DashboardAchievementsTabProps) {
+  const sectionIds = useMemo(
+    () => [
+      ACHIEVEMENTS_SECTION_IDS.title,
+      ACHIEVEMENTS_SECTION_IDS.badges,
+      ACHIEVEMENTS_SECTION_IDS.leaderboard,
+    ],
+    [],
+  )
+  const activeSection = useSectionScrollSpy(sectionIds)
+
+  return (
+    <div className={cn("flex min-w-0 max-w-full flex-col gap-4 md:gap-6", className)}>
+      <SectionAnchorNav items={ACHIEVEMENT_ANCHORS} activeId={activeSection} />
+
+      <section
+        id={ACHIEVEMENTS_SECTION_IDS.title}
+        className="scroll-mt-28 space-y-4 md:scroll-mt-32"
+      >
+        <GamificationDashboardFull userId={userId} onDataChanged={onDataChanged} />
+      </section>
+
+      <section id={ACHIEVEMENTS_SECTION_IDS.badges} className="scroll-mt-28 md:scroll-mt-32">
+        <ProfileGamification userId={userId} badgesOnly />
+      </section>
+
+      <section id={ACHIEVEMENTS_SECTION_IDS.leaderboard} className="scroll-mt-28 md:scroll-mt-32">
+        <MonthlyKudosLeaderboard />
+      </section>
+    </div>
+  )
 }

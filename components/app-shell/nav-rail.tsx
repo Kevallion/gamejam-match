@@ -65,6 +65,8 @@ export function NavRail({
               <Link
                 key={item.id}
                 href={item.href}
+                aria-label={item.label}
+                aria-current={active ? "page" : undefined}
                 className={cn(
                   "relative flex w-full flex-col items-center gap-1 rounded-2xl px-1 py-2 text-[11px] font-semibold transition-colors",
                   active ? "bg-teal/15 text-teal" : "text-muted-foreground hover:bg-white/5 hover:text-foreground",
