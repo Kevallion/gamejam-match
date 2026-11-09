@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Multi-Tool badge (rare)"><title>Multi-Tool</title><defs>
+<linearGradient id="gjc-multi-tool-ring" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c3bbf5"/><stop offset="1" stop-color="#6f66b8"/></linearGradient>
+<radialGradient id="gjc-multi-tool-disc" cx="0.5" cy="0.32" r="0.75"><stop offset="0" stop-color="#2a2b40"/><stop offset="0.6" stop-color="#181926"/><stop offset="1" stop-color="#10111a"/></radialGradient>
+<radialGradient id="gjc-multi-tool-glow" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#9d94d9" stop-opacity="0.32"/><stop offset="1" stop-color="#9d94d9" stop-opacity="0"/></radialGradient>
+</defs><polygon points="20.402,4 43.598,4 60,20.402 60,43.598 43.598,60 20.402,60 4,43.598 4,20.402" fill="url(#gjc-multi-tool-ring)" stroke="url(#gjc-multi-tool-ring)" stroke-width="2" stroke-linejoin="round"/><circle cx="32" cy="32" r="24" fill="url(#gjc-multi-tool-disc)"/><circle cx="32" cy="32" r="22.5" fill="none" stroke="#c3bbf5" stroke-opacity="0.35" stroke-width="0.8"/><rect x="30.9" y="4.9" width="2.2" height="2.2" fill="#ece8ff" opacity="0.9" transform="rotate(0 32 6)"/><rect x="49.285" y="12.515" width="2.2" height="2.2" fill="#ece8ff" opacity="0.9" transform="rotate(45 50.385 13.615)"/><rect x="56.9" y="30.9" width="2.2" height="2.2" fill="#ece8ff" opacity="0.9" transform="rotate(90 58 32)"/><rect x="49.285" y="49.285" width="2.2" height="2.2" fill="#ece8ff" opacity="0.9" transform="rotate(135 50.385 50.385)"/><rect x="30.9" y="56.9" width="2.2" height="2.2" fill="#ece8ff" opacity="0.9" transform="rotate(180 32 58)"/><rect x="12.515" y="49.285" width="2.2" height="2.2" fill="#ece8ff" opacity="0.9" transform="rotate(225 13.615 50.385)"/><rect x="4.9" y="30.9" width="2.2" height="2.2" fill="#ece8ff" opacity="0.9" transform="rotate(270 6 32)"/><rect x="12.515" y="12.515" width="2.2" height="2.2" fill="#ece8ff" opacity="0.9" transform="rotate(315 13.615 13.615)"/><circle cx="32" cy="32" r="23" fill="url(#gjc-multi-tool-glow)"/><path d="M11.716 26.565 A21 21 0 0 1 52.284 26.565" fill="none" stroke="#fff" stroke-opacity="0.05" stroke-width="3" stroke-linecap="round"/><g class="emblem"><defs><mask id="gjc-multi-tool-m"><rect width="64" height="64" fill="#fff"/><rect x="29.5" y="8" width="5" height="10.5" rx="1" fill="#000"/></mask>
+<linearGradient id="gjc-multi-tool-wr" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#eef0f8"/><stop offset="1" stop-color="#a9adc4"/></linearGradient></defs>
+<g transform="translate(0 1)"><g transform="rotate(45 32 29)">
+ <rect x="29" y="17" width="6" height="22" fill="#f7b1d8"/>
+ <rect x="29" y="17" width="2" height="22" fill="#fff" opacity="0.35"/>
+ <path d="M29 39 L35 39 L32 46 Z" fill="#f3d9b5" stroke="#f3d9b5" stroke-width="0.6" stroke-linejoin="round"/><path d="M31 43.33 L33 43.33 L32 46 Z" fill="#10111a"/>
+ <rect x="29" y="11.5" width="6" height="6" rx="1.2" fill="#eeae7b"/>
+</g>
+<g transform="rotate(-45 32 29)">
+ <g mask="url(#gjc-multi-tool-m)"><circle cx="32" cy="17" r="6.5" fill="url(#gjc-multi-tool-wr)"/></g>
+ <rect x="29.5" y="21" width="5" height="26.5" rx="2.5" fill="url(#gjc-multi-tool-wr)"/>
+ <circle cx="32" cy="44" r="1.2" fill="#10111a" opacity="0.6"/>
+</g></g>
+<rect x="24" y="46" width="4" height="4" rx="0.8" fill="#26bdae"/><rect x="30" y="46" width="4" height="4" rx="0.8" fill="#dca0d6"/><rect x="36" y="46" width="4" height="4" rx="0.8" fill="#eeae7b"/></g></svg>

@@ -14,7 +14,6 @@ import { cn } from "@/lib/utils"
 export type { BadgeRarity }
 
 export type BadgeCatalogMeta = {
-  emoji: string
   label: string
   blurb: string
   rarity: BadgeRarity
@@ -53,7 +52,6 @@ function formatUnlocked(iso: string): string {
 /** Ordered catalog: known badges + copy/styling. Extend when adding new badge_id values in the backend. */
 export const BADGE_DICTIONARY: Record<string, BadgeCatalogMeta> = {
   founder: {
-    emoji: "🏗️",
     label: "Founder",
     rarity: "uncommon",
     blurb: "Created your first squad listing.",
@@ -62,7 +60,6 @@ export const BADGE_DICTIONARY: Record<string, BadgeCatalogMeta> = {
     locked: "border-border/40 bg-muted/20 opacity-45 grayscale",
   },
   captain: {
-    emoji: "👑",
     label: "Captain",
     rarity: "rare",
     blurb: "Filled every open role on your squad listing.",
@@ -71,7 +68,6 @@ export const BADGE_DICTIONARY: Record<string, BadgeCatalogMeta> = {
     locked: "border-border/40 bg-muted/20 opacity-45 grayscale",
   },
   team_player: {
-    emoji: "🤝",
     label: "Team Player",
     rarity: "common",
     blurb: "Joined a squad on GameJamCrew.",
@@ -80,7 +76,6 @@ export const BADGE_DICTIONARY: Record<string, BadgeCatalogMeta> = {
     locked: "border-border/40 bg-muted/20 opacity-45 grayscale",
   },
   early_bird: {
-    emoji: "🌅",
     label: "Early Bird",
     rarity: "common",
     blurb: "Completed your jammer onboarding.",
@@ -89,7 +84,6 @@ export const BADGE_DICTIONARY: Record<string, BadgeCatalogMeta> = {
     locked: "border-border/40 bg-muted/20 opacity-45 grayscale",
   },
   stalwart: {
-    emoji: "💎",
     label: "Stalwart",
     rarity: "uncommon",
     blurb: "Logged in 5 days in a row.",
@@ -98,7 +92,6 @@ export const BADGE_DICTIONARY: Record<string, BadgeCatalogMeta> = {
     locked: "border-border/40 bg-muted/20 opacity-45 grayscale",
   },
   recruiter: {
-    emoji: "📣",
     label: "Recruiter",
     rarity: "rare",
     blurb: "Sent 5 squad invitations to other jammers.",
@@ -107,7 +100,6 @@ export const BADGE_DICTIONARY: Record<string, BadgeCatalogMeta> = {
     locked: "border-border/40 bg-muted/20 opacity-45 grayscale",
   },
   multi_tool: {
-    emoji: "🛠️",
     label: "Multi-Tool",
     rarity: "rare",
     blurb: "Joined squads in 3 different role slots.",
@@ -116,7 +108,6 @@ export const BADGE_DICTIONARY: Record<string, BadgeCatalogMeta> = {
     locked: "border-border/40 bg-muted/20 opacity-45 grayscale",
   },
   jam_champion: {
-    emoji: "🏆",
     label: "Jam Champion",
     rarity: "epic",
     blurb: "Claimed jam completion rewards on a squad you own.",
@@ -125,7 +116,6 @@ export const BADGE_DICTIONARY: Record<string, BadgeCatalogMeta> = {
     locked: "border-border/40 bg-muted/20 opacity-45 grayscale",
   },
   supporter: {
-    emoji: "☕",
     label: "Supporter",
     rarity: "special",
     blurb: "Awarded to our Buy Me a Coffee supporters.",
@@ -135,7 +125,6 @@ export const BADGE_DICTIONARY: Record<string, BadgeCatalogMeta> = {
     locked: "border-border/40 bg-muted/20 opacity-45 grayscale",
   },
   golden_heart: {
-    emoji: "💛",
     label: "Golden Heart",
     rarity: "special",
     blurb: "Verified supporter — thank you for backing the community.",
@@ -204,7 +193,7 @@ function GamificationBadgeGrid({
             )}
           >
             <div className="flex min-w-0 items-center gap-2">
-              <BadgeMedallion badgeId={badgeId} rarity={meta.rarity} locked={!unlocked} />
+              <BadgeMedallion badgeId={badgeId} rarity={meta.rarity} size="lg" locked={!unlocked} />
               <span
                 className={cn(
                   "min-w-0 break-words font-bold leading-tight",
