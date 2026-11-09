@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import { usePathname, useSearchParams } from "next/navigation"
-import { Navbar } from "@/components/navbar"
+import { AppShell } from "@/components/app-shell/app-shell"
 import type { TeamData } from "@/components/dashboard-my-teams"
 import { DashboardSquadsCompact } from "@/components/dashboard-squads-compact"
 import { DashboardRecommendedTeams } from "@/components/dashboard-recommended-teams"
@@ -14,18 +14,15 @@ import type {
   SentApplicationOutboxItem,
   SentInvitationOutboxItem,
 } from "@/components/dashboard-sent-outbox"
+import { AppIcon } from "@/components/ui/app-icon"
+import { ICON } from "@/lib/icons"
+import { useNotifications } from "@/hooks/use-notifications"
 import {
   Clock,
   Info,
-  Inbox,
-  Settings,
   Trash2,
-  Trophy,
-  UserRoundMinus,
-  UserRoundSearch,
-  UsersRound,
 } from "lucide-react"
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+import { Tabs, TabsContent } from "@/components/ui/tabs"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
@@ -81,8 +78,6 @@ import { gamificationRewardHasToast } from "@/lib/gamification-reward-types"
 import { toast } from "sonner"
 import { ENGINE_OPTIONS, EXPERIENCE_STYLES, ROLE_STYLES, parseProgrammingLanguages } from "@/lib/constants"
 import { isMissingColumnError } from "@/lib/optional-column"
-import { UserAvatar } from "@/components/user-avatar"
-import { JammerTitleBadge, JammerLevelBadge } from "@/components/profile-card"
 import { levelFromTotalXp, gamificationLevelProgress } from "@/lib/gamification-level"
 import {
   fetchDashboardJoinRequests,
@@ -215,143 +210,29 @@ function resolveDashboardTab(raw: string | null | undefined): (typeof VALID_TABS
   return "squads"
 }
 
-function DashboardTabTrigger({
-  value,
-  tooltipLabel,
-  showTooltip,
-  className,
-  icon,
-  label,
-}: {
-  value: string
-  tooltipLabel: string
-  showTooltip: boolean
-  className: string
-  icon: ReactNode
-  label: string
-}) {
-  const trigger = (
-    <TabsTrigger
-      value={value}
-      title={tooltipLabel}
-      className={className}
-    >
-      {icon}
-      <span className="max-[380px]:sr-only">{label}</span>
-    </TabsTrigger>
-  )
-  if (!showTooltip) return trigger
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>{trigger}</TooltipTrigger>
-      <TooltipContent side="bottom" className="text-xs font-semibold tracking-tight">
-        {tooltipLabel}
-      </TooltipContent>
-    </Tooltip>
-  )
-}
-
 function DashboardLoadingSkeleton() {
   return (
-    <div className="flex min-h-screen min-w-0 flex-col overflow-x-clip bg-background">
-      <Navbar />
+    <div className="flex min-h-dvh min-w-0 flex-col overflow-x-clip bg-background">
+      <div className="flex h-14 items-center gap-3 border-b border-border/40 px-4 md:h-16">
+        <Skeleton className="h-6 w-28" />
+        <div className="ml-auto flex gap-2">
+          <Skeleton className="size-10 rounded-xl" />
+          <Skeleton className="size-10 rounded-xl" />
+        </div>
+      </div>
       <main className="flex-1">
         <section className="px-4 py-6 pb-24 md:py-10 md:pb-10 lg:px-6 lg:py-12">
           <div className="mx-auto max-w-5xl space-y-6">
-            {/* Identity header skeleton */}
-            <div className="glass-card flex items-center gap-4 rounded-2xl p-4 md:p-6">
-              <Skeleton className="size-12 shrink-0 rounded-xl md:size-16 md:rounded-2xl" />
-              <div className="flex flex-1 flex-col gap-2">
-                <Skeleton className="h-5 w-32" />
-                <Skeleton className="h-4 w-48" />
-              </div>
-            </div>
-            {/* KPI cards skeleton */}
             <div className="grid grid-cols-3 gap-2 md:gap-4">
               <Skeleton className="h-[72px] rounded-xl" />
               <Skeleton className="h-[72px] rounded-xl" />
               <Skeleton className="h-[72px] rounded-xl" />
             </div>
-            {/* Section title skeleton (mobile) */}
-            <Skeleton className="h-6 w-28 rounded-lg md:hidden" />
-            {/* Tabs skeleton (desktop) */}
-            <Skeleton className="hidden h-12 w-full rounded-xl md:block" />
             <Skeleton className="h-48 w-full rounded-xl" />
           </div>
         </section>
       </main>
-      {/* Bottom bar skeleton for mobile */}
-      <div className="fixed inset-x-0 bottom-0 z-40 glass-navbar border-t border-border/50 pb-[env(safe-area-inset-bottom)] md:hidden">
-        <div className="flex items-center justify-around px-1 py-2.5">
-          {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="flex flex-col items-center gap-1">
-              <Skeleton className="size-5 rounded" />
-              <Skeleton className="h-2.5 w-8 rounded" />
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
-  )
-}
-
-// ─── Mobile Bottom Navigation Bar ────────────────────────────────────────────
-const BOTTOM_NAV_TABS = [
-  { value: "squads", label: "Squads", icon: UsersRound, activeColor: "text-teal" },
-  { value: "inbox", label: "Inbox", icon: Inbox, activeColor: "text-peach" },
-  { value: "availability", label: "Available", icon: UserRoundSearch, activeColor: "text-lavender" },
-  { value: "achievements", label: "Trophies", icon: Trophy, activeColor: "text-peach" },
-  { value: "settings", label: "Settings", icon: Settings, activeColor: "text-muted-foreground" },
-] as const
-
-/** Mobile bottom bar height (content) before safe-area inset. */
-const DASHBOARD_BOTTOM_BAR_PX = 64
-
-function DashboardBottomBar({
-  activeTab,
-  onTabChange,
-  inboxCount,
-}: {
-  activeTab: string
-  onTabChange: (tab: string) => void
-  inboxCount: number
-}) {
-  return (
-    <nav
-      className="fixed inset-x-0 bottom-0 z-40 glass-navbar border-t border-border/50 pb-[env(safe-area-inset-bottom)] md:hidden"
-      style={{ height: `calc(${DASHBOARD_BOTTOM_BAR_PX}px + env(safe-area-inset-bottom, 0px))` }}
-    >
-      <div className="grid h-16 grid-cols-5">
-        {BOTTOM_NAV_TABS.map(({ value, label, icon: Icon, activeColor }) => {
-          const isActive = activeTab === value
-          const showBadge = value === "inbox" && inboxCount > 0
-          return (
-            <button
-              key={value}
-              type="button"
-              onClick={() => onTabChange(value)}
-              className={cn(
-                "relative flex min-h-11 min-w-0 flex-col items-center justify-center gap-0.5 px-0.5 py-1 text-[12px] font-semibold leading-tight transition-colors active:scale-95",
-                isActive ? activeColor : "text-muted-foreground",
-              )}
-            >
-              {isActive && (
-                <span className="absolute inset-x-1.5 -top-1 h-0.5 rounded-full bg-current" />
-              )}
-              <span className="relative">
-                <Icon className="size-5" />
-                {showBadge && (
-                  <span className="absolute -right-2.5 -top-1.5 flex min-h-[16px] min-w-[16px] items-center justify-center rounded-full bg-peach px-1 text-xs font-bold text-peach-foreground">
-                    {inboxCount > 9 ? "9+" : inboxCount}
-                  </span>
-                )}
-              </span>
-              <span className="whitespace-nowrap text-[12px]">{label}</span>
-            </button>
-          )
-        })}
-      </div>
-    </nav>
   )
 }
 
@@ -425,88 +306,6 @@ function ResponsiveConfirmDrawer({
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
-  )
-}
-
-// ─── Mobile Section Title (shown when bottom bar is active) ──────────────────
-const SECTION_TITLES: Record<string, { label: string; icon: typeof UsersRound; color: string }> = {
-  squads: { label: "My Squads", icon: UsersRound, color: "text-teal" },
-  inbox: { label: "Inbox", icon: Inbox, color: "text-peach" },
-  availability: { label: "Available", icon: UserRoundSearch, color: "text-lavender" },
-  achievements: { label: "Achievements", icon: Trophy, color: "text-peach" },
-  settings: { label: "Settings", icon: Settings, color: "text-muted-foreground" },
-}
-
-function MobileSectionTitle({ activeTab, inboxCount }: { activeTab: string; inboxCount: number }) {
-  const section = SECTION_TITLES[activeTab]
-  if (!section) return null
-  const Icon = section.icon
-  return (
-    <div className="mb-4 flex items-center gap-2.5 md:hidden">
-      <Icon className={cn("size-5", section.color)} />
-      <h2 className="text-lg font-bold tracking-tight text-foreground">{section.label}</h2>
-      {activeTab === "inbox" && inboxCount > 0 && (
-        <span className="flex min-h-5 min-w-5 items-center justify-center rounded-full bg-peach px-1.5 text-xs font-bold text-peach-foreground">
-          {inboxCount}
-        </span>
-      )}
-    </div>
-  )
-}
-
-// Compact Identity Header (~56–72px on mobile)
-function DashboardIdentityHeader({
-  displayName,
-  avatarUrl,
-  currentTitle,
-  xp,
-}: {
-  displayName: string
-  avatarUrl: string | null
-  currentTitle: string
-  xp: number
-}) {
-  const level = levelFromTotalXp(xp)
-  const progress = gamificationLevelProgress(xp)
-  const title = currentTitle?.trim() || "Rookie Jammer"
-
-  return (
-    <div className="glass-card overflow-hidden rounded-2xl">
-      <div className="flex h-14 items-center gap-2.5 px-3 md:h-auto md:gap-4 md:p-5">
-        <UserAvatar
-          src={avatarUrl}
-          fallbackName={displayName}
-          size="md"
-          className="size-9 shrink-0 rounded-xl ring-2 ring-border/30 md:size-14 md:rounded-2xl"
-        />
-        <div className="min-w-0 flex-1">
-          <div className="flex min-w-0 items-center gap-2">
-            <p className="min-w-0 truncate text-sm font-semibold tracking-tight text-foreground md:text-lg">
-              {displayName}
-            </p>
-            <JammerLevelBadge
-              level={level}
-              className="level-badge-animated shrink-0 border-amber-800/35 bg-amber-600/12 px-1.5 py-0.5 text-[10px] font-bold text-amber-950 md:text-xs dark:border-amber-500/40 dark:bg-amber-500/15 dark:text-amber-400"
-            />
-          </div>
-          <div className="mt-0.5 hidden min-w-0 items-center gap-2 md:flex">
-            <JammerTitleBadge title={title} className="min-w-0 text-sm" />
-          </div>
-          <div className="mt-1.5 h-0.5 w-full overflow-hidden rounded-full bg-muted/80 md:hidden">
-            <div
-              className="h-full bg-gradient-to-r from-teal to-peach transition-all duration-500"
-              style={{ width: `${progress.progressPercent}%` }}
-            />
-          </div>
-        </div>
-      </div>
-      <div className="hidden h-1 w-full bg-muted/50 md:block">
-        <div
-          className="h-full bg-gradient-to-r from-teal to-peach transition-all duration-500"
-          style={{ width: `${progress.progressPercent}%` }}
-        />
-      </div>
-    </div>
   )
 }
 
@@ -729,17 +528,15 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
   const [profile, setProfile] = useState<ProfileSettingsProfile | null>(fixture?.profile ?? null)
 
   const dailyXpClaimRef = useRef(false)
-  const [compactTabBar, setCompactTabBar] = useState(false)
   const isMobile = useIsMobile()
-
-  useEffect(() => {
-    if (typeof window === "undefined") return
-    const mq = window.matchMedia("(max-width: 639px)")
-    const apply = () => setCompactTabBar(mq.matches)
-    apply()
-    mq.addEventListener("change", apply)
-    return () => mq.removeEventListener("change", apply)
-  }, [])
+  const {
+    notifications: shellNotifications,
+    unreadCount: shellUnreadCount,
+    loading: shellNotifLoading,
+    refetch: refetchShellNotifications,
+    dismissNotification,
+    markAllAsRead,
+  } = useNotifications(session?.user?.id ?? fixture?.profile.id ?? null)
 
   const mapTeamRow = (t: TeamRow, authUserId: string): TeamData => {
     type LookingForEntry = { level?: string | null; role?: string | null }
@@ -1552,38 +1349,43 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
   const headerTitle = profile?.current_title?.trim() || "Rookie Jammer"
   const hasKpiSignal = teams.length > 0 || activityTotal > 0 || availabilityPosts.length > 0
 
-  return (
-    <div className="flex min-h-screen min-w-0 flex-col overflow-x-clip bg-background">
-      <Navbar />
-      
-      <main className="min-w-0 flex-1 lg:pt-16">
-        {/* Hero section with identity + KPIs */}
-        <section className="min-w-0 px-4 py-4 md:py-8 lg:px-6">
-          <div className="mx-auto min-w-0 max-w-5xl space-y-3 md:space-y-6">
-            {/* Compact Identity Header */}
-            {(session?.user?.id || fixture) && profile ? (
-              <DashboardIdentityHeader
-                displayName={displayName}
-                avatarUrl={profile.avatar_url ?? null}
-                currentTitle={headerTitle}
-                xp={headerXp}
-              />
-            ) : null}
+  const shellAccount = {
+    userId: session?.user?.id ?? fixture?.profile.id ?? "",
+    displayName,
+    avatarUrl: profile?.avatar_url ?? null,
+    xp: headerXp,
+    currentTitle: headerTitle,
+  }
 
-            {/* 3 KPI cards (hidden if no useful signal) */}
+  return (
+    <AppShell
+      account={shellAccount}
+      inboxCount={toActionCount}
+      availabilityCount={availabilityPosts.length}
+      notifications={shellNotifications}
+      unreadCount={shellUnreadCount}
+      notifLoading={shellNotifLoading}
+      onMarkRead={(id) => void dismissNotification(id)}
+      onMarkAllRead={() => void markAllAsRead()}
+      onRefetchNotifications={() => void refetchShellNotifications()}
+      className="min-w-0 overflow-x-clip"
+    >
+      <div className="min-w-0">
+        <section className="min-w-0 px-4 py-4 md:py-6 lg:px-6">
+          <div className="mx-auto min-w-0 max-w-6xl space-y-3 md:space-y-4">
             {hasKpiSignal ? (
               <div className="grid min-w-0 grid-cols-3 gap-1.5 md:gap-2">
                 <DashboardMiniKpi
-                  icon={<UsersRound className="size-3.5 text-teal" />}
+                  icon={<AppIcon icon={ICON.squad} size="sm" tone="teal" />}
                   label="Squads"
                   value={teams.length}
                   helper={teams.length > 0 ? "active" : undefined}
                   toneClassName="border-teal/20 bg-teal/5"
                 />
                 <DashboardMiniKpi
-                  icon={<Inbox className="size-3.5 text-peach" />}
-                  label="Activity"
-                  value={activityTotal}
+                  icon={<AppIcon icon={ICON.applications} size="sm" tone="peach" />}
+                  label="To do"
+                  value={toActionCount}
                   toneClassName="border-peach/20 bg-peach/5"
                   rightSlot={
                     <Tooltip>
@@ -1604,8 +1406,8 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
                   }
                 />
                 <DashboardMiniKpi
-                  icon={<UserRoundSearch className="size-3.5 text-lavender" />}
-                  label="Available"
+                  icon={<AppIcon icon={ICON.available} size="sm" tone="lavender" />}
+                  label="My posts"
                   value={availabilityPosts.length}
                   helper={availabilityPosts.length > 0 ? "posts" : undefined}
                   toneClassName="border-lavender/20 bg-lavender/5"
@@ -1615,71 +1417,9 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
           </div>
         </section>
 
-        {/* Tabs Section — mobile pb = bottom bar (64px) + safe-area so content is never hidden */}
-        <section className="min-w-0 px-4 pb-[calc(64px+env(safe-area-inset-bottom,0px)+1rem)] md:pb-8 lg:px-6 lg:pb-12">
-          <div className="mx-auto w-full min-w-0 max-w-5xl">
+        <section className="min-w-0 px-4 pb-8 lg:px-6 lg:pb-12">
+          <div className="mx-auto w-full min-w-0 max-w-6xl">
             <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full min-w-0 max-w-full">
-              <TabsList className="glass mb-4 hidden h-auto w-full min-w-0 max-w-full touch-pan-x items-center justify-start gap-1 overflow-x-auto overscroll-x-contain rounded-xl p-1.5 [-webkit-overflow-scrolling:touch] md:mb-6 md:flex md:w-fit">
-                <DashboardTabTrigger
-                  value="squads"
-                  tooltipLabel="My Squads"
-                  showTooltip={compactTabBar}
-                  className={cn(
-                    "shrink-0 items-center rounded-lg border border-transparent px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground",
-                    "data-[state=active]:border-teal/30 data-[state=active]:bg-background/80 data-[state=active]:text-teal data-[state=active]:shadow-sm",
-                  )}
-                  icon={<UsersRound className="size-4 shrink-0 text-teal" aria-hidden />}
-                  label="Squads"
-                />
-                <DashboardTabTrigger
-                  value="inbox"
-                  tooltipLabel="Inbox"
-                  showTooltip={compactTabBar}
-                  className={cn(
-                    "shrink-0 items-center rounded-lg border border-transparent px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground",
-                    "data-[state=active]:border-peach/30 data-[state=active]:bg-background/80 data-[state=active]:text-peach data-[state=active]:shadow-sm",
-                  )}
-                  icon={<Inbox className="size-4 shrink-0 text-peach" aria-hidden />}
-                  label="Inbox"
-                />
-                <DashboardTabTrigger
-                  value="availability"
-                  tooltipLabel="Availability"
-                  showTooltip={compactTabBar}
-                  className={cn(
-                    "shrink-0 items-center rounded-lg border border-transparent px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground",
-                    "data-[state=active]:border-lavender/30 data-[state=active]:bg-background/80 data-[state=active]:text-lavender data-[state=active]:shadow-sm",
-                  )}
-                  icon={<UserRoundSearch className="size-4 shrink-0 text-lavender" aria-hidden />}
-                  label="Available"
-                />
-                <DashboardTabTrigger
-                  value="achievements"
-                  tooltipLabel="Achievements"
-                  showTooltip={compactTabBar}
-                  className={cn(
-                    "shrink-0 items-center rounded-lg border border-transparent px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground",
-                    "data-[state=active]:border-peach/30 data-[state=active]:bg-background/80 data-[state=active]:text-peach data-[state=active]:shadow-sm",
-                  )}
-                  icon={<Trophy className="size-4 shrink-0 text-peach" aria-hidden />}
-                  label="Achievements"
-                />
-                <DashboardTabTrigger
-                  value="settings"
-                  tooltipLabel="Settings"
-                  showTooltip={compactTabBar}
-                  className={cn(
-                    "shrink-0 items-center rounded-lg border border-transparent px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground",
-                    "data-[state=active]:border-border data-[state=active]:bg-background/80 data-[state=active]:text-muted-foreground data-[state=active]:shadow-sm",
-                  )}
-                  icon={<Settings className="size-4 shrink-0 text-muted-foreground" aria-hidden />}
-                  label="Settings"
-                />
-              </TabsList>
-
-              {/* Mobile section title — visible only when bottom bar is used */}
-              <MobileSectionTitle activeTab={activeTab} inboxCount={toActionCount} />
-
               <TabsContent value="squads" className="mt-0 min-w-0 max-w-full">
                 <div className="grid min-w-0 max-w-full gap-4 lg:grid-cols-12">
                   <div className="min-w-0 space-y-4 lg:col-span-8">
@@ -1771,14 +1511,7 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
             </Tabs>
           </div>
         </section>
-      </main>
-
-      {/* Mobile Bottom Navigation */}
-      <DashboardBottomBar
-        activeTab={activeTab}
-        onTabChange={handleTabChange}
-        inboxCount={toActionCount}
-      />
+      </div>
 
       <OnboardingModal
         open={showOnboardingModal}
@@ -1791,7 +1524,7 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
         isMobile={isMobile}
         icon={
           <div className="flex size-10 items-center justify-center rounded-xl bg-success/15">
-            <UserRoundMinus className="size-5 text-success" />
+            <AppIcon icon={ICON.removeMember} size="lg" className="text-success" />
           </div>
         }
         title="Congratulations! You've joined the squad."
@@ -1811,7 +1544,7 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
         isMobile={isMobile}
         icon={
           <div className="flex size-10 items-center justify-center rounded-xl bg-destructive/15">
-            <UserRoundMinus className="size-5 text-destructive" />
+            <AppIcon icon={ICON.removeMember} size="lg" tone="destructive" />
           </div>
         }
         title="Leave this squad?"
@@ -1841,6 +1574,6 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
         onCancel={() => setAvailabilityPostIdToDelete(null)}
         confirmClassName="bg-destructive text-destructive-foreground hover:bg-destructive/90"
       />
-    </div>
+    </AppShell>
   )
 }
