@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { track } from "@vercel/analytics"
-import { Sword, Sparkles, Zap, Star, Gamepad2, PenLine } from "lucide-react"
+import { Sword, Sparkles, Zap, Star, Gamepad2, PenLine, UsersRound } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 const DOT_PATTERN = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Ccircle cx='2' cy='2' r='1.2' fill='%2394a3b8' fill-opacity='0.35'/%3E%3C/svg%3E")`
@@ -63,7 +63,7 @@ export function LandingCTA() {
                   href="/teams"
                   onClick={() => track("Landing CTA Clicked", { cta: "browse_teams", placement: "bottom" })}
                 >
-                  <Sparkles className="size-5" />
+                  <UsersRound className="size-5" />
                   Browse Squads
                 </Link>
               </Button>

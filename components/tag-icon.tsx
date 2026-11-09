@@ -1,23 +1,7 @@
 "use client"
 
 import type { CSSProperties, ReactNode } from "react"
-import {
-  BookOpen,
-  Box,
-  Bug,
-  CircleDashed,
-  CodeXml,
-  Coffee,
-  Dices,
-  Feather,
-  Flame,
-  LayoutTemplate,
-  Mic,
-  Music,
-  Palette,
-  Swords,
-  type LucideIcon,
-} from "lucide-react"
+import { CircleDashed, Coffee } from "lucide-react"
 import { siConstruct3, siGamemaker, siGodotengine, siUnity, siUnrealengine } from "simple-icons"
 import { DEFOLD_MARK_PATH, GDEVELOP_MARK_PATH } from "@/lib/official-engine-marks"
 import {
@@ -32,6 +16,7 @@ import {
   engineOptionLabel,
   languageOptionLabel,
 } from "@/lib/constants"
+import { ROLE_ICON, STYLE_ICON } from "@/lib/icons"
 import { cn } from "@/lib/utils"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
@@ -50,25 +35,6 @@ const ICON: Record<TagSize, string> = {
   xs: "size-3",
   sm: "size-3.5",
   md: "size-5",
-}
-
-const ROLE_ICON: Record<string, { icon: LucideIcon; tone: string }> = {
-  developer: { icon: CodeXml, tone: "--role-developer" },
-  "2d-artist": { icon: Palette, tone: "--role-artist-2d" },
-  "3d-artist": { icon: Box, tone: "--role-artist-3d" },
-  audio: { icon: Music, tone: "--role-audio" },
-  voice_actor: { icon: Mic, tone: "--role-voice" },
-  writer: { icon: Feather, tone: "--role-writer" },
-  "game-design": { icon: Dices, tone: "--role-design" },
-  "ui-ux": { icon: LayoutTemplate, tone: "--role-ux" },
-  qa: { icon: Bug, tone: "--role-qa" },
-}
-
-const STYLE_ICON: Record<string, LucideIcon> = {
-  chill: Coffee,
-  learning: BookOpen,
-  dedicated: Flame,
-  competitive: Swords,
 }
 
 /**
@@ -228,12 +194,12 @@ function resolveTag(kind: TagKind, raw: string): ResolvedTag | null {
   const key = raw.toLowerCase()
 
   if (kind === "role") {
-    const meta = ROLE_ICON[key]
-    const Icon = meta?.icon ?? CodeXml
+    const meta = ROLE_ICON[key] ?? ROLE_ICON.other
+    const Icon = meta.icon
     return {
       label: roleLabel(key),
-      tone: meta?.tone ?? "--role-developer",
-      node: (iconClass) => <Icon className={iconClass} strokeWidth={1.75} aria-hidden />,
+      tone: meta.tone,
+      node: (iconClass) => <Icon className={iconClass} strokeWidth={2} aria-hidden />,
     }
   }
 
@@ -242,7 +208,7 @@ function resolveTag(kind: TagKind, raw: string): ResolvedTag | null {
     return {
       label: styleLabel(key),
       tone: "--role-design",
-      node: (iconClass) => <Icon className={iconClass} strokeWidth={1.75} aria-hidden />,
+      node: (iconClass) => <Icon className={iconClass} strokeWidth={2} aria-hidden />,
     }
   }
 
@@ -297,7 +263,7 @@ function resolveTag(kind: TagKind, raw: string): ResolvedTag | null {
     label,
     mono: true,
     forceLabel: true,
-    node: (iconClass) => <CircleDashed className={iconClass} strokeWidth={1.75} aria-hidden />,
+    node: (iconClass) => <CircleDashed className={iconClass} strokeWidth={2} aria-hidden />,
   }
 }
 

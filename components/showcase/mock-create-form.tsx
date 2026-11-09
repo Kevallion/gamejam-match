@@ -1,6 +1,6 @@
 "use client"
 
-import { Plus, Sparkles, Rocket, ChevronDown } from "lucide-react"
+import { Plus, Rocket, ChevronDown } from "lucide-react"
 
 export function MockCreateForm() {
   return (
@@ -93,9 +93,8 @@ export function MockCreateForm() {
 
             {/* Submit button */}
             <div className="flex items-center justify-center gap-1.5 rounded-2xl bg-primary py-3 text-xs font-extrabold text-primary-foreground shadow-lg shadow-primary/25">
-              <Sparkles className="size-3.5" />
-              Publish Announcement
               <Rocket className="size-3.5" />
+              Publish Announcement
             </div>
           </div>
         </div>

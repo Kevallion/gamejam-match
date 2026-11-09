@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Loader2, RefreshCw } from "lucide-react"
+import { LoaderCircle, RefreshCw } from "lucide-react"
 import { syncItchJams } from "@/app/actions/jam-actions"
 
 export function SyncJamsClient() {
@@ -40,7 +40,7 @@ export function SyncJamsClient() {
         >
           {loading ? (
             <>
-              <Loader2 className="size-4 animate-spin" />
+              <LoaderCircle className="size-4 animate-spin" />
               Syncing…
             </>
           ) : (

@@ -4,14 +4,14 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/components/auth-provider"
 import { supabase } from "@/lib/supabase"
-import { Loader2 } from "lucide-react"
+import { LoaderCircle } from "lucide-react"
 
 const RETRY_DELAY_MS = 300
 const RETRY_COUNT = 5
 
 const Loader = () => (
   <div className="flex min-h-[50vh] flex-col items-center justify-center gap-6 px-4">
-    <Loader2 className="size-10 animate-spin text-primary" />
+    <LoaderCircle className="size-6 animate-spin text-primary" />
     <p className="text-muted-foreground">Verifying...</p>
   </div>
 )

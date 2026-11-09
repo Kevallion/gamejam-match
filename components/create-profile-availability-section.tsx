@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { Info, Loader2 } from "lucide-react"
+import { Info, LoaderCircle } from "lucide-react"
 import { AvailabilityForm } from "@/components/availability-form"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
@@ -43,7 +43,7 @@ export function CreateProfileAvailabilitySection() {
   if (!authReady) {
     return (
       <div className="flex min-h-[240px] items-center justify-center rounded-3xl border border-border/50 bg-card/50">
-        <Loader2 className="size-8 animate-spin text-muted-foreground" aria-label="Loading" />
+        <LoaderCircle className="size-6 animate-spin text-muted-foreground" aria-label="Loading" />
       </div>
     )
   }
@@ -55,7 +55,7 @@ export function CreateProfileAvailabilitySection() {
   if (countLoading) {
     return (
       <div className="flex min-h-[240px] items-center justify-center rounded-3xl border border-border/50 bg-card/50">
-        <Loader2 className="size-8 animate-spin text-muted-foreground" aria-label="Loading" />
+        <LoaderCircle className="size-6 animate-spin text-muted-foreground" aria-label="Loading" />
       </div>
     )
   }

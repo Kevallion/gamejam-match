@@ -1,6 +1,6 @@
 "use client"
 
-import { Bell, Gamepad2, LayoutDashboard, Mail, Users } from "lucide-react"
+import { Bell, Gamepad2, LayoutDashboard } from "lucide-react"
 
 export function MockNotifications() {
   return (

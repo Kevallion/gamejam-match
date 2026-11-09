@@ -15,15 +15,15 @@ import type {
   SentInvitationOutboxItem,
 } from "@/components/dashboard-sent-outbox"
 import {
-  Clock3,
+  Clock,
   Info,
   Inbox,
-  Settings2,
+  Settings,
   Trash2,
   Trophy,
-  UserMinus,
-  UserSearch,
-  Users2,
+  UserRoundMinus,
+  UserRoundSearch,
+  UsersRound,
 } from "lucide-react"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { Card, CardContent } from "@/components/ui/card"
@@ -100,7 +100,7 @@ import {
 } from "@/lib/notifications-enriched"
 
 const LEVEL_STYLES = EXPERIENCE_STYLES
-const FALLBACK_ROLE = { label: "Other", emoji: "?", color: "bg-muted text-muted-foreground" }
+const FALLBACK_ROLE = ROLE_STYLES.other
 const FALLBACK_LEVEL = EXPERIENCE_STYLES["beginner"]
 
 type TeamRow = {
@@ -297,11 +297,11 @@ function DashboardLoadingSkeleton() {
 
 // ─── Mobile Bottom Navigation Bar ────────────────────────────────────────────
 const BOTTOM_NAV_TABS = [
-  { value: "squads", label: "Squads", icon: Users2, activeColor: "text-teal" },
+  { value: "squads", label: "Squads", icon: UsersRound, activeColor: "text-teal" },
   { value: "inbox", label: "Inbox", icon: Inbox, activeColor: "text-peach" },
-  { value: "availability", label: "Available", icon: UserSearch, activeColor: "text-lavender" },
-  { value: "achievements", label: "Trophies", icon: Trophy, activeColor: "text-amber-500" },
-  { value: "settings", label: "Settings", icon: Settings2, activeColor: "text-slate-300" },
+  { value: "availability", label: "Available", icon: UserRoundSearch, activeColor: "text-lavender" },
+  { value: "achievements", label: "Trophies", icon: Trophy, activeColor: "text-peach" },
+  { value: "settings", label: "Settings", icon: Settings, activeColor: "text-muted-foreground" },
 ] as const
 
 /** Mobile bottom bar height (content) before safe-area inset. */
@@ -429,12 +429,12 @@ function ResponsiveConfirmDrawer({
 }
 
 // ─── Mobile Section Title (shown when bottom bar is active) ──────────────────
-const SECTION_TITLES: Record<string, { label: string; icon: typeof Users2; color: string }> = {
-  squads: { label: "My Squads", icon: Users2, color: "text-teal" },
+const SECTION_TITLES: Record<string, { label: string; icon: typeof UsersRound; color: string }> = {
+  squads: { label: "My Squads", icon: UsersRound, color: "text-teal" },
   inbox: { label: "Inbox", icon: Inbox, color: "text-peach" },
-  availability: { label: "Available", icon: UserSearch, color: "text-lavender" },
-  achievements: { label: "Achievements", icon: Trophy, color: "text-amber-500" },
-  settings: { label: "Settings", icon: Settings2, color: "text-slate-300" },
+  availability: { label: "Available", icon: UserRoundSearch, color: "text-lavender" },
+  achievements: { label: "Achievements", icon: Trophy, color: "text-peach" },
+  settings: { label: "Settings", icon: Settings, color: "text-muted-foreground" },
 }
 
 function MobileSectionTitle({ activeTab, inboxCount }: { activeTab: string; inboxCount: number }) {
@@ -563,7 +563,7 @@ function DashboardRecentActivity({
       <CardContent className="space-y-3 p-4">
         <div className="flex items-center justify-between">
           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Recent activity</p>
-          <Clock3 className="size-3.5 text-muted-foreground" />
+          <Clock className="size-3.5 text-muted-foreground" />
         </div>
         {latest.length === 0 ? (
           <p className="text-xs text-muted-foreground">No recent notifications.</p>
@@ -753,6 +753,7 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
       parsed = []
     }
     const rawLevel = (parsed[0]?.level || "beginner").toLowerCase()
+    const levelStyle = LEVEL_STYLES[rawLevel]
     return {
       id: t.id,
       name: t.team_name || "Unnamed",
@@ -762,11 +763,22 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
       description: t.description || "",
       members: (t.team_members?.[0]?.count ?? 0) + 1,
       maxMembers: 1 + parsed.length,
-      roles: parsed.map((r) => ROLE_STYLES[r.role?.toLowerCase() ?? ""] ?? { ...FALLBACK_ROLE, label: r.role ?? "Other" }),
+      roles: parsed.map((r) => {
+        const roleKey = (r.role ?? "").trim().toLowerCase()
+        const known = ROLE_STYLES[roleKey]
+        if (known) return { ...known, key: roleKey }
+        return {
+          ...FALLBACK_ROLE,
+          label: r.role?.trim() || FALLBACK_ROLE.label,
+          key: "other",
+        }
+      }),
       lookingForRoleKeys: parsed
         .map((r) => (r.role ?? "").trim().toLowerCase())
         .filter(Boolean),
-      level: LEVEL_STYLES[rawLevel] ?? FALLBACK_LEVEL,
+      level: levelStyle
+        ? { ...levelStyle, key: rawLevel }
+        : { ...FALLBACK_LEVEL, key: "beginner" },
       discord_link: discordLinkFromEmbed(t.team_discord_links) ?? t.discord_link ?? null,
       isOwner: t.user_id === authUserId,
       jamStartDate: t.jam_start_date ?? null,
@@ -778,9 +790,15 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
   }
 
   const mapApplicationRow = (r: ApplicationRow, profileMap: Record<string, { username?: string; avatar_url?: string }>): ApplicationData => {
-    const targetRole = r.target_role
-      ? (ROLE_STYLES[r.target_role] ?? { label: r.target_role, emoji: "?", color: "bg-muted text-muted-foreground" })
-      : { label: "Applicant", emoji: "?", color: "bg-teal/15 text-teal" }
+    const roleKey = (r.target_role ?? "").trim().toLowerCase()
+    const knownRole = roleKey ? ROLE_STYLES[roleKey] : undefined
+    const targetRole = roleKey
+      ? {
+          ...(knownRole ?? FALLBACK_ROLE),
+          label: knownRole?.label ?? r.target_role ?? FALLBACK_ROLE.label,
+          key: knownRole ? roleKey : "other",
+        }
+      : { label: "Applicant", color: "bg-teal/15 text-teal" }
     const profile = r.sender_id ? profileMap[r.sender_id] : null
     const username = profile?.username || r.sender_name || "A Jammer"
     return {
@@ -1556,7 +1574,7 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
             {hasKpiSignal ? (
               <div className="grid min-w-0 grid-cols-3 gap-1.5 md:gap-2">
                 <DashboardMiniKpi
-                  icon={<Users2 className="size-3.5 text-teal" />}
+                  icon={<UsersRound className="size-3.5 text-teal" />}
                   label="Squads"
                   value={teams.length}
                   helper={teams.length > 0 ? "active" : undefined}
@@ -1586,7 +1604,7 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
                   }
                 />
                 <DashboardMiniKpi
-                  icon={<UserSearch className="size-3.5 text-lavender" />}
+                  icon={<UserRoundSearch className="size-3.5 text-lavender" />}
                   label="Available"
                   value={availabilityPosts.length}
                   helper={availabilityPosts.length > 0 ? "posts" : undefined}
@@ -1610,7 +1628,7 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
                     "shrink-0 items-center rounded-lg border border-transparent px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground",
                     "data-[state=active]:border-teal/30 data-[state=active]:bg-background/80 data-[state=active]:text-teal data-[state=active]:shadow-sm",
                   )}
-                  icon={<Users2 className="mr-1.5 size-4 shrink-0 text-teal" aria-hidden />}
+                  icon={<UsersRound className="size-4 shrink-0 text-teal" aria-hidden />}
                   label="Squads"
                 />
                 <DashboardTabTrigger
@@ -1621,7 +1639,7 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
                     "shrink-0 items-center rounded-lg border border-transparent px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground",
                     "data-[state=active]:border-peach/30 data-[state=active]:bg-background/80 data-[state=active]:text-peach data-[state=active]:shadow-sm",
                   )}
-                  icon={<Inbox className="mr-1.5 size-4 shrink-0 text-peach" aria-hidden />}
+                  icon={<Inbox className="size-4 shrink-0 text-peach" aria-hidden />}
                   label="Inbox"
                 />
                 <DashboardTabTrigger
@@ -1632,7 +1650,7 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
                     "shrink-0 items-center rounded-lg border border-transparent px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground",
                     "data-[state=active]:border-lavender/30 data-[state=active]:bg-background/80 data-[state=active]:text-lavender data-[state=active]:shadow-sm",
                   )}
-                  icon={<UserSearch className="mr-1.5 size-4 shrink-0 text-lavender" aria-hidden />}
+                  icon={<UserRoundSearch className="size-4 shrink-0 text-lavender" aria-hidden />}
                   label="Available"
                 />
                 <DashboardTabTrigger
@@ -1641,9 +1659,9 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
                   showTooltip={compactTabBar}
                   className={cn(
                     "shrink-0 items-center rounded-lg border border-transparent px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground",
-                    "data-[state=active]:border-amber-500/30 data-[state=active]:bg-background/80 data-[state=active]:text-amber-500 data-[state=active]:shadow-sm",
+                    "data-[state=active]:border-peach/30 data-[state=active]:bg-background/80 data-[state=active]:text-peach data-[state=active]:shadow-sm",
                   )}
-                  icon={<Trophy className="mr-1.5 size-4 shrink-0 text-amber-500" aria-hidden />}
+                  icon={<Trophy className="size-4 shrink-0 text-peach" aria-hidden />}
                   label="Achievements"
                 />
                 <DashboardTabTrigger
@@ -1652,9 +1670,9 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
                   showTooltip={compactTabBar}
                   className={cn(
                     "shrink-0 items-center rounded-lg border border-transparent px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground",
-                    "data-[state=active]:border-slate-400/30 data-[state=active]:bg-background/80 data-[state=active]:text-slate-500 data-[state=active]:shadow-sm dark:data-[state=active]:text-slate-300",
+                    "data-[state=active]:border-border data-[state=active]:bg-background/80 data-[state=active]:text-muted-foreground data-[state=active]:shadow-sm",
                   )}
-                  icon={<Settings2 className="mr-1.5 size-4 shrink-0 text-slate-400" aria-hidden />}
+                  icon={<Settings className="size-4 shrink-0 text-muted-foreground" aria-hidden />}
                   label="Settings"
                 />
               </TabsList>
@@ -1773,7 +1791,7 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
         isMobile={isMobile}
         icon={
           <div className="flex size-10 items-center justify-center rounded-xl bg-success/15">
-            <UserMinus className="size-5 text-success" />
+            <UserRoundMinus className="size-5 text-success" />
           </div>
         }
         title="Congratulations! You've joined the squad."
@@ -1793,7 +1811,7 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
         isMobile={isMobile}
         icon={
           <div className="flex size-10 items-center justify-center rounded-xl bg-destructive/15">
-            <UserMinus className="size-5 text-destructive" />
+            <UserRoundMinus className="size-5 text-destructive" />
           </div>
         }
         title="Leave this squad?"

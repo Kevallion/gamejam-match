@@ -60,8 +60,8 @@ function ActivityRow({
     >
       <div className="shrink-0 pt-0.5">
         {isSystem ? (
-          <div className="flex size-10 items-center justify-center rounded-full border border-amber-500/30 bg-amber-500/10">
-            <Trophy className="size-5 text-amber-500" aria-hidden />
+          <div className="flex size-10 items-center justify-center rounded-full border border-peach/30 bg-peach/10">
+            <Trophy className="size-5 text-peach" aria-hidden />
           </div>
         ) : (
           <button

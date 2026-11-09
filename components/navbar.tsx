@@ -2,7 +2,7 @@
 
 /* eslint-disable react-hooks/set-state-in-effect */
 
-import { Bell, Gamepad2, Hand, Heart, LayoutDashboard, Loader2, LogIn, LogOut, Menu, MessageSquare, Monitor, Moon, PenLine, Sparkles, Sun, UserSearch, Users } from "lucide-react"
+import { Bell, Gamepad2, Hand, Heart, LayoutDashboard, LoaderCircle, LogIn, LogOut, Menu, MessageSquareText, Monitor, Moon, PenLine, Sparkles, Sun, UserRoundSearch, UsersRound } from "lucide-react"
 import { FEEDBACK_URL } from "@/components/FeedbackButton"
 import { SupportNavbarPopover } from "@/components/support-navbar-popover"
 import { Button } from "@/components/ui/button"
@@ -46,8 +46,8 @@ import { JammerLevelBadge, JammerTitleBadge } from "@/components/profile-card"
 import { levelFromTotalXp } from "@/lib/gamification-level"
 
 const NAV_ITEMS = [
-  { href: "/teams", label: "Squads", icon: Users },
-  { href: "/find-members", label: "Members", icon: UserSearch },
+  { href: "/teams", label: "Squads", icon: UsersRound },
+  { href: "/find-members", label: "Members", icon: UserRoundSearch },
   { href: "/create-team", label: "Create a Squad", icon: PenLine },
   { href: "/create-profile", label: "Available", icon: Hand },
   { href: "/showcase", label: "How it works", icon: Sparkles },
@@ -209,15 +209,15 @@ export function Navbar() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="rounded-xl">
                   <DropdownMenuItem onClick={() => setTheme("light")}>
-                    <Sun className="mr-2 size-4" />
+                    <Sun className="size-4" />
                     Light
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setTheme("dark")}>
-                    <Moon className="mr-2 size-4" />
+                    <Moon className="size-4" />
                     Dark
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setTheme("system")}>
-                    <Monitor className="mr-2 size-4" />
+                    <Monitor className="size-4" />
                     System
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -308,7 +308,7 @@ export function Navbar() {
 
             {/* Auth */}
             {!mounted || loading ? (
-              <Loader2 className="size-4 animate-spin text-muted-foreground mx-2" />
+              <LoaderCircle className="size-4 animate-spin text-muted-foreground mx-2" />
             ) : user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -340,7 +340,7 @@ export function Navbar() {
                     onClick={handleSignOut}
                     className="text-destructive focus:text-destructive rounded-xl"
                   >
-                    <LogOut className="size-4 mr-2" />
+                    <LogOut className="size-4" />
                     Sign Out
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -385,13 +385,13 @@ export function Navbar() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="rounded-xl">
                   <DropdownMenuItem onClick={() => setTheme("light")}>
-                    <Sun className="mr-2 size-4" />Light
+                    <Sun className="size-4" />Light
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setTheme("dark")}>
-                    <Moon className="mr-2 size-4" />Dark
+                    <Moon className="size-4" />Dark
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => setTheme("system")}>
-                    <Monitor className="mr-2 size-4" />System
+                    <Monitor className="size-4" />System
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -473,7 +473,7 @@ export function Navbar() {
                     {/* User Info */}
                     <div className="border-b border-border/40 pb-4">
                       {!mounted || loading ? (
-                        <Loader2 className="size-5 animate-spin text-muted-foreground" />
+                        <LoaderCircle className="size-5 animate-spin text-muted-foreground" />
                       ) : user ? (
                         <div className="space-y-2">
                           <div className="flex items-center gap-3">
@@ -485,7 +485,7 @@ export function Navbar() {
                           </div>
                           <Button asChild size="sm" className="w-full rounded-xl bg-teal text-teal-foreground hover:bg-teal/90">
                             <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}>
-                              <LayoutDashboard className="mr-1.5 size-4" />
+                              <LayoutDashboard className="size-4" />
                               Dashboard
                             </Link>
                           </Button>
@@ -495,7 +495,7 @@ export function Navbar() {
                           onClick={() => { setAuthModalOpen(true); setMobileMenuOpen(false); }}
                           className="w-full rounded-xl bg-teal text-teal-foreground hover:bg-teal/90"
                         >
-                          <LogIn className="mr-2 size-4" />
+                          <LogIn className="size-4" />
                           Sign In
                         </Button>
                       )}
@@ -524,7 +524,7 @@ export function Navbar() {
                         onClick={() => setMobileMenuOpen(false)}
                         className="flex items-center gap-3 rounded-xl px-3 py-3 text-muted-foreground transition-colors hover:bg-white/5 hover:text-foreground"
                       >
-                        <MessageSquare className="size-5" />
+                        <MessageSquareText className="size-5" />
                         <span className="font-medium">Feedback</span>
                       </a>
                     </nav>
@@ -537,7 +537,7 @@ export function Navbar() {
                           className="h-11 w-full justify-center rounded-xl text-destructive hover:bg-destructive/10 hover:text-destructive"
                           onClick={() => setLogoutConfirmOpen(true)}
                         >
-                          <LogOut className="mr-2 size-4" />
+                          <LogOut className="size-4" />
                           Log out
                         </Button>
                       </div>

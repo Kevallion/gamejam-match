@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { toast } from "sonner"
-import { Sparkles, Users, UserSearch, Loader2, X } from "lucide-react"
+import { Rocket, UsersRound, UserRoundSearch, LoaderCircle, X } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -17,6 +17,9 @@ import { getAvailablePlayers, type AvailablePlayerListItem } from "@/lib/queries
 import { ROLE_STYLES, EXPERIENCE_STYLES, languageOptionLabel } from "@/lib/constants"
 
 import { UserAvatar } from "@/components/user-avatar"
+import { TagIcon } from "@/components/tag-icon"
+import { AppIcon, IconTile } from "@/components/ui/app-icon"
+import { ICON } from "@/lib/icons"
 import { sendTeamInvitation } from "@/app/actions/invite-actions"
 
 type LookingForEntry = { role?: string | null; level?: string | null }
@@ -313,9 +316,7 @@ export function PostActionOnboarding() {
             <>
               <DialogHeader className="space-y-2">
                 <div className="flex items-center gap-3">
-                  <div className="flex size-10 items-center justify-center rounded-2xl bg-teal/15">
-                    <Sparkles className="size-5 text-teal" />
-                  </div>
+                  <IconTile icon={Rocket} tone="teal" />
                   <DialogTitle className="text-2xl font-extrabold tracking-tight text-foreground">
                     Your squad is live!
                   </DialogTitle>
@@ -331,12 +332,12 @@ export function PostActionOnboarding() {
                   variant="outline"
                   className="rounded-full border-teal/30 bg-teal/10 px-3 py-1 text-xs font-semibold text-teal"
                 >
-                  <Users className="mr-1 size-3.5" />
+                  <UsersRound className="size-3.5" />
                   {teamData?.team_name?.trim() || "Your squad"}
                 </Badge>
                 <Button asChild variant="outline" className="rounded-xl border-primary/40 text-primary hover:bg-primary/10">
                   <Link href="/find-members" onClick={cleanUrlAndClose}>
-                    <UserSearch className="mr-2 size-4" />
+                    <UserRoundSearch className="size-4" />
                     Find Members
                   </Link>
                 </Button>
@@ -383,12 +384,7 @@ export function PostActionOnboarding() {
                               </div>
                               <div className="mt-2 flex flex-wrap items-center gap-1.5">
                                 {p.role.key ? (
-                                  <Badge
-                                    className={`rounded-full border-border/60 bg-card px-2.5 py-0.5 text-[11px] font-bold ${p.role.color}`}
-                                    variant="secondary"
-                                  >
-                                    {p.role.emoji} {p.role.label}
-                                  </Badge>
+                                  <TagIcon kind="role" value={p.role.key} size="xs" showLabel withTooltip={false} />
                                 ) : (
                                   <Badge
                                     className="rounded-full border-border/60 bg-muted px-2.5 py-0.5 text-[11px] font-bold text-muted-foreground"
@@ -397,11 +393,9 @@ export function PostActionOnboarding() {
                                     Role unknown
                                   </Badge>
                                 )}
-                                <span
-                                  className={`inline-flex items-center gap-1 rounded-full bg-secondary/50 px-2.5 py-0.5 text-[11px] font-bold text-foreground`}
-                                >
-                                  {p.level.emoji} {p.level.label}
-                                </span>
+                                {p.level.key ? (
+                                  <TagIcon kind="level" value={p.level.key} size="xs" showLabel withTooltip={false} />
+                                ) : null}
                               </div>
 
                               <div className="mt-2 flex items-center gap-2 text-xs font-semibold text-muted-foreground">
@@ -435,11 +429,12 @@ export function PostActionOnboarding() {
                             >
                               {invitedIds.includes(p.id) ? (
                                 <span className="inline-flex items-center gap-2">
-                                  Sent! ✓
+                                  Sent!
+                                  <AppIcon icon={ICON.confirm} size="sm" />
                                 </span>
                               ) : invitingUserId === p.id ? (
                                 <span className="inline-flex items-center gap-2">
-                                  <Loader2 className="size-4 animate-spin" />
+                                  <LoaderCircle className="size-4 animate-spin" />
                                   Inviting...
                                 </span>
                               ) : (
@@ -460,9 +455,7 @@ export function PostActionOnboarding() {
             <>
               <DialogHeader className="space-y-2">
                 <div className="flex items-center gap-3">
-                  <div className="flex size-10 items-center justify-center rounded-2xl bg-lavender/15">
-                    <Sparkles className="size-5 text-lavender" />
-                  </div>
+                  <IconTile icon={UsersRound} tone="lavender" />
                   <DialogTitle className="text-2xl font-extrabold tracking-tight text-foreground">
                     Nice work! Here are squads for you
                   </DialogTitle>
@@ -506,10 +499,8 @@ export function PostActionOnboarding() {
                 ) : (
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     {teams.map(({ team, matchedRoleKey }) => {
-                      const roleStyle = ROLE_STYLES[matchedRoleKey]
                       const matchedEntry = getMatchedRoleEntry(team.looking_for, matchedRoleKey)
                       const levelKey = matchedEntry?.level?.trim()?.toLowerCase() ?? ""
-                      const levelStyle = levelKey ? EXPERIENCE_STYLES[levelKey] : undefined
 
                       return (
                         <Card
@@ -534,26 +525,22 @@ export function PostActionOnboarding() {
                             </div>
 
                             <div className="mt-3 flex flex-wrap items-center gap-2">
-                              {roleStyle?.label ? (
-                                <Badge
-                                  className={`rounded-full border-border/60 bg-card px-3 py-1 text-[11px] font-bold ${roleStyle.color}`}
-                                  variant="secondary"
-                                >
-                                  {roleStyle.emoji} {roleStyle.label}
-                                </Badge>
+                              {matchedRoleKey ? (
+                                <TagIcon
+                                  kind="role"
+                                  value={ROLE_STYLES[matchedRoleKey] ? matchedRoleKey : "other"}
+                                  size="xs"
+                                  showLabel
+                                  withTooltip={false}
+                                />
                               ) : (
                                 <Badge className="rounded-full bg-secondary/50 px-3 py-1 text-[11px] font-bold text-muted-foreground" variant="secondary">
                                   Role
                                 </Badge>
                               )}
 
-                              {levelStyle?.label ? (
-                                <Badge
-                                  className={`rounded-full border-border/60 bg-secondary/50 px-3 py-1 text-[11px] font-bold ${levelStyle.color}`}
-                                  variant="secondary"
-                                >
-                                  {levelStyle.emoji} {levelStyle.label}
-                                </Badge>
+                              {levelKey && EXPERIENCE_STYLES[levelKey] ? (
+                                <TagIcon kind="level" value={levelKey} size="xs" showLabel withTooltip={false} />
                               ) : null}
 
                               {languageOptionLabel(team.language) ? (

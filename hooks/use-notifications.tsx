@@ -79,10 +79,10 @@ export function useNotifications(userId: string | null) {
             row.message.length > 0
           ) {
             toast.message(row.message, {
-              icon: <Trophy className="size-5 shrink-0 text-amber-500" aria-hidden />,
+              icon: <Trophy className="size-5 shrink-0 text-peach" aria-hidden />,
               classNames: {
                 toast:
-                  "group border-amber-500/45 bg-amber-950/20 dark:bg-amber-950/35 backdrop-blur-sm shadow-lg shadow-amber-500/10",
+                  "group border-peach/40 bg-peach/10 backdrop-blur-sm shadow-lg shadow-peach/10",
               },
               duration: 5200,
             })

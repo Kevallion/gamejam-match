@@ -11,9 +11,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import {
-  Users,
+  UsersRound,
   ArrowRight,
-  ShieldCheck,
+  CircleCheck,
   Share2,
   Sparkles,
   Flame,
@@ -31,7 +31,6 @@ import { JamStatusBadge } from "@/components/jam-status-badge"
 
 type RoleBadge = {
   label: string
-  emoji: string
   color: string
   key?: string
   filled?: boolean
@@ -39,7 +38,6 @@ type RoleBadge = {
 
 type LevelBadge = {
   label: string
-  emoji: string
   color: string
   key?: string
 }
@@ -59,7 +57,7 @@ export type TeamCardData = {
   maxMembers: number
   roles: RoleBadge[]
   level: LevelBadge
-  teamVibe?: { label: string; emoji: string; color: string; badgeColor?: string; key?: string }
+  teamVibe?: { label: string; color: string; badgeColor?: string; key?: string }
   filledRoleKeys?: string[]
   jamStartDate?: string | null
   jamEndDate?: string | null
@@ -122,7 +120,7 @@ export function TeamCard({
     const consumed = consumedByKey[key] ?? 0
     const filled = consumed < filledForRole
     consumedByKey[key] = consumed + 1
-    return { key, label: role.label, emoji: role.emoji, color: role.color, filled }
+    return { key, label: role.label, color: role.color, filled }
   })
 
   const isSquadFull =
@@ -240,7 +238,7 @@ export function TeamCard({
               variant="outline"
               className="inline-flex items-center gap-1.5 rounded-full border-border/60 text-xs text-muted-foreground"
             >
-              <Users className="size-3" />
+              <UsersRound className="size-3" />
               {team.members}/{team.maxMembers} members
             </Badge>
           </div>
@@ -280,7 +278,7 @@ export function TeamCard({
       <div className="shrink-0 border-t border-border/60 bg-muted/20 px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-6 sm:pb-4">
         {isSquadFull ? (
           <div className="flex w-full items-center justify-center gap-2 rounded-xl border border-border/60 bg-muted/50 px-4 py-3 text-sm font-bold text-muted-foreground">
-            <ShieldCheck className="size-4 text-primary" />
+            <CircleCheck className="size-4 text-primary" />
             Squad full
           </div>
         ) : (
@@ -320,7 +318,7 @@ export function TeamCard({
                   aria-label="Perfect match for your profile"
                   className="shrink-0 gap-0.5 border-teal/20 bg-teal/10 px-1.5 py-0 text-xs font-semibold text-teal"
                 >
-                  <Sparkles className="size-2.5" aria-hidden />
+                  <Sparkles className="size-3" aria-hidden />
                   Match
                 </Badge>
               )}
@@ -361,7 +359,7 @@ export function TeamCard({
           />
           {isSquadFull && (
             <span className="inline-flex items-center gap-1 rounded-full bg-muted/60 px-2.5 py-0.5 text-xs font-semibold text-muted-foreground">
-              <ShieldCheck className="size-3" />
+              <CircleCheck className="size-3" />
               Full
             </span>
           )}
@@ -382,7 +380,7 @@ export function TeamCard({
               </span>
             )}
             <span className="inline-flex items-center gap-1">
-              <Users className="size-3.5" aria-hidden />
+              <UsersRound className="size-3.5" aria-hidden />
               {team.members}/{team.maxMembers}
             </span>
           </div>

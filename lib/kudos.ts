@@ -1,3 +1,6 @@
+import { KUDOS_ICON } from "@/lib/icons"
+import type { LucideIcon } from "lucide-react"
+
 /** DB values for `kudos.category` — keep in sync with migration CHECK constraint. */
 export const KUDOS_CATEGORIES = ["Technical", "Artistic", "Leadership", "Friendly"] as const
 
@@ -7,15 +10,12 @@ export type KudosCounts = Partial<Record<KudosCategoryDb, number>>
 
 export const KUDOS_CATEGORY_ORDER: KudosCategoryDb[] = [...KUDOS_CATEGORIES]
 
-/** UI labels (DB category → display). */
-export const KUDOS_CATEGORY_UI: Record<
-  KudosCategoryDb,
-  { label: string; emoji: string }
-> = {
-  Technical: { label: "Technical", emoji: "💻" },
-  Artistic: { label: "Creative", emoji: "🎨" },
-  Leadership: { label: "Leadership", emoji: "👑" },
-  Friendly: { label: "Great Vibe", emoji: "🌟" },
+/** UI labels (DB category → display). Icons live in `KUDOS_ICON`. */
+export const KUDOS_CATEGORY_UI: Record<KudosCategoryDb, { label: string; icon: LucideIcon }> = {
+  Technical: { label: "Technical", icon: KUDOS_ICON.Technical },
+  Artistic: { label: "Creative", icon: KUDOS_ICON.Artistic },
+  Leadership: { label: "Leadership", icon: KUDOS_ICON.Leadership },
+  Friendly: { label: "Great Vibe", icon: KUDOS_ICON.Friendly },
 }
 
 export function isKudosCategoryDb(v: string): v is KudosCategoryDb {

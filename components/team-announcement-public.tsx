@@ -13,9 +13,9 @@ import { engineOptionLabel, languageOptionLabel } from "@/lib/constants"
 import { TagIcon } from "@/components/tag-icon"
 import { getJamListingStatus } from "@/lib/jam-calendar-status"
 import { toast } from "sonner"
-import { ArrowLeft, ArrowRight, Share2, ShieldCheck } from "lucide-react"
+import { ArrowLeft, ArrowRight, Share2, CircleCheck } from "lucide-react"
 
-type RoleOption = { key: string; label: string; emoji: string; color: string; filled?: boolean }
+type RoleOption = { key: string; label: string; color: string; filled?: boolean }
 
 export type PublicRosterMember = {
   userId: string
@@ -40,7 +40,6 @@ function computeAvailableRoles(team: TeamCardData): RoleOption[] {
     return {
       key,
       label: role.label,
-      emoji: role.emoji,
       color: role.color,
       filled,
     }
@@ -253,7 +252,7 @@ export function TeamAnnouncementPublic({
 
                 {isSquadFull ? (
                   <div className="flex items-center justify-center gap-2 rounded-xl border border-border/60 bg-muted/50 px-4 py-3 text-sm font-bold text-muted-foreground">
-                    <ShieldCheck className="size-4 text-primary" />
+                    <CircleCheck className="size-4 text-primary" />
                     Squad full
                   </div>
                 ) : !isLoggedIn ? (

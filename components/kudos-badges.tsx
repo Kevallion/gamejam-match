@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils"
+import { AppIcon } from "@/components/ui/app-icon"
 import {
   KUDOS_CATEGORY_ORDER,
   KUDOS_CATEGORY_UI,
@@ -40,7 +41,7 @@ export function KudosBadgeRow({
               textSize,
             )}
           >
-            <span aria-hidden>{ui.emoji}</span>
+            <AppIcon icon={ui.icon} size={size === "xs" ? "xs" : "sm"} />
             <span>{n}</span>
           </span>
         )

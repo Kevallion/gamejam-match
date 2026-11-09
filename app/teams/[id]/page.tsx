@@ -16,7 +16,8 @@ import { fetchTeammateDiscordUsernames } from "@/lib/profile-discord"
 import { fetchTeamDiscordLink } from "@/lib/team-discord"
 import { formatTeamToCardData, type TeamRowDb } from "@/lib/team-utils"
 import type { TeamCardData } from "@/components/team-card"
-import { ArrowLeft, ShieldAlert, Users, Cpu, Globe, Info } from "lucide-react"
+import { ArrowLeft, TriangleAlert, UsersRound, Cpu, Globe, Info } from "lucide-react"
+import { IconTile } from "@/components/ui/app-icon"
 import { toast } from "sonner"
 import { UserAvatar } from "@/components/user-avatar"
 import { Badge } from "@/components/ui/badge"
@@ -303,7 +304,7 @@ export default function TeamPage() {
           <div className="mx-auto max-w-2xl">
             <Card className="rounded-2xl border-border/60 bg-card">
               <CardContent className="flex flex-col items-center gap-4 p-8 text-center">
-                <ShieldAlert className="size-12 text-muted-foreground" />
+                <IconTile icon={TriangleAlert} tone="muted" />
                 <h1 className="text-xl font-bold text-foreground">
                   This announcement is no longer available
                 </h1>
@@ -369,7 +370,7 @@ export default function TeamPage() {
                 </Link>
               </Button>
               <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary">
-                <Users className="size-4" />
+                <UsersRound className="size-4" />
                 Squad space
               </div>
               <h1 className="text-balance text-3xl font-extrabold tracking-tight text-foreground md:text-4xl">

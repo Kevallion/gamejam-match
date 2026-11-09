@@ -17,14 +17,23 @@ export const ROLE_OPTIONS = [
   { value: "qa", label: "QA / Playtester" },
 ] as const
 
+/** Tint + text pair from a CSS custom property token. */
+function tone(token: string): string {
+  return `bg-[color-mix(in_oklab,var(${token})_18%,transparent)] text-[var(${token})]`
+}
+
+function toneBadge(token: string): string {
+  return `bg-[color-mix(in_oklab,var(${token})_25%,transparent)] text-[var(${token})] border-[color-mix(in_oklab,var(${token})_50%,transparent)]`
+}
+
 /** 6 experience tiers (ascending order) — color for visual aid in selects */
 export const EXPERIENCE_OPTIONS = [
-  { value: "beginner", label: "Beginner / Learner", emoji: "🌱", color: "bg-sky-400/15 text-sky-400" },
-  { value: "junior", label: "Junior / Student", emoji: "📚", color: "bg-emerald-500/15 text-emerald-400" },
-  { value: "regular", label: "Regular Jammer", emoji: "🎮", color: "bg-blue-500/15 text-blue-400" },
-  { value: "advanced", label: "Advanced / Versatile", emoji: "⚡", color: "bg-violet-500/15 text-violet-400" },
-  { value: "senior", label: "Senior / Specialist", emoji: "🎯", color: "bg-orange-500/15 text-orange-400" },
-  { value: "veteran", label: "Industry Veteran", emoji: "👑", color: "bg-amber-500/15 text-amber-400" },
+  { value: "beginner", label: "Beginner / Learner", color: tone("--mint") },
+  { value: "junior", label: "Junior / Student", color: tone("--teal") },
+  { value: "regular", label: "Regular Jammer", color: tone("--lavender") },
+  { value: "advanced", label: "Advanced / Versatile", color: tone("--pink") },
+  { value: "senior", label: "Senior / Specialist", color: tone("--peach") },
+  { value: "veteran", label: "Industry Veteran", color: "bg-[color-mix(in_oklab,var(--peach)_28%,transparent)] text-[var(--peach)]" },
 ] as const
 
 /**
@@ -115,19 +124,20 @@ export const ENGINE_OPTIONS_WITH_ANY = [
 
 /** Tint + text pair. Each role has its own hue (`--role-*` in globals.css). */
 function roleTone(token: string): string {
-  return `bg-[color-mix(in_oklab,var(${token})_18%,transparent)] text-[var(${token})]`
+  return tone(token)
 }
 
-export const ROLE_STYLES: Record<string, { label: string; emoji: string; color: string }> = {
-  developer: { label: "Developer", emoji: "💻", color: roleTone("--role-developer") },
-  "2d-artist": { label: "2D Artist", emoji: "🎨", color: roleTone("--role-artist-2d") },
-  "3d-artist": { label: "3D Artist", emoji: "🗿", color: roleTone("--role-artist-3d") },
-  audio: { label: "Audio", emoji: "🎵", color: roleTone("--role-audio") },
-  voice_actor: { label: "Voice Actor", emoji: "🎙️", color: roleTone("--role-voice") },
-  writer: { label: "Writer", emoji: "✍️", color: roleTone("--role-writer") },
-  "game-design": { label: "Game Designer", emoji: "🎯", color: roleTone("--role-design") },
-  "ui-ux": { label: "UI / UX", emoji: "✨", color: roleTone("--role-ux") },
-  qa: { label: "QA / Playtester", emoji: "🐛", color: roleTone("--role-qa") },
+export const ROLE_STYLES: Record<string, { label: string; color: string }> = {
+  developer: { label: "Developer", color: roleTone("--role-developer") },
+  "2d-artist": { label: "2D Artist", color: roleTone("--role-artist-2d") },
+  "3d-artist": { label: "3D Artist", color: roleTone("--role-artist-3d") },
+  audio: { label: "Audio", color: roleTone("--role-audio") },
+  voice_actor: { label: "Voice Actor", color: roleTone("--role-voice") },
+  writer: { label: "Writer", color: roleTone("--role-writer") },
+  "game-design": { label: "Game Designer", color: roleTone("--role-design") },
+  "ui-ux": { label: "UI / UX", color: roleTone("--role-ux") },
+  qa: { label: "QA / Playtester", color: roleTone("--role-qa") },
+  other: { label: "Other", color: "bg-muted text-muted-foreground" },
 }
 
 /** Spoken-language key → short ISO pill. A language is not a country, so pills stay codes. */
@@ -155,31 +165,54 @@ export const EXPERIENCE_RANK: Record<string, number> = {
   veteran: 6,
 }
 
-export const EXPERIENCE_STYLES: Record<string, { label: string; emoji: string; color: string }> = {
-  beginner: { label: "Beginner / Learner", emoji: "🌱", color: "bg-sky-400/15 text-sky-400" },
-  junior: { label: "Junior / Student", emoji: "📚", color: "bg-emerald-500/15 text-emerald-400" },
-  regular: { label: "Regular Jammer", emoji: "🎮", color: "bg-blue-500/15 text-blue-400" },
-  advanced: { label: "Advanced / Versatile", emoji: "⚡", color: "bg-violet-500/15 text-violet-400" },
-  senior: { label: "Senior / Specialist", emoji: "🎯", color: "bg-orange-500/15 text-orange-400" },
-  veteran: { label: "Industry Veteran", emoji: "👑", color: "bg-amber-500/15 text-amber-400" },
+export const EXPERIENCE_STYLES: Record<string, { label: string; color: string }> = {
+  beginner: { label: "Beginner / Learner", color: tone("--mint") },
+  junior: { label: "Junior / Student", color: tone("--teal") },
+  regular: { label: "Regular Jammer", color: tone("--lavender") },
+  advanced: { label: "Advanced / Versatile", color: tone("--pink") },
+  senior: { label: "Senior / Specialist", color: tone("--peach") },
+  veteran: {
+    label: "Industry Veteran",
+    color: "bg-[color-mix(in_oklab,var(--peach)_28%,transparent)] text-[var(--peach)]",
+  },
   // Fallbacks for legacy data
-  hobbyist: { label: "Junior / Student", emoji: "📚", color: "bg-emerald-500/15 text-emerald-400" },
-  confirmed: { label: "Regular Jammer", emoji: "🎮", color: "bg-blue-500/15 text-blue-400" },
-  expert: { label: "Senior / Specialist", emoji: "🎯", color: "bg-orange-500/15 text-orange-400" },
+  hobbyist: { label: "Junior / Student", color: tone("--teal") },
+  confirmed: { label: "Regular Jammer", color: tone("--lavender") },
+  expert: { label: "Senior / Specialist", color: tone("--peach") },
 }
 
 /** Returns the CSS color class for an experience level (UI badges) */
 export function getExperienceColor(level: string): string {
   const normalized = level?.toLowerCase() || "beginner"
-  return EXPERIENCE_STYLES[normalized]?.color ?? "bg-sky-400/15 text-sky-400"
+  return EXPERIENCE_STYLES[normalized]?.color ?? tone("--mint")
 }
 
 /** 4 Jam Style vibes — to match personalities (Chill → Competitive) */
 export const JAM_STYLE_OPTIONS = [
-  { value: "chill", label: "Chill & Relaxed", emoji: "☕", color: "bg-emerald-500/15 text-emerald-500", description: "Take it easy, relaxed vibe, fun comes first." },
-  { value: "learning", label: "Learning & Practice", emoji: "📖", color: "bg-blue-500/15 text-blue-500", description: "Learning together, experimentation welcome." },
-  { value: "dedicated", label: "Dedicated / To the limit", emoji: "🔥", color: "bg-orange-500/15 text-orange-500", description: "Serious commitment, aiming for a polished game within the time limit." },
-  { value: "competitive", label: "Competitive / Win-focused", emoji: "🏆", color: "bg-red-500/15 text-red-500", description: "Aiming for the top, competitive spirit and excellence." },
+  {
+    value: "chill",
+    label: "Chill & Relaxed",
+    color: tone("--role-design"),
+    description: "Take it easy, relaxed vibe, fun comes first.",
+  },
+  {
+    value: "learning",
+    label: "Learning & Practice",
+    color: tone("--role-design"),
+    description: "Learning together, experimentation welcome.",
+  },
+  {
+    value: "dedicated",
+    label: "Dedicated / To the limit",
+    color: tone("--role-design"),
+    description: "Serious commitment, aiming for a polished game within the time limit.",
+  },
+  {
+    value: "competitive",
+    label: "Competitive / Win-focused",
+    color: tone("--role-design"),
+    description: "Aiming for the top, competitive spirit and excellence.",
+  },
 ] as const
 
 /** Display label for a stored engine key (`godot` → `Godot`). Unknown values stay as stored. */
@@ -199,9 +232,25 @@ export function languageOptionLabel(value: string | null | undefined): string {
   return LANGUAGE_OPTIONS.find((option) => option.value === canonical)?.label ?? raw
 }
 
-export const JAM_STYLE_STYLES: Record<string, { label: string; emoji: string; color: string; badgeColor: string }> = {
-  chill: { label: "Chill & Relaxed", emoji: "☕", color: "bg-emerald-500/15 text-emerald-500", badgeColor: "bg-emerald-500/25 text-emerald-600 dark:text-emerald-400 border-emerald-500/50" },
-  learning: { label: "Learning & Practice", emoji: "📖", color: "bg-blue-500/15 text-blue-500", badgeColor: "bg-blue-500/25 text-blue-600 dark:text-blue-400 border-blue-500/50" },
-  dedicated: { label: "Dedicated / To the limit", emoji: "🔥", color: "bg-orange-500/15 text-orange-500", badgeColor: "bg-orange-500/25 text-orange-600 dark:text-orange-400 border-orange-500/50" },
-  competitive: { label: "Competitive / Win-focused", emoji: "🏆", color: "bg-red-500/15 text-red-500", badgeColor: "bg-red-500/25 text-red-600 dark:text-red-400 border-red-500/50" },
+export const JAM_STYLE_STYLES: Record<string, { label: string; color: string; badgeColor: string }> = {
+  chill: {
+    label: "Chill & Relaxed",
+    color: tone("--role-design"),
+    badgeColor: toneBadge("--role-design"),
+  },
+  learning: {
+    label: "Learning & Practice",
+    color: tone("--role-design"),
+    badgeColor: toneBadge("--role-design"),
+  },
+  dedicated: {
+    label: "Dedicated / To the limit",
+    color: tone("--role-design"),
+    badgeColor: toneBadge("--role-design"),
+  },
+  competitive: {
+    label: "Competitive / Win-focused",
+    color: tone("--role-design"),
+    badgeColor: toneBadge("--role-design"),
+  },
 }

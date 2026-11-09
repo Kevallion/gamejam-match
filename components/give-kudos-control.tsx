@@ -12,7 +12,9 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { SignInButton } from "@/components/sign-in-button"
 import { KUDOS_CATEGORY_ORDER, KUDOS_CATEGORY_UI, type KudosCategoryDb } from "@/lib/kudos"
-import { ChevronDown, Loader2, Sparkles } from "lucide-react"
+import { AppIcon } from "@/components/ui/app-icon"
+import { ICON } from "@/lib/icons"
+import { ChevronDown } from "lucide-react"
 import { toast } from "sonner"
 
 type GiveKudosControlProps = {
@@ -65,7 +67,7 @@ export function GiveKudosControl({
         return
       }
       const ui = KUDOS_CATEGORY_UI[cat]
-      toast.success(`Kudos sent: ${ui.emoji} ${ui.label}`)
+      toast.success(`Kudos sent: ${ui.label}`)
       setOpen(false)
     })
   }
@@ -78,7 +80,11 @@ export function GiveKudosControl({
           className="w-full gap-2 rounded-xl border-lavender/35 bg-lavender/5 hover:bg-lavender/10 sm:w-auto"
           disabled={pending}
         >
-          {pending ? <Loader2 className="size-4 animate-spin" /> : <Sparkles className="size-4 text-lavender" />}
+          {pending ? (
+            <AppIcon icon={ICON.loading} className="animate-spin" />
+          ) : (
+            <AppIcon icon={ICON.kudos} tone="lavender" />
+          )}
           Give Kudos
           <ChevronDown className="size-4 opacity-60" />
         </Button>
@@ -99,9 +105,7 @@ export function GiveKudosControl({
                 send(cat)
               }}
             >
-              <span className="text-base" aria-hidden>
-                {ui.emoji}
-              </span>
+              <AppIcon icon={ui.icon} size="sm" />
               <span>{ui.label}</span>
             </DropdownMenuItem>
           )

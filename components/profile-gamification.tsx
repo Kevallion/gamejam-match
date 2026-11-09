@@ -1,7 +1,8 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { Sparkles, Trophy } from "lucide-react"
+import { Star, Trophy } from "lucide-react"
+import { IconTile } from "@/components/ui/app-icon"
 import { BadgeMedallion, type BadgeRarity } from "@/components/badge-medallion"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
@@ -493,20 +494,12 @@ export function ProfileGamification({
       <CardHeader className="relative space-y-0 pb-2 pt-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div
-              className={cn(
-                "level-badge-animated flex size-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-teal/30 to-lavender/25 text-2xl ring-2 ring-teal/30",
-              )}
-              aria-hidden
-            >
-              <Trophy className="size-7 text-teal" />
-            </div>
+            <IconTile icon={Trophy} tone="teal" />
             <div>
               <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Jammer rank
               </p>
-              <p className="mb-1 mt-0.5 inline-flex max-w-full items-center gap-2 rounded-full border border-lavender/35 bg-lavender/10 px-3 py-1 text-xs font-bold tracking-tight text-lavender">
-                <span aria-hidden>⚔️</span>
+              <p className="mb-1 mt-0.5 inline-flex max-w-full items-center rounded-full border border-lavender/35 bg-lavender/10 px-3 py-1 text-xs font-bold tracking-tight text-lavender">
                 <span className="truncate">{currentTitle}</span>
               </p>
               <div className="flex flex-wrap items-baseline gap-2">
@@ -519,7 +512,7 @@ export function ProfileGamification({
                 <p className="mt-1 text-xs text-destructive">{error}</p>
               ) : (
                 <p className="mt-1 flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
-                  <Sparkles className="size-3.5 text-peach" />
+                  <Star className="size-3.5 text-lavender" />
                   {progressLabel}
                 </p>
               )}

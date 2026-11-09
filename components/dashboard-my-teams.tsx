@@ -31,15 +31,15 @@ import {
   Cpu,
   Globe,
   Link2,
-  Loader2,
+  LoaderCircle,
   MessageCircle,
   PenLine,
   Rocket,
   Send,
   Settings,
   Sparkles,
-  UserMinus,
-  Users,
+  UserRoundMinus,
+  UsersRound,
 } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
@@ -48,6 +48,8 @@ import {
   isJamStartBackfilledWithCreatedAt,
 } from "@/lib/jam-calendar-status"
 import { JamStatusBadge } from "@/components/jam-status-badge"
+import { IconTile } from "@/components/ui/app-icon"
+import { TagIcon } from "@/components/tag-icon"
 
 export type TeamData = {
   id: string
@@ -58,10 +60,10 @@ export type TeamData = {
   description: string
   members: number
   maxMembers: number
-  roles: { label: string; emoji: string; color: string }[]
+  roles: { key?: string; label: string; color: string }[]
   /** Clés de rôle brutes depuis `teams.looking_for` (ex. developer, 2d-artist) pour le matchmaking */
   lookingForRoleKeys: string[]
-  level: { label: string; emoji: string; color: string }
+  level: { key?: string; label: string; color: string }
   discord_link?: string | null
   isOwner: boolean
   jamStartDate?: string | null
@@ -69,11 +71,6 @@ export type TeamData = {
   createdAt?: string | null
   teamVibe?: string | null
   expiresAt?: string | null
-}
-
-function roleLabel(key: string) {
-  const k = key.toLowerCase()
-  return ROLE_STYLES[k]?.label ?? key
 }
 
 function engineLabel(value: string) {
@@ -241,7 +238,7 @@ export function DashboardMyTeams({
 
       {teams.length === 0 ? (
         <Card className="flex flex-col items-center gap-3 rounded-2xl border-border/50 bg-card px-6 py-10 text-center">
-          <PenLine className="size-7 text-muted-foreground/50" />
+          <IconTile icon={PenLine} tone="muted" />
           <p className="text-sm text-muted-foreground">
             You haven{"'"}t created any teams yet.
           </p>
@@ -293,7 +290,7 @@ export function DashboardMyTeams({
                       variant="outline"
                       className="rounded-full border-border/60 text-xs text-muted-foreground px-2 py-0.5"
                     >
-                      <Users className="mr-1 size-3" />
+                      <UsersRound className="size-3" />
                       {team.members}/{team.maxMembers}
                     </Badge>
                   </div>
@@ -333,19 +330,23 @@ export function DashboardMyTeams({
                 </p>
 
                 {/* Role + level badges */}
-                <div className="flex flex-wrap gap-1">
-                  <span
-                    className={`inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-xs font-semibold ${team.level.color}`}
-                  >
-                    {team.level.emoji} {team.level.label}
-                  </span>
+                <div className="flex flex-wrap items-center gap-1">
+                  <TagIcon
+                    kind="level"
+                    value={team.level.key || "beginner"}
+                    size="xs"
+                    showLabel
+                    withTooltip={false}
+                  />
                   {team.roles.map((role, roleIdx) => (
-                    <span
-                      key={`${role.label}-${roleIdx}`}
-                      className={`inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-xs font-semibold ${role.color}`}
-                    >
-                      {role.emoji} {role.label}
-                    </span>
+                    <TagIcon
+                      key={`${role.key ?? role.label}-${roleIdx}`}
+                      kind="role"
+                      value={role.key || "other"}
+                      size="xs"
+                      showLabel
+                      withTooltip={false}
+                    />
                   ))}
                 </div>
 
@@ -449,9 +450,9 @@ export function DashboardMyTeams({
                           disabled={leavingTeamId === team.id}
                         >
                           {leavingTeamId === team.id ? (
-                            <Loader2 className="size-3.5 animate-spin" />
+                            <LoaderCircle className="size-3.5 animate-spin" />
                           ) : (
-                            <UserMinus className="size-3.5" />
+                            <UserRoundMinus className="size-3.5" />
                           )}
                           Leave
                         </Button>
@@ -492,9 +493,7 @@ export function DashboardMyTeams({
           <div className="min-h-0 flex-1 overflow-y-auto px-6 py-4">
             {dialogPlayers.length === 0 ? (
               <div className="flex flex-col items-center justify-center gap-3 px-2 py-12 text-center">
-                <div className="flex size-14 items-center justify-center rounded-2xl bg-muted/50 text-muted-foreground ring-1 ring-border/40">
-                  <Sparkles className="size-7 opacity-70" aria-hidden />
-                </div>
+                <IconTile icon={Sparkles} tone="muted" />
                 <p className="max-w-xs text-sm leading-relaxed text-muted-foreground">
                   No perfect matches found right now. Check back later!
                 </p>
@@ -503,15 +502,9 @@ export function DashboardMyTeams({
               <ul className="flex flex-col gap-3">
                 {dialogPlayers.map((p) => {
                   const roleKey = p.role?.trim().toLowerCase() || ""
-                  const roleStyle =
-                    ROLE_STYLES[roleKey] ?? {
-                      label: roleLabel(p.role),
-                      emoji: "🎭",
-                      color: "bg-muted text-muted-foreground",
-                    }
+                  const roleValue = roleKey && ROLE_STYLES[roleKey] ? roleKey : "other"
                   const expKey = p.experience?.trim().toLowerCase() || "beginner"
-                  const expStyle =
-                    EXPERIENCE_STYLES[expKey] ?? EXPERIENCE_STYLES["beginner"]
+                  const levelValue = EXPERIENCE_STYLES[expKey] ? expKey : "beginner"
                   const langLine =
                     spokenLanguageLabel(p.language) ?? "Language not specified"
                   const inviteKey =
@@ -539,22 +532,12 @@ export function DashboardMyTeams({
                               <span className="truncate">{langLine}</span>
                             </span>
                           </div>
-                          <div className="mt-1.5 flex flex-wrap gap-1.5">
-                            <span
-                              className={`inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-xs font-semibold ${roleStyle.color}`}
-                            >
-                              <span className="shrink-0">{roleStyle.emoji}</span>
-                              <span>{roleStyle.label}</span>
-                            </span>
+                          <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                            <TagIcon kind="role" value={roleValue} size="xs" showLabel withTooltip={false} />
                             <span className="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground">
                               {engineLabel(p.engine)}
                             </span>
-                            <span
-                              className={`inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 text-xs font-semibold ${expStyle.color}`}
-                            >
-                              <span className="shrink-0">{expStyle.emoji}</span>
-                              <span>{expStyle.label}</span>
-                            </span>
+                            <TagIcon kind="level" value={levelValue} size="xs" showLabel withTooltip={false} />
                           </div>
                         </div>
                       </div>
@@ -580,7 +563,7 @@ export function DashboardMyTeams({
                         }}
                       >
                         {inviteBusyUserId === p.userId ? (
-                          <Loader2 className="size-3.5 animate-spin" />
+                          <LoaderCircle className="size-3.5 animate-spin" />
                         ) : inviteAlreadyPending ? (
                           "Invitation sent"
                         ) : (

@@ -19,11 +19,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Loader2, AlertCircle } from "lucide-react"
+import { LoaderCircle, CircleAlert } from "lucide-react"
 import { SignInButton } from "@/components/sign-in-button"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 import { ENGINE_OPTIONS_WITH_ANY, EXPERIENCE_OPTIONS, JAM_STYLE_OPTIONS, ROLE_OPTIONS } from "@/lib/constants"
+import { TagIcon } from "@/components/tag-icon"
 import { JamSearchSelector } from "@/components/jam-search-selector"
 import { claimAvailabilityPostXp } from "@/app/actions/availability-actions"
 import { showGamificationRewards } from "@/components/gamification-reward-toasts"
@@ -386,7 +387,7 @@ export function AvailabilityForm() {
                       />
                       {fieldError("username") && (
                         <div className="status-error flex items-center gap-1.5 text-xs text-destructive">
-                          <AlertCircle className="size-4 shrink-0" />
+                          <CircleAlert className="size-4 shrink-0" />
                           <span>{fieldError("username")}</span>
                         </div>
                       )}
@@ -416,13 +417,18 @@ export function AvailabilityForm() {
                           </SelectTrigger>
                           <SelectContent className="rounded-xl">
                             {ROLE_OPTIONS.map((opt) => (
-                              <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                              <SelectItem key={opt.value} value={opt.value}>
+                                <span className="inline-flex min-w-0 items-center gap-2">
+                                  <TagIcon kind="role" value={opt.value} size="xs" withTooltip={false} />
+                                  <span className="truncate">{opt.label}</span>
+                                </span>
+                              </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
                         {fieldError("role") && (
                           <div className="status-error flex items-center gap-1.5 text-xs text-destructive">
-                            <AlertCircle className="size-4 shrink-0" />
+                            <CircleAlert className="size-4 shrink-0" />
                             <span>{fieldError("role")}</span>
                           </div>
                         )}
@@ -450,8 +456,9 @@ export function AvailabilityForm() {
                           <SelectContent className="rounded-xl">
                             {EXPERIENCE_OPTIONS.map((opt) => (
                               <SelectItem key={opt.value} value={opt.value}>
-                                <span className={`inline-flex items-center gap-2 rounded px-1.5 py-0.5 ${opt.color ?? "bg-muted text-muted-foreground"}`}>
-                                  {opt.emoji} {opt.label}
+                                <span className="inline-flex min-w-0 items-center gap-2">
+                                  <TagIcon kind="level" value={opt.value} size="xs" withTooltip={false} />
+                                  <span className="truncate">{opt.label}</span>
                                 </span>
                               </SelectItem>
                             ))}
@@ -459,7 +466,7 @@ export function AvailabilityForm() {
                         </Select>
                         {fieldError("level") && (
                           <div className="status-error flex items-center gap-1.5 text-xs text-destructive">
-                            <AlertCircle className="size-4 shrink-0" />
+                            <CircleAlert className="size-4 shrink-0" />
                             <span>{fieldError("level")}</span>
                           </div>
                         )}
@@ -480,18 +487,17 @@ export function AvailabilityForm() {
                         <SelectContent className="rounded-xl">
                           {JAM_STYLE_OPTIONS.map((opt) => (
                             <SelectItem key={opt.value} value={opt.value}>
-                              <div>
-                                <span className={`inline-flex items-center gap-2 rounded px-1.5 py-0.5 ${opt.color ?? "bg-muted text-muted-foreground"}`}>
-                                  {opt.emoji} {opt.label}
-                                </span>
-                                <span className="ml-2 text-xs text-muted-foreground">— {opt.description}</span>
+                              <div className="flex min-w-0 items-center gap-2">
+                                <TagIcon kind="style" value={opt.value} size="xs" withTooltip={false} />
+                                <span>{opt.label}</span>
+                                <span className="text-xs text-muted-foreground">— {opt.description}</span>
                               </div>
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                       <p className="text-xs text-muted-foreground">
-                        Chill ☕, Learning 📖, Dedicated 🔥, Competitive 🏆 — helps match you with teams that share your approach.
+                        Chill, Learning, Dedicated, Competitive — helps match you with teams that share your approach.
                       </p>
                     </div>
 
@@ -524,7 +530,7 @@ export function AvailabilityForm() {
                         </Select>
                         {fieldError("engine") && (
                           <div className="status-error flex items-center gap-1.5 text-xs text-destructive">
-                            <AlertCircle className="size-4 shrink-0" />
+                            <CircleAlert className="size-4 shrink-0" />
                             <span>{fieldError("engine")}</span>
                           </div>
                         )}
@@ -557,7 +563,7 @@ export function AvailabilityForm() {
                         </Select>
                         {fieldError("language") && (
                           <div className="status-error flex items-center gap-1.5 text-xs text-destructive">
-                            <AlertCircle className="size-4 shrink-0" />
+                            <CircleAlert className="size-4 shrink-0" />
                             <span>{fieldError("language")}</span>
                           </div>
                         )}
@@ -634,7 +640,7 @@ export function AvailabilityForm() {
                       />
                       {fieldError("bio") && (
                         <div className="status-error flex items-center gap-1.5 text-xs text-destructive">
-                          <AlertCircle className="size-4 shrink-0" />
+                          <CircleAlert className="size-4 shrink-0" />
                           <span>{fieldError("bio")}</span>
                         </div>
                       )}
@@ -726,7 +732,7 @@ export function AvailabilityForm() {
                             ? loading
                               ? (
                                 <>
-                                  <Loader2 className="size-4 animate-spin" />
+                                  <LoaderCircle className="size-4 animate-spin" />
                                   Sending...
                                 </>
                               )

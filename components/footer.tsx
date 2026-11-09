@@ -1,20 +1,7 @@
-import { Gamepad2, Heart, Instagram, Linkedin, MessageSquare } from "lucide-react"
+import { Gamepad2, Heart, MessageSquareText } from "lucide-react"
 import Link from "next/link"
+import { InstagramIcon, LinkedInIcon, XIcon } from "@/components/brand-icons"
 import { cn } from "@/lib/utils"
-
-/** Logo X (marque) — remplit avec `currentColor` pour les états hover. */
-function XLogoIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="currentColor"
-      className={className}
-      aria-hidden
-    >
-      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-    </svg>
-  )
-}
 
 const SOCIAL_CLASS =
   "text-muted-foreground transition-colors hover:text-primary"
@@ -80,7 +67,7 @@ export function Footer({ tagline, className }: FooterProps) {
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-foreground"
               >
-                <MessageSquare className="size-3.5" aria-hidden />
+                <MessageSquareText className="size-3.5" aria-hidden />
                 Feedback
               </Link>
             </nav>
@@ -100,7 +87,7 @@ export function Footer({ tagline, className }: FooterProps) {
             aria-label="GameJamCrew on Instagram"
             className={SOCIAL_CLASS}
           >
-            <Instagram className="h-5 w-5" strokeWidth={2.25} aria-hidden />
+            <InstagramIcon className="size-5" aria-hidden />
           </Link>
           <Link
             href="https://x.com/GameJamCrew"
@@ -109,7 +96,7 @@ export function Footer({ tagline, className }: FooterProps) {
             aria-label="GameJamCrew on X"
             className={SOCIAL_CLASS}
           >
-            <XLogoIcon className="h-5 w-5" />
+            <XIcon className="size-5" aria-hidden />
           </Link>
           <Link
             href="https://www.linkedin.com/company/gamejamcrew"
@@ -118,7 +105,7 @@ export function Footer({ tagline, className }: FooterProps) {
             aria-label="GameJamCrew on LinkedIn"
             className={SOCIAL_CLASS}
           >
-            <Linkedin className="h-5 w-5" strokeWidth={2.25} aria-hidden />
+            <LinkedInIcon className="size-5" aria-hidden />
           </Link>
         </div>
       </div>

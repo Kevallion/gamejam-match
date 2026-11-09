@@ -1,6 +1,7 @@
 "use client"
 
-import { Mail, Sparkles, Target, MessageSquareText, Send } from "lucide-react"
+import { Mail, Target, MessageSquareText, Send } from "lucide-react"
+import { TagIcon } from "@/components/tag-icon"
 
 export function MockInviteModal() {
   return (
@@ -33,8 +34,7 @@ export function MockInviteModal() {
 
             <div className="flex flex-wrap items-center gap-1.5">
               <span className="text-xs text-muted-foreground">Inviting</span>
-              <span className="inline-flex items-center gap-0.5 rounded-full bg-lavender/15 px-2 py-0.5 text-xs font-bold text-lavender">
-                <Sparkles className="size-2.5" />
+              <span className="inline-flex items-center rounded-full bg-lavender/15 px-2 py-0.5 text-xs font-bold text-lavender">
                 BeatMaker99
               </span>
               <span className="text-xs text-muted-foreground">to</span>
@@ -55,17 +55,15 @@ export function MockInviteModal() {
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   {[
-                    { label: "Developer", emoji: "\uD83D\uDCBB", color: "bg-teal/15 text-teal", selected: false },
-                    { label: "Audio", emoji: "\uD83C\uDFB5", color: "bg-lavender/15 text-lavender", selected: true },
-                    { label: "Game Designer", emoji: "\uD83C\uDFAF", color: "bg-peach/15 text-peach", selected: false },
+                    { key: "developer", selected: false },
+                    { key: "audio", selected: true },
+                    { key: "game-design", selected: false },
                   ].map((role) => (
                     <span
-                      key={role.label}
-                      className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${role.color} ${
-                        role.selected ? "ring-2 ring-primary ring-offset-2 ring-offset-card scale-105" : ""
-                      }`}
+                      key={role.key}
+                      className={role.selected ? "ring-2 ring-primary ring-offset-2 ring-offset-card scale-105" : undefined}
                     >
-                      {role.emoji} {role.label}
+                      <TagIcon kind="role" value={role.key} size="xs" showLabel withTooltip={false} />
                     </span>
                   ))}
                 </div>

@@ -8,7 +8,7 @@ import { MembersGrid } from "@/components/members-grid"
 import { DirectoryFilters } from "@/components/directory-filters"
 import { DirectoryGrid } from "@/components/directory-grid"
 import { ActiveFilterChips, type ActiveFilterChip } from "@/components/active-filter-chips"
-import { BookUser, Search, UserSearch } from "lucide-react"
+import { UserRoundSearch, Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
@@ -133,7 +133,7 @@ export function FindMembersShell({
 
           <div className="relative mx-auto max-w-2xl text-center">
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-lavender/30 bg-lavender px-4 py-1.5 text-sm font-medium text-lavender-foreground">
-              <UserSearch className="size-4" />
+              <UserRoundSearch className="size-4" />
               Find teammates
             </div>
 
@@ -159,14 +159,14 @@ export function FindMembersShell({
                     value="available"
                     className="gap-1.5 rounded-lg px-4 data-[state=active]:bg-lavender data-[state=active]:text-lavender-foreground"
                   >
-                    <UserSearch className="size-3.5" />
+                    <UserRoundSearch className="size-3.5" />
                     Available
                   </TabsTrigger>
                   <TabsTrigger
                     value="directory"
                     className="gap-1.5 rounded-lg px-4 data-[state=active]:bg-teal data-[state=active]:text-teal-foreground"
                   >
-                    <BookUser className="size-3.5" />
+                    <UserRoundSearch className="size-3.5" />
                     Directory
                   </TabsTrigger>
                 </TabsList>

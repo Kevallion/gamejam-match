@@ -42,7 +42,7 @@ export function BrowserFrame({
             d="M2 2L2 19.5L6.5 15.5L10.5 22L13.5 20.5L9.5 14L15.5 13.5L2 2Z"
             fill="white"
             stroke="black"
-            strokeWidth="1.5"
+            strokeWidth="2"
             strokeLinejoin="round"
           />
         </svg>

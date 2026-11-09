@@ -1,6 +1,6 @@
 "use client"
 
-import { Sparkles, Users, Gamepad2, Search, SlidersHorizontal, LogIn } from "lucide-react"
+import { UsersRound, Gamepad2, Search, SlidersHorizontal, LogIn } from "lucide-react"
 
 export function MockHero() {
   return (
@@ -33,7 +33,7 @@ export function MockHero() {
         </div>
         <div className="relative mx-auto max-w-lg text-center">
           <div className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-            <Sparkles className="size-3" />
+            <UsersRound className="size-3" />
             Browse teams looking for members
           </div>
           <h1 className="text-xl font-extrabold tracking-tight text-foreground sm:text-2xl">
@@ -44,7 +44,7 @@ export function MockHero() {
           </p>
           <div className="mt-4">
             <div className="inline-flex items-center gap-1.5 rounded-xl bg-primary px-5 py-2 text-xs font-semibold text-primary-foreground shadow-lg shadow-primary/25">
-              <Users className="size-3.5" />
+              <UsersRound className="size-3.5" />
               Create a Squad
             </div>
           </div>

@@ -1,6 +1,7 @@
 "use client"
 
-import { Star, Trophy } from "lucide-react"
+import { AppIcon } from "@/components/ui/app-icon"
+import { ICON } from "@/lib/icons"
 import { toast } from "sonner"
 import { BadgeMedallion } from "@/components/badge-medallion"
 import { announceLevelUp } from "@/lib/level-up-bus"
@@ -65,11 +66,11 @@ async function showGamificationRewardsAsync(
   if (reward.xpGained > 0) {
     await delay(t)
     t += STAGGER_MS
-    toast.message(`✨ +${reward.xpGained} XP (${actionLabel})`, {
-      icon: <Star className="size-5 shrink-0 text-violet-400" aria-hidden />,
+    toast.message(`+${reward.xpGained} XP (${actionLabel})`, {
+      icon: <AppIcon icon={ICON.xp} size="lg" tone="lavender" />,
       classNames: {
         toast:
-          "group gamification-toast-xp border-violet-500/25 bg-popover/95 backdrop-blur-sm shadow-lg shadow-violet-500/10",
+          "group gamification-toast-xp border-lavender/25 bg-popover/95 backdrop-blur-sm shadow-lg shadow-lavender/10",
       },
       duration: 3200,
     })
@@ -91,11 +92,11 @@ async function showGamificationRewardsAsync(
   for (const title of titles) {
     await delay(t)
     t += STAGGER_MS
-    toast.message(`🏆 Achievement unlocked: ${title}`, {
-      icon: <Trophy className="size-5 shrink-0 text-amber-500" aria-hidden />,
+    toast.message(`Achievement unlocked: ${title}`, {
+      icon: <AppIcon icon={ICON.achievement} size="lg" tone="peach" />,
       classNames: {
         toast:
-          "group gamification-toast-achievement border-amber-500/50 bg-amber-950/20 dark:bg-amber-950/35 backdrop-blur-sm shadow-lg shadow-amber-500/15",
+          "group gamification-toast-achievement border-peach/40 bg-peach/10 backdrop-blur-sm shadow-lg shadow-peach/15",
       },
       duration: 4500,
     })
@@ -107,9 +108,9 @@ async function showGamificationRewardsAsync(
     toast.message(`Badge unlocked: ${formatBadgeLabel(badgeId)}`, {
       icon: <BadgeMedallion badgeId={badgeId} animate />,
       classNames: {
-        icon: "!h-auto !w-auto !mr-2",
+        icon: "!h-auto !w-auto !mr-0",
         toast:
-          "group gamification-toast-achievement border-amber-500/50 bg-amber-950/20 dark:bg-amber-950/35 backdrop-blur-sm shadow-lg shadow-amber-500/15",
+          "group gamification-toast-achievement flex items-center gap-2 border-peach/40 bg-peach/10 backdrop-blur-sm shadow-lg shadow-peach/15",
       },
       duration: 4500,
     })

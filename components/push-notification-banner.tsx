@@ -1,6 +1,7 @@
 'use client'
 
 import { Bell } from 'lucide-react'
+import { IconTile } from '@/components/ui/app-icon'
 import { Button } from '@/components/ui/button'
 import { usePushNotifications } from '@/hooks/use-push-notifications'
 
@@ -13,9 +14,7 @@ export function PushNotificationBanner() {
     <div className="mb-8 overflow-hidden rounded-2xl border-2 border-teal/30 bg-teal/5 shadow-sm">
       <div className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-4">
-          <div className="flex size-12 shrink-0 items-center justify-center rounded-xl bg-teal/15">
-            <Bell className="size-6 text-teal" />
-          </div>
+          <IconTile icon={Bell} tone="teal" />
           <div>
             <p className="font-medium text-foreground">
               Don&apos;t miss any Jam opportunity!

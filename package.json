@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "lint:icons": "node scripts/check-icons.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",

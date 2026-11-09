@@ -1,6 +1,7 @@
 "use client"
 
-import { Users, Cpu, Globe, ArrowRight } from "lucide-react"
+import { UsersRound, Cpu, Globe, ArrowRight } from "lucide-react"
+import { TagIcon } from "@/components/tag-icon"
 
 const MOCK_TEAMS = [
   {
@@ -11,11 +12,8 @@ const MOCK_TEAMS = [
     description: "We're making a cozy pixel-art RPG with a unique twist on turn-based combat. Looking for passionate jammers!",
     members: 2,
     maxMembers: 4,
-    roles: [
-      { label: "2D Artist", emoji: "\uD83C\uDFA8", color: "bg-pink/15 text-pink" },
-      { label: "Audio", emoji: "\uD83C\uDFB5", color: "bg-lavender/15 text-lavender" },
-    ],
-    level: { label: "Junior / Student", emoji: "📚", color: "bg-emerald-500/15 text-emerald-400" },
+    roles: [{ key: "2d-artist" }, { key: "audio" }],
+    level: "junior",
   },
   {
     name: "Neon Runners",
@@ -25,11 +23,8 @@ const MOCK_TEAMS = [
     description: "Fast-paced cyberpunk runner. Neon aesthetics, synthwave soundtrack. Need help on the art side.",
     members: 3,
     maxMembers: 5,
-    roles: [
-      { label: "Developer", emoji: "\uD83D\uDCBB", color: "bg-teal/15 text-teal" },
-      { label: "Game Designer", emoji: "\uD83C\uDFAF", color: "bg-peach/15 text-peach" },
-    ],
-    level: { label: "Regular Jammer", emoji: "🎮", color: "bg-blue-500/15 text-blue-400" },
+    roles: [{ key: "developer" }, { key: "game-design" }],
+    level: "regular",
   },
   {
     name: "Dreamweaver Studio",
@@ -39,11 +34,8 @@ const MOCK_TEAMS = [
     description: "Atmospheric puzzle game inspired by Limbo and Inside. Dark, moody visuals with environmental storytelling.",
     members: 1,
     maxMembers: 3,
-    roles: [
-      { label: "3D Artist", emoji: "\uD83D\uDDFF", color: "bg-peach/15 text-peach" },
-      { label: "Writer", emoji: "\u270D\uFE0F", color: "bg-pink/15 text-pink" },
-    ],
-    level: { label: "Beginner / Learner", emoji: "🌱", color: "bg-sky-400/15 text-sky-400" },
+    roles: [{ key: "3d-artist" }, { key: "writer" }],
+    level: "beginner",
   },
   {
     name: "Chaos Collective",
@@ -54,11 +46,11 @@ const MOCK_TEAMS = [
     members: 2,
     maxMembers: 4,
     roles: [
-      { label: "Developer", emoji: "\uD83D\uDCBB", color: "bg-teal/15 text-teal", filled: true },
-      { label: "2D Artist", emoji: "\uD83C\uDFA8", color: "bg-pink/15 text-pink" },
-      { label: "Audio", emoji: "\uD83C\uDFB5", color: "bg-lavender/15 text-lavender" },
+      { key: "developer", filled: true },
+      { key: "2d-artist" },
+      { key: "audio" },
     ],
-    level: { label: "Junior / Student", emoji: "📚", color: "bg-emerald-500/15 text-emerald-400" },
+    level: "junior",
   },
 ]
 
@@ -82,18 +74,18 @@ export function MockTeamGrid() {
                   <p className="text-xs font-medium text-primary">{team.jam}</p>
                 </div>
                 <span className="shrink-0 inline-flex items-center gap-0.5 rounded-full border border-border/60 px-1.5 py-0.5 text-xs text-muted-foreground">
-                  <Users className="size-2.5" />
+                  <UsersRound className="size-3" />
                   {team.members}/{team.maxMembers}
                 </span>
               </div>
 
               <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1.5">
                 <span className="inline-flex items-center gap-1">
-                  <Cpu className="size-2.5 text-lavender" />
+                  <Cpu className="size-3 text-lavender" />
                   {team.engine}
                 </span>
                 <span className="inline-flex items-center gap-1">
-                  <Globe className="size-2.5 text-teal" />
+                  <Globe className="size-3 text-teal" />
                   {team.language}
                 </span>
               </div>
@@ -102,21 +94,18 @@ export function MockTeamGrid() {
                 {team.description}
               </p>
 
-              <div className="flex flex-wrap gap-1 mb-2">
-                <span className={`rounded-full px-1.5 py-0.5 text-[8px] font-semibold ${team.level.color}`}>
-                  {team.level.emoji} {team.level.label}
-                </span>
-                {team.roles.map((role, rIdx) => (
-                  <span
-                    key={rIdx}
-                    className={`rounded-full px-1.5 py-0.5 text-[8px] font-semibold ${
-                      "filled" in role && role.filled
-                        ? "opacity-40 line-through bg-muted text-muted-foreground"
-                        : role.color
-                    }`}
-                  >
-                    {role.emoji} {role.label}
-                  </span>
+              <div className="mb-2 flex flex-wrap items-center gap-1">
+                <TagIcon kind="level" value={team.level} size="xs" showLabel withTooltip={false} />
+                {team.roles.map((role) => (
+                  <TagIcon
+                    key={role.key}
+                    kind="role"
+                    value={role.key}
+                    size="xs"
+                    showLabel
+                    withTooltip={false}
+                    className={role.filled ? "opacity-40 line-through" : undefined}
+                  />
                 ))}
               </div>
 

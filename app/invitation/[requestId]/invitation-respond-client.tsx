@@ -14,8 +14,9 @@ import {
   notifyOwnerInvitationDeclined,
 } from "@/app/actions/team-actions"
 import { ENGINE_OPTIONS, EXPERIENCE_STYLES, ROLE_STYLES } from "@/lib/constants"
+import { TagIcon } from "@/components/tag-icon"
 import { supabase } from "@/lib/supabase"
-import { Check, Gamepad2, Loader2, Target, X } from "lucide-react"
+import { Check, Gamepad2, LoaderCircle, X } from "lucide-react"
 import { toast } from "sonner"
 import { showGamificationRewards } from "@/components/gamification-reward-toasts"
 import { gamificationRewardHasToast } from "@/lib/gamification-reward-types"
@@ -49,11 +50,7 @@ export function InvitationRespondClient(props: {
     ? ENGINE_OPTIONS.find((o) => o.value === props.team.engine)?.label ?? props.team.engine
     : null
   const roleKey = props.targetRole?.trim().toLowerCase() ?? ""
-  const roleStyle = ROLE_STYLES[roleKey] ?? {
-    label: props.targetRole || "Role",
-    emoji: "🎭",
-    color: "bg-muted text-muted-foreground",
-  }
+  const roleValue = roleKey ? (ROLE_STYLES[roleKey] ? roleKey : "other") : ""
   const expKey = props.team.experience_required?.trim().toLowerCase() ?? ""
   const expLabel = expKey
     ? EXPERIENCE_STYLES[expKey]?.label ?? props.team.experience_required
@@ -197,14 +194,13 @@ export function InvitationRespondClient(props: {
 
         <Card className="rounded-2xl border-border/50 bg-card">
           <CardContent className="space-y-5 p-6">
-            <div className="flex flex-wrap gap-2">
-              <Badge className={`rounded-full px-3 py-1 text-xs font-semibold ${roleStyle.color}`}>
-                <Target className="mr-1 size-3" aria-hidden />
-                {roleStyle.emoji} {roleStyle.label}
-              </Badge>
+            <div className="flex flex-wrap items-center gap-2">
+              {roleValue ? (
+                <TagIcon kind="role" value={roleValue} size="xs" showLabel withTooltip={false} />
+              ) : null}
               {props.team.game_name?.trim() ? (
-                <Badge className="rounded-full bg-peach/15 px-3 py-1 text-xs font-semibold text-peach">
-                  <Gamepad2 className="mr-1 size-3" aria-hidden />
+                <Badge className="gap-1.5 rounded-full bg-peach/15 px-3 py-1 text-xs font-semibold text-peach">
+                  <Gamepad2 className="size-3" aria-hidden />
                   {props.team.game_name}
                 </Badge>
               ) : null}
@@ -247,7 +243,7 @@ export function InvitationRespondClient(props: {
                 disabled={busy !== null}
                 onClick={() => void handleDecline()}
               >
-                {busy === "decline" ? <Loader2 className="size-4 animate-spin" /> : <X className="size-4" />}
+                {busy === "decline" ? <LoaderCircle className="size-4 animate-spin" /> : <X className="size-4" />}
                 Decline
               </Button>
               <Button
@@ -256,7 +252,7 @@ export function InvitationRespondClient(props: {
                 disabled={busy !== null}
                 onClick={() => void handleAccept()}
               >
-                {busy === "accept" ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
+                {busy === "accept" ? <LoaderCircle className="size-4 animate-spin" /> : <Check className="size-4" />}
                 Accept & join
               </Button>
             </div>

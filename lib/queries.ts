@@ -466,17 +466,16 @@ export type AvailablePlayerListItem = {
   role: {
     key?: string
     label: string
-    emoji: string
     color: string
   }
   level: {
+    key?: string
     label: string
-    emoji: string
     color: string
   }
   jamStyle?: {
+    key?: string
     label: string
-    emoji: string
     color: string
   }
   engine: string
@@ -530,13 +529,12 @@ function firstExternalJam(
 
 function toDisplayRole(rawRole: string) {
   const roleKey = rawRole.toLowerCase()
+  const known = ROLE_STYLES[roleKey]
+  if (known) return { ...known, key: roleKey }
   return {
-    ...(ROLE_STYLES[roleKey] || {
-      label: rawRole || "—",
-      emoji: "❓",
-      color: "bg-muted text-muted-foreground",
-    }),
-    key: roleKey || undefined,
+    ...ROLE_STYLES.other,
+    label: rawRole || ROLE_STYLES.other.label,
+    key: "other",
   }
 }
 
@@ -554,7 +552,6 @@ function toDisplayLevel(rawLevel: string) {
   if (!style) {
     return {
       label: rawLevel || "—",
-      emoji: "⭐",
       color: "bg-muted text-muted-foreground",
       key: normalizedKey || undefined,
     }
@@ -840,17 +837,16 @@ export type DirectoryJammerListItem = {
   role: {
     key?: string
     label: string
-    emoji: string
     color: string
   }
   level: {
+    key?: string
     label: string
-    emoji: string
     color: string
   }
   jamStyle?: {
+    key?: string
     label: string
-    emoji: string
     color: string
   }
   engine: string

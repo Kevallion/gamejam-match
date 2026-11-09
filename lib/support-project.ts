@@ -4,9 +4,9 @@
 
 export const BUY_ME_A_COFFEE_URL = "https://buymeacoffee.com/gamejamcrew" as const
 
-export const SUPPORT_POPOVER_TITLE = "Support GameJamCrew 💖"
+export const SUPPORT_POPOVER_TITLE = "Support GameJamCrew"
 
-export const SUPPORT_POPOVER_HEADING = "Help me keep the project alive ☕"
+export const SUPPORT_POPOVER_HEADING = "Help me keep the project alive"
 
 export const SUPPORT_POPOVER_BODY =
   "I'm building this platform to help every Game Jammer find their dream team. Your support helps me cover hosting costs and keeps the project ad-free and independent."

@@ -1,11 +1,11 @@
 "use client"
 
 import {
-  Users2,
+  UsersRound,
   Inbox,
-  UserSearch,
+  UserRoundSearch,
   Trophy,
-  Settings2,
+  Settings,
   Bell,
   Gamepad2,
   Check,
@@ -100,7 +100,7 @@ export function MockDashboard() {
         <div className="rounded-xl border border-teal/20 bg-teal/5 p-2.5">
           <div className="flex items-center gap-2">
             <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-teal/15">
-              <Users2 className="size-3.5 text-teal" />
+              <UsersRound className="size-3.5 text-teal" />
             </div>
             <div>
               <p className="text-[8px] font-medium text-muted-foreground">Squads</p>
@@ -126,7 +126,7 @@ export function MockDashboard() {
         <div className="rounded-xl border border-lavender/20 bg-lavender/5 p-2.5">
           <div className="flex items-center gap-2">
             <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-lavender/15">
-              <UserSearch className="size-3.5 text-lavender" />
+              <UserRoundSearch className="size-3.5 text-lavender" />
             </div>
             <div>
               <p className="text-[8px] font-medium text-muted-foreground">Available</p>
@@ -140,11 +140,11 @@ export function MockDashboard() {
       <div className="px-4 pt-4">
         <div className="flex gap-1 rounded-xl border border-border/50 bg-muted/30 p-1">
           {[
-            { icon: Users2, label: "Squads", color: "text-teal", active: false },
+            { icon: UsersRound, label: "Squads", color: "text-teal", active: false },
             { icon: Inbox, label: "Inbox", color: "text-peach", active: true },
-            { icon: UserSearch, label: "Available", color: "text-lavender", active: false },
-            { icon: Trophy, label: "Achievements", color: "text-amber-500", active: false },
-            { icon: Settings2, label: "Settings", color: "text-slate-400", active: false },
+            { icon: UserRoundSearch, label: "Available", color: "text-lavender", active: false },
+            { icon: Trophy, label: "Achievements", color: "text-peach", active: false },
+            { icon: Settings, label: "Settings", color: "text-muted-foreground", active: false },
           ].map((tab) => (
             <div
               key={tab.label}
@@ -211,7 +211,7 @@ export function MockDashboard() {
                           Applying to <span className="font-semibold text-foreground">{app.team}</span>
                         </span>
                         <span className="inline-flex items-center gap-0.5">
-                          <Clock className="size-2.5" />
+                          <Clock className="size-3" />
                           {app.time}
                         </span>
                       </div>
@@ -223,7 +223,7 @@ export function MockDashboard() {
                     <div className="absolute inset-y-0 left-0 w-0.5 bg-gradient-to-b from-mint/60 to-lavender/40" />
                     <div className="px-3 py-2">
                       <div className="mb-1 flex items-center gap-1 text-[8px] font-bold uppercase tracking-widest text-muted-foreground/80">
-                        <MessageSquareText className="size-2.5" />
+                        <MessageSquareText className="size-3" />
                         Motivation
                       </div>
                       <p className="text-xs leading-relaxed text-foreground/80">

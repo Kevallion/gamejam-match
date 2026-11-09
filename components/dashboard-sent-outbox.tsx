@@ -4,11 +4,10 @@ import { UserAvatar } from "@/components/user-avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { cn } from "@/lib/utils"
+import { TagIcon } from "@/components/tag-icon"
 import { ROLE_STYLES } from "@/lib/constants"
-import { MessageCircle, Send, Sparkles, UserPlus, XCircle } from "lucide-react"
-
-const FALLBACK_ROLE = { label: "Other", emoji: "?", color: "bg-muted text-muted-foreground" }
+import { MessageCircle, Send, UserRoundPlus, CircleX } from "lucide-react"
+import { IconTile } from "@/components/ui/app-icon"
 
 export type SentApplicationOutboxItem = {
   id: string
@@ -90,16 +89,13 @@ export function DashboardSentOutbox({
             variant="secondary"
             className="rounded-full bg-teal/15 px-3.5 py-1.5 text-sm font-bold text-teal"
           >
-            <Sparkles className="mr-1.5 size-3.5" />
             {sentApplications.length}
           </Badge>
         </div>
 
         {sentApplications.length === 0 ? (
           <Card className="flex flex-col items-center gap-4 rounded-2xl border-border/50 border-dashed bg-card/50 px-6 py-14 text-center">
-            <div className="flex size-14 items-center justify-center rounded-full bg-secondary/80">
-              <Send className="size-7 text-muted-foreground/60" />
-            </div>
+            <IconTile icon={Send} tone="muted" />
             <div>
               <p className="font-semibold text-foreground">No applications yet</p>
               <p className="mt-1 text-sm text-muted-foreground">
@@ -110,12 +106,8 @@ export function DashboardSentOutbox({
         ) : (
           <div className="flex flex-col gap-3">
             {sentApplications.map((app) => {
-              const roleStyle = app.target_role
-                ? (ROLE_STYLES[app.target_role] ?? {
-                    ...FALLBACK_ROLE,
-                    label: app.target_role,
-                  })
-                : null
+              const roleKey = app.target_role?.trim().toLowerCase() ?? ""
+              const roleValue = roleKey ? (ROLE_STYLES[roleKey] ? roleKey : "other") : ""
               const st = joinRequestStatusUi(app.status)
               const canCancelApp = app.status === "pending"
               return (
@@ -126,15 +118,8 @@ export function DashboardSentOutbox({
                   <CardContent className="flex flex-col gap-4 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
                     <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
                       <span className="font-semibold text-foreground">{app.teamName}</span>
-                      {roleStyle ? (
-                        <span
-                          className={cn(
-                            "shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold",
-                            roleStyle.color,
-                          )}
-                        >
-                          {roleStyle.emoji} {roleStyle.label}
-                        </span>
+                      {roleValue ? (
+                        <TagIcon kind="role" value={roleValue} size="xs" showLabel withTooltip={false} />
                       ) : null}
                       <span className={st.className}>{st.label}</span>
                     </div>
@@ -159,7 +144,7 @@ export function DashboardSentOutbox({
                           onClick={() => onCancelPendingRequest(app.id)}
                           className="gap-1.5 rounded-xl border-border/60 text-muted-foreground hover:border-destructive/40 hover:text-destructive"
                         >
-                          <XCircle className="size-4" />
+                          <CircleX className="size-4" />
                           {cancellingRequestId === app.id ? "Cancelling…" : "Cancel"}
                         </Button>
                       ) : null}
@@ -177,7 +162,7 @@ export function DashboardSentOutbox({
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="flex size-10 items-center justify-center rounded-xl bg-lavender/15">
-              <UserPlus className="size-5 text-lavender" />
+              <UserRoundPlus className="size-5 text-lavender" />
             </div>
             <div>
               <h2 className="text-xl font-extrabold text-foreground">Invitations you sent</h2>
@@ -190,7 +175,6 @@ export function DashboardSentOutbox({
             variant="secondary"
             className="rounded-full bg-lavender/15 px-3.5 py-1.5 text-sm font-bold text-lavender"
           >
-            <Sparkles className="mr-1.5 size-3.5" />
             {sentInvitations.length}
             {pendingInvites > 0 ? (
               <span className="ml-1.5 text-xs font-medium text-muted-foreground">
@@ -202,9 +186,7 @@ export function DashboardSentOutbox({
 
         {sentInvitations.length === 0 ? (
           <Card className="flex flex-col items-center gap-4 rounded-2xl border-border/50 border-dashed bg-card/50 px-6 py-14 text-center">
-            <div className="flex size-14 items-center justify-center rounded-full bg-secondary/80">
-              <UserPlus className="size-7 text-muted-foreground/60" />
-            </div>
+            <IconTile icon={UserRoundPlus} tone="muted" />
             <div>
               <p className="font-semibold text-foreground">No invitations sent</p>
               <p className="mt-1 text-sm text-muted-foreground">
@@ -215,12 +197,8 @@ export function DashboardSentOutbox({
         ) : (
           <div className="flex flex-col gap-3">
             {sentInvitations.map((inv) => {
-              const roleStyle = inv.target_role
-                ? (ROLE_STYLES[inv.target_role] ?? {
-                    ...FALLBACK_ROLE,
-                    label: inv.target_role,
-                  })
-                : null
+              const roleKey = inv.target_role?.trim().toLowerCase() ?? ""
+              const roleValue = roleKey ? (ROLE_STYLES[roleKey] ? roleKey : "other") : ""
               const st = joinRequestStatusUi(inv.status)
               const canCancel = inv.status === "pending"
               return (
@@ -243,15 +221,8 @@ export function DashboardSentOutbox({
                           <span className="font-medium text-foreground">{inv.teamName}</span>
                         </p>
                         <div className="mt-2 flex flex-wrap items-center gap-2">
-                          {roleStyle ? (
-                            <span
-                              className={cn(
-                                "inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold",
-                                roleStyle.color,
-                              )}
-                            >
-                              {roleStyle.emoji} {roleStyle.label}
-                            </span>
+                          {roleValue ? (
+                            <TagIcon kind="role" value={roleValue} size="xs" showLabel withTooltip={false} />
                           ) : null}
                           <span className={st.className}>{st.label}</span>
                         </div>
@@ -266,7 +237,7 @@ export function DashboardSentOutbox({
                         onClick={() => onCancelPendingRequest(inv.id)}
                         className="shrink-0 gap-1.5 rounded-xl border-border/60 text-muted-foreground hover:border-destructive/40 hover:text-destructive"
                       >
-                        <XCircle className="size-4" />
+                        <CircleX className="size-4" />
                         {cancellingRequestId === inv.id ? "Cancelling…" : "Cancel"}
                       </Button>
                     ) : null}

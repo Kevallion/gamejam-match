@@ -1,6 +1,6 @@
 "use client"
 
-import { MessageSquare } from "lucide-react"
+import { MessageSquareText } from "lucide-react"
 import { usePathname } from "next/navigation"
 import {
   Tooltip,
@@ -32,7 +32,7 @@ export function FeedbackButton() {
             className="flex size-12 shrink-0 items-center justify-center rounded-full bg-secondary/80 backdrop-blur-sm text-secondary-foreground shadow-lg ring-1 ring-border/40 transition-all hover:bg-secondary hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background touch-manipulation"
             aria-label="Report a bug / Suggestion"
           >
-            <MessageSquare className="size-5" />
+            <MessageSquareText className="size-5" />
           </a>
         </TooltipTrigger>
         <TooltipContent side="left" sideOffset={10}>

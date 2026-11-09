@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import Image from "next/image"
-import { Check, Link2, Loader2, Search, X } from "lucide-react"
+import { Check, Link2, LoaderCircle, Search, X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { externalImageNeedsUnoptimized } from "@/lib/external-image"
@@ -229,7 +229,7 @@ export function JamSearchSelector({
               <CommandList>
                 {(loading || syncing) && (
                   <div className="flex items-center justify-center gap-2 py-4 text-sm text-muted-foreground">
-                    <Loader2 className="size-4 animate-spin" />
+                    <LoaderCircle className="size-4 animate-spin" />
                     {syncing ? "Syncing itch.io…" : "Loading…"}
                   </div>
                 )}
@@ -371,7 +371,7 @@ export function JamSearchSelector({
               onClick={() => void handleFetchJamInfo()}
             >
               {importFetching ? (
-                <Loader2 className="size-4 animate-spin" />
+                <LoaderCircle className="size-4 animate-spin" />
               ) : (
                 <Link2 className="size-4" />
               )}
