@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react"
 import Link from "next/link"
-import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -39,16 +38,6 @@ function sentStatusUi(status: string): { label: string; className: string } {
     return { label: "Declined", className: "border-destructive/40 bg-destructive/10 text-destructive" }
   }
   return { label: "Pending", className: "border-border/50 bg-muted/40 text-muted-foreground" }
-}
-
-function vibrateLight() {
-  try {
-    if (typeof navigator !== "undefined" && typeof navigator.vibrate === "function") {
-      navigator.vibrate(12)
-    }
-  } catch {
-    // ignore
-  }
 }
 
 type Segment = "received" | "sent"
@@ -95,23 +84,6 @@ export function DashboardInboxCompact({
     }),
     [sentApplications, sentInvitations],
   )
-
-  const runOptimistic = (
-    label: string,
-    undoLabel: string,
-    apply: () => void,
-    undo: () => void,
-  ) => {
-    vibrateLight()
-    apply()
-    toast.message(label, {
-      duration: 5000,
-      action: {
-        label: undoLabel,
-        onClick: () => undo(),
-      },
-    })
-  }
 
   const emptyReceived = incomingCount === 0
   const emptySent = sentCount === 0
@@ -239,14 +211,7 @@ export function DashboardInboxCompact({
                           variant="outline"
                           className="h-11 flex-1 rounded-xl"
                           disabled={busyRequestId === app.id}
-                          onClick={() =>
-                            runOptimistic(
-                              "Application declined",
-                              "Undo",
-                              () => onDeclineApplication(app.id),
-                              () => toast.message("Already sent — reopen Inbox if needed"),
-                            )
-                          }
+                          onClick={() => onDeclineApplication(app.id)}
                         >
                           Decline
                         </Button>
@@ -254,14 +219,7 @@ export function DashboardInboxCompact({
                           type="button"
                           className="h-11 flex-1 rounded-xl bg-teal text-teal-foreground hover:bg-teal/90"
                           disabled={busyRequestId === app.id}
-                          onClick={() =>
-                            runOptimistic(
-                              "Application accepted",
-                              "Undo",
-                              () => onAcceptApplication(app.id),
-                              () => toast.message("Already sent — manage the squad if needed"),
-                            )
-                          }
+                          onClick={() => onAcceptApplication(app.id)}
                         >
                           Accept
                         </Button>
@@ -304,14 +262,7 @@ export function DashboardInboxCompact({
                           variant="outline"
                           className="h-11 flex-1 rounded-xl"
                           disabled={busyRequestId === inv.id}
-                          onClick={() =>
-                            runOptimistic(
-                              "Invitation declined",
-                              "Undo",
-                              () => onDeclineInvitation(inv.id),
-                              () => toast.message("Already sent"),
-                            )
-                          }
+                          onClick={() => onDeclineInvitation(inv.id)}
                         >
                           Decline
                         </Button>
@@ -319,14 +270,7 @@ export function DashboardInboxCompact({
                           type="button"
                           className="h-11 flex-1 rounded-xl bg-teal text-teal-foreground hover:bg-teal/90"
                           disabled={busyRequestId === inv.id}
-                          onClick={() =>
-                            runOptimistic(
-                              "Invitation accepted",
-                              "Undo",
-                              () => onAcceptInvitation(inv),
-                              () => toast.message("Already sent"),
-                            )
-                          }
+                          onClick={() => onAcceptInvitation(inv)}
                         >
                           Accept
                         </Button>

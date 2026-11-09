@@ -93,7 +93,7 @@ export function AppShell({
 
         <main className={cn("min-w-0 flex-1", MOBILE_TAB_BAR_OFFSET_CLASS, "md:pb-8")}>
           {hubMe ? (
-            <div className="px-4 py-4 md:hidden">
+            <div className="px-4 py-4">
               <MeHub
                 userId={account.userId}
                 displayName={account.displayName}
@@ -103,8 +103,9 @@ export function AppShell({
                 availabilityCount={availabilityCount}
               />
             </div>
-          ) : null}
-          <div className={cn(hubMe && "hidden md:block")}>{children}</div>
+          ) : (
+            children
+          )}
         </main>
       </div>
 

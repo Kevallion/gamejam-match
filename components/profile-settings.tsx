@@ -219,14 +219,23 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
   const [autosavedAt, setAutosavedAt] = useState<number | null>(null)
 
   useEffect(() => {
+    // Avoid wiping unsaved username/Discord/portfolio drafts when selects autosave.
     const nextText = buildTextBaseline(profile)
     const nextSelect = buildSelectBaseline(profile)
-    setUsername(nextText.username)
-    setDiscordUsername(nextText.discordUsername)
-    setPortfolioUrl(nextText.portfolioUrl)
-    setTextBaseline(nextText)
+    const hasUnsavedText =
+      username.trim() !== textBaseline.username ||
+      discordUsername.trim() !== textBaseline.discordUsername ||
+      portfolioUrl.trim() !== textBaseline.portfolioUrl
+
+    if (!hasUnsavedText) {
+      setUsername(nextText.username)
+      setDiscordUsername(nextText.discordUsername)
+      setPortfolioUrl(nextText.portfolioUrl)
+      setTextBaseline(nextText)
+      setUsernameTouched(false)
+    }
+
     setSelectBaseline(nextSelect)
-    setUsernameTouched(false)
     const nextRoles = rolesFromProfile(profile)
     setPrimaryRole(nextRoles[0]?.role?.trim() ?? profile?.default_role?.trim() ?? "")
     setPrimaryExperience(nextRoles[0]?.experience_level?.trim() ?? "regular")
@@ -236,6 +245,8 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
     setDefaultEngine(profile?.default_engine?.trim() ?? "")
     setDefaultLanguage(profile?.default_language?.trim() ?? "")
     setProgrammingLanguages(parseProgrammingLanguages(profile?.programming_languages))
+    // Intentionally omit draft field values from deps — only re-sync from profile props.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     profile?.username,
     profile?.discord_username,
@@ -943,7 +954,7 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
       </SettingsSectionPanel>
 
       {textDirty ? (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border/50 bg-card/95 px-4 py-3 shadow-lg backdrop-blur-md">
+        <div className="fixed inset-x-0 bottom-[calc(64px+env(safe-area-inset-bottom,0px))] z-50 border-t border-border/50 bg-card/95 px-4 py-3 shadow-lg backdrop-blur-md md:bottom-0">
           <div className="mx-auto flex max-w-5xl items-center justify-between gap-3">
             <p className="text-sm font-medium text-foreground">Unsaved text changes</p>
             <div className="flex shrink-0 items-center gap-2">

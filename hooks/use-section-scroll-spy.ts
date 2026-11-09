@@ -8,11 +8,13 @@ import { useEffect, useState } from "react"
 export function useSectionScrollSpy(sectionIds: string[]) {
   const [activeId, setActiveId] = useState(sectionIds[0] ?? "")
 
-  useEffect(() => {
-    const idsKey = sectionIds.join("|")
-    if (!idsKey) return
+  const idsKey = sectionIds.join("|")
 
-    const elements = sectionIds
+  useEffect(() => {
+    if (!idsKey) return
+    const ids = idsKey.split("|").filter(Boolean)
+
+    const elements = ids
       .map((id) => document.getElementById(id))
       .filter((el): el is HTMLElement => el !== null)
 
@@ -31,7 +33,7 @@ export function useSectionScrollSpy(sectionIds: string[]) {
 
     for (const el of elements) observer.observe(el)
     return () => observer.disconnect()
-  }, [sectionIds])
+  }, [idsKey])
 
   return activeId
 }

@@ -3,7 +3,8 @@
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useTheme } from "next-themes"
-import { useState } from "react"
+import { useState, useSyncExternalStore } from "react"
+import { toast } from "sonner"
 import { FEEDBACK_URL } from "@/components/FeedbackButton"
 import { JammerLevelBadge, JammerTitleBadge } from "@/components/profile-card"
 import { AppIcon } from "@/components/ui/app-icon"
@@ -100,20 +101,47 @@ export function MeHub({
   currentTitle,
   availabilityCount = 0,
   badgeUnlocked = 0,
-  badgeTotal = 10,
+  badgeTotal = 0,
   className,
 }: MeHubProps) {
   const router = useRouter()
   const { theme, setTheme, resolvedTheme } = useTheme()
   const [logoutOpen, setLogoutOpen] = useState(false)
+  const themeMounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  )
   const level = levelFromTotalXp(xp)
   const progress = gamificationLevelProgress(xp)
   const title = currentTitle?.trim() || "Rookie Jammer"
-  const themeLabel = (theme === "system" ? resolvedTheme : theme) === "light" ? "Light" : "Dark"
+  const themeLabel = !themeMounted
+    ? "…"
+    : (theme === "system" ? resolvedTheme : theme) === "light"
+      ? "Light"
+      : "Dark"
 
   const cycleTheme = () => {
     const current = theme === "system" ? resolvedTheme : theme
     setTheme(current === "dark" ? "light" : "dark")
+  }
+
+  const handleInviteFriend = async () => {
+    const shareUrl = typeof window !== "undefined" ? window.location.origin : "https://gamejamcrew.com"
+    try {
+      if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
+        await navigator.share({
+          title: "GameJamCrew",
+          text: "Find your next game jam squad",
+          url: shareUrl,
+        })
+        return
+      }
+      await navigator.clipboard.writeText(shareUrl)
+      toast.success("Invite link copied")
+    } catch {
+      // User cancelled share or clipboard unavailable
+    }
   }
 
   const handleSignOut = async () => {
@@ -160,13 +188,13 @@ export function MeHub({
         <HubRow
           href={dashboardHref("achievements")}
           label="Achievements"
-          meta={`${badgeUnlocked}/${badgeTotal}`}
+          meta={badgeTotal > 0 ? `${badgeUnlocked}/${badgeTotal}` : undefined}
           icon={ICON.achievement}
         />
         <div className="mx-4 border-t border-border/40" />
         <HubRow href={dashboardHref("settings")} label="Settings" icon={ICON.settings} />
         <div className="mx-4 border-t border-border/40" />
-        <HubRow href="/create-profile" label="Invite a friend" icon={ICON.share} />
+        <HubRow label="Invite a friend" icon={ICON.share} onClick={() => void handleInviteFriend()} />
       </section>
 
       <section className="overflow-hidden rounded-2xl border border-border/50 bg-card">

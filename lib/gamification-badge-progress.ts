@@ -58,8 +58,14 @@ export function badgeProgressLine(
         target: 1,
         label: `${Math.min(ctx.squadListings, 1)}/1 squad listing`,
       }
-    case "team_player":
-      return { current: 0, target: 1, label: "0/1 squad joined" }
+    case "team_player": {
+      const joined = ctx.distinctRoles >= 1 ? 1 : 0
+      return {
+        current: joined,
+        target: 1,
+        label: `${joined}/1 squad joined`,
+      }
+    }
     case "early_bird":
       return {
         current: ctx.onboardingDone ? 1 : 0,

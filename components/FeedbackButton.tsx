@@ -13,12 +13,9 @@ export const FEEDBACK_URL =
 
 export function FeedbackButton() {
   const pathname = usePathname()
-  // Floating feedback lives in Me hub / app sidebar when signed in on app routes.
-  if (
-    pathname?.startsWith("/dashboard") ||
-    pathname?.startsWith("/create-team") ||
-    pathname?.startsWith("/create-profile")
-  ) {
+  // Floating feedback lives in Me hub / app sidebar on the dashboard shell.
+  // Keep it on create flows — those pages use Navbar only (no Me hub).
+  if (pathname?.startsWith("/dashboard")) {
     return null
   }
 

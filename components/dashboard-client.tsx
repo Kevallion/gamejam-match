@@ -199,6 +199,24 @@ const LEGACY_TAB_TO_CURRENT: Record<string, (typeof VALID_TABS)[number]> = {
   available: "availability",
 }
 
+const INBOX_UNDO_MS = 5000
+
+type InboxPendingKind =
+  | "accept-application"
+  | "decline-application"
+  | "accept-invitation"
+  | "decline-invitation"
+
+type PendingInboxAction = {
+  id: string
+  kind: InboxPendingKind
+  application?: ApplicationData
+  invitation?: InvitationData
+  timerId: ReturnType<typeof setTimeout>
+  toastId: string | number
+  status: "pending" | "flushing" | "done" | "undone"
+}
+
 function resolveDashboardTab(raw: string | null | undefined): (typeof VALID_TABS)[number] {
   const key = (raw ?? "").trim().toLowerCase()
   const mapped = LEGACY_TAB_TO_CURRENT[key]
@@ -528,6 +546,8 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
 
   const dailyXpClaimRef = useRef(false)
   const isMobile = useIsMobile()
+  const mountedRef = useRef(true)
+  const pendingInboxActionsRef = useRef<Map<string, PendingInboxAction>>(new Map())
   const {
     notifications: shellNotifications,
     unreadCount: shellUnreadCount,
@@ -536,6 +556,16 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
     dismissNotification,
     markAllAsRead,
   } = useNotifications(session?.user?.id ?? fixture?.profile.id ?? null)
+
+  const vibrateLight = useCallback(() => {
+    try {
+      if (typeof navigator !== "undefined" && typeof navigator.vibrate === "function") {
+        navigator.vibrate(12)
+      }
+    } catch {
+      // ignore
+    }
+  }, [])
 
   const mapTeamRow = (t: TeamRow, authUserId: string): TeamData => {
     type LookingForEntry = { level?: string | null; role?: string | null }
@@ -1152,103 +1182,291 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
     }
   }
 
-  const handleAcceptApplication = async (id: string) => {
-    if (busyInboxRequestId) return
-    const removed = applications.find((a) => a.id === id)
-    const applicantLabel = removed?.username ?? "The jammer"
-    setBusyInboxRequestId(id)
-    setApplications((prev) => prev.filter((a) => a.id !== id))
-    try {
-      const result = await acceptJoinApplication(id)
-      if (!result.success) {
-        if (removed) setApplications((prev) => [removed, ...prev.filter((a) => a.id !== removed.id)])
-        toast.error("Could not accept the application.", { description: result.error })
-        return
+  const restoreInboxItem = useCallback((pending: PendingInboxAction) => {
+    if (!mountedRef.current) return
+    if (pending.application) {
+      const app = pending.application
+      setApplications((prev) => [app, ...prev.filter((a) => a.id !== app.id)])
+    }
+    if (pending.invitation) {
+      const inv = pending.invitation
+      setInvitations((prev) => [inv, ...prev.filter((i) => i.id !== inv.id)])
+    }
+  }, [])
+
+  const commitPendingInboxAction = useCallback(
+    async (id: string) => {
+      const pending = pendingInboxActionsRef.current.get(id)
+      if (!pending || pending.status !== "pending") return
+
+      pending.status = "flushing"
+      clearTimeout(pending.timerId)
+      toast.dismiss(pending.toastId)
+
+      if (mountedRef.current) setBusyInboxRequestId(id)
+
+      try {
+        if (pending.kind === "accept-application") {
+          const applicantLabel = pending.application?.username ?? "The jammer"
+          const result = await acceptJoinApplication(id)
+          if (!result.success) {
+            restoreInboxItem(pending)
+            if (mountedRef.current) {
+              toast.error("Could not accept the application.", { description: result.error })
+            }
+            return
+          }
+          if (result.ownerGamification && gamificationRewardHasToast(result.ownerGamification)) {
+            showGamificationRewards("TEAM_ROSTER_COMPLETE", result.ownerGamification)
+          }
+          if (mountedRef.current) {
+            toast.success("Application accepted!", {
+              description: `${applicantLabel} joined your squad.`,
+            })
+            void loadData()
+          }
+          return
+        }
+
+        if (pending.kind === "decline-application") {
+          const { data: request } = await supabase
+            .from("join_requests")
+            .select("sender_id, team_id, teams(team_name)")
+            .eq("id", id)
+            .single()
+
+          const { error } = await supabase.from("join_requests").update({ status: "rejected" }).eq("id", id)
+          if (error) {
+            restoreInboxItem(pending)
+            if (mountedRef.current) {
+              toast.error("Could not decline the application.", { description: error.message })
+            }
+            return
+          }
+
+          void markNotificationsReadForJoinRequest(id)
+
+          if (request?.sender_id) {
+            const teamMeta = request.teams as
+              | { team_name?: string | null }
+              | { team_name?: string | null }[]
+              | null
+            const tn = Array.isArray(teamMeta)
+              ? (teamMeta[0]?.team_name ?? null)
+              : (teamMeta?.team_name ?? null)
+            void notifyApplicantDeclined(
+              request.sender_id as string,
+              (request.team_id as string | null) ?? null,
+              session?.user?.id ?? null,
+              tn,
+            )
+          }
+
+          if (mountedRef.current) toast.success("Application declined.")
+          return
+        }
+
+        if (pending.kind === "accept-invitation") {
+          const invitation = pending.invitation
+          if (!invitation) return
+          const result = await acceptTeamInvitation(invitation.id)
+          if (!result.success) {
+            restoreInboxItem(pending)
+            if (mountedRef.current) {
+              toast.error("Could not join the squad.", { description: result.error })
+            }
+            return
+          }
+          if (mountedRef.current) {
+            void loadData()
+            if (result.gamification && gamificationRewardHasToast(result.gamification)) {
+              showGamificationRewards("JOIN_TEAM", result.gamification)
+            }
+            toast.success(`You joined ${invitation.squadName}!`, {
+              description: invitation.discordLink ? "Check the Discord link to connect." : undefined,
+            })
+            setAvailabilityModalContext(invitation.squadName)
+            setHasShownAvailabilityPrompt(true)
+            setShowAvailabilityModal(true)
+          }
+          return
+        }
+
+        if (pending.kind === "decline-invitation") {
+          const { data: request } = await supabase
+            .from("join_requests")
+            .select("id, team_id")
+            .eq("id", id)
+            .single()
+
+          const { error } = await supabase.from("join_requests").update({ status: "rejected" }).eq("id", id)
+          if (error) {
+            restoreInboxItem(pending)
+            if (mountedRef.current) {
+              toast.error("Could not decline the invitation.", { description: error.message })
+            }
+            return
+          }
+
+          void markNotificationsReadForJoinRequest(id)
+
+          if (request?.team_id) {
+            void notifyOwnerInvitationDeclined(
+              request.team_id,
+              profile?.username?.trim() || "",
+              session?.user?.id ?? null,
+            )
+          }
+
+          if (mountedRef.current) {
+            toast.success("Invitation declined.", {
+              description: "The squad captain has been notified.",
+            })
+          }
+        }
+      } catch (err) {
+        restoreInboxItem(pending)
+        if (mountedRef.current) {
+          toast.error("An error occurred.", {
+            description: err instanceof Error ? err.message : "Please try again.",
+          })
+        }
+      } finally {
+        pending.status = "done"
+        pendingInboxActionsRef.current.delete(id)
+        if (mountedRef.current) setBusyInboxRequestId(null)
+      }
+    },
+    [loadData, profile?.username, restoreInboxItem, session?.user?.id],
+  )
+
+  const undoPendingInboxAction = useCallback(
+    (id: string) => {
+      const pending = pendingInboxActionsRef.current.get(id)
+      if (!pending || pending.status !== "pending") return
+      pending.status = "undone"
+      clearTimeout(pending.timerId)
+      toast.dismiss(pending.toastId)
+      pendingInboxActionsRef.current.delete(id)
+      restoreInboxItem(pending)
+    },
+    [restoreInboxItem],
+  )
+
+  const scheduleInboxAction = useCallback(
+    (input: {
+      id: string
+      kind: InboxPendingKind
+      application?: ApplicationData
+      invitation?: InvitationData
+      toastLabel: string
+    }) => {
+      if (busyInboxRequestId) return
+      if (pendingInboxActionsRef.current.has(input.id)) return
+
+      vibrateLight()
+
+      if (input.application) {
+        setApplications((prev) => prev.filter((a) => a.id !== input.id))
+      }
+      if (input.invitation) {
+        setInvitations((prev) => prev.filter((i) => i.id !== input.id))
       }
 
-      if (result.ownerGamification && gamificationRewardHasToast(result.ownerGamification)) {
-        showGamificationRewards("TEAM_ROSTER_COMPLETE", result.ownerGamification)
-      }
-      toast.success("Application accepted!", {
-        description: `${applicantLabel} joined your squad.`,
+      const toastId = toast.message(input.toastLabel, {
+        duration: INBOX_UNDO_MS,
+        action: {
+          label: "Undo",
+          onClick: () => undoPendingInboxAction(input.id),
+        },
       })
-      void loadData()
-    } catch (err) {
-      if (removed) setApplications((prev) => [removed, ...prev.filter((a) => a.id !== removed.id)])
-      toast.error("An error occurred.", { description: err instanceof Error ? err.message : "Please try again." })
-    } finally {
-      setBusyInboxRequestId(null)
+
+      const timerId = setTimeout(() => {
+        void commitPendingInboxAction(input.id)
+      }, INBOX_UNDO_MS)
+
+      pendingInboxActionsRef.current.set(input.id, {
+        id: input.id,
+        kind: input.kind,
+        application: input.application,
+        invitation: input.invitation,
+        timerId,
+        toastId,
+        status: "pending",
+      })
+    },
+    [busyInboxRequestId, commitPendingInboxAction, undoPendingInboxAction, vibrateLight],
+  )
+
+  const commitPendingInboxActionRef = useRef(commitPendingInboxAction)
+  commitPendingInboxActionRef.current = commitPendingInboxAction
+
+  useEffect(() => {
+    mountedRef.current = true
+
+    const flushAll = () => {
+      const ids = [...pendingInboxActionsRef.current.keys()]
+      for (const id of ids) {
+        void commitPendingInboxActionRef.current(id)
+      }
     }
+
+    const onPageHide = () => flushAll()
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden") flushAll()
+    }
+
+    window.addEventListener("pagehide", onPageHide)
+    document.addEventListener("visibilitychange", onVisibility)
+
+    return () => {
+      mountedRef.current = false
+      flushAll()
+      window.removeEventListener("pagehide", onPageHide)
+      document.removeEventListener("visibilitychange", onVisibility)
+    }
+  }, [])
+
+  const handleAcceptApplication = (id: string) => {
+    const application = applications.find((a) => a.id === id)
+    if (!application) return
+    scheduleInboxAction({
+      id,
+      kind: "accept-application",
+      application,
+      toastLabel: "Application accepted",
+    })
   }
 
-  const handleDeclineApplication = async (id: string) => {
-    if (busyInboxRequestId) return
-    const removed = applications.find((a) => a.id === id)
-    setBusyInboxRequestId(id)
-    setApplications((prev) => prev.filter((a) => a.id !== id))
-    try {
-      const { data: request } = await supabase
-        .from("join_requests")
-        .select("sender_id, team_id, teams(team_name)")
-        .eq("id", id)
-        .single()
-
-      const { error } = await supabase.from("join_requests").update({ status: 'rejected' }).eq("id", id)
-      if (error) {
-        if (removed) setApplications((prev) => [removed, ...prev.filter((a) => a.id !== removed.id)])
-        toast.error("Could not decline the application.", { description: error.message })
-        return
-      }
-
-      void markNotificationsReadForJoinRequest(id)
-
-      // Email notification to the declined applicant (async, non-blocking)
-      if (request?.sender_id) {
-        const teamMeta = request.teams as { team_name?: string | null } | { team_name?: string | null }[] | null
-        const tn = Array.isArray(teamMeta) ? (teamMeta[0]?.team_name ?? null) : (teamMeta?.team_name ?? null)
-        void notifyApplicantDeclined(
-          request.sender_id as string,
-          (request.team_id as string | null) ?? null,
-          session?.user?.id ?? null,
-          tn,
-        )
-      }
-
-      toast.success("Application declined.")
-    } catch (err) {
-      if (removed) setApplications((prev) => [removed, ...prev.filter((a) => a.id !== removed.id)])
-      toast.error("An error occurred.", { description: err instanceof Error ? err.message : "Please try again." })
-    } finally {
-      setBusyInboxRequestId(null)
-    }
+  const handleDeclineApplication = (id: string) => {
+    const application = applications.find((a) => a.id === id)
+    if (!application) return
+    scheduleInboxAction({
+      id,
+      kind: "decline-application",
+      application,
+      toastLabel: "Application declined",
+    })
   }
 
-  const handleAcceptInvitation = async (invitation: InvitationData) => {
-    if (busyInboxRequestId) return
-    setBusyInboxRequestId(invitation.id)
-    try {
-      const result = await acceptTeamInvitation(invitation.id)
-      if (!result.success) {
-        toast.error("Could not join the squad.", { description: result.error })
-        return
-      }
+  const handleAcceptInvitation = (invitation: InvitationData) => {
+    scheduleInboxAction({
+      id: invitation.id,
+      kind: "accept-invitation",
+      invitation,
+      toastLabel: "Invitation accepted",
+    })
+  }
 
-      setInvitations((prev) => prev.filter((i) => i.id !== invitation.id))
-      loadData()
-      if (result.gamification && gamificationRewardHasToast(result.gamification)) {
-        showGamificationRewards("JOIN_TEAM", result.gamification)
-      }
-      toast.success(`You joined ${invitation.squadName}!`, {
-        description: invitation.discordLink ? "Check the Discord link to connect." : undefined,
-      })
-      setAvailabilityModalContext(invitation.squadName)
-      setHasShownAvailabilityPrompt(true)
-      setShowAvailabilityModal(true)
-    } catch (err) {
-      toast.error("An error occurred.", { description: err instanceof Error ? err.message : "Please try again." })
-    } finally {
-      setBusyInboxRequestId(null)
-    }
+  const handleDeclineInvitation = (id: string) => {
+    const invitation = invitations.find((item) => item.id === id)
+    if (!invitation) return
+    scheduleInboxAction({
+      id,
+      kind: "decline-invitation",
+      invitation,
+      toastLabel: "Invitation declined",
+    })
   }
 
   const persistAvailabilityPromptSeen = () => {
@@ -1284,46 +1502,6 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
     persistAvailabilityPromptSeen()
     setShowAvailabilityModal(false)
     setAvailabilityModalContext(null)
-  }
-
-  const handleDeclineInvitation = async (id: string) => {
-    if (busyInboxRequestId) return
-    const removed = invitations.find((item) => item.id === id)
-    setBusyInboxRequestId(id)
-    setInvitations((prev) => prev.filter((item) => item.id !== id))
-    try {
-      const { data: request } = await supabase
-        .from("join_requests")
-        .select("id, team_id")
-        .eq("id", id)
-        .single()
-
-      const { error } = await supabase.from("join_requests").update({ status: "rejected" }).eq("id", id)
-      if (error) {
-        if (removed) setInvitations((prev) => [removed, ...prev.filter((item) => item.id !== removed.id)])
-        toast.error("Could not decline the invitation.", { description: error.message })
-        return
-      }
-
-      void markNotificationsReadForJoinRequest(id)
-
-      if (request?.team_id) {
-        void notifyOwnerInvitationDeclined(
-          request.team_id,
-          profile?.username?.trim() || "",
-          session?.user?.id ?? null,
-        )
-      }
-
-      toast.success("Invitation declined.", {
-        description: "The squad captain has been notified.",
-      })
-    } catch (err) {
-      if (removed) setInvitations((prev) => [removed, ...prev.filter((item) => item.id !== removed.id)])
-      toast.error("An error occurred.", { description: err instanceof Error ? err.message : "Please try again." })
-    } finally {
-      setBusyInboxRequestId(null)
-    }
   }
 
   if (loading) {
@@ -1513,12 +1691,18 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
                 <ProfileSettings
                   profile={profile}
                   onProfileUpdated={(patch) => {
-                    if (patch && "discord_username" in patch) {
+                    if (patch) {
                       setProfile((prev) =>
-                        prev ? { ...prev, discord_username: patch.discord_username ?? null } : prev,
+                        prev
+                          ? {
+                              ...prev,
+                              ...(patch.discord_username !== undefined
+                                ? { discord_username: patch.discord_username ?? null }
+                                : {}),
+                            }
+                          : prev,
                       )
                     }
-                    void loadData()
                   }}
                   displayNameFallback={displayName}
                 />
