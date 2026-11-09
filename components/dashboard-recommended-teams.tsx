@@ -31,7 +31,7 @@ export function DashboardRecommendedTeams({ teams, className, compact = false }:
             compact ? "size-8" : "size-10",
           )}
         >
-          <Sparkles className={cn("text-teal", compact ? "size-4" : "size-5")} aria-hidden />
+          <Sparkles className="size-5 text-teal" aria-hidden />
         </div>
         <div>
           <h2

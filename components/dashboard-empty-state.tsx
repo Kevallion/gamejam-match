@@ -1,6 +1,7 @@
 "use client"
 
-import { Search, Users, Sparkles, ArrowRight } from "lucide-react"
+import { Search, UsersRound, ArrowRight } from "lucide-react"
+import { IconTile } from "@/components/ui/app-icon"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -15,7 +16,6 @@ export function DashboardEmptyState() {
           variant="outline"
           className="h-auto max-w-full shrink whitespace-normal border-teal/30 bg-teal/10 px-4 py-1.5 text-center text-sm font-medium leading-snug text-teal"
         >
-          <Sparkles className="mr-1.5 size-3.5 shrink-0" />
           Step 1: Select your path to discover teams and developers
         </Badge>
       </div>
@@ -29,9 +29,7 @@ export function DashboardEmptyState() {
           
           <CardContent className="relative flex flex-col items-center gap-6 p-8 text-center">
             {/* Icon Container */}
-            <div className="flex size-16 items-center justify-center rounded-2xl bg-teal/15 text-teal ring-4 ring-teal/10 transition-transform duration-300 group-hover:scale-110">
-              <Search className="size-8" />
-            </div>
+            <IconTile icon={Search} tone="teal" className="ring-4 ring-teal/10 transition-transform duration-300 group-hover:scale-110" />
 
             {/* Title */}
             <h3 className="text-xl font-bold tracking-tight text-foreground">
@@ -60,9 +58,7 @@ export function DashboardEmptyState() {
           
           <CardContent className="relative flex flex-col items-center gap-6 p-8 text-center">
             {/* Icon Container */}
-            <div className="flex size-16 items-center justify-center rounded-2xl bg-pink/15 text-pink ring-4 ring-pink/10 transition-transform duration-300 group-hover:scale-110">
-              <Users className="size-8" />
-            </div>
+            <IconTile icon={UsersRound} tone="pink" className="ring-4 ring-pink/10 transition-transform duration-300 group-hover:scale-110" />
 
             {/* Title */}
             <h3 className="text-xl font-bold tracking-tight text-foreground">

@@ -134,7 +134,7 @@ export function BadgeMedallion({
             className="absolute -bottom-0.5 -right-0.5 flex size-4 items-center justify-center rounded-full bg-background/95 text-muted-foreground ring-1 ring-border/70"
             aria-hidden
           >
-            <Lock className="size-2.5" strokeWidth={2.25} />
+            <Lock className="size-3" strokeWidth={2} />
           </span>
         ) : null}
       </span>
@@ -154,13 +154,13 @@ export function BadgeMedallion({
       )}
       aria-hidden
     >
-      {createElement(badgeIcon(badgeId), { className: dims.icon, strokeWidth: 1.75 })}
+      {createElement(badgeIcon(badgeId), { className: dims.icon, strokeWidth: 2 })}
       {locked ? (
         <span
           className="absolute -bottom-0.5 -right-0.5 flex size-4 items-center justify-center rounded-full bg-background/95 text-muted-foreground ring-1 ring-border/70"
           aria-hidden
         >
-          <Lock className="size-2.5" strokeWidth={2.25} />
+          <Lock className="size-3" strokeWidth={2} />
         </span>
       ) : null}
     </span>

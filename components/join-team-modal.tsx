@@ -20,12 +20,11 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import {
-  Loader2,
+  LoaderCircle,
   Send,
   Rocket,
-  CheckCircle2,
-  AlertCircle,
-  Sparkles,
+  CircleCheck,
+  CircleAlert,
   MessageSquareText,
   Target,
   Lock,
@@ -35,6 +34,7 @@ import { track } from "@vercel/analytics"
 import { notifyOwnerNewApplication } from "@/app/actions/team-actions"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { hasPendingApplicationToTeam } from "@/lib/queries"
+import { TagIcon } from "@/components/tag-icon"
 
 const MOTIVATION_MAX_CHARS = 500
 
@@ -65,7 +65,6 @@ export type ApplicantProfileDefaults = {
 type RoleOption = {
   key: string
   label: string
-  emoji: string
   color: string
   filled?: boolean
 }
@@ -366,7 +365,7 @@ export function JoinTeamModal({
         <DialogHeader className="space-y-2.5 text-left">
           <div className="flex items-center gap-2">
             <div className="flex size-9 items-center justify-center rounded-xl bg-teal/15">
-              <Rocket className="size-4.5 text-teal" />
+              <Rocket className="size-4 text-teal" />
             </div>
             <DialogTitle className="text-lg font-extrabold tracking-tight text-foreground">
               Join Team
@@ -376,7 +375,6 @@ export function JoinTeamModal({
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">Applying to</span>
             <Badge className="rounded-full border-0 bg-teal/15 px-2.5 py-0.5 text-xs font-bold text-teal">
-              <Sparkles className="mr-1 size-3" />
               {teamName}
             </Badge>
           </div>
@@ -396,7 +394,7 @@ export function JoinTeamModal({
               aria-live="polite"
               className="flex items-center gap-2.5 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3.5 py-2.5 text-sm font-medium text-amber-700 dark:text-amber-400"
             >
-              <AlertCircle className="size-4 shrink-0" />
+              <CircleAlert className="size-4 shrink-0" />
               <p className="leading-snug">You cannot join your own squad.</p>
             </div>
           )}
@@ -406,7 +404,7 @@ export function JoinTeamModal({
               aria-live="polite"
               className="flex items-center gap-2.5 rounded-xl border border-mint/30 bg-mint/10 px-3.5 py-2.5 text-sm font-medium text-mint"
             >
-              <CheckCircle2 className="size-4 shrink-0" />
+              <CircleCheck className="size-4 shrink-0" />
               <p className="leading-snug">Application already sent — check your dashboard (Sent) for status.</p>
             </div>
           )}
@@ -440,7 +438,7 @@ export function JoinTeamModal({
                       ].join(" ")}
                     >
                       {role.filled && <Lock className="size-3" />}
-                      {role.emoji} {role.label}
+                      <TagIcon kind="role" value={role.key || "other"} size="xs" showLabel withTooltip={false} />
                       {role.filled && <span className="ml-0.5 text-xs">Filled</span>}
                     </button>
                   )
@@ -496,9 +494,9 @@ export function JoinTeamModal({
               }`}
             >
               {statusMsg.type === "error" ? (
-                <AlertCircle className="size-4 shrink-0" />
+                <CircleAlert className="size-4 shrink-0" />
               ) : (
-                <CheckCircle2 className="size-4 shrink-0" />
+                <CircleCheck className="size-4 shrink-0" />
               )}
               <p className="leading-snug">{statusMsg.text}</p>
             </div>
@@ -530,9 +528,9 @@ export function JoinTeamModal({
           className="gap-2 rounded-xl bg-primary font-bold text-primary-foreground transition-all hover:bg-primary/90 disabled:opacity-50 sm:h-11"
         >
           {loading ? (
-            <Loader2 className="size-4 animate-spin" />
+            <LoaderCircle className="size-4 animate-spin" />
           ) : statusMsg?.type === "success" ? (
-            <CheckCircle2 className="size-4" />
+            <CircleCheck className="size-4" />
           ) : (
             <Send className="size-4" />
           )}

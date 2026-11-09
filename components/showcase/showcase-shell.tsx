@@ -1,7 +1,7 @@
 "use client"
 
 import type { ComponentType } from "react"
-import type { LucideIcon } from "lucide-react"
+import { LucideIcon } from "lucide-react"
 import { Navbar } from "@/components/navbar"
 import { BrowserFrame } from "@/components/showcase/browser-frame"
 import { MockHero } from "@/components/showcase/mock-hero"
@@ -11,7 +11,7 @@ import { MockDashboard } from "@/components/showcase/mock-dashboard"
 import { MockPlayers } from "@/components/showcase/mock-players"
 import { MockNotifications } from "@/components/showcase/mock-notifications"
 import { MockInviteModal } from "@/components/showcase/mock-invite-modal"
-import { Gamepad2, Sparkles, Users, PenLine, LayoutDashboard, Bell, Mail, UserSearch, Sword } from "lucide-react"
+import { Gamepad2, Sparkles, UsersRound, PenLine, LayoutDashboard, Bell, Mail, UserRoundSearch, Sword } from "lucide-react"
 import Link from "next/link"
 
 const DOT_PATTERN = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Ccircle cx='2' cy='2' r='1.2' fill='%2394a3b8' fill-opacity='0.35'/%3E%3C/svg%3E")`
@@ -53,7 +53,7 @@ const SHOWCASE_SECTIONS: ShowcaseSection[] = [
   {
     id: "teams",
     badge: "Step 2: Squad listings",
-    badgeIcon: Users,
+    badgeIcon: UsersRound,
     frameAccent: "border-pink",
     iconColor: "text-pink",
     numberColor: "text-pink",
@@ -85,7 +85,7 @@ const SHOWCASE_SECTIONS: ShowcaseSection[] = [
   {
     id: "members",
     badge: "Step 4: Find members",
-    badgeIcon: UserSearch,
+    badgeIcon: UserRoundSearch,
     frameAccent: "border-teal",
     iconColor: "text-teal",
     numberColor: "text-teal",
@@ -274,7 +274,7 @@ export function ShowcaseShell() {
                 </div>
 
                 <div className="mx-auto mb-6 flex size-20 items-center justify-center rounded-xl border-2 border-teal/30 bg-teal/10">
-                  <Users className="size-10 text-teal" />
+                  <UsersRound className="size-6 text-teal" />
                 </div>
 
                 <h2 className="text-balance text-3xl font-extrabold tracking-tight text-foreground md:text-4xl lg:text-5xl">
@@ -293,14 +293,14 @@ export function ShowcaseShell() {
                     href="/create-team"
                     className="inline-flex h-14 min-w-[200px] items-center justify-center gap-2 rounded-lg border-2 border-foreground bg-teal px-8 text-base font-extrabold text-teal-foreground shadow-[4px_4px_0px_0px_var(--neo-shadow)] transition-all hover:-translate-y-0.5 hover:shadow-[5px_5px_0px_0px_var(--neo-shadow)] active:translate-y-0 active:shadow-[2px_2px_0px_0px_var(--neo-shadow)]"
                   >
-                    <Users className="size-5" />
+                    <UsersRound className="size-5" />
                     Create a Squad
                   </Link>
                   <Link
                     href="/teams"
                     className="inline-flex h-14 min-w-[200px] items-center justify-center gap-2 rounded-lg border-2 border-foreground bg-card px-8 text-base font-extrabold text-foreground shadow-[4px_4px_0px_0px_var(--neo-shadow)] transition-all hover:-translate-y-0.5 hover:shadow-[5px_5px_0px_0px_var(--neo-shadow)] active:translate-y-0 active:shadow-[2px_2px_0px_0px_var(--neo-shadow)]"
                   >
-                    <Sparkles className="size-5" />
+                    <UsersRound className="size-5" />
                     Browse Teams
                   </Link>
                 </div>

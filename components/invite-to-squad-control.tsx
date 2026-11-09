@@ -12,7 +12,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
-import { Loader2, MailPlus, Users } from "lucide-react"
+import { LoaderCircle, UserRoundPlus, UsersRound } from "lucide-react"
 import { toast } from "sonner"
 
 export type OwnedSquadOption = {
@@ -79,7 +79,7 @@ export function InviteToSquadControl({
           className="w-full gap-2 rounded-xl border-teal/30 bg-teal/5 hover:bg-teal/10 sm:w-auto"
           disabled={isPending}
         >
-          {isPending ? <Loader2 className="size-4 animate-spin" /> : <MailPlus className="size-4 text-teal" />}
+          {isPending ? <LoaderCircle className="size-4 animate-spin" /> : <UserRoundPlus className="size-4 text-teal" />}
           Invite to Squad
         </Button>
       </DialogTrigger>
@@ -129,12 +129,12 @@ export function InviteToSquadControl({
                     >
                       {busy ? (
                         <>
-                          <Loader2 className="size-4 shrink-0 animate-spin" />
+                          <LoaderCircle className="size-4 shrink-0 animate-spin" />
                           Sending...
                         </>
                       ) : (
                         <>
-                          <Users className="size-4 shrink-0 text-muted-foreground" />
+                          <UsersRound className="size-4 shrink-0 text-muted-foreground" />
                           Invite
                         </>
                       )}

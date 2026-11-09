@@ -1,6 +1,6 @@
 "use client"
 
-import { Sparkles, Users } from "lucide-react"
+import { UsersRound } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 
@@ -14,7 +14,7 @@ export function Hero() {
 
       <div className="relative mx-auto max-w-2xl text-center">
         <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary">
-          <Sparkles className="size-4" />
+          <UsersRound className="size-4" />
           Browse squads looking for members
         </div>
 
@@ -33,7 +33,7 @@ export function Hero() {
             className="h-12 rounded-xl bg-primary px-8 text-base font-semibold text-primary-foreground shadow-lg shadow-primary/25 transition-all hover:bg-primary/90 hover:shadow-primary/30"
           >
             <Link href="/create-team">
-              <Users className="size-5" />
+              <UsersRound className="size-5" />
               Create a Squad
             </Link>
           </Button>

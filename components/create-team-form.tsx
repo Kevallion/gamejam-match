@@ -21,12 +21,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Plus, X, Rocket, Sparkles, Loader2, AlertCircle } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { ArrowRight, Plus, X, Rocket, LoaderCircle, CircleAlert } from "lucide-react"
 import { SignInButton } from "@/components/sign-in-button"
 import { toast } from "sonner"
 import { track } from "@vercel/analytics"
 import { ENGINE_OPTIONS, EXPERIENCE_OPTIONS, JAM_STYLE_OPTIONS, ROLE_OPTIONS, engineOptionLabel, languageOptionLabel } from "@/lib/constants"
+import { TagIcon } from "@/components/tag-icon"
 import { JamSearchSelector } from "@/components/jam-search-selector"
 import { createTeam } from "@/app/actions/create-team-actions"
 import { sendTeamInvitation } from "@/app/actions/invite-actions"
@@ -614,11 +614,10 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
                             <SelectContent className="rounded-xl">
                               {JAM_STYLE_OPTIONS.map((opt) => (
                                 <SelectItem key={opt.value} value={opt.value}>
-                                  <div>
-                                    <span className={`inline-flex items-center gap-2 rounded px-1.5 py-0.5 ${opt.color ?? "bg-muted text-muted-foreground"}`}>
-                                      {opt.emoji} {opt.label}
-                                    </span>
-                                    <span className="ml-2 text-xs text-muted-foreground">— {opt.description}</span>
+                                  <div className="flex min-w-0 items-center gap-2">
+                                    <TagIcon kind="style" value={opt.value} size="xs" withTooltip={false} />
+                                    <span>{opt.label}</span>
+                                    <span className="text-xs text-muted-foreground">— {opt.description}</span>
                                   </div>
                                 </SelectItem>
                               ))}
@@ -640,8 +639,9 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
                               <SelectItem value="any">Any level</SelectItem>
                               {EXPERIENCE_OPTIONS.map((opt) => (
                                 <SelectItem key={opt.value} value={opt.value}>
-                                  <span className={`inline-flex items-center gap-2 rounded px-1.5 py-0.5 ${opt.color ?? "bg-muted text-muted-foreground"}`}>
-                                    {opt.emoji} {opt.label}
+                                  <span className="inline-flex min-w-0 items-center gap-2">
+                                    <TagIcon kind="level" value={opt.value} size="xs" withTooltip={false} />
+                                    <span className="truncate">{opt.label}</span>
                                   </span>
                                 </SelectItem>
                               ))}
@@ -690,7 +690,12 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
                                 </SelectTrigger>
                                 <SelectContent className="rounded-xl">
                                   {ROLE_OPTIONS.map((opt) => (
-                                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                                    <SelectItem key={opt.value} value={opt.value}>
+                                      <span className="inline-flex min-w-0 items-center gap-2">
+                                        <TagIcon kind="role" value={opt.value} size="xs" withTooltip={false} />
+                                        <span className="truncate">{opt.label}</span>
+                                      </span>
+                                    </SelectItem>
                                   ))}
                                 </SelectContent>
                               </Select>
@@ -702,8 +707,9 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
                                 <SelectContent className="rounded-xl">
                                   {EXPERIENCE_OPTIONS.map((opt) => (
                                     <SelectItem key={opt.value} value={opt.value}>
-                                      <span className={`inline-flex items-center gap-2 rounded px-1.5 py-0.5 ${opt.color ?? "bg-muted text-muted-foreground"}`}>
-                                        {opt.emoji} {opt.label}
+                                      <span className="inline-flex min-w-0 items-center gap-2">
+                                        <TagIcon kind="level" value={opt.value} size="xs" withTooltip={false} />
+                                        <span className="truncate">{opt.label}</span>
                                       </span>
                                     </SelectItem>
                                   ))}
@@ -740,7 +746,7 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
                       </Button>
                       {rolesError && (
                         <div className="status-error flex items-center gap-2 text-sm text-destructive">
-                          <AlertCircle className="size-4 shrink-0" />
+                          <CircleAlert className="size-4 shrink-0" />
                           <span>{rolesError}</span>
                         </div>
                       )}
@@ -772,7 +778,7 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
                           />
                           {discordLinkError && (
                             <div className="status-error flex items-center gap-2 text-sm text-destructive">
-                              <AlertCircle className="size-4 shrink-0" />
+                              <CircleAlert className="size-4 shrink-0" />
                               <span>{discordLinkError}</span>
                             </div>
                           )}
@@ -895,20 +901,19 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
                         {step === totalSteps ? (
                           loading ? (
                             <>
-                              <Loader2 className="size-4 animate-spin" />
+                              <LoaderCircle className="size-4 animate-spin" />
                               {isEmbeddedInvite ? "Creating squad & sending invite..." : "Publishing..."}
                             </>
                           ) : (
                             <>
-                              <Sparkles className="size-4" />
-                              {isEmbeddedInvite ? "Create Squad & Send Invite" : "Publish Announcement"}
                               <Rocket className="size-4" />
+                              {isEmbeddedInvite ? "Create Squad & Send Invite" : "Publish Announcement"}
                             </>
                           )
                         ) : (
                           <>
-                            <Sparkles className="size-4" />
                             Next step
+                            <ArrowRight className="size-4" />
                           </>
                         )}
                       </Button>

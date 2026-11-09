@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { CheckCircle2, Circle, Compass, Hand, Inbox, Link2, MessageSquareText, Plus } from "lucide-react"
+import { CircleCheck, Circle, Compass, Hand, Inbox, Link2, MessageSquareText, Plus } from "lucide-react"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { cn } from "@/lib/utils"
@@ -106,7 +106,7 @@ export function DashboardNextSteps({
                 )}
               >
                 {step.done ? (
-                  <CheckCircle2 className="size-4 shrink-0 text-teal" aria-hidden />
+                  <CircleCheck className="size-4 shrink-0 text-teal" aria-hidden />
                 ) : (
                   <Circle className="size-4 shrink-0 text-muted-foreground" aria-hidden />
                 )}

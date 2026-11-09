@@ -34,14 +34,14 @@ import {
   Flag,
   Gamepad2,
   Hand,
-  Languages,
+  Globe,
   Link2,
-  Loader2,
-  MessageSquareMore,
+  LoaderCircle,
+  MessageCircle,
   Search,
-  User,
-  UserSearch,
-  Users,
+  UserRound,
+  UserRoundSearch,
+  UsersRound,
 } from "lucide-react"
 
 interface OnboardingModalProps {
@@ -72,7 +72,7 @@ const CHOICE_OPTIONS = [
     title: "I am looking for jammers",
     description: "Browse available profiles and discover teammates for your next jam.",
     href: "/find-members",
-    icon: UserSearch,
+    icon: UserRoundSearch,
   },
   {
     id: "create-team",
@@ -229,7 +229,7 @@ export function OnboardingModal({ open, onOpenChange, profile }: OnboardingModal
 
   const STEP_CONTENT = {
     1: {
-      title: "Welcome to GameJamCrew! 👋",
+      title: "Welcome to GameJamCrew!",
       description: "What brings you here today?",
     },
     2: {
@@ -274,7 +274,7 @@ export function OnboardingModal({ open, onOpenChange, profile }: OnboardingModal
                 )}
               >
                 <Label htmlFor="onboarding-username" className="flex items-center gap-2 text-sm font-medium">
-                  <User className="size-4 text-lavender" />
+                  <UserRound className="size-4 text-lavender" />
                   Username
                 </Label>
                 <Input
@@ -377,7 +377,7 @@ export function OnboardingModal({ open, onOpenChange, profile }: OnboardingModal
 
               <div className="space-y-2 rounded-2xl border border-border/60 bg-muted/20 p-4">
                 <Label htmlFor="onboarding-default-language" className="flex items-center gap-2 text-sm font-medium">
-                  <Languages className="size-4 text-lavender" />
+                  <Globe className="size-4 text-lavender" />
                   Default Language
                 </Label>
                 <Select value={defaultLanguage || "none"} onValueChange={(value) => setDefaultLanguage(value === "none" ? "" : value)}>
@@ -403,7 +403,7 @@ export function OnboardingModal({ open, onOpenChange, profile }: OnboardingModal
               <div className="space-y-4">
                 <div className="space-y-2 rounded-2xl border border-border/60 bg-muted/20 p-4">
                   <Label htmlFor="onboarding-discord" className="flex items-center gap-2 text-sm font-medium">
-                    <MessageSquareMore className="size-4 text-lavender" />
+                    <MessageCircle className="size-4 text-lavender" />
                     Discord Username
                   </Label>
                   <Input
@@ -446,7 +446,7 @@ export function OnboardingModal({ open, onOpenChange, profile }: OnboardingModal
                     <div className="min-w-0 flex-1 space-y-2">
                       <div className="flex items-center gap-2">
                         <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-lavender/15 text-lavender">
-                          <Users className="size-4" />
+                          <UsersRound className="size-4" />
                         </div>
                         <Label
                           htmlFor="publish-immediately"
@@ -499,7 +499,7 @@ export function OnboardingModal({ open, onOpenChange, profile }: OnboardingModal
               >
                 {isSubmitting ? (
                   <>
-                    <Loader2 className="size-4 animate-spin" />
+                    <LoaderCircle className="size-4 animate-spin" />
                     Finishing...
                   </>
                 ) : step === TOTAL_STEPS ? (

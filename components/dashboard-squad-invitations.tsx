@@ -3,19 +3,10 @@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Check, X, Mail, Sparkles, Swords, Target, Gamepad2 } from "lucide-react"
-
-const ROLE_STYLES: Record<string, { label: string; emoji: string; color: string }> = {
-  developer: { label: "Developer", emoji: "💻", color: "bg-teal/15 text-teal" },
-  "2d-artist": { label: "2D Artist", emoji: "🎨", color: "bg-pink/15 text-pink" },
-  "3d-artist": { label: "3D Artist", emoji: "🗿", color: "bg-peach/15 text-peach" },
-  audio: { label: "Audio", emoji: "🎵", color: "bg-lavender/15 text-lavender" },
-  voice_actor: { label: "Voice Actor", emoji: "🎙️", color: "bg-lavender/15 text-lavender" },
-  writer: { label: "Writer", emoji: "✍️", color: "bg-pink/15 text-pink" },
-  "game-design": { label: "Game Designer", emoji: "🎯", color: "bg-peach/15 text-peach" },
-  "ui-ux": { label: "UI / UX", emoji: "✨", color: "bg-mint/15 text-mint" },
-  qa: { label: "QA / Playtester", emoji: "🐛", color: "bg-peach/15 text-peach" },
-}
+import { TagIcon } from "@/components/tag-icon"
+import { ROLE_STYLES } from "@/lib/constants"
+import { Check, X, Mail, Gamepad2 } from "lucide-react"
+import { IconTile } from "@/components/ui/app-icon"
 
 export type InvitationData = {
   id: string
@@ -64,16 +55,13 @@ export function DashboardSquadInvitations({
           variant="secondary"
           className="rounded-full bg-lavender/15 px-3.5 py-1.5 text-sm font-bold text-lavender"
         >
-          <Sparkles className="mr-1.5 size-3.5" />
           {invitations.length} pending
         </Badge>
       </div>
 
       {invitations.length === 0 ? (
         <Card className="flex flex-col items-center gap-4 rounded-2xl border-border/50 border-dashed bg-card/50 px-6 py-14 text-center">
-          <div className="flex size-14 items-center justify-center rounded-full bg-secondary/80">
-            <Mail className="size-7 text-muted-foreground/60" />
-          </div>
+          <IconTile icon={Mail} tone="muted" />
           <div>
             <p className="font-semibold text-foreground">
               No squad invitations yet
@@ -86,9 +74,8 @@ export function DashboardSquadInvitations({
       ) : (
         <div className="flex flex-col gap-4">
           {invitations.map((inv) => {
-            const roleStyle = inv.targetRole
-              ? (ROLE_STYLES[inv.targetRole] ?? { label: inv.targetRole, emoji: "🎭", color: "bg-muted text-muted-foreground" })
-              : null
+            const roleKey = (inv.targetRole ?? "").trim().toLowerCase()
+            const roleValue = roleKey ? (ROLE_STYLES[roleKey] ? roleKey : "other") : ""
 
             return (
               <Card
@@ -115,7 +102,7 @@ export function DashboardSquadInvitations({
                     {/* Squad info */}
                     <div className="flex items-center gap-4">
                       <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-lavender/10 ring-2 ring-lavender/20 transition-all duration-300 group-hover:ring-lavender/40">
-                        <Swords className="size-5 text-lavender" />
+                        <Mail className="size-5 text-lavender" />
                       </div>
                       <div className="flex flex-col gap-1">
                         <h3 className="text-base font-bold text-foreground">
@@ -124,12 +111,9 @@ export function DashboardSquadInvitations({
 
                         {/* Role + Game enrichis */}
                         <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                          {roleStyle && (
-                            <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${roleStyle.color}`}>
-                              <Target className="size-3" />
-                              {roleStyle.emoji} {roleStyle.label}
-                            </span>
-                          )}
+                          {roleValue ? (
+                            <TagIcon kind="role" value={roleValue} size="xs" showLabel withTooltip={false} />
+                          ) : null}
                           {inv.gameName && (
                             <span className="inline-flex items-center gap-1 rounded-full bg-peach/10 px-2.5 py-0.5 text-xs font-semibold text-peach">
                               <Gamepad2 className="size-3" />
@@ -146,7 +130,7 @@ export function DashboardSquadInvitations({
                               {inv.jamTitle}
                             </span>
                           )}
-                          {!roleStyle && !inv.gameName && !inv.engineLabel && !inv.jamTitle && (
+                          {!roleValue && !inv.gameName && !inv.engineLabel && !inv.jamTitle && (
                             <span>You&apos;ve been invited to join this squad</span>
                           )}
                         </div>

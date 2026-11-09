@@ -45,8 +45,8 @@ export function NavbarNotificationRow({
       )}
     >
       {isSystem ? (
-        <div className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full border border-amber-500/30 bg-amber-500/10">
-          <Trophy className="size-4 text-amber-500" aria-hidden />
+        <div className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full border border-peach/30 bg-peach/10">
+          <Trophy className="size-4 text-peach" aria-hidden />
         </div>
       ) : (
         <button

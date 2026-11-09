@@ -1,6 +1,6 @@
 "use client"
 
-import { Gamepad2, Users, Zap } from "lucide-react"
+import { Gamepad2, UsersRound, Zap } from "lucide-react"
 import { MockDashboard } from "@/components/showcase/mock-dashboard"
 
 const DOT_PATTERN = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Ccircle cx='2' cy='2' r='1.2' fill='%2394a3b8' fill-opacity='0.35'/%3E%3C/svg%3E")`
@@ -85,7 +85,7 @@ export function LandingShowcase() {
             <div className="relative rounded-xl border-2 border-foreground bg-card p-4">
               <div className="flex items-start gap-3">
                 <div className="flex size-10 flex-shrink-0 items-center justify-center rounded-lg border-2 border-pink/30 bg-pink/10">
-                  <Users className="size-5 text-pink" />
+                  <UsersRound className="size-5 text-pink" />
                 </div>
                 <div>
                   <p className="font-extrabold text-foreground text-sm">New Invite!</p>

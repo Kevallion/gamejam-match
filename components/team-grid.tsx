@@ -18,7 +18,7 @@ import {
 import { getRecommendedTeams } from "@/lib/matchmaking"
 import { supabase } from "@/lib/supabase"
 import { fetchProfilesMap } from "@/lib/profiles"
-import { Loader2, Users } from "lucide-react"
+import { LoaderCircle, UsersRound } from "lucide-react"
 import { toast } from "sonner"
 import { EXPERIENCE_STYLES, JAM_STYLE_STYLES, ROLE_STYLES } from "@/lib/constants"
 
@@ -93,17 +93,22 @@ async function attachOwnerProfiles(teams: TeamWithMeta[]): Promise<TeamWithMeta[
 
 function formatTeam(t: TeamRowDb): TeamWithMeta {
   const parsedRoles: RawRoleEntry[] = Array.isArray(t.looking_for) ? (t.looking_for as RawRoleEntry[]) : []
-  const roleBadges = parsedRoles.map((r) => ({
-    ...(ROLE_STYLES[r.role ?? ""] ?? { label: r.role ?? "Other", emoji: "❓", color: "bg-gray-500/10 text-gray-500" }),
-    key: r.role ?? undefined,
-  }))
+  const roleBadges = parsedRoles.map((r) => {
+    const roleKey = (r.role ?? "").trim().toLowerCase()
+    const known = ROLE_STYLES[roleKey]
+    if (known) return { ...known, key: roleKey }
+    // Unknown role: keep the raw key for roster matching; TagIcon falls back to the "other" mark.
+    return { ...ROLE_STYLES.other, label: r.role || ROLE_STYLES.other.label, key: roleKey || "other" }
+  })
   const mainLevel = (parsedRoles.length > 0 ? parsedRoles[0].level : "beginner") ?? "beginner"
-  const levelBadge = EXPERIENCE_STYLES[mainLevel] || EXPERIENCE_STYLES["beginner"]
+  const levelKey = EXPERIENCE_STYLES[mainLevel] ? mainLevel : "beginner"
+  const levelBadge = { ...EXPERIENCE_STYLES[levelKey], key: levelKey }
   const acceptedRoleKeys: string[] = (t.team_members ?? [])
     .map((m) => m.role ?? null)
     .filter((r): r is string => !!r)
   const acceptedMembersCount = t.team_members ? t.team_members.length : 0
-  const teamVibe = t.team_vibe ? JAM_STYLE_STYLES[t.team_vibe] : undefined
+  const vibeStyle = t.team_vibe ? JAM_STYLE_STYLES[t.team_vibe] : undefined
+  const teamVibe = vibeStyle && t.team_vibe ? { ...vibeStyle, key: t.team_vibe } : undefined
 
   return {
     id: t.id,
@@ -371,7 +376,7 @@ export function TeamGrid({
           <Empty className="rounded-3xl border-border bg-card/50">
             <EmptyHeader>
               <EmptyMedia variant="icon">
-                <Users />
+                <UsersRound />
               </EmptyMedia>
               <EmptyTitle>No squads match these filters</EmptyTitle>
               <EmptyDescription>
@@ -411,7 +416,7 @@ export function TeamGrid({
             >
               {loadingMore ? (
                 <>
-                  <Loader2 className="size-4 animate-spin" />
+                  <LoaderCircle className="size-4 animate-spin" />
                   Loading...
                 </>
               ) : (

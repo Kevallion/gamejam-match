@@ -12,7 +12,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty"
-import { BookUser, Loader2 } from "lucide-react"
+import { UserRoundSearch, LoaderCircle } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { toast } from "sonner"
 import { ROLE_STYLES } from "@/lib/constants"
@@ -191,14 +191,16 @@ export function DirectoryGrid({
         const parsedRoles: LookingForRole[] = Array.isArray(t.looking_for)
           ? (t.looking_for as LookingForRole[])
           : []
-        const needed_roles = parsedRoles.map((r) => ({
-          key: r.role ?? "",
-          ...(ROLE_STYLES[r.role ?? ""] ?? {
-            label: r.role ?? "Other",
-            emoji: "❓",
-            color: "bg-gray-500/10 text-gray-500",
-          }),
-        }))
+        const needed_roles = parsedRoles.map((r) => {
+          const roleKey = (r.role ?? "").trim().toLowerCase()
+          const known = ROLE_STYLES[roleKey]
+          if (known) return { key: roleKey, ...known }
+          return {
+            key: roleKey || "other",
+            ...ROLE_STYLES.other,
+            label: r.role || ROLE_STYLES.other.label,
+          }
+        })
         return {
           id: t.id,
           team_name: t.team_name ?? "Untitled squad",
@@ -266,7 +268,7 @@ export function DirectoryGrid({
           <Empty className="rounded-3xl border-border bg-card/50">
             <EmptyHeader>
               <EmptyMedia variant="icon">
-                <BookUser />
+                <UserRoundSearch />
               </EmptyMedia>
               <EmptyTitle>No jammers match these filters</EmptyTitle>
               <EmptyDescription>
@@ -306,7 +308,7 @@ export function DirectoryGrid({
             >
               {loadingMore ? (
                 <>
-                  <Loader2 className="size-4 animate-spin" />
+                  <LoaderCircle className="size-4 animate-spin" />
                   Loading...
                 </>
               ) : (

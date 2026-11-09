@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState, useTransition } from "react"
-import { Check, Lock, Sparkles, ChevronRight } from "lucide-react"
+import { Check, Lock, Trophy, ChevronRight } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
@@ -92,8 +92,8 @@ export function TitleSelection({
         {/* Header row */}
         <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
           <div className="flex min-w-0 items-center gap-2">
-            <div className="flex size-8 items-center justify-center rounded-lg bg-amber-500/15 ring-1 ring-amber-500/25">
-              <Sparkles className="size-3.5 text-amber-500" />
+            <div className="flex size-8 items-center justify-center rounded-lg bg-peach/15 ring-1 ring-peach/25">
+              <Trophy className="size-3.5 text-peach" />
             </div>
             <div>
               <h3 className="text-sm font-semibold tracking-tight text-foreground">
@@ -121,8 +121,8 @@ export function TitleSelection({
             <DialogContent className="flex max-h-[80vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-lg">
               <DialogHeader className="shrink-0 border-b border-border/50 px-5 pb-4 pt-5 pr-14">
                 <div className="flex items-center gap-3">
-                  <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-amber-500/15 ring-1 ring-amber-500/25">
-                    <Sparkles className="size-4 text-amber-500" />
+                  <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-peach/15 ring-1 ring-peach/25">
+                    <Trophy className="size-4 text-peach" />
                   </div>
                   <div>
                     <DialogTitle className="text-base font-semibold">
@@ -150,9 +150,9 @@ export function TitleSelection({
                           "flex w-full flex-col gap-1 rounded-xl border px-3 py-2.5 text-left transition-all",
                           unlocked
                             ? cn(
-                                "border-border/40 bg-background/60 backdrop-blur-sm hover:border-amber-500/40 hover:bg-amber-500/[0.06] dark:bg-background/30",
+                                "border-border/40 bg-background/60 backdrop-blur-sm hover:border-peach/40 hover:bg-peach/5 dark:bg-background/30",
                                 active &&
-                                  "border-amber-500/50 bg-amber-500/10 ring-1 ring-amber-500/30 shadow-sm",
+                                  "border-peach/50 bg-peach/10 ring-1 ring-peach/30 shadow-sm",
                               )
                             : "cursor-not-allowed border-dashed border-border/35 bg-muted/10 opacity-55",
                         )}
@@ -169,7 +169,7 @@ export function TitleSelection({
                           {unlocked ? (
                             active ? (
                               <Check
-                                className="size-3.5 shrink-0 text-amber-500"
+                                className="size-3.5 shrink-0 text-peach"
                                 aria-label="Equipped"
                               />
                             ) : null

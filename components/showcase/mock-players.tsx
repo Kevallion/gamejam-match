@@ -1,13 +1,14 @@
 "use client"
 
-import { Globe, Cpu, ArrowRight, UserSearch, Sparkles } from "lucide-react"
+import { Globe, Cpu, ArrowRight, UserRoundSearch } from "lucide-react"
+import { TagIcon } from "@/components/tag-icon"
 
 const MOCK_PLAYERS = [
   {
     name: "SynthWave_Alex",
     initials: "SA",
-    role: { label: "Developer", emoji: "\uD83D\uDCBB", color: "bg-teal text-teal-foreground" },
-    level: { label: "Regular Jammer", emoji: "🎮", color: "bg-blue-500/15 text-blue-400" },
+    role: "developer",
+    level: "regular",
     engine: "Godot",
     language: "English",
     bio: "Full-stack dev with a passion for procedural generation. 3 jams under my belt, ready for more!",
@@ -16,8 +17,8 @@ const MOCK_PLAYERS = [
   {
     name: "ArtistKira",
     initials: "AK",
-    role: { label: "2D Artist", emoji: "\uD83C\uDFA8", color: "bg-pink text-pink-foreground" },
-    level: { label: "Junior / Student", emoji: "📚", color: "bg-emerald-500/15 text-emerald-400" },
+    role: "2d-artist",
+    level: "junior",
     engine: "Any",
     language: "French",
     bio: "Pixel art enthusiast. Can animate in Aseprite and create tilesets. Love retro aesthetics.",
@@ -26,8 +27,8 @@ const MOCK_PLAYERS = [
   {
     name: "BeatMaker99",
     initials: "BM",
-    role: { label: "Audio", emoji: "\uD83C\uDFB5", color: "bg-lavender text-lavender-foreground" },
-    level: { label: "Industry Veteran", emoji: "👑", color: "bg-amber-500/15 text-amber-400" },
+    role: "audio",
+    level: "veteran",
     engine: "Unity",
     language: "English",
     bio: "Composer & sound designer. Chiptune, orchestral, electronic. I make your game sound amazing.",
@@ -36,8 +37,8 @@ const MOCK_PLAYERS = [
   {
     name: "NarrativeNina",
     initials: "NN",
-    role: { label: "Writer", emoji: "\u270D\uFE0F", color: "bg-pink text-pink-foreground" },
-    level: { label: "Beginner / Learner", emoji: "🌱", color: "bg-sky-400/15 text-sky-400" },
+    role: "writer",
+    level: "beginner",
     engine: "Any",
     language: "Spanish",
     bio: "Creative writer and worldbuilder. First jam but tons of experience in tabletop game design.",
@@ -55,7 +56,7 @@ export function MockPlayers() {
         </div>
         <div className="relative">
           <div className="mb-2 inline-flex items-center gap-1.5 rounded-full border border-lavender/30 bg-lavender px-2.5 py-0.5 text-xs font-medium text-lavender-foreground">
-            <UserSearch className="size-3" />
+            <UserRoundSearch className="size-3" />
             Find your next teammate
           </div>
           <h1 className="text-lg font-extrabold tracking-tight text-foreground">Find Members</h1>
@@ -83,25 +84,21 @@ export function MockPlayers() {
                 <div className="min-w-0 flex-1">
                   <h3 className="truncate text-xs font-bold text-foreground">{player.name}</h3>
                   <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <Globe className="size-2.5 text-teal" />
+                    <Globe className="size-3 text-teal" />
                     {player.language}
                   </div>
                 </div>
               </div>
 
               {/* Role + Level badges */}
-              <div className="flex flex-wrap items-center gap-1 mb-2">
-                <span className={`rounded-full px-1.5 py-0.5 text-[8px] font-semibold ${player.role.color}`}>
-                  {player.role.emoji} {player.role.label}
-                </span>
-                <span className={`rounded-full px-1.5 py-0.5 text-[8px] font-semibold ${player.level.color}`}>
-                  {player.level.emoji} {player.level.label}
-                </span>
+              <div className="mb-2 flex flex-wrap items-center gap-1">
+                <TagIcon kind="role" value={player.role} size="xs" showLabel withTooltip={false} />
+                <TagIcon kind="level" value={player.level} size="xs" showLabel withTooltip={false} />
               </div>
 
               {/* Engine */}
               <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1.5">
-                <Cpu className="size-2.5 text-lavender" />
+                <Cpu className="size-3 text-lavender" />
                 {player.engine}
               </div>
 

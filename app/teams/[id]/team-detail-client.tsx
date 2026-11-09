@@ -14,7 +14,8 @@ import { fetchTeamDiscordLink } from "@/lib/team-discord"
 import { TEAMS_PUBLIC_WITH_MEMBERS, sanitizeJamDisplayName } from "@/lib/teams-public"
 import { formatTeamToCardData, type TeamRowDb } from "@/lib/team-utils"
 import type { TeamCardData } from "@/components/team-card"
-import { Loader2, ArrowLeft, ShieldAlert, Users, Cpu, Globe, Info } from "lucide-react"
+import { LoaderCircle, ArrowLeft, TriangleAlert, UsersRound, Cpu, Globe, Info } from "lucide-react"
+import { IconTile } from "@/components/ui/app-icon"
 import { toast } from "sonner"
 import { UserAvatar } from "@/components/user-avatar"
 import { Badge } from "@/components/ui/badge"
@@ -246,7 +247,7 @@ export function TeamDetailClient({ teamId }: { teamId: string }) {
       <div className="flex min-h-screen flex-col bg-background">
         <Navbar />
         <div className="flex flex-1 flex-col items-center justify-center gap-3">
-          <Loader2 className="size-8 animate-spin text-primary" />
+          <LoaderCircle className="size-6 animate-spin text-primary" />
           <p className="text-sm text-muted-foreground">Loading...</p>
         </div>
       </div>
@@ -261,7 +262,7 @@ export function TeamDetailClient({ teamId }: { teamId: string }) {
           <div className="mx-auto max-w-2xl">
             <Card className="rounded-2xl border-border/60 bg-card">
               <CardContent className="flex flex-col items-center gap-4 p-8 text-center">
-                <ShieldAlert className="size-12 text-muted-foreground" />
+                <IconTile icon={TriangleAlert} tone="muted" />
                 <h1 className="text-xl font-bold text-foreground">
                   This announcement is no longer available
                 </h1>
@@ -347,7 +348,7 @@ export function TeamDetailClient({ teamId }: { teamId: string }) {
                   variant="outline"
                   className="inline-flex items-center gap-1.5 rounded-full border-border/60 px-3 py-1 text-xs font-semibold"
                 >
-                  <Users className="size-3.5" />
+                  <UsersRound className="size-3.5" />
                   {members.length} member{members.length === 1 ? "" : "s"}
                 </Badge>
               </div>

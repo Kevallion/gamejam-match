@@ -1,12 +1,12 @@
 "use client"
 
-import { Users, Shield, Award } from "lucide-react"
+import { UsersRound, Shield, Award } from "lucide-react"
 
 const DOT_PATTERN = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Ccircle cx='2' cy='2' r='1.2' fill='%2394a3b8' fill-opacity='0.35'/%3E%3C/svg%3E")`
 
 const features = [
   {
-    icon: Users,
+    icon: UsersRound,
     number: "01",
     title: "Assemble your Party.",
     description:

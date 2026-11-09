@@ -11,7 +11,7 @@ import { fetchProfilesMap } from "@/lib/profiles"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { formatDistanceToNow } from "date-fns"
-import { Loader2, MessageCircle, SendHorizontal } from "lucide-react"
+import { LoaderCircle, MessageCircle, Send } from "lucide-react"
 import { notifyTeamChatNewMessage } from "@/app/actions/team-actions"
 
 type TeamChatProps = {
@@ -268,7 +268,7 @@ export function TeamChat({ teamId, currentUserId }: TeamChatProps) {
           <ScrollArea className="h-72 rounded-xl border border-border/60 bg-background/40 p-3">
             {loading ? (
               <div className="flex h-full items-center justify-center gap-2 text-xs text-muted-foreground">
-                <Loader2 className="size-4 animate-spin" />
+                <LoaderCircle className="size-4 animate-spin" />
                 Loading chat...
               </div>
             ) : messages.length === 0 ? (
@@ -355,9 +355,9 @@ export function TeamChat({ teamId, currentUserId }: TeamChatProps) {
             disabled={sending || !newMessage.trim()}
           >
             {sending ? (
-              <Loader2 className="size-4 animate-spin" />
+              <LoaderCircle className="size-4 animate-spin" />
             ) : (
-              <SendHorizontal className="size-4" />
+              <Send className="size-4" />
             )}
           </Button>
         </form>

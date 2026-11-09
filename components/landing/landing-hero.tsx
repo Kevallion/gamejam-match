@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { track } from "@vercel/analytics"
-import { Sword, Gamepad2, Code2, Sparkles, Users, PenLine } from "lucide-react"
+import { Sword, Gamepad2, CodeXml, UsersRound, PenLine } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type {
   LandingFeaturedTeam,
@@ -114,7 +114,7 @@ export function LandingHero({
                   href="/teams"
                   onClick={() => track("Landing CTA Clicked", { cta: "browse_teams", placement: "hero" })}
                 >
-                  <Sparkles className="size-5" />
+                  <UsersRound className="size-5" />
                   Browse Squads
                 </Link>
               </Button>
@@ -199,7 +199,7 @@ export function LandingHero({
             {/* Social proof row */}
             <div className="mt-8 flex flex-wrap items-center justify-center gap-4 text-sm text-muted-foreground lg:justify-start">
               <div className="flex items-center gap-2">
-                <Users className="size-4 text-teal" />
+                <UsersRound className="size-4 text-teal" />
                 <span>{socialProofStats.activeJammers}+ Jammers</span>
               </div>
               <div className="hidden h-4 w-px bg-border sm:block" />
@@ -211,7 +211,7 @@ export function LandingHero({
                 <>
                   <div className="hidden h-4 w-px bg-border sm:block" />
                   <div className="flex items-center gap-2">
-                    <Code2 className="size-4 text-lavender" />
+                    <CodeXml className="size-4 text-lavender" />
                     <span>{socialProofStats.completedTeams} squads completed</span>
                   </div>
                 </>

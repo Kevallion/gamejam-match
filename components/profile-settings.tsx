@@ -41,9 +41,10 @@ import {
   parseProgrammingLanguages,
   type ProgrammingLanguageValue,
 } from "@/lib/constants"
-import { ChevronDown, Loader2, Trash2, User, Settings, Bell, AlertTriangle, Link2, CodeXml, MessageSquare } from "lucide-react"
+import { ChevronDown, LoaderCircle, Trash2, UserRound, Settings, Bell, TriangleAlert, Link2, CodeXml, MessageSquareText } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
+import { TagIcon } from "@/components/tag-icon"
 
 type ProfileSettingsRole = {
   role: string
@@ -286,7 +287,7 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
         <SettingsSection
           title="Public profile"
           description="This is how others will see you on the platform."
-          icon={<User className="size-4 text-primary" />}
+          icon={<UserRound className="size-4 text-primary" />}
           defaultOpen
         >
           <Card className="border-border/50 bg-muted/30">
@@ -347,7 +348,7 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
               <div className="grid min-w-0 gap-6 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="profile-discord" className="flex items-center gap-2 text-sm font-medium">
-                    <MessageSquare className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
+                    <MessageSquareText className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
                     Discord Username
                   </Label>
                   <Input
@@ -402,7 +403,12 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
                     <SelectContent className="rounded-lg">
                       <SelectItem value="any">None / No default</SelectItem>
                       {ROLE_OPTIONS.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                        <SelectItem key={opt.value} value={opt.value}>
+                          <span className="inline-flex min-w-0 items-center gap-2">
+                            <TagIcon kind="role" value={opt.value} size="xs" withTooltip={false} />
+                            <span className="truncate">{opt.label}</span>
+                          </span>
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -421,7 +427,10 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
                     <SelectContent className="rounded-lg">
                       {EXPERIENCE_OPTIONS.map((opt) => (
                         <SelectItem key={opt.value} value={opt.value}>
-                          {opt.emoji} {opt.label}
+                          <span className="inline-flex min-w-0 items-center gap-2">
+                            <TagIcon kind="level" value={opt.value} size="xs" withTooltip={false} />
+                            <span className="truncate">{opt.label}</span>
+                          </span>
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -447,7 +456,12 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
                     <SelectContent className="rounded-lg">
                       <SelectItem value="any">None / No secondary role</SelectItem>
                       {ROLE_OPTIONS.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                        <SelectItem key={opt.value} value={opt.value}>
+                          <span className="inline-flex min-w-0 items-center gap-2">
+                            <TagIcon kind="role" value={opt.value} size="xs" withTooltip={false} />
+                            <span className="truncate">{opt.label}</span>
+                          </span>
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -475,7 +489,10 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
                     <SelectContent className="rounded-lg">
                       {EXPERIENCE_OPTIONS.map((opt) => (
                         <SelectItem key={opt.value} value={opt.value}>
-                          {opt.emoji} {opt.label}
+                          <span className="inline-flex min-w-0 items-center gap-2">
+                            <TagIcon kind="level" value={opt.value} size="xs" withTooltip={false} />
+                            <span className="truncate">{opt.label}</span>
+                          </span>
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -496,7 +513,10 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
                       <SelectItem value="any">None / No preference</SelectItem>
                       {JAM_STYLE_OPTIONS.map((opt) => (
                         <SelectItem key={opt.value} value={opt.value}>
-                          {opt.emoji} {opt.label}
+                          <span className="inline-flex min-w-0 items-center gap-2">
+                            <TagIcon kind="style" value={opt.value} size="xs" withTooltip={false} />
+                            <span className="truncate">{opt.label}</span>
+                          </span>
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -597,7 +617,7 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
           >
             {saving ? (
               <>
-                <Loader2 className="size-4 animate-spin" />
+                <LoaderCircle className="size-4 animate-spin" />
                 Saving...
               </>
             ) : (
@@ -628,7 +648,7 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
       <section className="space-y-6">
         <div className="flex items-center gap-3">
           <div className="flex size-9 items-center justify-center rounded-lg bg-destructive/10">
-            <AlertTriangle className="size-4 text-destructive" />
+            <TriangleAlert className="size-4 text-destructive" />
           </div>
           <div>
             <h2 className="text-base font-medium text-destructive">Danger Zone</h2>
@@ -664,7 +684,7 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
           <AlertDialogHeader>
             <div className="flex items-center gap-4">
               <div className="flex size-12 items-center justify-center rounded-xl bg-destructive/10">
-                <AlertTriangle className="size-6 text-destructive" />
+                <TriangleAlert className="size-6 text-destructive" />
               </div>
               <div className="space-y-1">
                 <AlertDialogTitle className="text-left">Delete your account?</AlertDialogTitle>
@@ -692,7 +712,7 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
             >
               {deletingAccount ? (
                 <>
-                  <Loader2 className="size-4 animate-spin" />
+                  <LoaderCircle className="size-4 animate-spin" />
                   Deleting...
                 </>
               ) : (

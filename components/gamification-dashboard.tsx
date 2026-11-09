@@ -1,8 +1,8 @@
 "use client"
 
 import { useCallback, useEffect, useState } from "react"
-import { Sparkles, Trophy } from "lucide-react"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
+import { Star, Trophy } from "lucide-react"
+import { Card, CardContent } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { UserAvatar } from "@/components/user-avatar"
 import { supabase } from "@/lib/supabase"
@@ -174,7 +174,6 @@ export function GamificationDashboardFull({
   const progress = gamificationLevelProgress(xp ?? 0)
   const level = levelFromTotalXp(xp ?? 0)
   const xpLabel = `${progress.xpInLevel} / ${progress.span} XP → next level`
-  const totalLabel = `${xp ?? 0} total XP`
 
   if (loading) {
     return <GamificationDashboardFullSkeleton className={className} />
@@ -190,8 +189,8 @@ export function GamificationDashboardFull({
         />
         <CardContent className="relative flex min-w-0 flex-wrap items-center gap-4 p-4">
           {/* Trophy icon */}
-          <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-amber-600/15 ring-1 ring-amber-800/25 dark:bg-amber-500/15 dark:ring-amber-500/30">
-            <Trophy className="size-5 text-amber-800 dark:text-amber-400" aria-hidden />
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-peach/15 ring-1 ring-peach/25">
+            <Trophy className="size-5 text-peach" aria-hidden />
           </div>
 
           {/* Level + title + XP text */}
@@ -211,7 +210,7 @@ export function GamificationDashboardFull({
                 <p className="text-xs text-destructive">{error}</p>
               ) : (
                 <span className="inline-flex items-center gap-1 text-xs text-foreground/75 dark:text-muted-foreground">
-                  <Sparkles className="size-3 shrink-0 text-amber-800 dark:text-amber-400" aria-hidden />
+                  <Star className="size-3 shrink-0 text-lavender" aria-hidden />
                   {xpLabel}
                 </span>
               )}

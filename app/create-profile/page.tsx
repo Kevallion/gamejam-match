@@ -1,6 +1,6 @@
 import { Navbar } from "@/components/navbar"
 import { CreateProfileAvailabilitySection } from "@/components/create-profile-availability-section"
-import { UserCheck } from "lucide-react"
+import { UserRoundCheck } from "lucide-react"
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
@@ -36,7 +36,7 @@ export default function AvailabilityPage() {
 
           <div className="relative mx-auto max-w-2xl text-center">
             <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-lavender/30 bg-lavender px-4 py-1.5 text-sm font-medium text-lavender-foreground">
-              <UserCheck className="size-4" />
+              <UserRoundCheck className="size-4" />
               Solo profile
             </div>
 

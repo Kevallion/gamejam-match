@@ -28,26 +28,25 @@ import { Textarea } from "@/components/ui/textarea"
 import { supabase } from "@/lib/supabase"
 import { cn } from "@/lib/utils"
 import {
-  Calendar,
+  CalendarDays,
   Cpu,
   Mail,
   Globe,
   ExternalLink,
-  Loader2,
+  LoaderCircle,
   ChevronDown,
-  UserPlus,
-  Users,
+  UserRoundPlus,
+  UsersRound,
   Send,
-  CheckCircle2,
-  AlertCircle,
-  Sparkles,
+  CircleCheck,
+  CircleAlert,
   MessageSquareText,
   Target,
   Share2,
 } from "lucide-react"
 import Link from "next/link"
 import { format, parseISO, isPast, addDays, isBefore } from "date-fns"
-import { TagIconRow } from "@/components/tag-icon"
+import { TagIcon, TagIconRow } from "@/components/tag-icon"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { toast } from "sonner"
 import { sendTeamInvitation } from "@/app/actions/invite-actions"
@@ -55,6 +54,8 @@ import { showGamificationRewards } from "@/components/gamification-reward-toasts
 import { gamificationRewardHasToast } from "@/lib/gamification-reward-types"
 import { KudosBadgeRow } from "@/components/kudos-badges"
 import { CreateTeamForm } from "@/components/create-team-form"
+import { AppIcon } from "@/components/ui/app-icon"
+import { ICON } from "@/lib/icons"
 import type { KudosCounts } from "@/lib/kudos"
 import { ENGINE_OPTIONS_WITH_ANY, LANGUAGE_OPTIONS } from "@/lib/constants"
 import { fetchPendingInvitationTeamIdsForInvitee } from "@/lib/queries"
@@ -85,18 +86,15 @@ export type JammerCardData = {
   role: {
     key?: string
     label: string
-    emoji: string
     color: string
   }
   level: {
     label: string
-    emoji: string
     color: string
     key?: string
   }
   jamStyle?: {
     label: string
-    emoji: string
     color: string
     key?: string
   }
@@ -121,7 +119,7 @@ export type SquadOption = {
   id: string
   team_name: string
   game_name?: string
-  needed_roles?: { key: string; label: string; emoji: string; color: string }[]
+  needed_roles?: { key: string; label: string; color: string }[]
   memberIds?: string[]
 }
 
@@ -431,7 +429,7 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
                       : "border-border/60 bg-muted/50 text-muted-foreground",
                   )}
                 >
-                  <Calendar className="size-3.5 shrink-0" />
+                  <CalendarDays className="size-3.5 shrink-0" />
                   <span className="min-w-0 truncate">{availabilityInfo.label}</span>
                 </div>
               ) : (
@@ -447,7 +445,7 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
                       className="shrink-0 rounded-xl"
                       aria-label="Create a Squad and invite this jammer"
                     >
-                      <UserPlus className="size-4" />
+                      <UserRoundPlus className="size-4" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>Create a Squad and invite this jammer</TooltipContent>
@@ -513,36 +511,20 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
               {(showRoleChip || showLevelChip || player.jamStyle || engineLabel) ? (
               <div className="flex flex-wrap items-center gap-1.5">
                 {showRoleChip ? (
-                <Badge
-                  variant="outline"
-                  title={`${player.role.emoji} ${player.role.label}`}
-                  className={`max-w-full min-w-0 shrink truncate rounded-full border-border/60 px-3 py-1 text-xs font-semibold ${player.role.color}`}
-                >
-                  <span className="min-w-0 truncate">
-                    {player.role.emoji} {player.role.label}
-                  </span>
-                </Badge>
+                  <TagIcon
+                    kind="role"
+                    value={player.role.key || "other"}
+                    size="xs"
+                    showLabel
+                    withTooltip={false}
+                  />
                 ) : null}
-                {showLevelChip ? (
-                <span
-                  title={`${player.level.emoji} ${player.level.label}`}
-                  className={`inline-flex min-w-0 max-w-full shrink items-center gap-1 truncate rounded-full px-3 py-1 text-xs font-semibold ${player.level.color}`}
-                >
-                  <span className="min-w-0 truncate">
-                    {player.level.emoji} {player.level.label}
-                  </span>
-                </span>
+                {showLevelChip && player.level.key ? (
+                  <TagIcon kind="level" value={player.level.key} size="xs" showLabel withTooltip={false} />
                 ) : null}
-                {player.jamStyle && (
-                  <span
-                    className={`inline-flex min-w-0 max-w-full shrink items-center gap-1 truncate rounded-full px-3 py-1 text-xs font-semibold ${player.jamStyle.color}`}
-                    title={player.jamStyle.label}
-                  >
-                    <span className="min-w-0 truncate">
-                      {player.jamStyle.emoji} {player.jamStyle.label}
-                    </span>
-                  </span>
-                )}
+                {player.jamStyle?.key ? (
+                  <TagIcon kind="style" value={player.jamStyle.key} size="xs" showLabel withTooltip={false} />
+                ) : null}
                 {engineLabel ? (
                   <Badge
                     variant="outline"
@@ -566,7 +548,7 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
                       : "border-border/60 bg-muted/50 text-muted-foreground",
                   )}
                 >
-                  <Calendar className="size-3.5 shrink-0" />
+                  <CalendarDays className="size-3.5 shrink-0" />
                   <span>Available: {availabilityInfo.label}</span>
                 </div>
               )}
@@ -624,7 +606,7 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
                 onClick={openCreateSquadDialog}
                 className="flex h-auto w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-primary/40 bg-primary px-4 py-3 text-sm text-primary-foreground shadow-sm hover:bg-primary/90 hover:border-primary"
               >
-                <Users className="size-4" />
+                <UsersRound className="size-4" />
                 Create a Squad and invite this jammer
               </Button>
             ) : (
@@ -636,7 +618,14 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
                       className="w-full gap-2 rounded-xl bg-primary text-primary-foreground transition-all hover:bg-primary/85"
                     >
                       <Mail className="size-4" />
-                      {allSent ? "All invitations sent ✓" : "Invite to my squad"}
+                      {allSent ? (
+                        <span className="inline-flex items-center gap-1.5">
+                          All invitations sent
+                          <AppIcon icon={ICON.confirm} size="xs" />
+                        </span>
+                      ) : (
+                        "Invite to my squad"
+                      )}
                       {!allSent && <ChevronDown className="size-3.5 ml-auto" />}
                     </Button>
                   </DropdownMenuTrigger>
@@ -654,7 +643,7 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
                           onSelect={() => openInviteDialog(squad)}
                           className="cursor-pointer"
                         >
-                          {locked && <span className="mr-2">✓</span>}
+                          {locked ? <AppIcon icon={ICON.confirm} size="xs" /> : null}
                           {squad.team_name}
                           {locked && (
                             <span className="ml-auto text-xs text-muted-foreground">
@@ -693,7 +682,6 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-sm text-muted-foreground">Inviting</span>
                 <Badge className="rounded-full border-0 bg-lavender/15 px-2.5 py-0.5 text-xs font-bold text-lavender">
-                  <Sparkles className="mr-1 size-3" />
                   {player.username}
                 </Badge>
                 <span className="text-sm text-muted-foreground">to</span>
@@ -743,7 +731,7 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
                               : "border border-border/70 bg-secondary/40 text-foreground hover:border-primary/40",
                           ].join(" ")}
                         >
-                          {role.emoji} {role.label}
+                          <TagIcon kind="role" value={role.key || "other"} size="xs" showLabel withTooltip={false} />
                         </button>
                       )
                     })}
@@ -789,9 +777,9 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
                   }`}
                 >
                   {statusMsg.type === "error" ? (
-                    <AlertCircle className="size-4 shrink-0" />
+                    <CircleAlert className="size-4 shrink-0" />
                   ) : (
-                    <CheckCircle2 className="size-4 shrink-0" />
+                    <CircleCheck className="size-4 shrink-0" />
                   )}
                   <p className="leading-snug">{statusMsg.text}</p>
                 </div>
@@ -815,9 +803,9 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
               className="gap-2 rounded-xl bg-primary font-bold text-primary-foreground transition-all hover:bg-primary/85 disabled:opacity-50 sm:h-11"
             >
               {loading ? (
-                <Loader2 className="size-4 animate-spin" />
+                <LoaderCircle className="size-4 animate-spin" />
               ) : statusMsg?.type === "success" ? (
-                <CheckCircle2 className="size-4" />
+                <CircleCheck className="size-4" />
               ) : (
                 <Send className="size-4" />
               )}

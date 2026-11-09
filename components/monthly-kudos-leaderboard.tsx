@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
-import { Crown, Medal, Sparkles } from "lucide-react"
+import { Crown, HandHeart, Medal } from "lucide-react"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { supabase } from "@/lib/supabase"
@@ -91,7 +91,7 @@ export function MonthlyKudosLeaderboard() {
     <Card className="glass-card min-w-0 max-w-full border-peach/25 bg-peach/5">
       <CardHeader className="min-w-0 overflow-hidden pb-2">
         <div className="flex min-w-0 items-start gap-2 sm:items-center">
-          <Sparkles className="mt-0.5 size-4 shrink-0 text-peach sm:mt-0" />
+          <HandHeart className="mt-0.5 size-4 shrink-0 text-peach sm:mt-0" />
           <div className="flex min-w-0 flex-1 flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-2">
             <h3 className="min-w-0 text-sm font-bold leading-snug text-foreground">
               Monthly Kudos Leaderboard
@@ -119,7 +119,7 @@ export function MonthlyKudosLeaderboard() {
               >
                 <div className="flex min-w-0 items-center gap-2">
                   {idx === 0 ? (
-                    <Crown className="size-4 shrink-0 text-amber-500" />
+                    <Crown className="size-4 shrink-0 text-peach" />
                   ) : (
                     <Medal className="size-4 shrink-0 text-muted-foreground" />
                   )}

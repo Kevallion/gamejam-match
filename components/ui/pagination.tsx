@@ -2,7 +2,7 @@ import * as React from 'react'
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
-  MoreHorizontalIcon,
+  Ellipsis,
 } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
@@ -110,7 +110,7 @@ function PaginationEllipsis({
       className={cn('flex size-9 items-center justify-center', className)}
       {...props}
     >
-      <MoreHorizontalIcon className="size-4" />
+      <Ellipsis className="size-4" />
       <span className="sr-only">More pages</span>
     </span>
   )

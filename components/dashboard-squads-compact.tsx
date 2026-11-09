@@ -6,7 +6,9 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { UserAvatar } from "@/components/user-avatar"
 import type { TeamData } from "@/components/dashboard-my-teams"
-import { Cpu, Globe, Link2, MessageCircle, Settings2, Sparkles, UserMinus, Users2 } from "lucide-react"
+import { Cpu, Flame, Globe, Link2, MessageCircle, Settings, UserRoundMinus, UsersRound } from "lucide-react"
+import { TagIcon } from "@/components/tag-icon"
+import { STYLE_ICON } from "@/lib/icons"
 
 function isExpiringSoon(expiresAt: string | null | undefined): boolean {
   if (!expiresAt) return false
@@ -58,7 +60,11 @@ function SquadCardCompact({
             {team.language || "Any language"}
           </span>
           <span className="inline-flex items-center gap-1">
-            <Sparkles className="size-3 text-peach" />
+            {team.teamVibe?.trim() && STYLE_ICON[team.teamVibe.trim().toLowerCase()] ? (
+              <TagIcon kind="style" value={team.teamVibe.trim()} size="xs" withTooltip={false} />
+            ) : (
+              <Flame className="size-3 text-peach" />
+            )}
             {team.teamVibe?.trim() || team.level.label}
           </span>
         </div>
@@ -81,7 +87,7 @@ function SquadCardCompact({
             ) : null}
           </div>
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Users2 className="size-3" />
+            <UsersRound className="size-3" />
             Open roles: {Math.max(0, team.maxMembers - team.members)}
           </div>
         </div>
@@ -114,7 +120,7 @@ function SquadCardCompact({
               className="h-7 cursor-pointer rounded-lg px-2.5 text-xs"
             >
               <Link href={`/teams/${team.id}/manage`}>
-                <Settings2 className="size-3.5" />
+                <Settings className="size-3.5" />
                 Manage
               </Link>
             </Button>
@@ -126,7 +132,7 @@ function SquadCardCompact({
               className="h-7 cursor-pointer rounded-lg border-destructive/30 px-2.5 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
               onClick={() => void onLeave(team.id)}
             >
-              <UserMinus className="size-3.5" />
+              <UserRoundMinus className="size-3.5" />
               Leave
             </Button>
           ) : null}

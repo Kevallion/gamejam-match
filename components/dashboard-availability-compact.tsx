@@ -7,7 +7,7 @@ import { UserAvatar } from "@/components/user-avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { CalendarDays, Cpu, ExternalLink, Globe, Hand, RotateCw, Trash2 } from "lucide-react"
+import { CalendarDays, Cpu, ExternalLink, Globe, Hand, RefreshCw, Trash2 } from "lucide-react"
 
 type AvailabilityPostCompact = {
   id: string
@@ -136,7 +136,7 @@ export function DashboardAvailabilityCompact({
                       disabled={renewing}
                       onClick={() => onRenewPost(post.id)}
                     >
-                      <RotateCw className={`size-3.5 ${renewing ? "animate-spin" : ""}`} />
+                      <RefreshCw className={`size-3.5 ${renewing ? "animate-spin" : ""}`} />
                       {renewing ? "Renewing..." : "Renew"}
                     </Button>
                     <Button

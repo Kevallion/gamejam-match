@@ -40,14 +40,17 @@ export function formatTeamToCardData(t: TeamRowDb): TeamCardData {
   const parsedRoles: RawRoleEntry[] = Array.isArray(t.looking_for)
     ? (t.looking_for as RawRoleEntry[])
     : []
-  const roleBadges = parsedRoles.map((r) => ({
-    ...(ROLE_STYLES[r.role ?? ""] ?? {
-      label: r.role ?? "Other",
-      emoji: "❓",
-      color: "bg-gray-500/10 text-gray-500",
-    }),
-    key: r.role ?? undefined,
-  }))
+  const roleBadges = parsedRoles.map((r) => {
+    const roleKey = (r.role ?? "").trim().toLowerCase()
+    const known = ROLE_STYLES[roleKey]
+    if (known) return { ...known, key: roleKey }
+    // Unknown role: keep the raw key for roster matching; TagIcon falls back to the "other" mark.
+    return {
+      ...ROLE_STYLES.other,
+      label: r.role || ROLE_STYLES.other.label,
+      key: roleKey || "other",
+    }
+  })
   const mainLevel =
     (parsedRoles.length > 0 ? parsedRoles[0].level : "beginner") ?? "beginner"
   const levelBadge = {

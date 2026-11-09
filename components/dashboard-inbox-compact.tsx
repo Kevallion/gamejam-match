@@ -10,7 +10,8 @@ import type {
   SentInvitationOutboxItem,
 } from "@/components/dashboard-sent-outbox"
 import { UserAvatar } from "@/components/user-avatar"
-import { Check, Clock3, Inbox, Mail, Send, X } from "lucide-react"
+import { TagIcon } from "@/components/tag-icon"
+import { Check, Clock, Inbox, Mail, Send, X } from "lucide-react"
 
 function shortAge(dateIso?: string | null): string {
   if (!dateIso) return "now"
@@ -94,8 +95,13 @@ export function DashboardInboxCompact({
                       <p className="truncate text-xs font-semibold text-foreground">
                         {app.username} &rarr; {app.teamName}
                       </p>
-                      <p className="truncate text-[11px] text-muted-foreground">
-                        {app.role.emoji} {app.role.label} · {shortAge(app.createdAt)}
+                      <p className="flex min-w-0 items-center gap-1 truncate text-[11px] text-muted-foreground">
+                        {app.role.key ? (
+                          <TagIcon kind="role" value={app.role.key} size="xs" showLabel withTooltip={false} />
+                        ) : (
+                          <span className="truncate">{app.role.label}</span>
+                        )}
+                        <span className="shrink-0">· {shortAge(app.createdAt)}</span>
                       </p>
                     </div>
                   </div>
@@ -248,7 +254,7 @@ export function DashboardInboxCompact({
             </>
           )}
           <div className="mt-2 inline-flex items-center gap-1 text-xs text-muted-foreground">
-            <Clock3 className="size-3" />
+            <Clock className="size-3" />
             Status updates stay visible for traceability.
           </div>
         </CardContent>

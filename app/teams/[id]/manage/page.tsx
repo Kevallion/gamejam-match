@@ -33,22 +33,23 @@ import { fetchTeammateDiscordUsernames } from "@/lib/profile-discord"
 import {
   ArrowLeft,
   CalendarClock,
-  Loader2,
+  LoaderCircle,
   Settings,
-  UserMinus,
-  Pencil,
-  RotateCw,
+  UserRoundMinus,
+  PenLine,
+  RefreshCw,
   Trash2,
-  Users,
-  ShieldAlert,
+  UsersRound,
+  TriangleAlert,
   MessageCircle,
   Link2,
   Trophy,
   Plus,
   X,
-  AlertCircle,
+  CircleAlert,
 } from "lucide-react"
 import { toast } from "sonner"
+import { IconTile } from "@/components/ui/app-icon"
 import { JamSearchSelector } from "@/components/jam-search-selector"
 import {
   notifyMemberDiscordLink,
@@ -62,6 +63,7 @@ import { fetchTeamDiscordLink, upsertTeamDiscordLink } from "@/lib/team-discord"
 import { showGamificationRewards } from "@/components/gamification-reward-toasts"
 import { gamificationRewardHasToast } from "@/lib/gamification-reward-types"
 import { EXPERIENCE_OPTIONS, JAM_STYLE_OPTIONS, ROLE_OPTIONS, ROLE_STYLES } from "@/lib/constants"
+import { TagIcon } from "@/components/tag-icon"
 import { DateRangeField } from "@/components/date-range-field"
 import {
   AlertDialog,
@@ -638,7 +640,7 @@ export default function TeamManagePage() {
       <div className="flex min-h-screen flex-col bg-background">
         <Navbar />
         <div className="flex flex-1 flex-col items-center justify-center gap-3">
-          <Loader2 className="size-8 animate-spin text-primary" />
+          <LoaderCircle className="size-6 animate-spin text-primary" />
           <p className="text-sm text-muted-foreground">Loading...</p>
         </div>
       </div>
@@ -653,7 +655,7 @@ export default function TeamManagePage() {
           <div className="mx-auto max-w-2xl">
             <Card className="rounded-2xl border-destructive/50 bg-destructive/10">
               <CardContent className="flex flex-col items-center gap-4 p-8 text-center">
-                <ShieldAlert className="size-12 text-destructive" />
+                <IconTile icon={TriangleAlert} tone="destructive" />
                 <h1 className="text-xl font-bold text-foreground">Access denied</h1>
                 <p className="text-muted-foreground">
                   Only the squad owner can manage this squad.
@@ -725,7 +727,7 @@ export default function TeamManagePage() {
               >
                 <DialogTrigger asChild>
                   <Button className="gap-2 rounded-xl">
-                    <Pencil className="size-4" />
+                    <PenLine className="size-4" />
                     Edit squad
                   </Button>
                 </DialogTrigger>
@@ -826,7 +828,10 @@ export default function TeamManagePage() {
                           <SelectItem value="any">Any</SelectItem>
                           {JAM_STYLE_OPTIONS.map((opt) => (
                             <SelectItem key={opt.value} value={opt.value}>
-                              {opt.emoji} {opt.label}
+                              <span className="inline-flex min-w-0 items-center gap-2">
+                                <TagIcon kind="style" value={opt.value} size="xs" withTooltip={false} />
+                                <span className="truncate">{opt.label}</span>
+                              </span>
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -850,7 +855,10 @@ export default function TeamManagePage() {
                           <SelectItem value="any">Any level</SelectItem>
                           {EXPERIENCE_OPTIONS.map((opt) => (
                             <SelectItem key={opt.value} value={opt.value}>
-                              {opt.emoji} {opt.label}
+                              <span className="inline-flex min-w-0 items-center gap-2">
+                                <TagIcon kind="level" value={opt.value} size="xs" withTooltip={false} />
+                                <span className="truncate">{opt.label}</span>
+                              </span>
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -879,7 +887,10 @@ export default function TeamManagePage() {
                               <SelectContent className="rounded-xl">
                                 {ROLE_OPTIONS.map((opt) => (
                                   <SelectItem key={opt.value} value={opt.value}>
-                                    {opt.label}
+                                    <span className="inline-flex min-w-0 items-center gap-2">
+                                      <TagIcon kind="role" value={opt.value} size="xs" withTooltip={false} />
+                                      <span className="truncate">{opt.label}</span>
+                                    </span>
                                   </SelectItem>
                                 ))}
                               </SelectContent>
@@ -894,7 +905,10 @@ export default function TeamManagePage() {
                               <SelectContent className="rounded-xl">
                                 {EXPERIENCE_OPTIONS.map((opt) => (
                                   <SelectItem key={opt.value} value={opt.value}>
-                                    {opt.emoji} {opt.label}
+                                    <span className="inline-flex min-w-0 items-center gap-2">
+                                      <TagIcon kind="level" value={opt.value} size="xs" withTooltip={false} />
+                                      <span className="truncate">{opt.label}</span>
+                                    </span>
                                   </SelectItem>
                                 ))}
                               </SelectContent>
@@ -924,7 +938,7 @@ export default function TeamManagePage() {
                       </Button>
                       {editRolesError && (
                         <div className="flex items-center gap-2 text-sm text-destructive">
-                          <AlertCircle className="size-4 shrink-0" />
+                          <CircleAlert className="size-4 shrink-0" />
                           <span>{editRolesError}</span>
                         </div>
                       )}
@@ -942,7 +956,7 @@ export default function TeamManagePage() {
                       <Button type="submit" disabled={editSaving} className="w-full rounded-xl sm:w-auto">
                         {editSaving ? (
                           <>
-                            <Loader2 className="size-4 animate-spin" />
+                            <LoaderCircle className="size-4 animate-spin" />
                             Saving...
                           </>
                         ) : (
@@ -958,7 +972,7 @@ export default function TeamManagePage() {
             <Card className="rounded-2xl border-border/50">
               <CardHeader>
                 <h3 className="flex items-center gap-2 text-lg font-bold text-foreground">
-                  <Users className="size-5" />
+                  <UsersRound className="size-5" />
                   Members ({team.members.length} accepted)
                 </h3>
                 <p className="text-sm text-muted-foreground">
@@ -974,13 +988,8 @@ export default function TeamManagePage() {
                 ) : (
                   <div className="flex flex-col gap-3">
                     {team.members.map((member) => {
-                      const roleStyle = member.target_role
-                        ? ROLE_STYLES[member.target_role] ?? {
-                            label: member.target_role,
-                            emoji: "🎭",
-                            color: "bg-muted text-muted-foreground",
-                          }
-                        : null
+                      const roleKey = (member.target_role ?? "").trim().toLowerCase()
+                      const roleValue = roleKey ? (ROLE_STYLES[roleKey] ? roleKey : "other") : ""
                       return (
                         <div
                           key={member.user_id}
@@ -997,13 +1006,9 @@ export default function TeamManagePage() {
                               {member.discord_username ? (
                                 <p className="text-xs text-muted-foreground">Discord: {member.discord_username}</p>
                               ) : null}
-                              {roleStyle && (
-                                <span
-                                  className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${roleStyle.color}`}
-                                >
-                                  {roleStyle.emoji} {roleStyle.label}
-                                </span>
-                              )}
+                              {roleValue ? (
+                                <TagIcon kind="role" value={roleValue} size="xs" showLabel withTooltip={false} />
+                              ) : null}
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
@@ -1016,7 +1021,7 @@ export default function TeamManagePage() {
                                 disabled={sendingDiscordToUserId === member.user_id}
                               >
                                 {sendingDiscordToUserId === member.user_id ? (
-                                  <Loader2 className="size-4 animate-spin" />
+                                  <LoaderCircle className="size-4 animate-spin" />
                                 ) : (
                                   <MessageCircle className="size-4" />
                                 )}
@@ -1031,9 +1036,9 @@ export default function TeamManagePage() {
                               disabled={removingUserId === member.user_id}
                             >
                               {removingUserId === member.user_id ? (
-                                <Loader2 className="size-4 animate-spin" />
+                                <LoaderCircle className="size-4 animate-spin" />
                               ) : (
-                                <UserMinus className="size-4" />
+                                <UserRoundMinus className="size-4" />
                               )}
                               Remove Member
                             </Button>
@@ -1067,7 +1072,7 @@ export default function TeamManagePage() {
                     onClick={() => void handleClaimJamCompletionXp()}
                   >
                     {jamXpClaimBusy ? (
-                      <Loader2 className="size-4 animate-spin" />
+                      <LoaderCircle className="size-4 animate-spin" />
                     ) : (
                       <Trophy className="size-4" />
                     )}
@@ -1097,7 +1102,7 @@ export default function TeamManagePage() {
                   disabled={renewListingBusy}
                   onClick={() => void handleRenewListing()}
                 >
-                  <RotateCw className={`size-3.5 ${renewListingBusy ? "animate-spin" : ""}`} />
+                  <RefreshCw className={`size-3.5 ${renewListingBusy ? "animate-spin" : ""}`} />
                   {renewListingBusy ? "Renewing…" : "Renew listing"}
                 </Button>
                 <Button
@@ -1151,7 +1156,7 @@ export default function TeamManagePage() {
                     >
                       {discordSaving ? (
                         <>
-                          <Loader2 className="size-4 animate-spin" />
+                          <LoaderCircle className="size-4 animate-spin" />
                           Saving...
                         </>
                       ) : (
@@ -1193,7 +1198,7 @@ export default function TeamManagePage() {
             >
               {deleteTeamBusy ? (
                 <>
-                  <Loader2 className="size-4 shrink-0 animate-spin" />
+                  <LoaderCircle className="size-4 shrink-0 animate-spin" />
                   Deleting…
                 </>
               ) : (

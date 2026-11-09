@@ -10,18 +10,19 @@ import {
   X,
   Inbox,
   MessageSquareText,
-  Users,
+  UsersRound,
   Clock,
-  Sparkles,
 } from "lucide-react"
+import { IconTile } from "@/components/ui/app-icon"
 import { formatDistanceToNow } from "date-fns"
+import { TagIcon } from "@/components/tag-icon"
 
 export type ApplicationData = {
   id: string
   username: string
   avatar_url: string | null
   teamName: string
-  role: { label: string; emoji: string; color: string }
+  role: { key?: string; label: string; color: string }
   motivation: string
   createdAt?: string
 }
@@ -81,16 +82,13 @@ export function DashboardIncomingApplications({
           variant="secondary"
           className="rounded-full bg-mint px-3.5 py-1.5 text-sm font-bold text-mint-foreground"
         >
-          <Sparkles className="mr-1.5 size-3.5" />
           {applications.length} pending
         </Badge>
       </div>
 
       {applications.length === 0 ? (
         <Card className="flex flex-col items-center gap-4 rounded-2xl border-border/50 border-dashed bg-card/50 px-6 py-14 text-center">
-          <div className="flex size-14 items-center justify-center rounded-full bg-secondary/80">
-            <Inbox className="size-7 text-muted-foreground/60" />
-          </div>
+          <IconTile icon={Inbox} tone="muted" />
           <div>
             <p className="font-semibold text-foreground">
               No pending applications
@@ -102,7 +100,13 @@ export function DashboardIncomingApplications({
         </Card>
       ) : (
         <div className="flex flex-col gap-4">
-          {applications.map((app) => (
+          {applications.map((app) => {
+            const roleTag = app.role.key ? (
+              <TagIcon kind="role" value={app.role.key} size="xs" showLabel withTooltip={false} />
+            ) : (
+              <span className="font-semibold text-foreground">{app.role.label}</span>
+            )
+            return (
             <Card
               key={app.id}
               id={`inbox-request-${app.id}`}
@@ -130,20 +134,12 @@ export function DashboardIncomingApplications({
                       <h3 className="text-base font-bold text-foreground">
                         {app.username}
                       </h3>
-                      <Badge
-                        variant="secondary"
-                        className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${app.role.color}`}
-                      >
-                        {app.role.emoji} {app.role.label}
-                      </Badge>
+                      {roleTag}
                     </div>
                     <div className="mt-1.5 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
                       <span className="inline-flex items-center gap-1.5">
-                        <Users className="size-3.5 text-teal" />
-                        Applying as{" "}
-                        <span className="font-semibold text-foreground">
-                          {app.role.emoji} {app.role.label}
-                        </span>
+                        <UsersRound className="size-3.5 text-teal" />
+                        Applying as {roleTag}
                         {" "}to{" "}
                         <span className="font-semibold text-foreground">
                           {app.teamName}
@@ -197,7 +193,8 @@ export function DashboardIncomingApplications({
                 </div>
               </CardContent>
             </Card>
-          ))}
+            )
+          })}
         </div>
       )}
     </section>

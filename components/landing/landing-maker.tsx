@@ -1,7 +1,7 @@
 "use client"
 
 import Image from "next/image"
-import { Coffee, Code2 } from "lucide-react"
+import { Coffee, CodeXml } from "lucide-react"
 
 import makerAvatar from "@/app/avataaar.png"
 
@@ -44,7 +44,7 @@ export function LandingMaker() {
               <span>Made with</span>
               <Coffee className="size-4 text-peach" />
               <span>and</span>
-              <Code2 className="size-4 text-teal" />
+              <CodeXml className="size-4 text-teal" />
               <span>by a fellow jammer.</span>
             </p>
           </div>

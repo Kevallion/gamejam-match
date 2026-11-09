@@ -1,7 +1,6 @@
 "use client"
 
 import { UserAvatar } from "@/components/user-avatar"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import {
@@ -11,17 +10,16 @@ import {
   Globe,
   Hand,
   PenLine,
-  RotateCw,
+  RefreshCw,
   Target,
   Trash2,
 } from "lucide-react"
 import Link from "next/link"
 import { EXPERIENCE_STYLES, ROLE_STYLES, engineOptionLabel, languageOptionLabel } from "@/lib/constants"
 import { KudosBadgeRow } from "@/components/kudos-badges"
+import { TagIcon } from "@/components/tag-icon"
+import { IconTile } from "@/components/ui/app-icon"
 import type { KudosCounts } from "@/lib/kudos"
-
-const FALLBACK_ROLE = { label: "Other", emoji: "❓", color: "bg-muted text-muted-foreground" }
-const FALLBACK_LEVEL = EXPERIENCE_STYLES["beginner"]
 
 // ---------------------------------------------------------------------------
 // Types
@@ -58,8 +56,8 @@ interface AnnouncementCardProps {
 function AnnouncementCard({ post, onDelete, onRenew, isRenewing, profileAvatarUrl }: AnnouncementCardProps) {
   const rawRole = (post.role || "developer").toLowerCase()
   const rawLevel = (post.experience || "beginner").toLowerCase()
-  const displayRole = ROLE_STYLES[rawRole] ?? { ...FALLBACK_ROLE, label: post.role || "Other" }
-  const displayLevel = EXPERIENCE_STYLES[rawLevel] ?? FALLBACK_LEVEL
+  const roleValue = ROLE_STYLES[rawRole] ? rawRole : "other"
+  const levelValue = EXPERIENCE_STYLES[rawLevel] ? rawLevel : "beginner"
   const username = post.username || "Anonymous"
 
   return (
@@ -87,17 +85,8 @@ function AnnouncementCard({ post, onDelete, onRenew, isRenewing, profileAvatarUr
 
         {/* Role & Level */}
         <div className="flex flex-wrap items-center gap-2">
-          <Badge
-            variant="secondary"
-            className={`rounded-full px-3 py-1 text-xs font-semibold ${displayRole.color}`}
-          >
-            {displayRole.emoji} {displayRole.label}
-          </Badge>
-          <span
-            className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${displayLevel.color}`}
-          >
-            {displayLevel.emoji} {displayLevel.label}
-          </span>
+          <TagIcon kind="role" value={roleValue} size="xs" showLabel withTooltip={false} />
+          <TagIcon kind="level" value={levelValue} size="xs" showLabel withTooltip={false} />
         </div>
 
         <KudosBadgeRow counts={post.kudosCounts} />
@@ -162,7 +151,7 @@ function AnnouncementCard({ post, onDelete, onRenew, isRenewing, profileAvatarUr
           onClick={() => onRenew(post.id)}
           className="w-full gap-2 rounded-xl border-primary/30 text-primary hover:bg-primary/10 hover:text-primary sm:flex-1"
         >
-          <RotateCw className={`size-4 ${isRenewing ? "animate-spin" : ""}`} />
+          <RefreshCw className={`size-4 ${isRenewing ? "animate-spin" : ""}`} />
           {isRenewing ? "Renewing…" : "Renew"}
         </Button>
         <Button
@@ -223,7 +212,7 @@ export function DashboardMyAvailability({
 
       {availabilityPosts.length === 0 ? (
         <Card className="flex flex-col items-center gap-3 rounded-2xl border-border/50 bg-card px-6 py-12 text-center">
-          <PenLine className="size-8 text-muted-foreground/50" />
+          <IconTile icon={PenLine} tone="muted" />
           <p className="text-sm text-muted-foreground">
             You haven&apos;t posted your availability yet.
           </p>

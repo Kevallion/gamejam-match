@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Sparkles } from "lucide-react"
+import { Star } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -75,7 +75,7 @@ export function LevelUpCelebration() {
         </div>
         <div className="relative flex flex-col items-center gap-3 px-6 pb-6 pt-8 text-center">
           <span className="inline-flex items-center gap-2 rounded-full border border-peach/40 bg-peach/15 px-3 py-1 text-xs font-bold text-peach">
-            <Sparkles className="size-3.5" aria-hidden />
+            <Star className="size-3.5 text-lavender" aria-hidden />
             Level up
           </span>
           <DialogTitle className="text-3xl font-extrabold tracking-tight text-foreground">
