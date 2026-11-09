@@ -46,7 +46,7 @@ import { JammerLevelBadge, JammerTitleBadge } from "@/components/profile-card"
 import { levelFromTotalXp } from "@/lib/gamification-level"
 
 const NAV_ITEMS = [
-  { href: "/teams", label: "Squads", icon: UsersRound },
+  { href: "/teams", label: "Explore", icon: UsersRound },
   { href: "/find-members", label: "Members", icon: UserRoundSearch },
   { href: "/create-team", label: "Create a Squad", icon: PenLine },
   { href: "/create-profile", label: "Available", icon: Hand },
@@ -456,8 +456,8 @@ export function Navbar() {
               </DropdownMenu>
             )}
 
-            {/* Menu — Sheet monté après hydratation pour éviter mismatch Radix (aria-controls / useId). */}
-            {mounted ? (
+            {/* Menu — hidden when signed in (app shell / Me hub replaces burger). */}
+            {mounted && !user ? (
               <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
                 <SheetTrigger asChild>
                   <Button variant="ghost" size="icon" className="size-9 rounded-xl">
@@ -545,10 +545,16 @@ export function Navbar() {
                   </div>
                 </SheetContent>
               </Sheet>
-            ) : (
+            ) : !user ? (
               <Button variant="ghost" size="icon" className="size-9 rounded-xl" disabled aria-label="Open menu">
                 <Menu className="size-5" />
                 <span className="sr-only">Open menu</span>
+              </Button>
+            ) : (
+              <Button asChild variant="ghost" size="icon" className="size-9 rounded-xl" aria-label="Me">
+                <Link href="/dashboard?hub=me">
+                  <LayoutDashboard className="size-5" />
+                </Link>
               </Button>
             )}
           </div>
