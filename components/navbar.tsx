@@ -6,6 +6,17 @@ import { Bell, Gamepad2, Hand, Heart, LayoutDashboard, Loader2, LogIn, LogOut, M
 import { FEEDBACK_URL } from "@/components/FeedbackButton"
 import { SupportNavbarPopover } from "@/components/support-navbar-popover"
 import { Button } from "@/components/ui/button"
+import { Skeleton } from "@/components/ui/skeleton"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -72,6 +83,7 @@ export function Navbar() {
   const [loading, setLoading] = useState(true)
   const [mounted, setMounted] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false)
   const [authModalOpen, setAuthModalOpen] = useState(false)
   const { setTheme } = useTheme()
   const {
@@ -246,13 +258,14 @@ export function Navbar() {
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
 
-                  {notifLoading ? (
-                    <div className="flex items-center justify-center py-6">
-                      <Loader2 className="size-4 animate-spin text-muted-foreground" />
+                  {notifLoading && notifications.length === 0 ? (
+                    <div className="space-y-2 px-1 py-2">
+                      <Skeleton className="h-12 w-full rounded-xl" />
+                      <Skeleton className="h-12 w-full rounded-xl" />
                     </div>
                   ) : notifications.filter((n) => !n.is_read).length === 0 ? (
                     <p className="py-6 text-center text-sm text-muted-foreground">
-                      No new notifications
+                      You&apos;re all caught up
                     </p>
                   ) : (
                     <div className="flex max-h-72 flex-col gap-1 overflow-y-auto pr-0.5">
@@ -407,13 +420,14 @@ export function Navbar() {
                     Notifications
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  {notifLoading ? (
-                    <div className="flex items-center justify-center py-4">
-                      <Loader2 className="size-4 animate-spin text-muted-foreground" />
+                  {notifLoading && notifications.length === 0 ? (
+                    <div className="space-y-2 px-1 py-2">
+                      <Skeleton className="h-10 w-full rounded-xl" />
+                      <Skeleton className="h-10 w-full rounded-xl" />
                     </div>
                   ) : notifications.filter((n) => !n.is_read).length === 0 ? (
                     <p className="py-4 text-center text-sm text-muted-foreground">
-                      No new notifications
+                      You&apos;re all caught up
                     </p>
                   ) : (
                     <div className="flex max-h-64 flex-col gap-1 overflow-y-auto">
@@ -455,43 +469,33 @@ export function Navbar() {
                   <SheetHeader className="sr-only">
                     <SheetTitle>Navigation menu</SheetTitle>
                   </SheetHeader>
-                  <div className="flex flex-1 flex-col pt-4 px-4">
+                  <div className="flex min-h-0 flex-1 flex-col pt-4 px-4">
                     {/* User Info */}
-                    <div className="pb-4 border-b border-border/40">
+                    <div className="border-b border-border/40 pb-4">
                       {!mounted || loading ? (
                         <Loader2 className="size-5 animate-spin text-muted-foreground" />
                       ) : user ? (
                         <div className="space-y-2">
                           <div className="flex items-center gap-3">
                             <JammerLevelBadge level={navLevel} />
-                            <div className="flex-1 min-w-0">
-                              <p className="font-semibold text-foreground truncate">{displayName}</p>
+                            <div className="min-w-0 flex-1">
+                              <p className="truncate font-semibold text-foreground">{displayName}</p>
                               <JammerTitleBadge title={navTitle} className="text-xs" />
                             </div>
                           </div>
-                          <div className="flex gap-2 pt-2">
-                            <Button asChild size="sm" className="flex-1 rounded-xl bg-teal text-teal-foreground hover:bg-teal/90">
-                              <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}>
-                                <LayoutDashboard className="size-4 mr-1.5" />
-                                Dashboard
-                              </Link>
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="rounded-xl text-destructive border-destructive/30 hover:bg-destructive/10"
-                              onClick={() => { handleSignOut(); setMobileMenuOpen(false); }}
-                            >
-                              <LogOut className="size-4" />
-                            </Button>
-                          </div>
+                          <Button asChild size="sm" className="w-full rounded-xl bg-teal text-teal-foreground hover:bg-teal/90">
+                            <Link href="/dashboard" onClick={() => setMobileMenuOpen(false)}>
+                              <LayoutDashboard className="mr-1.5 size-4" />
+                              Dashboard
+                            </Link>
+                          </Button>
                         </div>
                       ) : (
                         <Button
                           onClick={() => { setAuthModalOpen(true); setMobileMenuOpen(false); }}
                           className="w-full rounded-xl bg-teal text-teal-foreground hover:bg-teal/90"
                         >
-                          <LogIn className="size-4 mr-2" />
+                          <LogIn className="mr-2 size-4" />
                           Sign In
                         </Button>
                       )}
@@ -524,6 +528,20 @@ export function Navbar() {
                         <span className="font-medium">Feedback</span>
                       </a>
                     </nav>
+
+                    {user ? (
+                      <div className="mt-auto border-t border-border/40 px-0 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          className="h-11 w-full justify-center rounded-xl text-destructive hover:bg-destructive/10 hover:text-destructive"
+                          onClick={() => setLogoutConfirmOpen(true)}
+                        >
+                          <LogOut className="mr-2 size-4" />
+                          Log out
+                        </Button>
+                      </div>
+                    ) : null}
                   </div>
                 </SheetContent>
               </Sheet>
@@ -536,6 +554,30 @@ export function Navbar() {
           </div>
         </nav>
       </header>
+
+      <AlertDialog open={logoutConfirmOpen} onOpenChange={setLogoutConfirmOpen}>
+        <AlertDialogContent className="rounded-2xl border-border/50">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Log out?</AlertDialogTitle>
+            <AlertDialogDescription>
+              You will be signed out of GameJamCrew on this device.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="rounded-xl">Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="rounded-xl bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              onClick={() => {
+                setLogoutConfirmOpen(false)
+                setMobileMenuOpen(false)
+                handleSignOut()
+              }}
+            >
+              Log out
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {mounted && <AuthModal open={authModalOpen} onOpenChange={setAuthModalOpen} />}
     </>

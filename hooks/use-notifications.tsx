@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Trophy } from "lucide-react"
 import { toast } from "sonner"
 import { supabase } from "@/lib/supabase"
@@ -16,14 +16,20 @@ export type NormalizedNotificationRow = NormalizedNotificationFeedItem
 
 export function useNotifications(userId: string | null) {
   const [notifications, setNotifications] = useState<NormalizedNotificationFeedItem[]>([])
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(Boolean(userId))
+  const hasLoadedOnceRef = useRef(false)
 
   const fetchNotifications = useCallback(async () => {
     if (!userId) {
       setNotifications([])
+      setLoading(false)
+      hasLoadedOnceRef.current = false
       return
     }
-    setLoading(true)
+
+    const isFirstLoad = !hasLoadedOnceRef.current
+    if (isFirstLoad) setLoading(true)
+
     try {
       const { data, error } = await supabase
         .from("notifications")
@@ -34,7 +40,7 @@ export function useNotifications(userId: string | null) {
 
       if (error) {
         console.warn("[notifications]", error.message)
-        setNotifications([])
+        if (isFirstLoad) setNotifications([])
         return
       }
 
@@ -43,6 +49,7 @@ export function useNotifications(userId: string | null) {
         (data ?? []) as EnrichedNotificationRow[],
       )
       setNotifications(normalized)
+      hasLoadedOnceRef.current = true
     } finally {
       setLoading(false)
     }

@@ -1,8 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react"
-import { usePathname, useRouter, useSearchParams } from "next/navigation"
-import Link from "next/link"
+import { usePathname, useSearchParams } from "next/navigation"
 import { Navbar } from "@/components/navbar"
 import type { TeamData } from "@/components/dashboard-my-teams"
 import { DashboardSquadsCompact } from "@/components/dashboard-squads-compact"
@@ -17,11 +16,8 @@ import type {
 } from "@/components/dashboard-sent-outbox"
 import {
   Clock3,
-  Compass,
-  Hand,
   Info,
   Inbox,
-  Plus,
   Settings2,
   Trash2,
   Trophy,
@@ -76,7 +72,6 @@ import { ProfileGamification } from "@/components/profile-gamification"
 import {
   GamificationDashboardFull,
 } from "@/components/gamification-dashboard"
-import { DashboardEmptyState } from "@/components/dashboard-empty-state"
 import { PushNotificationBanner } from "@/components/push-notification-banner"
 import { DashboardNextSteps } from "@/components/dashboard-next-steps"
 import { MonthlyKudosLeaderboard } from "@/components/monthly-kudos-leaderboard"
@@ -181,8 +176,23 @@ export type AvailabilityPostRow = {
   kudosCounts?: KudosCounts | null
 }
 
+export type DashboardFixture = {
+  displayName: string
+  profile: ProfileSettingsProfile
+  teams: TeamData[]
+  availabilityPosts: AvailabilityPostRow[]
+  applications: ApplicationData[]
+  invitations: InvitationData[]
+  sentApplications: SentApplicationOutboxItem[]
+  sentInvitations: SentInvitationOutboxItem[]
+  recommendedTeams: SmartRecommendedTeam[]
+  activity?: Pick<NormalizedNotificationFeedItem, "id" | "message" | "created_at">[]
+}
+
 type DashboardClientProps = {
   defaultTab?: string | null
+  /** Dev-only populated preview. Production dashboard never passes this. */
+  fixture?: DashboardFixture | null
 }
 
 const VALID_TABS = ["squads", "inbox", "availability", "achievements", "settings"] as const
@@ -290,9 +300,12 @@ const BOTTOM_NAV_TABS = [
   { value: "squads", label: "Squads", icon: Users2, activeColor: "text-teal" },
   { value: "inbox", label: "Inbox", icon: Inbox, activeColor: "text-peach" },
   { value: "availability", label: "Available", icon: UserSearch, activeColor: "text-lavender" },
-  { value: "achievements", label: "Achieve", icon: Trophy, activeColor: "text-amber-500" },
+  { value: "achievements", label: "Trophies", icon: Trophy, activeColor: "text-amber-500" },
   { value: "settings", label: "Settings", icon: Settings2, activeColor: "text-slate-300" },
 ] as const
+
+/** Mobile bottom bar height (content) before safe-area inset. */
+const DASHBOARD_BOTTOM_BAR_PX = 64
 
 function DashboardBottomBar({
   activeTab,
@@ -304,8 +317,11 @@ function DashboardBottomBar({
   inboxCount: number
 }) {
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-40 glass-navbar border-t border-border/50 pb-[env(safe-area-inset-bottom)] md:hidden">
-      <div className="grid grid-cols-5">
+    <nav
+      className="fixed inset-x-0 bottom-0 z-40 glass-navbar border-t border-border/50 pb-[env(safe-area-inset-bottom)] md:hidden"
+      style={{ height: `calc(${DASHBOARD_BOTTOM_BAR_PX}px + env(safe-area-inset-bottom, 0px))` }}
+    >
+      <div className="grid h-16 grid-cols-5">
         {BOTTOM_NAV_TABS.map(({ value, label, icon: Icon, activeColor }) => {
           const isActive = activeTab === value
           const showBadge = value === "inbox" && inboxCount > 0
@@ -315,7 +331,7 @@ function DashboardBottomBar({
               type="button"
               onClick={() => onTabChange(value)}
               className={cn(
-                "relative flex min-h-11 min-w-0 flex-col items-center justify-center gap-0.5 px-0.5 py-1.5 text-[10px] font-semibold leading-tight transition-colors active:scale-95 sm:text-xs",
+                "relative flex min-h-11 min-w-0 flex-col items-center justify-center gap-0.5 px-0.5 py-1 text-[12px] font-semibold leading-tight transition-colors active:scale-95",
                 isActive ? activeColor : "text-muted-foreground",
               )}
             >
@@ -330,7 +346,7 @@ function DashboardBottomBar({
                   </span>
                 )}
               </span>
-              <span className="max-w-full truncate">{label}</span>
+              <span className="whitespace-nowrap text-[12px]">{label}</span>
             </button>
           )
         })}
@@ -438,7 +454,7 @@ function MobileSectionTitle({ activeTab, inboxCount }: { activeTab: string; inbo
   )
 }
 
-// Compact Identity Header for Overview
+// Compact Identity Header (~56–72px on mobile)
 function DashboardIdentityHeader({
   displayName,
   avatarUrl,
@@ -456,70 +472,41 @@ function DashboardIdentityHeader({
 
   return (
     <div className="glass-card overflow-hidden rounded-2xl">
-      {/* XP Progress bar */}
-      <div className="h-1 w-full bg-muted/50">
+      <div className="flex h-14 items-center gap-2.5 px-3 md:h-auto md:gap-4 md:p-5">
+        <UserAvatar
+          src={avatarUrl}
+          fallbackName={displayName}
+          size="md"
+          className="size-9 shrink-0 rounded-xl ring-2 ring-border/30 md:size-14 md:rounded-2xl"
+        />
+        <div className="min-w-0 flex-1">
+          <div className="flex min-w-0 items-center gap-2">
+            <p className="min-w-0 truncate text-sm font-semibold tracking-tight text-foreground md:text-lg">
+              {displayName}
+            </p>
+            <JammerLevelBadge
+              level={level}
+              className="level-badge-animated shrink-0 border-amber-800/35 bg-amber-600/12 px-1.5 py-0.5 text-[10px] font-bold text-amber-950 md:text-xs dark:border-amber-500/40 dark:bg-amber-500/15 dark:text-amber-400"
+            />
+          </div>
+          <div className="mt-0.5 hidden min-w-0 items-center gap-2 md:flex">
+            <JammerTitleBadge title={title} className="min-w-0 text-sm" />
+          </div>
+          <div className="mt-1.5 h-0.5 w-full overflow-hidden rounded-full bg-muted/80 md:hidden">
+            <div
+              className="h-full bg-gradient-to-r from-teal to-peach transition-all duration-500"
+              style={{ width: `${progress.progressPercent}%` }}
+            />
+          </div>
+        </div>
+      </div>
+      <div className="hidden h-1 w-full bg-muted/50 md:block">
         <div
           className="h-full bg-gradient-to-r from-teal to-peach transition-all duration-500"
           style={{ width: `${progress.progressPercent}%` }}
         />
       </div>
-      <div className="flex items-center gap-3 p-4 md:gap-4 md:p-5">
-        <UserAvatar
-          src={avatarUrl}
-          fallbackName={displayName}
-          size="lg"
-          className="size-12 shrink-0 rounded-xl ring-2 ring-border/30 md:size-14"
-        />
-        <div className="min-w-0 flex-1">
-          <div className="flex min-w-0 items-center gap-2">
-            <p className="min-w-0 truncate text-base font-semibold tracking-tight text-foreground md:text-lg">
-              {displayName}
-            </p>
-            <JammerLevelBadge
-              level={level}
-              className="level-badge-animated shrink-0 border-amber-800/35 bg-amber-600/12 px-1.5 py-0.5 text-xs font-bold text-amber-950 dark:border-amber-500/40 dark:bg-amber-500/15 dark:text-amber-400"
-            />
-          </div>
-          <div className="mt-1 flex min-w-0 items-center gap-2">
-            <JammerTitleBadge title={title} className="min-w-0 text-sm" />
-          </div>
-        </div>
-      </div>
     </div>
-  )
-}
-
-function DashboardQuickActions() {
-  const actions = [
-    { href: "/create-team", label: "Create a Squad", icon: Plus },
-    { href: "/teams", label: "Browse Squads", icon: Compass },
-    { href: "/create-profile", label: "Post Availability", icon: Hand },
-  ]
-
-  return (
-    <Card className="min-w-0 max-w-full border-border/40 bg-card/70 shadow-sm backdrop-blur-sm">
-      <CardContent className="min-w-0 p-3">
-        <div className="flex min-w-0 flex-wrap items-center gap-2">
-          {actions.map((action) => {
-            const Icon = action.icon
-            return (
-              <Button
-                key={action.href}
-                asChild
-                variant="outline"
-                size="sm"
-                className="h-8 max-w-full cursor-pointer rounded-lg border-border/60 bg-background/50 px-2.5 text-xs"
-              >
-                <Link href={action.href}>
-                  <Icon className="size-3.5" />
-                  {action.label}
-                </Link>
-              </Button>
-            )
-          })}
-        </div>
-      </CardContent>
-    </Card>
   )
 }
 
@@ -634,9 +621,8 @@ function DashboardMiniKpi({
   )
 }
 
-export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientProps = {}) {
+export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: DashboardClientProps = {}) {
   const pathname = usePathname()
-  const router = useRouter()
   const searchParams = useSearchParams()
   const tabFromUrl = searchParams.get("tab")
   const highlightRequestId = searchParams.get("highlightRequest")
@@ -654,8 +640,8 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
   useEffect(() => {
     const raw = (tabFromUrl ?? "").trim().toLowerCase()
     const mapped = LEGACY_TAB_TO_CURRENT[raw]
-    if (!mapped) return
-    const params = new URLSearchParams(searchParams.toString())
+    if (!mapped || typeof window === "undefined") return
+    const params = new URLSearchParams(window.location.search)
     if (mapped === "squads") {
       params.delete("tab")
     } else {
@@ -663,49 +649,84 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
     }
     const qs = params.toString()
     const nextUrl = qs ? `${pathname}?${qs}` : pathname
-    const currentQs = searchParams.toString()
-    const currentUrl = currentQs ? `${pathname}?${currentQs}` : pathname
-    if (nextUrl === currentUrl) return
-    router.replace(nextUrl, { scroll: false })
-  }, [tabFromUrl, pathname, router, searchParams])
+    const currentUrl = `${window.location.pathname}${window.location.search}`
+    if (nextUrl === currentUrl || nextUrl === `${window.location.pathname}${window.location.search}`) return
+    window.history.replaceState(window.history.state, "", nextUrl)
+    setActiveTab(mapped)
+  }, [tabFromUrl, pathname])
+
+  useEffect(() => {
+    const onPopState = () => {
+      const params = new URLSearchParams(window.location.search)
+      setActiveTab(resolveDashboardTab(params.get("tab")))
+    }
+    window.addEventListener("popstate", onPopState)
+    return () => window.removeEventListener("popstate", onPopState)
+  }, [])
 
   const handleTabChange = useCallback(
     (value: string) => {
       const next = resolveDashboardTab(value)
       setActiveTab(next)
-      const params = new URLSearchParams(searchParams.toString())
+      const params = new URLSearchParams(typeof window !== "undefined" ? window.location.search : searchParams.toString())
       if (next === "squads") {
         params.delete("tab")
       } else {
         params.set("tab", next)
       }
       const qs = params.toString()
-      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
+      const nextUrl = qs ? `${pathname}?${qs}` : pathname
+      window.history.pushState(window.history.state, "", nextUrl)
     },
-    [pathname, router, searchParams],
+    [pathname, searchParams],
   )
 
-  const [session, setSession] = useState<Session | null>(null)
-  const [teams, setTeams] = useState<TeamData[]>([])
-  const [availabilityPosts, setAvailabilityPosts] = useState<AvailabilityPostRow[]>([])
-  const [applications, setApplications] = useState<ApplicationData[]>([])
-  const [invitations, setInvitations] = useState<InvitationData[]>([])
-  const [sentApplications, setSentApplications] = useState<SentApplicationOutboxItem[]>([])
+  const [session, setSession] = useState<Session | null>(
+    fixture
+      ? ({ user: { id: fixture.profile.id, user_metadata: { username: fixture.displayName } } } as unknown as Session)
+      : null,
+  )
+  const [teams, setTeams] = useState<TeamData[]>(fixture?.teams ?? [])
+  const [availabilityPosts, setAvailabilityPosts] = useState<AvailabilityPostRow[]>(fixture?.availabilityPosts ?? [])
+  const [applications, setApplications] = useState<ApplicationData[]>(fixture?.applications ?? [])
+  const [invitations, setInvitations] = useState<InvitationData[]>(fixture?.invitations ?? [])
+  const [sentApplications, setSentApplications] = useState<SentApplicationOutboxItem[]>(fixture?.sentApplications ?? [])
   const [busyInboxRequestId, setBusyInboxRequestId] = useState<string | null>(null)
   const [leaveTeamId, setLeaveTeamId] = useState<string | null>(null)
   const [leavingTeam, setLeavingTeam] = useState(false)
-  const [sentInvitationsOutbox, setSentInvitationsOutbox] = useState<SentInvitationOutboxItem[]>([])
+  const [sentInvitationsOutbox, setSentInvitationsOutbox] = useState<SentInvitationOutboxItem[]>(fixture?.sentInvitations ?? [])
   const [cancellingSentRequestId, setCancellingSentRequestId] = useState<string | null>(null)
-  const [activityNotifications, setActivityNotifications] = useState<NormalizedNotificationFeedItem[]>([])
-  const [loading, setLoading] = useState(true)
+  const [activityNotifications, setActivityNotifications] = useState<NormalizedNotificationFeedItem[]>(
+    (fixture?.activity ?? []).map(
+      (item) =>
+        ({
+          id: item.id,
+          type: "system",
+          message: item.message,
+          link: null,
+          is_read: true,
+          created_at: item.created_at,
+          sender_id: null,
+          team_id: null,
+          join_request_id: null,
+          sender: null,
+          team: null,
+          join_request: null,
+          senderResolved: null,
+          teamResolved: null,
+          actorUserId: null,
+        }) satisfies NormalizedNotificationFeedItem,
+    ),
+  )
+  const [loading, setLoading] = useState(!fixture)
   const [showAvailabilityModal, setShowAvailabilityModal] = useState(false)
   const [availabilityModalContext, setAvailabilityModalContext] = useState<string | null>(null)
   const [hasShownAvailabilityPrompt, setHasShownAvailabilityPrompt] = useState(false)
   const [availabilityPostIdToDelete, setAvailabilityPostIdToDelete] = useState<string | null>(null)
   const [renewingAvailabilityPostId, setRenewingAvailabilityPostId] = useState<string | null>(null)
-  const [recommendedTeams, setRecommendedTeams] = useState<SmartRecommendedTeam[]>([])
+  const [recommendedTeams, setRecommendedTeams] = useState<SmartRecommendedTeam[]>(fixture?.recommendedTeams ?? [])
   const [showOnboardingModal, setShowOnboardingModal] = useState(false)
-  const [profile, setProfile] = useState<ProfileSettingsProfile | null>(null)
+  const [profile, setProfile] = useState<ProfileSettingsProfile | null>(fixture?.profile ?? null)
 
   const dailyXpClaimRef = useRef(false)
   const [compactTabBar, setCompactTabBar] = useState(false)
@@ -1127,12 +1148,13 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
   }, [])
 
   useEffect(() => {
+    if (fixture) return
     void loadData()
-  }, [loadData])
+  }, [loadData, fixture])
 
   useEffect(() => {
     const uid = session?.user?.id
-    if (!uid) return
+    if (!uid || fixture) return
     let cancelled = false
     const refreshActivity = async () => {
       const { data, error } = await supabase
@@ -1162,7 +1184,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
       cancelled = true
       void supabase.removeChannel(channel)
     }
-  }, [session?.user?.id])
+  }, [session?.user?.id, fixture])
 
   useEffect(() => {
     if (loading || activeTab !== "inbox" || !highlightRequestId?.trim()) return
@@ -1182,7 +1204,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
   // Offer to disable availability when user has joined a team (application accepted)
   // Persist in localStorage so the prompt is not shown again after the user has responded (e.g. on refresh)
   useEffect(() => {
-    if (loading) return
+    if (loading || fixture) return
     const userId = session?.user?.id
     const storageKey = userId ? `gamejam_availability_prompt_seen_${userId}` : null
     if (storageKey && typeof window !== "undefined") {
@@ -1203,7 +1225,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
         localStorage.setItem(storageKey, "true")
       }
     }
-  }, [loading, session?.user?.id, sentApplications, availabilityPosts, hasShownAvailabilityPrompt])
+  }, [loading, fixture, session?.user?.id, sentApplications, availabilityPosts, hasShownAvailabilityPrompt])
 
   const handleCancelPendingSentRequest = async (id: string) => {
     setCancellingSentRequestId(id)
@@ -1518,10 +1540,10 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
       
       <main className="min-w-0 flex-1 lg:pt-16">
         {/* Hero section with identity + KPIs */}
-        <section className="min-w-0 px-4 py-6 md:py-8 lg:px-6">
-          <div className="mx-auto min-w-0 max-w-5xl space-y-4 md:space-y-6">
+        <section className="min-w-0 px-4 py-4 md:py-8 lg:px-6">
+          <div className="mx-auto min-w-0 max-w-5xl space-y-3 md:space-y-6">
             {/* Compact Identity Header */}
-            {session?.user?.id && profile ? (
+            {(session?.user?.id || fixture) && profile ? (
               <DashboardIdentityHeader
                 displayName={displayName}
                 avatarUrl={profile.avatar_url ?? null}
@@ -1571,18 +1593,12 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
                   toneClassName="border-lavender/20 bg-lavender/5"
                 />
               </div>
-            ) : (
-              <Card className="glass-card !gap-0 !py-0 border-border/40 bg-card/60 shadow-sm">
-                <CardContent className="p-2.5 text-[11px] text-muted-foreground">
-                  No active squads or requests yet. Use quick actions to create your first momentum.
-                </CardContent>
-              </Card>
-            )}
+            ) : null}
           </div>
         </section>
 
-        {/* Tabs Section */}
-        <section className="min-w-0 px-4 pb-24 md:pb-8 lg:px-6 lg:pb-12">
+        {/* Tabs Section — mobile pb = bottom bar (64px) + safe-area so content is never hidden */}
+        <section className="min-w-0 px-4 pb-[calc(64px+env(safe-area-inset-bottom,0px)+1rem)] md:pb-8 lg:px-6 lg:pb-12">
           <div className="mx-auto w-full min-w-0 max-w-5xl">
             <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full min-w-0 max-w-full">
               <TabsList className="glass mb-4 hidden h-auto w-full min-w-0 max-w-full touch-pan-x items-center justify-start gap-1 overflow-x-auto overscroll-x-contain rounded-xl p-1.5 [-webkit-overflow-scrolling:touch] md:mb-6 md:flex md:w-fit">
@@ -1649,7 +1665,6 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
               <TabsContent value="squads" className="mt-0 min-w-0 max-w-full">
                 <div className="grid min-w-0 max-w-full gap-4 lg:grid-cols-12">
                   <div className="min-w-0 space-y-4 lg:col-span-8">
-                    <DashboardQuickActions />
                     <DashboardNextSteps
                       hasTeam={teams.length > 0}
                       hasAvailability={availabilityPosts.length > 0}
@@ -1657,11 +1672,7 @@ export function DashboardClient({ defaultTab: defaultTabProp }: DashboardClientP
                       hasPortfolio={Boolean(profile?.portfolio_url?.trim())}
                       hasInboxActivity={activityTotal > 0}
                     />
-                    {teams.length === 0 && availabilityPosts.length === 0 ? (
-                      <DashboardEmptyState />
-                    ) : (
-                      <DashboardSquadsCompact teams={teams} onLeave={handleLeaveTeam} />
-                    )}
+                    <DashboardSquadsCompact teams={teams} onLeave={handleLeaveTeam} />
                   </div>
                   <aside className="hidden space-y-4 lg:col-span-4 lg:sticky lg:top-24 lg:block lg:self-start">
                     <DashboardSidebarProgress xp={headerXp} currentTitle={headerTitle} />
