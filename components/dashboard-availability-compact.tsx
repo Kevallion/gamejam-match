@@ -7,7 +7,15 @@ import { UserAvatar } from "@/components/user-avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { CalendarDays, Cpu, ExternalLink, Globe, Hand, RefreshCw, Trash2 } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { AppIcon } from "@/components/ui/app-icon"
+import { ICON } from "@/lib/icons"
+import { cn } from "@/lib/utils"
 
 type AvailabilityPostCompact = {
   id: string
@@ -15,6 +23,7 @@ type AvailabilityPostCompact = {
   expires_at: string
   username?: string | null
   role?: string | null
+  experience?: string | null
   engine?: string | null
   language?: string | null
   avatar_url?: string | null
@@ -22,10 +31,12 @@ type AvailabilityPostCompact = {
   kudosCounts?: KudosCounts | null
 }
 
-function isExpiringSoon(expiresAt: string): boolean {
+function daysUntil(expiresAt: string): number {
   const diff = new Date(expiresAt).getTime() - Date.now()
-  return diff > 0 && diff <= 1000 * 60 * 60 * 72
+  return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)))
 }
+
+const QUOTA = 3
 
 export function DashboardAvailabilityCompact({
   posts,
@@ -40,121 +51,155 @@ export function DashboardAvailabilityCompact({
   onDeletePost: (postId: string) => void
   profileAvatarUrl?: string | null
 }) {
+  const atQuota = posts.length >= QUOTA
+
   return (
     <div className="min-w-0 max-w-full space-y-4">
-      <Card className="min-w-0 max-w-full border-border/40 bg-card/70 shadow-sm backdrop-blur-sm">
-        <CardContent className="flex min-w-0 flex-wrap items-center justify-between gap-2 p-3">
-          <div className="flex min-w-0 items-center gap-2">
-            <Hand className="size-4 shrink-0 text-lavender" />
-            <p className="min-w-0 text-xs font-semibold text-foreground">My availability posts ({posts.length}/3)</p>
-          </div>
-          <Button asChild size="sm" className="h-8 max-w-full cursor-pointer rounded-lg text-xs">
-            <Link href="/create-profile">Post availability</Link>
-          </Button>
-        </CardContent>
-      </Card>
+      <div className="flex min-w-0 flex-wrap items-center justify-between gap-3">
+        <p className="text-sm text-muted-foreground">
+          <span className="font-semibold text-foreground">{posts.length}</span> / {QUOTA} active posts
+        </p>
+        <Button
+          asChild
+          disabled={atQuota}
+          className={cn(
+            "h-11 rounded-xl bg-teal text-teal-foreground hover:bg-teal/90",
+            atQuota && "pointer-events-none opacity-50",
+          )}
+        >
+          <Link href={atQuota ? "/dashboard?tab=availability" : "/create-profile"}>
+            <AppIcon icon={ICON.create} size="sm" className="mr-1.5 text-teal-foreground" />
+            New post
+          </Link>
+        </Button>
+      </div>
+      {atQuota ? (
+        <p className="text-xs text-muted-foreground">
+          Quota reached. Renew or remove a post before publishing another.
+        </p>
+      ) : null}
 
       {posts.length === 0 ? (
-        <Card className="min-w-0 max-w-full border-border/40 bg-card/70 shadow-sm backdrop-blur-sm">
-          <CardContent className="p-5 text-center text-sm text-muted-foreground">
-            No availability posts yet.
+        <Card className="border-dashed border-border/60 bg-transparent">
+          <CardContent className="flex flex-col items-center gap-3 px-4 py-8 text-center">
+            <span className="flex size-12 items-center justify-center rounded-full bg-lavender/15">
+              <AppIcon icon={ICON.available} size="xl" tone="lavender" />
+            </span>
+            <div>
+              <p className="text-sm font-bold text-foreground">Post your availability</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Captains can invite you directly
+              </p>
+            </div>
+            <Button asChild className="h-11 rounded-xl bg-teal text-teal-foreground hover:bg-teal/90">
+              <Link href="/create-profile">Post availability</Link>
+            </Button>
           </CardContent>
         </Card>
       ) : (
         <div className="grid min-w-0 gap-3 sm:grid-cols-2">
           {posts.map((post) => {
             const renewing = renewingPostId === post.id
-            const expiresSoon = isExpiringSoon(post.expires_at)
+            const days = daysUntil(post.expires_at)
+            const expiresSoon = days <= 3
             return (
-              <Card key={post.id} className="min-w-0 border-border/40 bg-card/70 shadow-sm backdrop-blur-sm">
+              <Card key={post.id} className="card-interactive min-w-0 border-border/50 bg-card shadow-sm">
                 <CardHeader className="pb-2">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div className="flex min-w-0 items-center gap-2">
-                      <UserAvatar
-                        src={post.avatar_url ?? profileAvatarUrl ?? null}
-                        fallbackName={post.username ?? "Jammer"}
-                        size="xs"
-                        className="size-7"
-                      />
-                      <p className="truncate text-xs font-semibold text-foreground">{post.username ?? "Jammer"}</p>
-                    </div>
-                    {expiresSoon ? (
-                      <Badge className="rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0 text-xs text-amber-500">
-                        Expires soon
+                  <div className="flex flex-wrap items-center gap-2">
+                    {post.role ? (
+                      <Badge className="rounded-full border-lavender/40 bg-lavender/15 px-2.5 py-0.5 text-xs text-lavender">
+                        {post.role}
                       </Badge>
                     ) : null}
+                    {post.experience ? (
+                      <Badge variant="outline" className="rounded-full px-2.5 py-0.5 text-xs">
+                        {post.experience}
+                      </Badge>
+                    ) : null}
+                    <Badge
+                      className={cn(
+                        "ml-auto rounded-full border px-2.5 py-0.5 text-[11px] font-semibold",
+                        expiresSoon
+                          ? "border-peach/40 bg-peach/10 text-peach"
+                          : "border-border/50 bg-secondary/60 text-muted-foreground",
+                      )}
+                    >
+                      Expires in {days} d
+                    </Badge>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-2 pb-4">
-                  <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
-                    <span className="inline-flex items-center gap-1">
-                      <CalendarDays className="size-3 text-lavender" />
+                <CardContent className="space-y-3 pb-4">
+                  <div className="flex items-center gap-2">
+                    <UserAvatar
+                      src={post.avatar_url ?? profileAvatarUrl ?? null}
+                      fallbackName={post.username ?? "Jammer"}
+                      size="xs"
+                      className="size-7"
+                    />
+                    <p className="truncate text-sm text-foreground">
                       {post.availability}
-                    </span>
-                    <span className="inline-flex items-center gap-1">
-                      <Cpu className="size-3 text-lavender" />
-                      {post.engine || "Any engine"}
-                    </span>
-                    <span className="inline-flex items-center gap-1">
-                      <Globe className="size-3 text-teal" />
-                      {post.language || "Any language"}
-                    </span>
+                      {post.jam?.title ? ` · ${post.jam.title}` : ""}
+                    </p>
                   </div>
-
-                  {post.role ? (
-                    <Badge variant="outline" className="rounded-full px-2 py-0 text-xs">
-                      {post.role}
-                    </Badge>
-                  ) : null}
 
                   <KudosBadgeRow counts={post.kudosCounts} size="xs" />
 
-                  {post.jam?.title ? (
-                    <p className="truncate text-[11px] text-primary">
-                      {post.jam.url ? (
-                        <a
-                          href={post.jam.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex cursor-pointer items-center gap-1 hover:underline"
-                        >
-                          {post.jam.title}
-                          <ExternalLink className="size-3" />
-                        </a>
-                      ) : (
-                        post.jam.title
-                      )}
-                    </p>
-                  ) : null}
-
-                  <div className="flex items-center gap-2 pt-1">
+                  <div className="flex flex-wrap items-center gap-2">
                     <Button
                       type="button"
-                      size="sm"
-                      variant="outline"
-                      className="h-7 cursor-pointer rounded-md text-xs"
+                      className="h-11 rounded-xl bg-teal text-teal-foreground hover:bg-teal/90"
                       disabled={renewing}
                       onClick={() => onRenewPost(post.id)}
                     >
-                      <RefreshCw className={`size-3.5 ${renewing ? "animate-spin" : ""}`} />
+                      <AppIcon
+                        icon={ICON.refresh}
+                        size="sm"
+                        className={cn("mr-1.5 text-teal-foreground", renewing && "animate-spin")}
+                      />
                       {renewing ? "Renewing..." : "Renew"}
                     </Button>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      className="h-7 cursor-pointer rounded-md border-destructive/40 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive"
-                      disabled={renewing}
-                      onClick={() => onDeletePost(post.id)}
-                    >
-                      <Trash2 className="size-3.5" />
-                      Remove
+                    <Button asChild type="button" variant="outline" className="h-11 rounded-xl">
+                      <Link href="/create-profile">Edit</Link>
                     </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          className="size-11 rounded-xl"
+                          aria-label="More"
+                          disabled={renewing}
+                        >
+                          <AppIcon icon={ICON.more} size="md" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="rounded-xl">
+                        <DropdownMenuItem
+                          className="text-destructive focus:text-destructive"
+                          onClick={() => onDeletePost(post.id)}
+                        >
+                          Delete post
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </CardContent>
               </Card>
             )
           })}
+          {!atQuota ? (
+            <Link
+              href="/create-profile"
+              className="card-interactive flex min-h-[176px] flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border/60 bg-transparent p-4 text-center"
+            >
+              <AppIcon icon={ICON.create} size="lg" tone="muted" />
+              <span className="text-sm font-semibold text-foreground">New post</span>
+              <span className="text-xs text-muted-foreground">
+                {QUOTA - posts.length} slot{QUOTA - posts.length === 1 ? "" : "s"} left
+              </span>
+            </Link>
+          ) : null}
         </div>
       )}
     </div>

@@ -8,6 +8,7 @@ import { DashboardSquadsCompact } from "@/components/dashboard-squads-compact"
 import { DashboardRecommendedTeams } from "@/components/dashboard-recommended-teams"
 import { DashboardAvailabilityCompact } from "@/components/dashboard-availability-compact"
 import { DashboardInboxCompact } from "@/components/dashboard-inbox-compact"
+import { DashboardTodo } from "@/components/dashboard-todo"
 import type { ApplicationData } from "@/components/dashboard-incoming-applications"
 import type { InvitationData } from "@/components/dashboard-squad-invitations"
 import type {
@@ -65,13 +66,11 @@ import { readOwnDiscordUsername } from "@/lib/profile-discord"
 import { claimDailyLoginXp } from "@/app/actions/gamification-actions"
 import { OnboardingModal } from "@/components/onboarding-modal"
 import { ProfileSettings, type ProfileSettingsProfile } from "@/components/profile-settings"
-import { ProfileGamification } from "@/components/profile-gamification"
 import {
-  GamificationDashboardFull,
+  DashboardAchievementsTab,
 } from "@/components/gamification-dashboard"
 import { PushNotificationBanner } from "@/components/push-notification-banner"
 import { DashboardNextSteps } from "@/components/dashboard-next-steps"
-import { MonthlyKudosLeaderboard } from "@/components/monthly-kudos-leaderboard"
 import type { Session } from "@supabase/supabase-js"
 import { showGamificationRewards } from "@/components/gamification-reward-toasts"
 import { gamificationRewardHasToast } from "@/lib/gamification-reward-types"
@@ -1430,9 +1429,26 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
                       hasPortfolio={Boolean(profile?.portfolio_url?.trim())}
                       hasInboxActivity={activityTotal > 0}
                     />
+                    <DashboardTodo
+                      applications={applications}
+                      invitations={invitations}
+                      availabilityPosts={availabilityPosts}
+                      onAcceptApplication={handleAcceptApplication}
+                      onDeclineApplication={handleDeclineApplication}
+                      onAcceptInvitation={handleAcceptInvitation}
+                      onDeclineInvitation={handleDeclineInvitation}
+                      onRenewPost={handleRenewAvailabilityPost}
+                      busyRequestId={busyInboxRequestId}
+                      renewingPostId={renewingAvailabilityPostId}
+                    />
                     <DashboardSquadsCompact teams={teams} onLeave={handleLeaveTeam} />
+                    <div className="space-y-4 lg:hidden">
+                      <DashboardSidebarProgress xp={headerXp} currentTitle={headerTitle} />
+                      <DashboardRecentActivity items={activityNotifications} />
+                      <DashboardRecommendedTeams teams={recommendedTeams} compact />
+                    </div>
                   </div>
-                  <aside className="hidden space-y-4 lg:col-span-4 lg:sticky lg:top-24 lg:block lg:self-start">
+                  <aside className="hidden w-full max-w-[320px] space-y-4 justify-self-end lg:col-span-4 lg:sticky lg:top-[88px] lg:block lg:self-start">
                     <DashboardSidebarProgress xp={headerXp} currentTitle={headerTitle} />
                     <DashboardRecentActivity items={activityNotifications} />
                   </aside>
@@ -1473,8 +1489,11 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
                       renewingPostId={renewingAvailabilityPostId}
                       profileAvatarUrl={profile?.avatar_url ?? null}
                     />
+                    <div className="lg:hidden">
+                      <DashboardRecommendedTeams teams={recommendedTeams} compact />
+                    </div>
                   </div>
-                  <aside className="hidden space-y-4 lg:col-span-4 lg:sticky lg:top-24 lg:block lg:self-start">
+                  <aside className="hidden w-full max-w-[320px] space-y-4 justify-self-end lg:col-span-4 lg:sticky lg:top-[88px] lg:block lg:self-start">
                     <DashboardRecommendedTeams teams={recommendedTeams} compact />
                     <DashboardRecentActivity items={activityNotifications} />
                   </aside>
@@ -1483,14 +1502,10 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
 
               <TabsContent value="achievements" className="mt-0 flex min-w-0 max-w-full flex-col gap-4 md:gap-6">
                 {session?.user?.id ? (
-                  <>
-                    <GamificationDashboardFull
-                      userId={session.user.id}
-                      onDataChanged={() => void loadData()}
-                    />
-                    <MonthlyKudosLeaderboard />
-                    <ProfileGamification userId={session.user.id} badgesOnly />
-                  </>
+                  <DashboardAchievementsTab
+                    userId={session.user.id}
+                    onDataChanged={() => void loadData()}
+                  />
                 ) : null}
               </TabsContent>
 

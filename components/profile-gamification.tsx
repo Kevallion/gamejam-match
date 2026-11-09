@@ -1,15 +1,40 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
-import { Star, Trophy } from "lucide-react"
-import { IconTile } from "@/components/ui/app-icon"
+import { IconTile, AppIcon } from "@/components/ui/app-icon"
+import { ICON } from "@/lib/icons"
 import { BadgeMedallion, type BadgeRarity } from "@/components/badge-medallion"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import {
+  Drawer,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer"
+import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { Progress } from "@/components/ui/progress"
 import { supabase } from "@/lib/supabase"
 import { gamificationLevelProgress } from "@/lib/gamification-level"
+import {
+  badgeProgressLine,
+  countRolesWithAtLeastOneJoin,
+  parseRoleStats,
+  type BadgeProgressLine,
+  type BadgeProgressSnapshot,
+} from "@/lib/gamification-badge-progress"
+import { useIsMobile } from "@/hooks/use-mobile"
 import { cn } from "@/lib/utils"
 
 export type { BadgeRarity }
@@ -58,7 +83,7 @@ export const BADGE_DICTIONARY: Record<string, BadgeCatalogMeta> = {
     blurb: "Created your first squad listing.",
     unlocked:
       "border-amber-500/50 bg-gradient-to-br from-amber-500/20 via-amber-600/10 to-yellow-500/5 shadow-[0_0_24px_-4px_rgba(245,158,11,0.35)]",
-    locked: "border-border/40 bg-muted/20 opacity-45 grayscale",
+    locked: "border-border/40 bg-muted/20",
   },
   captain: {
     label: "Captain",
@@ -66,7 +91,7 @@ export const BADGE_DICTIONARY: Record<string, BadgeCatalogMeta> = {
     blurb: "Filled every open role on your squad listing.",
     unlocked:
       "border-violet-500/45 bg-gradient-to-br from-violet-500/20 via-purple-600/10 to-fuchsia-500/5 shadow-[0_0_24px_-4px_rgba(139,92,246,0.35)]",
-    locked: "border-border/40 bg-muted/20 opacity-45 grayscale",
+    locked: "border-border/40 bg-muted/20",
   },
   team_player: {
     label: "Team Player",
@@ -74,7 +99,7 @@ export const BADGE_DICTIONARY: Record<string, BadgeCatalogMeta> = {
     blurb: "Joined a squad on GameJamCrew.",
     unlocked:
       "border-teal/50 bg-gradient-to-br from-teal/25 via-teal/10 to-cyan-500/5 shadow-[0_0_20px_-4px_rgba(45,212,191,0.3)]",
-    locked: "border-border/40 bg-muted/20 opacity-45 grayscale",
+    locked: "border-border/40 bg-muted/20",
   },
   early_bird: {
     label: "Early Bird",
@@ -82,7 +107,7 @@ export const BADGE_DICTIONARY: Record<string, BadgeCatalogMeta> = {
     blurb: "Completed your jammer onboarding.",
     unlocked:
       "border-pink/40 bg-gradient-to-br from-peach/25 via-pink/15 to-lavender/10 shadow-[0_0_22px_-4px_rgba(244,114,182,0.28)]",
-    locked: "border-border/40 bg-muted/20 opacity-45 grayscale",
+    locked: "border-border/40 bg-muted/20",
   },
   stalwart: {
     label: "Stalwart",
@@ -90,7 +115,7 @@ export const BADGE_DICTIONARY: Record<string, BadgeCatalogMeta> = {
     blurb: "Logged in 5 days in a row.",
     unlocked:
       "border-sky-500/45 bg-gradient-to-br from-sky-500/20 via-cyan-500/10 to-teal-500/5 shadow-[0_0_22px_-4px_rgba(14,165,233,0.3)]",
-    locked: "border-border/40 bg-muted/20 opacity-45 grayscale",
+    locked: "border-border/40 bg-muted/20",
   },
   recruiter: {
     label: "Recruiter",
@@ -98,7 +123,7 @@ export const BADGE_DICTIONARY: Record<string, BadgeCatalogMeta> = {
     blurb: "Sent 5 squad invitations to other jammers.",
     unlocked:
       "border-orange-500/40 bg-gradient-to-br from-orange-500/20 via-amber-500/10 to-yellow-500/5 shadow-[0_0_22px_-4px_rgba(249,115,22,0.28)]",
-    locked: "border-border/40 bg-muted/20 opacity-45 grayscale",
+    locked: "border-border/40 bg-muted/20",
   },
   multi_tool: {
     label: "Multi-Tool",
@@ -106,7 +131,7 @@ export const BADGE_DICTIONARY: Record<string, BadgeCatalogMeta> = {
     blurb: "Joined squads in 3 different role slots.",
     unlocked:
       "border-emerald-500/40 bg-gradient-to-br from-emerald-500/20 via-teal/15 to-lime-500/5 shadow-[0_0_22px_-4px_rgba(16,185,129,0.28)]",
-    locked: "border-border/40 bg-muted/20 opacity-45 grayscale",
+    locked: "border-border/40 bg-muted/20",
   },
   jam_champion: {
     label: "Jam Champion",
@@ -114,7 +139,7 @@ export const BADGE_DICTIONARY: Record<string, BadgeCatalogMeta> = {
     blurb: "Claimed jam completion rewards on a squad you own.",
     unlocked:
       "border-amber-500/45 bg-gradient-to-br from-amber-500/20 via-peach/15 to-teal/10 shadow-[0_0_22px_-4px_rgba(245,158,11,0.3)]",
-    locked: "border-border/40 bg-muted/20 opacity-45 grayscale",
+    locked: "border-border/40 bg-muted/20",
   },
   supporter: {
     label: "Supporter",
@@ -123,7 +148,7 @@ export const BADGE_DICTIONARY: Record<string, BadgeCatalogMeta> = {
     lockedHint: "Unlock by supporting the project on Buy Me a Coffee (use the email on your account).",
     unlocked:
       "border-amber-600/45 bg-gradient-to-br from-amber-500/25 via-orange-500/15 to-rose-500/10 shadow-[0_0_24px_-4px_rgba(245,158,11,0.35)]",
-    locked: "border-border/40 bg-muted/20 opacity-45 grayscale",
+    locked: "border-border/40 bg-muted/20",
   },
   golden_heart: {
     label: "Golden Heart",
@@ -131,7 +156,7 @@ export const BADGE_DICTIONARY: Record<string, BadgeCatalogMeta> = {
     blurb: "Verified supporter — thank you for backing the community.",
     unlocked:
       "border-rose-500/45 bg-gradient-to-br from-rose-500/25 via-pink-500/15 to-amber-400/10 shadow-[0_0_26px_-4px_rgba(244,63,94,0.35)]",
-    locked: "border-border/40 bg-muted/20 opacity-45 grayscale",
+    locked: "border-border/40 bg-muted/20",
   },
 }
 
@@ -162,17 +187,23 @@ export type ProfileGamificationProps = {
 
 type BadgeRow = { badge_id: string; earned_at: string }
 
+type BadgeGridProps = {
+  sortedBadgeIds: (keyof typeof BADGE_DICTIONARY)[]
+  earnedIds: Set<string>
+  badges: BadgeRow[]
+  unlockedOnly?: boolean
+  progressCtx?: BadgeProgressSnapshot | null
+  onSelectBadge?: (badgeId: keyof typeof BADGE_DICTIONARY) => void
+}
+
 function GamificationBadgeGrid({
   sortedBadgeIds,
   earnedIds,
   badges,
   unlockedOnly = false,
-}: {
-  sortedBadgeIds: (keyof typeof BADGE_DICTIONARY)[]
-  earnedIds: Set<string>
-  badges: BadgeRow[]
-  unlockedOnly?: boolean
-}) {
+  progressCtx = null,
+  onSelectBadge,
+}: BadgeGridProps) {
   const visibleBadgeIds = unlockedOnly
     ? sortedBadgeIds.filter((badgeId) => earnedIds.has(badgeId))
     : sortedBadgeIds
@@ -184,13 +215,21 @@ function GamificationBadgeGrid({
         if (!meta) return null
         const unlocked = earnedIds.has(badgeId)
         const earned = badges.find((b) => b.badge_id === badgeId)
+        const progress =
+          progressCtx && onSelectBadge
+            ? badgeProgressLine(badgeId, progressCtx, unlocked)
+            : null
+        const Wrapper = onSelectBadge ? "button" : "div"
         return (
-          <div
+          <Wrapper
             key={badgeId}
+            type={onSelectBadge ? "button" : undefined}
+            onClick={onSelectBadge ? () => onSelectBadge(badgeId) : undefined}
             className={cn(
-              "relative flex min-w-0 flex-col gap-1 rounded-2xl border p-4 transition-all duration-300",
+              "relative flex min-w-0 flex-col gap-1 rounded-2xl border p-4 text-left transition-all duration-300",
               unlocked ? meta.unlocked : meta.locked,
-              !unlocked && "border-dashed",
+              !unlocked && "border-dashed opacity-[0.72] saturate-[0.9]",
+              onSelectBadge && "card-interactive cursor-pointer hover:ring-2 hover:ring-primary/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
             )}
           >
             <div className="flex min-w-0 items-center gap-2">
@@ -198,7 +237,7 @@ function GamificationBadgeGrid({
               <span
                 className={cn(
                   "min-w-0 break-words font-bold leading-tight",
-                  unlocked ? "text-foreground" : "text-muted-foreground",
+                  unlocked ? "text-foreground" : "text-foreground/85",
                 )}
               >
                 {meta.label}
@@ -208,28 +247,146 @@ function GamificationBadgeGrid({
             {!unlocked ? (
               <p
                 className={cn(
-                  "mt-1 text-xs text-muted-foreground/85",
-                  meta.lockedHint
-                    ? "font-medium leading-snug"
-                    : "font-semibold uppercase tracking-wide text-muted-foreground/70",
+                  "mt-1 text-xs text-muted-foreground",
+                  progress ? "font-semibold text-foreground/80" : "font-medium",
                 )}
               >
-                {meta.lockedHint ?? "Locked — keep jamming to unlock"}
+                {progress?.label ?? meta.lockedHint ?? "Locked — keep jamming to unlock"}
               </p>
             ) : earned?.earned_at ? (
               <p className="mt-auto pt-1 text-xs text-muted-foreground/80">
-                Unlocked{" "}
-                {new Date(earned.earned_at).toLocaleDateString(undefined, {
-                  month: "short",
-                  day: "numeric",
-                  year: "numeric",
-                })}
+                Unlocked {formatUnlocked(earned.earned_at)}
               </p>
             ) : null}
-          </div>
+          </Wrapper>
         )
       })}
     </div>
+  )
+}
+
+function BadgeDetailBody({
+  badgeId,
+  meta,
+  unlocked,
+  earnedAt,
+  progress,
+}: {
+  badgeId: string
+  meta: BadgeCatalogMeta
+  unlocked: boolean
+  earnedAt?: string
+  progress: BadgeProgressLine | null
+}) {
+  const percent =
+    progress && progress.target > 0
+      ? Math.min(100, Math.round((progress.current / progress.target) * 100))
+      : null
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-3">
+        <BadgeMedallion badgeId={badgeId} rarity={meta.rarity} size="lg" locked={!unlocked} />
+        <div className="min-w-0">
+          <p className="text-lg font-bold text-foreground">{meta.label}</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            {RARITY_LABEL[meta.rarity]}
+          </p>
+        </div>
+      </div>
+      <p className="text-sm text-muted-foreground">{meta.blurb}</p>
+      {!unlocked ? (
+        <div className="space-y-2 rounded-xl border border-border/50 bg-muted/25 p-3">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">How to unlock</p>
+          <p className="text-sm text-foreground/90">
+            {meta.lockedHint ?? "Keep collaborating on GameJamCrew to earn this badge."}
+          </p>
+          {progress ? (
+            <div className="space-y-1.5 pt-1">
+              <div className="flex items-center justify-between text-xs font-semibold text-foreground">
+                <span>Progress</span>
+                <span className="tabular-nums text-muted-foreground">{progress.label}</span>
+              </div>
+              <Progress value={percent ?? 0} className="h-2 bg-muted/80" />
+            </div>
+          ) : null}
+        </div>
+      ) : earnedAt ? (
+        <p className="text-sm text-muted-foreground">
+          Earned on <span className="font-semibold text-foreground">{formatUnlocked(earnedAt)}</span>
+        </p>
+      ) : (
+        <p className="text-sm text-muted-foreground">Unlocked</p>
+      )}
+    </div>
+  )
+}
+
+function BadgeDetailResponsive({
+  open,
+  onOpenChange,
+  badgeId,
+  meta,
+  unlocked,
+  earnedAt,
+  progress,
+}: {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  badgeId: string
+  meta: BadgeCatalogMeta
+  unlocked: boolean
+  earnedAt?: string
+  progress: BadgeProgressLine | null
+}) {
+  const isMobile = useIsMobile()
+
+  if (isMobile) {
+    return (
+      <Drawer open={open} onOpenChange={onOpenChange}>
+        <DrawerContent className="rounded-t-3xl border-border/40 bg-card">
+          <div className="mx-auto mt-2 h-1 w-10 rounded-full bg-border/60" aria-hidden />
+          <DrawerHeader className="text-left">
+            <DrawerTitle>{meta.label}</DrawerTitle>
+            <DrawerDescription className="sr-only">Badge details and progress</DrawerDescription>
+          </DrawerHeader>
+          <div className="px-4 pb-2">
+            <BadgeDetailBody
+              badgeId={badgeId}
+              meta={meta}
+              unlocked={unlocked}
+              earnedAt={earnedAt}
+              progress={progress}
+            />
+          </div>
+          <DrawerFooter className="pb-8">
+            <DrawerClose asChild>
+              <Button variant="outline" className="w-full rounded-xl">
+                Close
+              </Button>
+            </DrawerClose>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
+    )
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md rounded-2xl border-border/50 bg-card">
+        <DialogHeader>
+          <DialogTitle>{meta.label}</DialogTitle>
+          <DialogDescription className="sr-only">Badge details and progress</DialogDescription>
+        </DialogHeader>
+        <BadgeDetailBody
+          badgeId={badgeId}
+          meta={meta}
+          unlocked={unlocked}
+          earnedAt={earnedAt}
+          progress={progress}
+        />
+      </DialogContent>
+    </Dialog>
   )
 }
 
@@ -312,6 +469,9 @@ export function ProfileGamification({
   const [xp, setXp] = useState<number | null>(null)
   const [currentTitle, setCurrentTitle] = useState<string>("Rookie Jammer")
   const [badges, setBadges] = useState<BadgeRow[]>([])
+  const [progressCtx, setProgressCtx] = useState<BadgeProgressSnapshot | null>(null)
+  const [selectedBadgeId, setSelectedBadgeId] = useState<keyof typeof BADGE_DICTIONARY | null>(null)
+  const [badgeDetailOpen, setBadgeDetailOpen] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -321,16 +481,38 @@ export function ProfileGamification({
     setError(null)
     try {
       if (badgesOnly) {
-        const { data, error: badgesError } = await supabase
-          .from("user_badges")
-          .select("badge_id, earned_at")
-          .eq("user_id", userId)
-        if (badgesError) {
-          setError(badgesError.message)
+        const [badgesRes, profileRes, teamsRes] = await Promise.all([
+          supabase.from("user_badges").select("badge_id, earned_at").eq("user_id", userId),
+          supabase
+            .from("profiles")
+            .select(
+              "daily_login_streak, invitations_sent_count, role_stats, has_completed_onboarding",
+            )
+            .eq("id", userId)
+            .maybeSingle(),
+          supabase.from("teams").select("id", { count: "exact", head: true }).eq("user_id", userId),
+        ])
+        if (badgesRes.error) {
+          setError(badgesRes.error.message)
           setBadges([])
         } else {
-          setBadges((data ?? []) as BadgeRow[])
+          setBadges((badgesRes.data ?? []) as BadgeRow[])
         }
+
+        const roleStats = parseRoleStats(profileRes.data?.role_stats)
+        setProgressCtx({
+          dailyStreak:
+            typeof profileRes.data?.daily_login_streak === "number"
+              ? profileRes.data.daily_login_streak
+              : 0,
+          invitesSent:
+            typeof profileRes.data?.invitations_sent_count === "number"
+              ? profileRes.data.invitations_sent_count
+              : 0,
+          distinctRoles: countRolesWithAtLeastOneJoin(roleStats),
+          squadListings: teamsRes.count ?? 0,
+          onboardingDone: profileRes.data?.has_completed_onboarding === true,
+        })
         return
       }
 
@@ -439,44 +621,77 @@ export function ProfileGamification({
     )
   }
 
+  const openBadgeDetail = (badgeId: keyof typeof BADGE_DICTIONARY) => {
+    setSelectedBadgeId(badgeId)
+    setBadgeDetailOpen(true)
+  }
+
+  const selectedMeta = selectedBadgeId ? BADGE_DICTIONARY[selectedBadgeId] : null
+  const selectedEarned = selectedBadgeId
+    ? badges.find((row) => row.badge_id === selectedBadgeId)
+    : undefined
+  const selectedUnlocked = selectedBadgeId ? earnedIds.has(selectedBadgeId) : false
+  const selectedProgress =
+    selectedBadgeId && progressCtx
+      ? badgeProgressLine(selectedBadgeId, progressCtx, selectedUnlocked)
+      : null
+
   if (badgesOnly) {
     const unlockedCount = badges.filter((badge) => earnedIds.has(badge.badge_id)).length
 
     return (
-      <Card
-        className={cn(
-          "relative overflow-hidden border border-amber-500/20 bg-white/[0.05] shadow-md shadow-amber-500/5 backdrop-blur-xl dark:border-amber-500/15 dark:bg-slate-900/45 light:bg-white/75",
-          className,
-        )}
-      >
-        <div
-          className="pointer-events-none absolute -right-20 -top-20 size-56 rounded-full bg-gradient-to-br from-amber-500/10 via-teal/10 to-peach/10 blur-3xl"
-          aria-hidden
-        />
-        <CardHeader className="relative space-y-0 border-b border-border/40 pb-3 pt-4 dark:border-border/50 sm:pt-6">
-          <h3 className="text-xs font-semibold uppercase tracking-tight text-muted-foreground sm:text-sm">
-            Badges
-          </h3>
-          {error ? <p className="mt-1 text-xs text-destructive">{error}</p> : null}
-        </CardHeader>
-        <CardContent className="relative pb-4 pt-3 sm:pb-6">
-          {unlockedOnly && unlockedCount === 0 ? (
-            <div className="rounded-2xl border border-dashed border-border/50 bg-muted/25 px-4 py-8 text-center">
-              <p className="text-sm font-semibold text-foreground">No badges unlocked yet.</p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Keep jamming and collaborating to unlock your first badge.
-              </p>
-            </div>
-          ) : (
-            <GamificationBadgeGrid
-              sortedBadgeIds={sortedBadgeIds}
-              earnedIds={earnedIds}
-              badges={badges}
-              unlockedOnly={unlockedOnly}
-            />
+      <>
+        <Card
+          className={cn(
+            "relative overflow-hidden border border-amber-500/20 bg-white/[0.05] shadow-md shadow-amber-500/5 backdrop-blur-xl dark:border-amber-500/15 dark:bg-slate-900/45 light:bg-white/75",
+            className,
           )}
-        </CardContent>
-      </Card>
+        >
+          <div
+            className="pointer-events-none absolute -right-20 -top-20 size-56 rounded-full bg-gradient-to-br from-amber-500/10 via-teal/10 to-peach/10 blur-3xl"
+            aria-hidden
+          />
+          <CardHeader className="relative space-y-0 border-b border-border/40 pb-3 pt-4 dark:border-border/50 sm:pt-6">
+            <div className="flex items-center gap-2">
+              <AppIcon icon={ICON.achievement} size="sm" tone="peach" />
+              <h3 className="text-xs font-semibold uppercase tracking-tight text-muted-foreground sm:text-sm">
+                Badges
+              </h3>
+            </div>
+            {error ? <p className="mt-1 text-xs text-destructive">{error}</p> : null}
+          </CardHeader>
+          <CardContent className="relative pb-4 pt-3 sm:pb-6">
+            {unlockedOnly && unlockedCount === 0 ? (
+              <div className="rounded-2xl border border-dashed border-border/50 bg-muted/25 px-4 py-8 text-center">
+                <p className="text-sm font-semibold text-foreground">No badges unlocked yet.</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Keep jamming and collaborating to unlock your first badge.
+                </p>
+              </div>
+            ) : (
+              <GamificationBadgeGrid
+                sortedBadgeIds={sortedBadgeIds}
+                earnedIds={earnedIds}
+                badges={badges}
+                unlockedOnly={unlockedOnly}
+                progressCtx={progressCtx}
+                onSelectBadge={openBadgeDetail}
+              />
+            )}
+          </CardContent>
+        </Card>
+        {selectedBadgeId && selectedMeta ? (
+          <BadgeDetailResponsive
+            open={badgeDetailOpen}
+            onOpenChange={setBadgeDetailOpen}
+            badgeId={selectedBadgeId}
+            meta={selectedMeta}
+            unlocked={selectedUnlocked}
+            earnedAt={selectedEarned?.earned_at}
+            progress={selectedProgress}
+          />
+        ) : null}
+      </>
     )
   }
 
@@ -494,7 +709,7 @@ export function ProfileGamification({
       <CardHeader className="relative space-y-0 pb-2 pt-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex items-center gap-3">
-            <IconTile icon={Trophy} tone="teal" />
+            <IconTile icon={ICON.achievement} tone="teal" />
             <div>
               <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Jammer rank
@@ -512,7 +727,7 @@ export function ProfileGamification({
                 <p className="mt-1 text-xs text-destructive">{error}</p>
               ) : (
                 <p className="mt-1 flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
-                  <Star className="size-3.5 text-lavender" />
+                  <AppIcon icon={ICON.xp} size="sm" tone="lavender" />
                   {progressLabel}
                 </p>
               )}
