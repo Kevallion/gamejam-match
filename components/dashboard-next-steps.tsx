@@ -1,10 +1,12 @@
 "use client"
 
 import Link from "next/link"
-import { CircleCheck, Circle, Compass, Hand, Inbox, Link2, MessageSquareText, Plus } from "lucide-react"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
+import { AppIcon } from "@/components/ui/app-icon"
+import { ICON } from "@/lib/icons"
 import { cn } from "@/lib/utils"
+import type { LucideIcon } from "lucide-react"
 
 type DashboardNextStep = {
   id: string
@@ -12,7 +14,7 @@ type DashboardNextStep = {
   done: boolean
   href: string
   action: string
-  icon: typeof Plus
+  icon: LucideIcon
 }
 
 export function DashboardNextSteps({
@@ -21,12 +23,15 @@ export function DashboardNextSteps({
   hasDiscord,
   hasPortfolio,
   hasInboxActivity,
+  showSquadEmptyRow = false,
 }: {
   hasTeam: boolean
   hasAvailability: boolean
   hasDiscord: boolean
   hasPortfolio: boolean
   hasInboxActivity: boolean
+  /** When true, show the no-squad row even if all checklist tasks are done. */
+  showSquadEmptyRow?: boolean
 }) {
   const steps: DashboardNextStep[] = [
     {
@@ -35,7 +40,7 @@ export function DashboardNextSteps({
       done: hasTeam,
       href: hasTeam ? "/teams" : "/create-team",
       action: hasTeam ? "Browse squads" : "Create a Squad",
-      icon: hasTeam ? Compass : Plus,
+      icon: hasTeam ? ICON.squad : ICON.create,
     },
     {
       id: "availability",
@@ -43,7 +48,7 @@ export function DashboardNextSteps({
       done: hasAvailability,
       href: "/create-profile",
       action: "Post Availability",
-      icon: Hand,
+      icon: ICON.available,
     },
     {
       id: "discord",
@@ -51,7 +56,7 @@ export function DashboardNextSteps({
       done: hasDiscord,
       href: "/dashboard?tab=settings",
       action: "Open settings",
-      icon: MessageSquareText,
+      icon: ICON.note,
     },
     {
       id: "portfolio",
@@ -59,7 +64,7 @@ export function DashboardNextSteps({
       done: hasPortfolio,
       href: "/dashboard?tab=settings",
       action: "Update profile",
-      icon: Link2,
+      icon: ICON.link,
     },
     {
       id: "inbox",
@@ -67,65 +72,88 @@ export function DashboardNextSteps({
       done: hasInboxActivity,
       href: "/dashboard?tab=inbox",
       action: "Open inbox",
-      icon: Inbox,
+      icon: ICON.applications,
     },
   ]
 
   const completed = steps.filter((step) => step.done).length
-  if (completed >= steps.length) return null
+  const allDone = completed >= steps.length
+  if (allDone && !showSquadEmptyRow) return null
 
   const progress = Math.round((completed / steps.length) * 100)
 
   return (
-    <Card className="glass-card min-w-0 max-w-full border-lavender/20 bg-lavender/5">
-      <CardHeader className="min-w-0 space-y-2 pb-0">
-        <div className="flex min-w-0 items-center justify-between gap-3">
-          <h3 className="min-w-0 text-sm font-bold text-foreground">Get started</h3>
-          <span className="shrink-0 text-xs font-semibold tabular-nums text-muted-foreground">
-            {completed}/{steps.length}
-          </span>
-        </div>
-        <Progress value={progress} className="h-1.5 rounded-full bg-secondary/70" />
-        <p className="text-xs text-muted-foreground">
-          Pick a path: create a squad or post availability — then finish your profile.
-        </p>
-      </CardHeader>
-      <CardContent className="min-w-0 pt-4">
-        <div className="grid min-w-0 gap-2 md:grid-cols-2">
-          {steps.map((step) => {
-            const Icon = step.icon
-            return (
-              <Link
-                key={step.id}
-                href={step.href}
-                className={cn(
-                  "flex min-h-11 min-w-0 items-center gap-3 rounded-xl border px-3 py-2.5 transition-colors",
-                  step.done
-                    ? "border-teal/25 bg-teal/10"
-                    : "border-border/50 bg-card/40 hover:border-lavender/40 hover:bg-lavender/5",
-                )}
-              >
-                {step.done ? (
-                  <CircleCheck className="size-4 shrink-0 text-teal" aria-hidden />
-                ) : (
-                  <Circle className="size-4 shrink-0 text-muted-foreground" aria-hidden />
-                )}
-                <span
-                  className={cn(
-                    "min-w-0 flex-1 text-sm font-medium leading-snug",
-                    step.done ? "text-foreground/90" : "text-foreground",
-                  )}
-                >
-                  {step.label}
-                </span>
-                <span className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-primary">
-                  <Icon className="size-3.5" aria-hidden />
-                  <span className="hidden sm:inline">{step.action}</span>
-                </span>
-              </Link>
-            )
-          })}
-        </div>
+    <Card className="min-w-0 max-w-full border-lavender/20 bg-lavender/5">
+      {!allDone ? (
+        <CardHeader className="min-w-0 space-y-2 p-4 pb-0">
+          <div className="flex min-w-0 items-center justify-between gap-3">
+            <h3 className="min-w-0 text-sm font-bold text-foreground">Get started</h3>
+            <span className="shrink-0 text-sm font-semibold tabular-nums text-muted-foreground">
+              {completed}/{steps.length}
+            </span>
+          </div>
+          <Progress value={progress} className="h-1.5 rounded-full bg-secondary/70" />
+        </CardHeader>
+      ) : null}
+      <CardContent className={cn("min-w-0 p-4", !allDone && "pt-2")}>
+        {!allDone ? (
+          <ul className="divide-y divide-border/40">
+            {steps.map((step) => {
+              const Icon = step.icon
+              return (
+                <li key={step.id}>
+                  <Link
+                    href={step.href}
+                    className="flex h-10 items-center gap-3 rounded-lg px-1 hover:bg-lavender/5"
+                  >
+                    {step.done ? (
+                      <AppIcon icon={ICON.done} size="sm" tone="teal" />
+                    ) : (
+                      <span
+                        className="size-4 shrink-0 rounded-full border-2 border-muted-foreground/50"
+                        aria-hidden
+                      />
+                    )}
+                    <span
+                      className={cn(
+                        "min-w-0 flex-1 truncate text-sm font-medium",
+                        step.done ? "text-foreground/90" : "text-foreground",
+                      )}
+                    >
+                      {step.label}
+                    </span>
+                    <span className="inline-flex shrink-0 items-center gap-1.5 text-sm font-semibold text-primary">
+                      <AppIcon icon={Icon} size="sm" tone="primary" />
+                      <span className="hidden sm:inline">{step.action}</span>
+                    </span>
+                  </Link>
+                </li>
+              )
+            })}
+          </ul>
+        ) : null}
+
+        {showSquadEmptyRow ? (
+          <div
+            className={cn(
+              "flex h-14 items-center gap-3 px-1",
+              !allDone && "mt-2 border-t border-border/40",
+            )}
+          >
+            <span className="hidden size-8 shrink-0 items-center justify-center rounded-lg bg-teal/15 text-teal sm:flex">
+              <AppIcon icon={ICON.squad} size="sm" tone="teal" />
+            </span>
+            <p className="min-w-0 flex-1 truncate text-sm font-medium text-muted-foreground">
+              You are not in a squad yet
+            </p>
+            <Link
+              href="/teams"
+              className="inline-flex h-9 shrink-0 items-center rounded-lg bg-teal px-3 text-sm font-semibold text-teal-foreground hover:bg-teal/90"
+            >
+              Browse squads
+            </Link>
+          </div>
+        ) : null}
       </CardContent>
     </Card>
   )

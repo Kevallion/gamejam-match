@@ -181,19 +181,8 @@ export function DashboardSquadsCompact({
   onLeave?: (id: string) => Promise<void> | void
 }) {
   if (teams.length === 0) {
-    return (
-      <Card className="min-w-0 max-w-full border-border/60 bg-card shadow-sm">
-        <CardContent className="flex flex-col items-center gap-3 p-6 text-center">
-          <span className="flex size-12 items-center justify-center rounded-2xl bg-teal/15 text-teal">
-            <AppIcon icon={ICON.squad} size="xl" tone="teal" />
-          </span>
-          <p className="max-w-sm text-sm text-muted-foreground">You are not in a squad yet.</p>
-          <Button asChild className="h-11 rounded-xl bg-teal text-teal-foreground hover:bg-teal/90">
-            <Link href="/teams">Browse squads</Link>
-          </Button>
-        </CardContent>
-      </Card>
-    )
+    // Empty squad CTA lives in Get started (Home). Avoid a duplicate empty card.
+    return null
   }
 
   return (
