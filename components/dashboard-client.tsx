@@ -19,7 +19,6 @@ import { AppIcon } from "@/components/ui/app-icon"
 import { ICON } from "@/lib/icons"
 import { useNotifications } from "@/hooks/use-notifications"
 import {
-  Clock,
   Info,
   Trash2,
 } from "lucide-react"
@@ -326,35 +325,6 @@ function ResponsiveConfirmDrawer({
   )
 }
 
-function DashboardSidebarProgress({
-  xp,
-  currentTitle,
-}: {
-  xp: number
-  currentTitle: string
-}) {
-  const level = levelFromTotalXp(xp)
-  const progress = gamificationLevelProgress(xp)
-
-  return (
-    <Card className="border-border/40 bg-card/70 shadow-sm backdrop-blur-sm">
-      <CardContent className="space-y-3 p-4">
-        <div className="flex items-center justify-between">
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Progress</p>
-          <span className="rounded-full border border-teal/35 bg-teal/10 px-2 py-0.5 text-xs font-bold text-teal">
-            Level {level}
-          </span>
-        </div>
-        <p className="truncate text-sm font-semibold text-foreground">{currentTitle || "Rookie Jammer"}</p>
-        <Progress value={progress.progressPercent} className="h-1.5 bg-muted/80" />
-        <p className="text-[11px] text-muted-foreground">
-          {progress.xpInLevel}/{progress.xpInLevel + progress.xpToNextLevel} XP
-        </p>
-      </CardContent>
-    </Card>
-  )
-}
-
 function relativeDateLabel(dateIso: string): string {
   const diffMs = Date.now() - new Date(dateIso).getTime()
   if (!Number.isFinite(diffMs)) return "now"
@@ -367,35 +337,89 @@ function relativeDateLabel(dateIso: string): string {
   return `${days}d`
 }
 
-function DashboardRecentActivity({
+function DashboardRecentActivityList({
   items,
 }: {
   items: NormalizedNotificationFeedItem[]
 }) {
   const latest = items.slice(0, 4)
 
+  if (latest.length === 0) {
+    return <p className="py-1 text-sm text-muted-foreground">No recent notifications</p>
+  }
+
+  return (
+    <ul className="divide-y divide-border/40">
+      {latest.map((item) => (
+        <li key={item.id} className="flex items-start justify-between gap-3 py-2">
+          <p className="line-clamp-2 min-w-0 text-sm text-foreground">{item.message}</p>
+          <span className="shrink-0 text-sm text-muted-foreground">
+            {relativeDateLabel(item.created_at)}
+          </span>
+        </li>
+      ))}
+    </ul>
+  )
+}
+
+/** Standalone card — Inbox / My posts side columns. */
+function DashboardRecentActivity({
+  items,
+}: {
+  items: NormalizedNotificationFeedItem[]
+}) {
   return (
     <Card className="border-border/40 bg-card/70 shadow-sm backdrop-blur-sm">
       <CardContent className="space-y-3 p-4">
-        <div className="flex items-center justify-between">
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Recent activity</p>
-          <Clock className="size-3.5 text-muted-foreground" />
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-sm font-bold text-foreground">Recent activity</p>
+          <AppIcon icon={ICON.time} size="sm" tone="muted" />
         </div>
-        {latest.length === 0 ? (
-          <p className="text-xs text-muted-foreground">No recent notifications.</p>
-        ) : (
-          <div className="space-y-2">
-            {latest.map((item) => (
-              <div
-                key={item.id}
-                className="rounded-lg border border-border/40 bg-background/40 px-2.5 py-2"
-              >
-                <p className="line-clamp-2 text-xs text-foreground">{item.message}</p>
-                <p className="mt-1 text-xs text-muted-foreground">{relativeDateLabel(item.created_at)}</p>
-              </div>
-            ))}
-          </div>
-        )}
+        <DashboardRecentActivityList items={items} />
+      </CardContent>
+    </Card>
+  )
+}
+
+/** Home side column: Progress + Recent activity in one card. */
+function DashboardHomeSideCard({
+  xp,
+  currentTitle,
+  items,
+}: {
+  xp: number
+  currentTitle: string
+  items: NormalizedNotificationFeedItem[]
+}) {
+  const level = levelFromTotalXp(xp)
+  const progress = gamificationLevelProgress(xp)
+
+  return (
+    <Card className="gap-0 border-border/40 bg-card/70 py-0 shadow-sm backdrop-blur-sm">
+      <CardContent className="p-4">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-sm font-bold text-foreground">Progress</h2>
+          <span className="rounded-full border border-teal/35 bg-teal/10 px-2 text-sm font-bold leading-6 text-teal">
+            Level {level}
+          </span>
+        </div>
+        <div className="mt-2 flex items-baseline justify-between gap-3">
+          <p className="truncate text-sm font-semibold text-foreground">
+            {currentTitle || "Rookie Jammer"}
+          </p>
+          <p className="shrink-0 text-sm tabular-nums text-muted-foreground">
+            {progress.xpInLevel}/{progress.span} XP
+          </p>
+        </div>
+        <Progress value={progress.progressPercent} className="mt-2 h-1.5 bg-muted/80" />
+
+        <div className="mt-4 flex items-center justify-between gap-3 border-t border-border/40 pt-3">
+          <h2 className="text-sm font-bold text-foreground">Recent activity</h2>
+          <AppIcon icon={ICON.time} size="sm" tone="muted" />
+        </div>
+        <div className="mt-1">
+          <DashboardRecentActivityList items={items} />
+        </div>
       </CardContent>
     </Card>
   )
@@ -1595,99 +1619,108 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
         </section>
 
         <section className="min-w-0 px-4 pb-8 lg:px-6 lg:pb-12">
-          <div className="mx-auto w-full min-w-0 max-w-6xl">
-            <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full min-w-0 max-w-full">
-              <TabsContent value="squads" className="mt-0 min-w-0 max-w-full">
-                <div className="grid min-w-0 max-w-full gap-4 lg:grid-cols-12">
-                  <div className="min-w-0 space-y-4 lg:col-span-8">
-                    <DashboardNextSteps
-                      hasTeam={teams.length > 0}
-                      hasAvailability={availabilityPosts.length > 0}
-                      hasDiscord={Boolean(profile?.discord_username?.trim())}
-                      hasPortfolio={Boolean(profile?.portfolio_url?.trim())}
-                      hasInboxActivity={activityTotal > 0}
+          <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full min-w-0 max-w-full">
+            <TabsContent value="squads" className="mt-0 min-w-0 max-w-full">
+              <div className="grid min-w-0 max-w-full items-start gap-4 lg:grid-cols-3">
+                <div className="min-w-0 space-y-4 lg:col-span-2">
+                  <DashboardNextSteps
+                    hasTeam={teams.length > 0}
+                    hasAvailability={availabilityPosts.length > 0}
+                    hasDiscord={Boolean(profile?.discord_username?.trim())}
+                    hasPortfolio={Boolean(profile?.portfolio_url?.trim())}
+                    hasInboxActivity={activityTotal > 0}
+                    showSquadEmptyRow={teams.length === 0}
+                  />
+                  <DashboardTodo
+                    applications={applications}
+                    invitations={invitations}
+                    availabilityPosts={availabilityPosts}
+                    onAcceptApplication={handleAcceptApplication}
+                    onDeclineApplication={handleDeclineApplication}
+                    onAcceptInvitation={handleAcceptInvitation}
+                    onDeclineInvitation={handleDeclineInvitation}
+                    onRenewPost={handleRenewAvailabilityPost}
+                    busyRequestId={busyInboxRequestId}
+                    renewingPostId={renewingAvailabilityPostId}
+                  />
+                  <DashboardSquadsCompact teams={teams} onLeave={handleLeaveTeam} />
+                  <div className="space-y-4 lg:hidden">
+                    <DashboardHomeSideCard
+                      xp={headerXp}
+                      currentTitle={headerTitle}
+                      items={activityNotifications}
                     />
-                    <DashboardTodo
-                      applications={applications}
-                      invitations={invitations}
-                      availabilityPosts={availabilityPosts}
-                      onAcceptApplication={handleAcceptApplication}
-                      onDeclineApplication={handleDeclineApplication}
-                      onAcceptInvitation={handleAcceptInvitation}
-                      onDeclineInvitation={handleDeclineInvitation}
-                      onRenewPost={handleRenewAvailabilityPost}
-                      busyRequestId={busyInboxRequestId}
-                      renewingPostId={renewingAvailabilityPostId}
-                    />
-                    <DashboardSquadsCompact teams={teams} onLeave={handleLeaveTeam} />
-                    <div className="space-y-4 lg:hidden">
-                      <DashboardSidebarProgress xp={headerXp} currentTitle={headerTitle} />
-                      <DashboardRecentActivity items={activityNotifications} />
-                      <DashboardRecommendedTeams teams={recommendedTeams} compact />
-                    </div>
-                  </div>
-                  <aside className="hidden w-full max-w-[320px] space-y-4 justify-self-end lg:col-span-4 lg:sticky lg:top-[88px] lg:block lg:self-start">
-                    <DashboardSidebarProgress xp={headerXp} currentTitle={headerTitle} />
-                    <DashboardRecentActivity items={activityNotifications} />
-                  </aside>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="inbox" className="mt-0 flex min-w-0 max-w-full flex-col gap-4 md:gap-6">
-                <div className="grid min-w-0 max-w-full gap-4 lg:grid-cols-12">
-                  <div className="min-w-0 space-y-4 lg:col-span-8">
-                    <PushNotificationBanner />
-                    <DashboardInboxCompact
-                      applications={applications}
-                      invitations={invitations}
-                      sentApplications={sentApplications}
-                      sentInvitations={sentInvitationsOutbox}
-                      cancellingSentRequestId={cancellingSentRequestId}
-                      onAcceptApplication={handleAcceptApplication}
-                      onDeclineApplication={handleDeclineApplication}
-                      onAcceptInvitation={handleAcceptInvitation}
-                      onDeclineInvitation={handleDeclineInvitation}
-                      busyRequestId={busyInboxRequestId}
-                      onCancelPendingSentRequest={handleCancelPendingSentRequest}
-                    />
-                  </div>
-                  <aside className="hidden space-y-4 lg:col-span-4 lg:sticky lg:top-24 lg:block lg:self-start">
-                    <DashboardRecentActivity items={activityNotifications} />
-                  </aside>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="availability" className="mt-0 flex min-w-0 max-w-full flex-col gap-4 md:gap-6">
-                <div className="grid min-w-0 max-w-full gap-4 lg:grid-cols-12">
-                  <div className="min-w-0 space-y-4 lg:col-span-8">
-                    <DashboardAvailabilityCompact
-                      posts={availabilityPosts}
-                      onDeletePost={handleDeleteAvailabilityPostClick}
-                      onRenewPost={handleRenewAvailabilityPost}
-                      renewingPostId={renewingAvailabilityPostId}
-                      profileAvatarUrl={profile?.avatar_url ?? null}
-                    />
-                    <div className="lg:hidden">
-                      <DashboardRecommendedTeams teams={recommendedTeams} compact />
-                    </div>
-                  </div>
-                  <aside className="hidden w-full max-w-[320px] space-y-4 justify-self-end lg:col-span-4 lg:sticky lg:top-[88px] lg:block lg:self-start">
                     <DashboardRecommendedTeams teams={recommendedTeams} compact />
-                    <DashboardRecentActivity items={activityNotifications} />
-                  </aside>
+                  </div>
                 </div>
-              </TabsContent>
+                <aside className="hidden min-w-0 lg:sticky lg:top-4 lg:col-span-1 lg:block lg:self-start">
+                  <DashboardHomeSideCard
+                    xp={headerXp}
+                    currentTitle={headerTitle}
+                    items={activityNotifications}
+                  />
+                </aside>
+              </div>
+            </TabsContent>
 
-              <TabsContent value="achievements" className="mt-0 flex min-w-0 max-w-full flex-col gap-4 md:gap-6">
+            <TabsContent value="inbox" className="mt-0 flex min-w-0 max-w-full flex-col gap-4 md:gap-6">
+              <div className="mx-auto grid w-full min-w-0 max-w-6xl gap-4 lg:grid-cols-12">
+                <div className="min-w-0 space-y-4 lg:col-span-8">
+                  <PushNotificationBanner />
+                  <DashboardInboxCompact
+                    applications={applications}
+                    invitations={invitations}
+                    sentApplications={sentApplications}
+                    sentInvitations={sentInvitationsOutbox}
+                    cancellingSentRequestId={cancellingSentRequestId}
+                    onAcceptApplication={handleAcceptApplication}
+                    onDeclineApplication={handleDeclineApplication}
+                    onAcceptInvitation={handleAcceptInvitation}
+                    onDeclineInvitation={handleDeclineInvitation}
+                    busyRequestId={busyInboxRequestId}
+                    onCancelPendingSentRequest={handleCancelPendingSentRequest}
+                  />
+                </div>
+                <aside className="hidden space-y-4 lg:col-span-4 lg:sticky lg:top-24 lg:block lg:self-start">
+                  <DashboardRecentActivity items={activityNotifications} />
+                </aside>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="availability" className="mt-0 flex min-w-0 max-w-full flex-col gap-4 md:gap-6">
+              <div className="mx-auto grid w-full min-w-0 max-w-6xl gap-4 lg:grid-cols-12">
+                <div className="min-w-0 space-y-4 lg:col-span-8">
+                  <DashboardAvailabilityCompact
+                    posts={availabilityPosts}
+                    onDeletePost={handleDeleteAvailabilityPostClick}
+                    onRenewPost={handleRenewAvailabilityPost}
+                    renewingPostId={renewingAvailabilityPostId}
+                    profileAvatarUrl={profile?.avatar_url ?? null}
+                  />
+                  <div className="lg:hidden">
+                    <DashboardRecommendedTeams teams={recommendedTeams} compact />
+                  </div>
+                </div>
+                <aside className="hidden space-y-4 lg:col-span-4 lg:sticky lg:top-[88px] lg:block lg:self-start">
+                  <DashboardRecommendedTeams teams={recommendedTeams} compact />
+                  <DashboardRecentActivity items={activityNotifications} />
+                </aside>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="achievements" className="mt-0 min-w-0 max-w-full">
+              <div className="min-w-0 w-full max-w-full">
                 {session?.user?.id ? (
                   <DashboardAchievementsTab
                     userId={session.user.id}
                     onDataChanged={() => void loadData()}
                   />
                 ) : null}
-              </TabsContent>
+              </div>
+            </TabsContent>
 
-              <TabsContent value="settings" className="mt-0 flex w-full min-w-0 max-w-full flex-col">
+            <TabsContent value="settings" className="mt-0 flex w-full min-w-0 max-w-full flex-col">
+              <div className="mx-auto w-full min-w-0 max-w-6xl">
                 <ProfileSettings
                   profile={profile}
                   onProfileUpdated={(patch) => {
@@ -1706,9 +1739,9 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
                   }}
                   displayNameFallback={displayName}
                 />
-              </TabsContent>
-            </Tabs>
-          </div>
+              </div>
+            </TabsContent>
+          </Tabs>
         </section>
       </div>
 

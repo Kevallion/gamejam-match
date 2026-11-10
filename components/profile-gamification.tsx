@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react"
 import { IconTile, AppIcon } from "@/components/ui/app-icon"
 import { ICON } from "@/lib/icons"
 import { BadgeMedallion, type BadgeRarity } from "@/components/badge-medallion"
@@ -196,6 +196,70 @@ type BadgeGridProps = {
   onSelectBadge?: (badgeId: keyof typeof BADGE_DICTIONARY) => void
 }
 
+function isRecentlyUnlocked(earnedAt: string | undefined, withinDays = 7): boolean {
+  if (!earnedAt) return false
+  const t = new Date(earnedAt).getTime()
+  if (!Number.isFinite(t)) return false
+  return Date.now() - t <= withinDays * 24 * 60 * 60 * 1000
+}
+
+function RarityPill({ rarity, muted = false }: { rarity: BadgeRarity; muted?: boolean }) {
+  return (
+    <span
+      className={cn(
+        "inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
+        muted
+          ? "border-border/40 bg-muted/30 text-muted-foreground"
+          : "border-border/50 bg-secondary/60 text-muted-foreground",
+      )}
+    >
+      {RARITY_LABEL[rarity]}
+    </span>
+  )
+}
+
+function BadgeProgressRing({
+  percent,
+  children,
+}: {
+  percent: number
+  children: ReactNode
+}) {
+  const clamped = Math.min(100, Math.max(0, percent))
+  const radius = 22
+  const circumference = 2 * Math.PI * radius
+  const offset = circumference - (clamped / 100) * circumference
+
+  return (
+    <span className="relative inline-flex size-14 shrink-0 items-center justify-center">
+      <svg className="absolute inset-0 size-full -rotate-90" viewBox="0 0 56 56" aria-hidden>
+        <circle
+          cx="28"
+          cy="28"
+          r={radius}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          className="text-border/50"
+        />
+        <circle
+          cx="28"
+          cy="28"
+          r={radius}
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          className="text-teal transition-[stroke-dashoffset] duration-300"
+        />
+      </svg>
+      <span className="relative z-[1] flex items-center justify-center">{children}</span>
+    </span>
+  )
+}
+
 function GamificationBadgeGrid({
   sortedBadgeIds,
   earnedIds,
@@ -236,7 +300,7 @@ function GamificationBadgeGrid({
               <BadgeMedallion badgeId={badgeId} rarity={meta.rarity} size="lg" locked={!unlocked} />
               <span
                 className={cn(
-                  "min-w-0 break-words font-bold leading-tight",
+                  "min-w-0 break-words text-balance font-bold leading-tight",
                   unlocked ? "text-foreground" : "text-foreground/85",
                 )}
               >
@@ -263,6 +327,178 @@ function GamificationBadgeGrid({
       })}
     </div>
   )
+}
+
+function AchievementsBadgesSections({
+  earnedIds,
+  badges,
+  progressCtx,
+  onSelectBadge,
+}: {
+  earnedIds: Set<string>
+  badges: BadgeRow[]
+  progressCtx: BadgeProgressSnapshot | null
+  onSelectBadge: (badgeId: keyof typeof BADGE_DICTIONARY) => void
+}) {
+  const unlockedIds = ALL_BADGE_IDS.filter((id) => earnedIds.has(id))
+  const inProgress = ALL_BADGE_IDS.map((badgeId) => {
+    if (earnedIds.has(badgeId) || !progressCtx) return null
+    const progress = badgeProgressLine(badgeId, progressCtx, false)
+    if (!progress || progress.current <= 0) return null
+    const percent =
+      progress.target > 0 ? Math.min(100, Math.round((progress.current / progress.target) * 100)) : 0
+    return { badgeId, progress, percent }
+  })
+    .filter((row): row is NonNullable<typeof row> => row !== null)
+    .sort((a, b) => b.percent - a.percent || b.progress.current - a.progress.current)
+
+  const inProgressIds = new Set(inProgress.map((row) => row.badgeId))
+  const stillLocked = ALL_BADGE_IDS.filter(
+    (id) => !earnedIds.has(id) && !inProgressIds.has(id),
+  )
+
+  return (
+    <div className="flex min-w-0 flex-col gap-6">
+      <section className="space-y-3">
+        <div className="flex flex-wrap items-end justify-between gap-2">
+          <h3 className="text-sm font-bold text-foreground">Unlocked · {unlockedIds.length}</h3>
+          <p className="text-xs text-muted-foreground">Tap a badge for details</p>
+        </div>
+        {unlockedIds.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No badges unlocked yet — keep jamming.</p>
+        ) : (
+          <div className="grid min-w-0 grid-cols-3 gap-2 sm:gap-3 lg:grid-cols-4">
+            {unlockedIds.map((badgeId) => {
+              const meta = BADGE_DICTIONARY[badgeId]
+              if (!meta) return null
+              const earned = badges.find((b) => b.badge_id === badgeId)
+              const isNew = isRecentlyUnlocked(earned?.earned_at)
+              return (
+                <button
+                  key={badgeId}
+                  type="button"
+                  onClick={() => onSelectBadge(badgeId)}
+                  className="card-interactive relative flex min-w-0 flex-col items-center gap-2 rounded-2xl border border-border/50 bg-card/70 p-3 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                >
+                  {isNew ? (
+                    <span className="absolute right-1.5 top-1.5 rounded-md bg-teal px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-teal-foreground">
+                      New
+                    </span>
+                  ) : null}
+                  <BadgeMedallion badgeId={badgeId} rarity={meta.rarity} size="md" />
+                  <span className="w-full text-balance break-words text-xs font-bold leading-tight text-foreground sm:text-sm">
+                    {meta.label}
+                  </span>
+                  <RarityPill rarity={meta.rarity} />
+                  {earned?.earned_at ? (
+                    <span className="text-[11px] text-muted-foreground">
+                      {formatUnlocked(earned.earned_at)}
+                    </span>
+                  ) : null}
+                </button>
+              )
+            })}
+          </div>
+        )}
+      </section>
+
+      {inProgress.length > 0 ? (
+        <section className="space-y-3">
+          <h3 className="text-sm font-bold text-foreground">In progress · {inProgress.length}</h3>
+          <ul className="space-y-2">
+            {inProgress.map(({ badgeId, progress, percent }) => {
+              const meta = BADGE_DICTIONARY[badgeId]
+              if (!meta) return null
+              return (
+                <li key={badgeId}>
+                  <button
+                    type="button"
+                    onClick={() => onSelectBadge(badgeId)}
+                    className="card-interactive flex w-full min-w-0 items-center gap-3 rounded-2xl border border-border/50 bg-card/70 p-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                  >
+                    <BadgeProgressRing percent={percent}>
+                      <BadgeMedallion badgeId={badgeId} rarity={meta.rarity} size="sm" locked />
+                    </BadgeProgressRing>
+                    <div className="min-w-0 flex-1 space-y-1">
+                      <div className="flex min-w-0 flex-wrap items-center gap-2">
+                        <span className="text-sm font-bold text-balance break-words text-foreground">
+                          {meta.label}
+                        </span>
+                        <RarityPill rarity={meta.rarity} />
+                      </div>
+                      <p className="line-clamp-3 break-words text-[13px] leading-snug text-muted-foreground sm:text-sm">
+                        {meta.blurb}
+                      </p>
+                      <p className="text-[13px] font-semibold text-teal sm:text-sm">
+                        {progress.label}{" "}
+                        <span className="tabular-nums text-foreground/80">· {percent}%</span>
+                      </p>
+                    </div>
+                    <AppIcon icon={ICON.navRight} size="sm" tone="muted" />
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+        </section>
+      ) : null}
+
+      {stillLocked.length > 0 ? (
+        <section className="space-y-3">
+          <h3 className="text-sm font-bold text-foreground">Still locked · {stillLocked.length}</h3>
+          <div className="grid min-w-0 grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 xl:grid-cols-4">
+            {stillLocked.map((badgeId) => {
+              const meta = BADGE_DICTIONARY[badgeId]
+              if (!meta) return null
+              return (
+                <button
+                  key={badgeId}
+                  type="button"
+                  onClick={() => onSelectBadge(badgeId)}
+                  className="card-interactive flex min-w-0 flex-col items-center gap-2 rounded-2xl border border-dashed border-border/40 bg-muted/10 p-3 text-center opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                >
+                  <BadgeMedallion badgeId={badgeId} rarity={meta.rarity} size="md" locked />
+                  <span className="w-full text-balance break-words text-xs font-bold leading-tight text-muted-foreground sm:text-sm">
+                    {meta.label}
+                  </span>
+                  <RarityPill rarity={meta.rarity} muted />
+                  <p className="line-clamp-3 w-full break-words text-[13px] leading-snug text-muted-foreground sm:text-sm">
+                    {meta.lockedHint ?? meta.blurb}
+                  </p>
+                </button>
+              )
+            })}
+          </div>
+        </section>
+      ) : null}
+    </div>
+  )
+}
+
+export function getClosestBadgeProgress(
+  progressCtx: BadgeProgressSnapshot | null,
+  earnedIds: Set<string>,
+): {
+  badgeId: keyof typeof BADGE_DICTIONARY
+  meta: BadgeCatalogMeta
+  progress: BadgeProgressLine
+  percent: number
+} | null {
+  if (!progressCtx) return null
+  const rows = ALL_BADGE_IDS.map((badgeId) => {
+    if (earnedIds.has(badgeId)) return null
+    const progress = badgeProgressLine(badgeId, progressCtx, false)
+    if (!progress || progress.current <= 0) return null
+    const percent =
+      progress.target > 0 ? Math.min(100, Math.round((progress.current / progress.target) * 100)) : 0
+    const meta = BADGE_DICTIONARY[badgeId]
+    if (!meta) return null
+    return { badgeId, meta, progress, percent }
+  })
+    .filter((row): row is NonNullable<typeof row> => row !== null)
+    .sort((a, b) => b.percent - a.percent || b.progress.current - a.progress.current)
+
+  return rows[0] ?? null
 }
 
 function BadgeDetailBody({
@@ -447,6 +683,9 @@ function CompactBadgeRow({ badges }: { badges: BadgeRow[] }) {
       <DialogContent className="max-w-lg rounded-2xl">
         <DialogHeader>
           <DialogTitle>Badges</DialogTitle>
+          <DialogDescription className="sr-only">
+            All unlocked badges for this jammer.
+          </DialogDescription>
         </DialogHeader>
         <GamificationBadgeGrid
           sortedBadgeIds={ranked.map((entry) => entry.badge.badge_id)}
@@ -641,27 +880,10 @@ export function ProfileGamification({
 
     return (
       <>
-        <Card
-          className={cn(
-            "relative overflow-hidden border border-amber-500/20 bg-white/[0.05] shadow-md shadow-amber-500/5 backdrop-blur-xl dark:border-amber-500/15 dark:bg-slate-900/45 light:bg-white/75",
-            className,
-          )}
-        >
-          <div
-            className="pointer-events-none absolute -right-20 -top-20 size-56 rounded-full bg-gradient-to-br from-amber-500/10 via-teal/10 to-peach/10 blur-3xl"
-            aria-hidden
-          />
-          <CardHeader className="relative space-y-0 border-b border-border/40 pb-3 pt-4 dark:border-border/50 sm:pt-6">
-            <div className="flex items-center gap-2">
-              <AppIcon icon={ICON.achievement} size="sm" tone="peach" />
-              <h3 className="text-xs font-semibold uppercase tracking-tight text-muted-foreground sm:text-sm">
-                Badges
-              </h3>
-            </div>
-            {error ? <p className="mt-1 text-xs text-destructive">{error}</p> : null}
-          </CardHeader>
-          <CardContent className="relative pb-4 pt-3 sm:pb-6">
-            {unlockedOnly && unlockedCount === 0 ? (
+        <div className={cn("min-w-0", className)}>
+          {error ? <p className="mb-3 text-xs text-destructive">{error}</p> : null}
+          {unlockedOnly ? (
+            unlockedCount === 0 ? (
               <div className="rounded-2xl border border-dashed border-border/50 bg-muted/25 px-4 py-8 text-center">
                 <p className="text-sm font-semibold text-foreground">No badges unlocked yet.</p>
                 <p className="mt-1 text-xs text-muted-foreground">
@@ -673,13 +895,19 @@ export function ProfileGamification({
                 sortedBadgeIds={sortedBadgeIds}
                 earnedIds={earnedIds}
                 badges={badges}
-                unlockedOnly={unlockedOnly}
-                progressCtx={progressCtx}
+                unlockedOnly
                 onSelectBadge={openBadgeDetail}
               />
-            )}
-          </CardContent>
-        </Card>
+            )
+          ) : (
+            <AchievementsBadgesSections
+              earnedIds={earnedIds}
+              badges={badges}
+              progressCtx={progressCtx}
+              onSelectBadge={openBadgeDetail}
+            />
+          )}
+        </div>
         {selectedBadgeId && selectedMeta ? (
           <BadgeDetailResponsive
             open={badgeDetailOpen}

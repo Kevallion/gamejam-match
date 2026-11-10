@@ -493,6 +493,9 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
                     <JammerLevelBadge level={player.jammerLevel} />
                   ) : null}
                 </div>
+                <DialogDescription className="sr-only">
+                  Jammer profile details and invite actions.
+                </DialogDescription>
                 {player.jammerTitle?.trim() ? (
                   <JammerTitleBadge title={player.jammerTitle.trim()} className="mt-1 text-sm" />
                 ) : null}

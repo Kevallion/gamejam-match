@@ -85,7 +85,8 @@ export const RAIL_ITEMS: {
   { id: "explore", label: "Explore", href: "/teams", icon: ICON.squad },
   { id: "inbox", label: "Inbox", href: dashboardHref("inbox"), icon: ICON.applications, badge: "inbox" },
   { id: "my-posts", label: "My posts", href: dashboardHref("availability"), icon: ICON.available },
-  { id: "achievements", label: "Achievements", href: dashboardHref("achievements"), icon: ICON.achievement },
+  // Short label so the 88px tablet rail does not truncate ("Achievements" → "Achieve...")
+  { id: "achievements", label: "Badges", href: dashboardHref("achievements"), icon: ICON.achievement },
   { id: "settings", label: "Settings", href: dashboardHref("settings"), icon: ICON.settings },
 ]
 

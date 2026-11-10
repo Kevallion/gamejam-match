@@ -102,7 +102,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
                 <div className="flex min-h-0 flex-1 flex-col">{children}</div>
                 <Footer />
               </div>
-              <Toaster richColors position="bottom-right" closeButton />
+              <Toaster richColors closeButton />
             </GamificationProvider>
           </AuthProvider>
         </ThemeProvider>
