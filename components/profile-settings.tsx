@@ -483,12 +483,22 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
   }, [textDirty])
 
   const handleSaveProfile = async () => {
+    if (saving) return
     setUsernameTouched(true)
+    // Cancel pending select autosave so it cannot race / swallow the first Save click.
+    if (autosaveTimerRef.current) {
+      clearTimeout(autosaveTimerRef.current)
+      autosaveTimerRef.current = null
+    }
     setSaving(true)
     try {
+      // Wait out an in-flight autosave before writing the latest text drafts.
+      for (let i = 0; i < 40 && autosaveInFlightRef.current; i += 1) {
+        await new Promise((resolve) => setTimeout(resolve, 25))
+      }
       await persistSettings(
         {
-          username: trimmedUsername,
+          username: username.trim(),
           discordUsername,
           portfolioUrl,
         },
@@ -965,6 +975,8 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
                 type="button"
                 className="gap-2 rounded-xl"
                 disabled={saving}
+                // Prevent input blur from stealing the first tap (mobile / sticky bar).
+                onPointerDown={(event) => event.preventDefault()}
                 onClick={() => void handleSaveProfile()}
               >
                 {saving ? (
