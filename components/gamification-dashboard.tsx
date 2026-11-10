@@ -1,18 +1,30 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { UserAvatar } from "@/components/user-avatar"
 import { supabase } from "@/lib/supabase"
 import { gamificationLevelProgress, levelFromTotalXp } from "@/lib/gamification-level"
-import { parseUnlockedTitlesJson } from "@/lib/gamification-titles-catalog"
+import {
+  isTitleUnlocked,
+  parseUnlockedTitlesJson,
+  TITLE_CATALOG,
+} from "@/lib/gamification-titles-catalog"
 import { TitleSelection } from "@/components/title-selection"
 import { JammerTitleBadge, JammerLevelBadge } from "@/components/profile-card"
-import { ProfileGamification } from "@/components/profile-gamification"
-import { MonthlyKudosLeaderboard } from "@/components/monthly-kudos-leaderboard"
-import { SectionAnchorNav } from "@/components/section-anchor-nav"
-import { useSectionScrollSpy } from "@/hooks/use-section-scroll-spy"
+import {
+  ALL_BADGE_IDS,
+  getClosestBadgeProgress,
+  ProfileGamification,
+} from "@/components/profile-gamification"
+import { BadgeMedallion } from "@/components/badge-medallion"
+import {
+  countRolesWithAtLeastOneJoin,
+  parseRoleStats,
+  type BadgeProgressSnapshot,
+} from "@/lib/gamification-badge-progress"
 import { AppIcon } from "@/components/ui/app-icon"
 import { ICON } from "@/lib/icons"
 import { cn } from "@/lib/utils"
@@ -20,8 +32,15 @@ import { cn } from "@/lib/utils"
 export const ACHIEVEMENTS_SECTION_IDS = {
   title: "achievements-title",
   badges: "achievements-badges",
-  leaderboard: "achievements-leaderboard",
 } as const
+
+export type AchievementsView = "badges" | "titles"
+
+function resolveAchievementsView(raw: string | null | undefined): AchievementsView {
+  const key = (raw ?? "").trim().toLowerCase()
+  if (key === "titles" || key === "title") return "titles"
+  return "badges"
+}
 
 // ---------------------------------------------------------------------------
 // Thin XP bar (4px) — header or top-of-container
@@ -110,7 +129,7 @@ export function GamificationDashboardCompact({
 }
 
 // ---------------------------------------------------------------------------
-// Full — Achievements tab & public profile (XP detail, title picker, read-only mode)
+// Full — XP detail card (public profile / legacy)
 // ---------------------------------------------------------------------------
 
 export type GamificationDashboardProps = {
@@ -136,13 +155,10 @@ function GamificationDashboardFullSkeleton({ className }: { className?: string }
 
 export function GamificationDashboardFull({
   userId,
-  readOnly = false,
   className,
-  onDataChanged,
 }: GamificationDashboardProps) {
   const [xp, setXp] = useState<number | null>(null)
   const [currentTitle, setCurrentTitle] = useState("Rookie Jammer")
-  const [unlockedTitles, setUnlockedTitles] = useState<string[]>(["Rookie Jammer"])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -153,7 +169,7 @@ export function GamificationDashboardFull({
     try {
       const { data, error: resError } = await supabase
         .from("profiles")
-        .select("xp, current_title, unlocked_titles")
+        .select("xp, current_title")
         .eq("id", userId)
         .maybeSingle()
 
@@ -161,7 +177,6 @@ export function GamificationDashboardFull({
         setError(resError.message)
         setXp(0)
         setCurrentTitle("Rookie Jammer")
-        setUnlockedTitles(["Rookie Jammer"])
         return
       }
 
@@ -169,7 +184,6 @@ export function GamificationDashboardFull({
       setXp(typeof rawXp === "number" ? rawXp : 0)
       const t = data?.current_title
       setCurrentTitle(typeof t === "string" && t.trim() ? t.trim() : "Rookie Jammer")
-      setUnlockedTitles(parseUnlockedTitlesJson(data?.unlocked_titles))
     } catch {
       setError("Could not load gamification data.")
       setXp(0)
@@ -192,7 +206,6 @@ export function GamificationDashboardFull({
 
   return (
     <div className={cn("flex min-w-0 max-w-full flex-col gap-3", className)}>
-      {/* Compact XP + level card */}
       <Card className="relative min-h-[92px] min-w-0 max-w-full overflow-hidden border-border/50 bg-white/[0.05] shadow-sm shadow-teal/5 backdrop-blur-xl light:bg-white/70 dark:bg-slate-900/45">
         <div
           className="pointer-events-none absolute -right-12 -top-12 size-32 rounded-full bg-gradient-to-br from-amber-500/15 via-teal/10 to-peach/10 blur-2xl"
@@ -237,17 +250,6 @@ export function GamificationDashboardFull({
           <Progress value={progress.progressPercent} className="h-1.5 rounded-none bg-transparent" />
         </div>
       </Card>
-
-      {!readOnly ? (
-        <TitleSelection
-          unlockedTitles={unlockedTitles}
-          currentTitle={currentTitle}
-          onUpdated={() => {
-            void load()
-            onDataChanged?.()
-          }}
-        />
-      ) : null}
     </div>
   )
 }
@@ -257,47 +259,371 @@ export function GamificationDashboard(props: GamificationDashboardProps) {
   return <GamificationDashboardFull {...props} />
 }
 
+// ---------------------------------------------------------------------------
+// Achievements tab — header + Badges/Titles segmented control
+// ---------------------------------------------------------------------------
+
 export type DashboardAchievementsTabProps = {
   userId: string
   onDataChanged?: () => void
   className?: string
 }
 
-const ACHIEVEMENT_ANCHORS = [
-  { id: ACHIEVEMENTS_SECTION_IDS.title, label: "Title" },
-  { id: ACHIEVEMENTS_SECTION_IDS.badges, label: "Badges" },
-  { id: ACHIEVEMENTS_SECTION_IDS.leaderboard, label: "Leaderboard" },
-]
-
-export function DashboardAchievementsTab({ userId, onDataChanged, className }: DashboardAchievementsTabProps) {
-  const sectionIds = useMemo(
-    () => [
-      ACHIEVEMENTS_SECTION_IDS.title,
-      ACHIEVEMENTS_SECTION_IDS.badges,
-      ACHIEVEMENTS_SECTION_IDS.leaderboard,
-    ],
-    [],
-  )
-  const activeSection = useSectionScrollSpy(sectionIds)
+function AchievementsHeaderCard({
+  displayName,
+  level,
+  xp,
+  currentTitle,
+  nextUnlock,
+  onTitleClick,
+  onNextUnlockClick,
+}: {
+  displayName: string
+  level: number
+  xp: number
+  currentTitle: string
+  nextUnlock: ReturnType<typeof getClosestBadgeProgress>
+  onTitleClick: () => void
+  onNextUnlockClick?: () => void
+}) {
+  const progress = gamificationLevelProgress(xp)
+  const remaining = progress.xpToNextLevel
 
   return (
-    <div className={cn("flex min-w-0 max-w-full flex-col gap-4 md:gap-6", className)}>
-      <SectionAnchorNav items={ACHIEVEMENT_ANCHORS} activeId={activeSection} />
+    <Card className="overflow-hidden border-border/50 bg-card/80 shadow-sm">
+      <CardContent className="space-y-4 p-4">
+        <div className="flex min-w-0 items-start gap-3">
+          <div className="flex size-14 shrink-0 flex-col items-center justify-center rounded-xl border border-amber-500/40 bg-amber-500/10 text-amber-900 dark:text-amber-400">
+            <span className="text-[10px] font-bold uppercase tracking-wide">Level</span>
+            <span className="text-xl font-extrabold tabular-nums leading-none">{level}</span>
+          </div>
+          <div className="min-w-0 flex-1 space-y-2">
+            <p className="truncate text-base font-bold text-foreground">{displayName}</p>
+            <button
+              type="button"
+              onClick={onTitleClick}
+              className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-teal/35 bg-teal/10 px-2.5 py-1 text-left transition-colors hover:border-teal/50 hover:bg-teal/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+            >
+              <AppIcon icon={ICON.title} size="xs" tone="teal" />
+              <JammerTitleBadge title={currentTitle} className="text-xs sm:text-sm" />
+              <span className="text-[10px] font-semibold uppercase tracking-wide text-teal">Equipped</span>
+            </button>
+          </div>
+        </div>
 
-      <section
-        id={ACHIEVEMENTS_SECTION_IDS.title}
-        className="scroll-mt-28 space-y-4 md:scroll-mt-32"
+        <div className="space-y-1.5">
+          <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+            <span className="font-semibold tabular-nums text-foreground">
+              {progress.xpInLevel} / {progress.span} XP
+            </span>
+            <span className="text-muted-foreground">
+              {remaining} XP to Level {level + 1}
+            </span>
+          </div>
+          <div
+            className={cn(
+              "[&_[data-slot=progress]]:h-2 [&_[data-slot=progress]]:rounded-full [&_[data-slot=progress]]:bg-muted/80",
+              "[&_[data-slot=progress-indicator]]:rounded-full [&_[data-slot=progress-indicator]]:bg-gradient-to-r [&_[data-slot=progress-indicator]]:from-teal [&_[data-slot=progress-indicator]]:to-peach",
+            )}
+          >
+            <Progress value={progress.progressPercent} className="h-2 bg-transparent" />
+          </div>
+        </div>
+
+        {nextUnlock ? (
+          <button
+            type="button"
+            onClick={onNextUnlockClick}
+            className="flex w-full min-w-0 items-center gap-3 rounded-xl border border-border/40 bg-background/40 p-2.5 text-left transition-colors hover:border-teal/30 hover:bg-teal/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+          >
+            <span className="relative inline-flex size-12 shrink-0 items-center justify-center">
+              <svg className="absolute inset-0 size-full -rotate-90" viewBox="0 0 48 48" aria-hidden>
+                <circle
+                  cx="24"
+                  cy="24"
+                  r="18"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  className="text-border/50"
+                />
+                <circle
+                  cx="24"
+                  cy="24"
+                  r="18"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeDasharray={2 * Math.PI * 18}
+                  strokeDashoffset={2 * Math.PI * 18 * (1 - nextUnlock.percent / 100)}
+                  className="text-teal"
+                />
+              </svg>
+              <BadgeMedallion
+                badgeId={nextUnlock.badgeId}
+                rarity={nextUnlock.meta.rarity}
+                size="sm"
+                locked
+              />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
+                Next unlock
+              </p>
+              <p className="truncate text-sm font-semibold text-foreground">
+                {nextUnlock.meta.label}
+                <span className="font-medium text-muted-foreground">
+                  {" "}
+                  — {nextUnlock.progress.label}
+                </span>
+              </p>
+            </div>
+            <AppIcon icon={ICON.navRight} size="sm" tone="muted" />
+          </button>
+        ) : null}
+      </CardContent>
+    </Card>
+  )
+}
+
+function AchievementsSegmentedControl({
+  view,
+  onChange,
+  badgesUnlocked,
+  badgesTotal,
+  titlesUnlocked,
+  titlesTotal,
+}: {
+  view: AchievementsView
+  onChange: (view: AchievementsView) => void
+  badgesUnlocked: number
+  badgesTotal: number
+  titlesUnlocked: number
+  titlesTotal: number
+}) {
+  return (
+    <div
+      role="tablist"
+      aria-label="Achievements sections"
+      className="grid grid-cols-2 gap-2 rounded-2xl border border-border/50 bg-secondary/40 p-1"
+    >
+      <button
+        type="button"
+        role="tab"
+        aria-selected={view === "badges"}
+        onClick={() => onChange("badges")}
+        className={cn(
+          "inline-flex h-11 items-center justify-center gap-2 rounded-xl px-3 text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
+          view === "badges"
+            ? "bg-teal text-teal-foreground shadow-sm"
+            : "bg-transparent text-muted-foreground hover:bg-background/40 hover:text-foreground",
+        )}
       >
-        <GamificationDashboardFull userId={userId} onDataChanged={onDataChanged} />
-      </section>
+        <AppIcon
+          icon={ICON.achievement}
+          size="sm"
+          className={view === "badges" ? "text-teal-foreground" : undefined}
+          tone={view === "badges" ? undefined : "muted"}
+        />
+        <span>Badges</span>
+        <span className="tabular-nums opacity-90">
+          {badgesUnlocked}/{badgesTotal}
+        </span>
+      </button>
+      <button
+        type="button"
+        role="tab"
+        aria-selected={view === "titles"}
+        onClick={() => onChange("titles")}
+        className={cn(
+          "inline-flex h-11 items-center justify-center gap-2 rounded-xl px-3 text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
+          view === "titles"
+            ? "bg-teal text-teal-foreground shadow-sm"
+            : "bg-transparent text-muted-foreground hover:bg-background/40 hover:text-foreground",
+        )}
+      >
+        <AppIcon
+          icon={ICON.title}
+          size="sm"
+          className={view === "titles" ? "text-teal-foreground" : undefined}
+          tone={view === "titles" ? undefined : "muted"}
+        />
+        <span>Titles</span>
+        <span className="tabular-nums opacity-90">
+          {titlesUnlocked}/{titlesTotal}
+        </span>
+      </button>
+    </div>
+  )
+}
 
-      <section id={ACHIEVEMENTS_SECTION_IDS.badges} className="scroll-mt-28 md:scroll-mt-32">
-        <ProfileGamification userId={userId} badgesOnly />
-      </section>
+export function DashboardAchievementsTab({
+  userId,
+  onDataChanged,
+  className,
+}: DashboardAchievementsTabProps) {
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const view = resolveAchievementsView(searchParams.get("view") ?? searchParams.get("section"))
 
-      <section id={ACHIEVEMENTS_SECTION_IDS.leaderboard} className="scroll-mt-28 md:scroll-mt-32">
-        <MonthlyKudosLeaderboard />
-      </section>
+  const [displayName, setDisplayName] = useState("Jammer")
+  const [xp, setXp] = useState(0)
+  const [currentTitle, setCurrentTitle] = useState("Rookie Jammer")
+  const [unlockedTitles, setUnlockedTitles] = useState<string[]>(["Rookie Jammer"])
+  const [earnedBadgeIds, setEarnedBadgeIds] = useState<Set<string>>(new Set())
+  const [progressCtx, setProgressCtx] = useState<BadgeProgressSnapshot | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  const setView = useCallback(
+    (next: AchievementsView) => {
+      const params = new URLSearchParams(searchParams.toString())
+      params.set("tab", "achievements")
+      if (next === "titles") {
+        params.set("view", "titles")
+      } else {
+        params.delete("view")
+        params.delete("section")
+      }
+      const qs = params.toString()
+      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
+    },
+    [pathname, router, searchParams],
+  )
+
+  const load = useCallback(async () => {
+    if (!userId) return
+    setLoading(true)
+    try {
+      const [profileRes, badgesRes, teamsRes] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select(
+            "username, xp, current_title, unlocked_titles, daily_login_streak, invitations_sent_count, role_stats, has_completed_onboarding",
+          )
+          .eq("id", userId)
+          .maybeSingle(),
+        supabase.from("user_badges").select("badge_id").eq("user_id", userId),
+        supabase.from("teams").select("id", { count: "exact", head: true }).eq("user_id", userId),
+      ])
+
+      const profile = profileRes.data
+      const name =
+        typeof profile?.username === "string" && profile.username.trim()
+          ? profile.username.trim()
+          : "Jammer"
+      setDisplayName(name)
+      setXp(typeof profile?.xp === "number" ? profile.xp : 0)
+      const title = profile?.current_title
+      setCurrentTitle(typeof title === "string" && title.trim() ? title.trim() : "Rookie Jammer")
+      setUnlockedTitles(parseUnlockedTitlesJson(profile?.unlocked_titles))
+
+      const earned = new Set(
+        (badgesRes.data ?? [])
+          .map((row) => (typeof row.badge_id === "string" ? row.badge_id : ""))
+          .filter(Boolean),
+      )
+      setEarnedBadgeIds(earned)
+
+      const roleStats = parseRoleStats(profile?.role_stats)
+      setProgressCtx({
+        dailyStreak:
+          typeof profile?.daily_login_streak === "number" ? profile.daily_login_streak : 0,
+        invitesSent:
+          typeof profile?.invitations_sent_count === "number"
+            ? profile.invitations_sent_count
+            : 0,
+        distinctRoles: countRolesWithAtLeastOneJoin(roleStats),
+        squadListings: teamsRes.count ?? 0,
+        onboardingDone: profile?.has_completed_onboarding === true,
+      })
+    } finally {
+      setLoading(false)
+    }
+  }, [userId])
+
+  useEffect(() => {
+    void load()
+  }, [load])
+
+  const level = levelFromTotalXp(xp)
+  const nextUnlock = useMemo(
+    () => getClosestBadgeProgress(progressCtx, earnedBadgeIds),
+    [progressCtx, earnedBadgeIds],
+  )
+  const badgesUnlocked = useMemo(
+    () => ALL_BADGE_IDS.filter((id) => earnedBadgeIds.has(id)).length,
+    [earnedBadgeIds],
+  )
+  const titlesUnlocked = useMemo(
+    () => TITLE_CATALOG.filter((entry) => isTitleUnlocked(unlockedTitles, entry.title)).length,
+    [unlockedTitles],
+  )
+
+  const handleDataChanged = () => {
+    void load()
+    onDataChanged?.()
+  }
+
+  if (loading) {
+    return (
+      <div className={cn("grid min-w-0 gap-4 lg:grid-cols-12", className)}>
+        <div className="lg:col-span-4">
+          <div className="h-48 animate-pulse rounded-2xl bg-muted/60" />
+        </div>
+        <div className="space-y-4 lg:col-span-8">
+          <div className="h-12 animate-pulse rounded-2xl bg-muted/60" />
+          <div className="h-64 animate-pulse rounded-2xl bg-muted/60" />
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className={cn("grid min-w-0 items-start gap-4 lg:grid-cols-12", className)}>
+      <aside className="min-w-0 lg:sticky lg:top-4 lg:col-span-4 lg:self-start">
+        <AchievementsHeaderCard
+          displayName={displayName}
+          level={level}
+          xp={xp}
+          currentTitle={currentTitle}
+          nextUnlock={nextUnlock}
+          onTitleClick={() => setView("titles")}
+          onNextUnlockClick={
+            nextUnlock
+              ? () => {
+                  setView("badges")
+                }
+              : undefined
+          }
+        />
+      </aside>
+
+      <div className="min-w-0 space-y-4 lg:col-span-8">
+        <AchievementsSegmentedControl
+          view={view}
+          onChange={setView}
+          badgesUnlocked={badgesUnlocked}
+          badgesTotal={ALL_BADGE_IDS.length}
+          titlesUnlocked={titlesUnlocked}
+          titlesTotal={TITLE_CATALOG.length}
+        />
+
+        {view === "badges" ? (
+          <section id={ACHIEVEMENTS_SECTION_IDS.badges} className="min-w-0">
+            <ProfileGamification userId={userId} badgesOnly />
+          </section>
+        ) : (
+          <section id={ACHIEVEMENTS_SECTION_IDS.title} className="min-w-0">
+            <TitleSelection
+              unlockedTitles={unlockedTitles}
+              currentTitle={currentTitle}
+              onUpdated={handleDataChanged}
+            />
+          </section>
+        )}
+      </div>
     </div>
   )
 }
