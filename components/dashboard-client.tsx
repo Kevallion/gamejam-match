@@ -395,7 +395,7 @@ function DashboardHomeSideCard({
   const progress = gamificationLevelProgress(xp)
 
   return (
-    <Card className="border-border/40 bg-card/70 shadow-sm backdrop-blur-sm">
+    <Card className="gap-0 border-border/40 bg-card/70 py-0 shadow-sm backdrop-blur-sm">
       <CardContent className="p-4">
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-sm font-bold text-foreground">Progress</h2>
@@ -1708,8 +1708,8 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
               </div>
             </TabsContent>
 
-            <TabsContent value="achievements" className="mt-0 flex min-w-0 max-w-full flex-col gap-4 md:gap-6">
-              <div className="mx-auto w-full min-w-0 max-w-6xl">
+            <TabsContent value="achievements" className="mt-0 min-w-0 max-w-full">
+              <div className="min-w-0 w-full max-w-full">
                 {session?.user?.id ? (
                   <DashboardAchievementsTab
                     userId={session.user.id}

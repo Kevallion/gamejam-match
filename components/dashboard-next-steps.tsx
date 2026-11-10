@@ -83,7 +83,7 @@ export function DashboardNextSteps({
   const progress = Math.round((completed / steps.length) * 100)
 
   return (
-    <Card className="min-w-0 max-w-full border-lavender/20 bg-lavender/5">
+    <Card className="min-w-0 max-w-full gap-0 border-lavender/20 bg-lavender/5 py-0">
       {!allDone ? (
         <CardHeader className="min-w-0 space-y-2 p-4 pb-0">
           <div className="flex min-w-0 items-center justify-between gap-3">

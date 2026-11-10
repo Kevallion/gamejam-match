@@ -290,7 +290,7 @@ function AchievementsHeaderCard({
   const remaining = progress.xpToNextLevel
 
   return (
-    <Card className="overflow-hidden border-border/50 bg-card/80 shadow-sm">
+    <Card className="h-auto gap-0 overflow-hidden border-border/50 bg-card/80 py-0 shadow-sm">
       <CardContent className="space-y-4 p-4">
         <div className="flex min-w-0 items-start gap-3">
           <div className="flex size-14 shrink-0 flex-col items-center justify-center rounded-xl border border-amber-500/40 bg-amber-500/10 text-amber-900 dark:text-amber-400">
@@ -568,11 +568,11 @@ export function DashboardAchievementsTab({
 
   if (loading) {
     return (
-      <div className={cn("grid min-w-0 gap-4 lg:grid-cols-12", className)}>
-        <div className="lg:col-span-4">
+      <div className={cn("grid min-w-0 max-w-full gap-4 xl:grid-cols-12", className)}>
+        <div className="xl:col-span-4">
           <div className="h-48 animate-pulse rounded-2xl bg-muted/60" />
         </div>
-        <div className="space-y-4 lg:col-span-8">
+        <div className="space-y-4 xl:col-span-8">
           <div className="h-12 animate-pulse rounded-2xl bg-muted/60" />
           <div className="h-64 animate-pulse rounded-2xl bg-muted/60" />
         </div>
@@ -581,8 +581,8 @@ export function DashboardAchievementsTab({
   }
 
   return (
-    <div className={cn("grid min-w-0 items-start gap-4 lg:grid-cols-12", className)}>
-      <aside className="min-w-0 lg:sticky lg:top-4 lg:col-span-4 lg:self-start">
+    <div className={cn("grid min-w-0 max-w-full items-start gap-4 xl:grid-cols-12", className)}>
+      <aside className="min-w-0 xl:sticky xl:top-4 xl:col-span-4 xl:self-start">
         <AchievementsHeaderCard
           displayName={displayName}
           level={level}
@@ -600,7 +600,7 @@ export function DashboardAchievementsTab({
         />
       </aside>
 
-      <div className="min-w-0 space-y-4 lg:col-span-8">
+      <div className="min-w-0 space-y-4 xl:col-span-8">
         <AchievementsSegmentedControl
           view={view}
           onChange={setView}

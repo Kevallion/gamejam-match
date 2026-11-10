@@ -426,8 +426,10 @@ function AchievementsBadgesSections({
                         </span>
                         <RarityPill rarity={meta.rarity} />
                       </div>
-                      <p className="text-xs text-muted-foreground line-clamp-2">{meta.blurb}</p>
-                      <p className="text-xs font-semibold text-teal">
+                      <p className="line-clamp-3 break-words text-[13px] leading-snug text-muted-foreground sm:text-sm">
+                        {meta.blurb}
+                      </p>
+                      <p className="text-[13px] font-semibold text-teal sm:text-sm">
                         {progress.label}{" "}
                         <span className="tabular-nums text-foreground/80">· {percent}%</span>
                       </p>
@@ -444,7 +446,7 @@ function AchievementsBadgesSections({
       {stillLocked.length > 0 ? (
         <section className="space-y-3">
           <h3 className="text-sm font-bold text-foreground">Still locked · {stillLocked.length}</h3>
-          <div className="grid min-w-0 grid-cols-3 gap-2 sm:gap-3 lg:grid-cols-4">
+          <div className="grid min-w-0 grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 xl:grid-cols-4">
             {stillLocked.map((badgeId) => {
               const meta = BADGE_DICTIONARY[badgeId]
               if (!meta) return null
@@ -460,7 +462,7 @@ function AchievementsBadgesSections({
                     {meta.label}
                   </span>
                   <RarityPill rarity={meta.rarity} muted />
-                  <p className="line-clamp-1 w-full text-[11px] text-muted-foreground">
+                  <p className="line-clamp-3 w-full break-words text-[13px] leading-snug text-muted-foreground sm:text-sm">
                     {meta.lockedHint ?? meta.blurb}
                   </p>
                 </button>

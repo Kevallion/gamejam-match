@@ -6,9 +6,15 @@ import { Toaster as Sonner, type ToasterProps } from 'sonner'
 
 const MOBILE_MQ = '(max-width: 767px)'
 
+function readIsMobile() {
+  if (typeof window === 'undefined') return false
+  return window.matchMedia(MOBILE_MQ).matches
+}
+
 const Toaster = ({ ...props }: ToasterProps) => {
   const { theme = 'system' } = useTheme()
-  const [isMobile, setIsMobile] = useState(false)
+  // Sync on first paint so the first toast is not stuck bottom-right over the tab bar.
+  const [isMobile, setIsMobile] = useState(readIsMobile)
 
   useEffect(() => {
     const mq = window.matchMedia(MOBILE_MQ)
@@ -23,8 +29,8 @@ const Toaster = ({ ...props }: ToasterProps) => {
       theme={theme as ToasterProps['theme']}
       className="toaster group"
       position={isMobile ? 'top-center' : 'bottom-right'}
-      offset={isMobile ? 12 : undefined}
-      mobileOffset={{ top: 12 }}
+      offset={isMobile ? { top: 16 } : undefined}
+      mobileOffset={{ top: 16 }}
       style={
         {
           '--normal-bg': 'var(--popover)',

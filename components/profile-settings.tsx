@@ -87,6 +87,7 @@ const SETTINGS_ANCHORS = [
 ]
 
 const AUTOSAVE_DEBOUNCE_MS = 600
+const PROFILE_AUTOSAVE_TOAST_ID = "profile-settings-autosave"
 
 type SavedTextBaseline = {
   username: string
@@ -396,17 +397,17 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
         programmingLanguages: [...programmingLanguages],
       })
 
-      if (mode === "manual") {
-        toast.success(
-          result.programmingLanguagesSaved === false && programmingLanguages.length > 0
-            ? "Profile updated. Programming languages will save after the database update."
-            : "Profile updated.",
-        )
-        onProfileUpdated?.({ discord_username: nextText.discordUsername || null })
-      } else {
+      const successMessage =
+        result.programmingLanguagesSaved === false && programmingLanguages.length > 0
+          ? "Profile updated. Programming languages will save after the database update."
+          : "Profile updated."
+
+      // Stable toast id → one visible success toast even if blur + select autosave race.
+      toast.success(successMessage, { id: PROFILE_AUTOSAVE_TOAST_ID })
+      if (mode === "auto") {
         setAutosavedAt(Date.now())
-        onProfileUpdated?.({ discord_username: nextText.discordUsername || null })
       }
+      onProfileUpdated?.({ discord_username: nextText.discordUsername || null })
 
       return { ok: true as const }
     },
@@ -426,17 +427,66 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
     ],
   )
 
-  const runAutosaveImpl = useCallback(async () => {
-    if (!profile?.id || !selectDirty || autosaveInFlightRef.current || duplicateRoleSelected) return
-    autosaveInFlightRef.current = true
-    setAutosaving(true)
-    try {
-      await persistSettings(textBaseline, "auto")
-    } finally {
-      autosaveInFlightRef.current = false
-      setAutosaving(false)
+  const runAutosaveImpl = useCallback(
+    async (textValues?: SavedTextBaseline) => {
+      if (!profile?.id || autosaveInFlightRef.current || duplicateRoleSelected) return
+      const payload = textValues ?? {
+        username: username.trim(),
+        discordUsername,
+        portfolioUrl,
+      }
+      const hasTextChanges =
+        payload.username !== textBaseline.username ||
+        payload.discordUsername.trim() !== textBaseline.discordUsername ||
+        payload.portfolioUrl.trim() !== textBaseline.portfolioUrl
+      if (!selectDirty && !hasTextChanges) return
+      if (payload.username.trim().length < 3) return
+
+      autosaveInFlightRef.current = true
+      setAutosaving(true)
+      try {
+        await persistSettings(payload, "auto")
+      } finally {
+        autosaveInFlightRef.current = false
+        setAutosaving(false)
+      }
+    },
+    [
+      profile?.id,
+      selectDirty,
+      persistSettings,
+      textBaseline,
+      duplicateRoleSelected,
+      username,
+      discordUsername,
+      portfolioUrl,
+    ],
+  )
+
+  const handleTextFieldBlur = useCallback(() => {
+    setUsernameTouched(true)
+    if (!profile?.id || autosaveInFlightRef.current || duplicateRoleSelected) return
+    const payload = {
+      username: username.trim(),
+      discordUsername,
+      portfolioUrl,
     }
-  }, [profile?.id, selectDirty, persistSettings, textBaseline, duplicateRoleSelected])
+    const hasTextChanges =
+      payload.username !== textBaseline.username ||
+      payload.discordUsername.trim() !== textBaseline.discordUsername ||
+      payload.portfolioUrl.trim() !== textBaseline.portfolioUrl
+    if (!hasTextChanges) return
+    if (payload.username.length < 3) return
+    void runAutosaveImpl(payload)
+  }, [
+    profile?.id,
+    duplicateRoleSelected,
+    username,
+    discordUsername,
+    portfolioUrl,
+    textBaseline,
+    runAutosaveImpl,
+  ])
 
   useEffect(() => {
     if (!selectDirty || !profile?.id) return
@@ -452,7 +502,6 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
     }
   }, [
     selectDirty,
-    textDirty,
     profile?.id,
     duplicateRoleSelected,
     runAutosaveImpl,
@@ -629,7 +678,7 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
                     id="profile-username"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    onBlur={() => setUsernameTouched(true)}
+                    onBlur={handleTextFieldBlur}
                     placeholder="e.g. PixelWizard42"
                     autoComplete="username"
                     aria-invalid={showUsernameError}
@@ -657,6 +706,7 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
                       id="profile-discord"
                       value={discordUsername}
                       onChange={(e) => setDiscordUsername(e.target.value)}
+                      onBlur={handleTextFieldBlur}
                       placeholder="e.g. gamer123"
                       className="h-11 w-full rounded-xl border-border/50 bg-background"
                     />
@@ -671,6 +721,7 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
                       type="url"
                       value={portfolioUrl}
                       onChange={(e) => setPortfolioUrl(e.target.value)}
+                      onBlur={handleTextFieldBlur}
                       placeholder="https://yourname.itch.io"
                       className="h-11 w-full rounded-xl border-border/50 bg-background"
                     />
