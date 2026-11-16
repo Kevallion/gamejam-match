@@ -7,6 +7,7 @@ import {
   Drawer,
   DrawerClose,
   DrawerContent,
+  DrawerDescription,
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer"
@@ -30,15 +31,31 @@ export function CreateSheet({
   const atQuota = postsUsed >= availabilityQuota
 
   return (
-    <Drawer open={open} onOpenChange={onOpenChange}>
+    <Drawer
+      open={open}
+      onOpenChange={(next) => {
+        if (!next && document.activeElement instanceof HTMLElement) {
+          document.activeElement.blur()
+        }
+        onOpenChange(next)
+      }}
+    >
       <DrawerContent className="rounded-t-3xl border-border/50 bg-card pb-[env(safe-area-inset-bottom,0px)]">
         <DrawerHeader className="text-left">
           <DrawerTitle className="text-lg font-bold tracking-tight">Create</DrawerTitle>
+          <DrawerDescription className="sr-only">
+            Choose whether to create a squad, post availability, or find members.
+          </DrawerDescription>
         </DrawerHeader>
         <div className="flex flex-col gap-3 px-4 pb-4">
           <Link
             href="/create-team"
-            onClick={() => onOpenChange(false)}
+            onClick={() => {
+              if (document.activeElement instanceof HTMLElement) {
+                document.activeElement.blur()
+              }
+              onOpenChange(false)
+            }}
             className={cn(
               "card-interactive flex min-h-[76px] items-center gap-3 rounded-2xl border border-pink/30 bg-pink/5 px-4 py-3",
             )}
@@ -55,7 +72,12 @@ export function CreateSheet({
 
           <Link
             href={atQuota ? "/dashboard?tab=availability" : "/create-profile"}
-            onClick={() => onOpenChange(false)}
+            onClick={() => {
+              if (document.activeElement instanceof HTMLElement) {
+                document.activeElement.blur()
+              }
+              onOpenChange(false)
+            }}
             className={cn(
               "card-interactive flex min-h-[76px] items-center gap-3 rounded-2xl border border-lavender/30 bg-lavender/5 px-4 py-3",
               atQuota && "opacity-80",
@@ -76,7 +98,12 @@ export function CreateSheet({
 
           <Link
             href="/find-members"
-            onClick={() => onOpenChange(false)}
+            onClick={() => {
+              if (document.activeElement instanceof HTMLElement) {
+                document.activeElement.blur()
+              }
+              onOpenChange(false)
+            }}
             className="card-interactive flex min-h-12 items-center gap-3 rounded-2xl border border-teal/30 bg-teal/5 px-4 py-3"
           >
             <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-teal/15 text-teal">

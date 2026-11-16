@@ -66,9 +66,11 @@ export type ProfileSettingsProfile = {
   current_title?: string | null
 }
 
+export type ProfileSettingsPatch = Partial<Omit<ProfileSettingsProfile, "id">>
+
 type ProfileSettingsProps = {
   profile: ProfileSettingsProfile | null
-  onProfileUpdated?: (patch?: { discord_username?: string | null }) => void
+  onProfileUpdated?: (patch?: ProfileSettingsPatch) => void
   displayNameFallback?: string | null
 }
 
@@ -87,6 +89,9 @@ const SETTINGS_ANCHORS = [
 ]
 
 const AUTOSAVE_DEBOUNCE_MS = 600
+const TEXT_AUTOSAVE_DEBOUNCE_MS = 900
+const PROFILE_AUTOSAVE_TOAST_ID = "profile-settings-autosave"
+const PROFILE_AUTOSAVE_ERROR_TOAST_ID = "profile-settings-autosave-error"
 
 type SavedTextBaseline = {
   username: string
@@ -130,6 +135,107 @@ function buildTextBaseline(profile: ProfileSettingsProfile | null): SavedTextBas
     username: profile?.username?.trim() ?? "",
     discordUsername: profile?.discord_username?.trim() ?? "",
     portfolioUrl: profile?.portfolio_url?.trim() ?? "",
+  }
+}
+
+type SettingsDraft = SavedTextBaseline & SavedSelectBaseline
+
+function buildDraftFromProfile(profile: ProfileSettingsProfile | null): SettingsDraft {
+  return { ...buildTextBaseline(profile), ...buildSelectBaseline(profile) }
+}
+
+function normalizeDraft(draft: SettingsDraft): SettingsDraft {
+  return {
+    username: draft.username.trim(),
+    discordUsername: draft.discordUsername.trim(),
+    portfolioUrl: draft.portfolioUrl.trim(),
+    primaryRole: draft.primaryRole.trim(),
+    primaryExperience: draft.primaryExperience.trim() || "regular",
+    secondaryRole: draft.secondaryRole.trim(),
+    secondaryExperience: draft.secondaryExperience.trim() || "regular",
+    jamStyle: draft.jamStyle.trim(),
+    defaultEngine: draft.defaultEngine.trim(),
+    defaultLanguage: draft.defaultLanguage.trim(),
+    programmingLanguages: [...draft.programmingLanguages],
+  }
+}
+
+function draftsEqual(a: SettingsDraft, b: SettingsDraft) {
+  return (
+    a.username === b.username &&
+    a.discordUsername === b.discordUsername &&
+    a.portfolioUrl === b.portfolioUrl &&
+    a.primaryRole === b.primaryRole &&
+    a.primaryExperience === b.primaryExperience &&
+    a.secondaryRole === b.secondaryRole &&
+    a.secondaryExperience === b.secondaryExperience &&
+    a.jamStyle === b.jamStyle &&
+    a.defaultEngine === b.defaultEngine &&
+    a.defaultLanguage === b.defaultLanguage &&
+    arraysEqual(a.programmingLanguages, b.programmingLanguages)
+  )
+}
+
+function textPart(draft: SettingsDraft): SavedTextBaseline {
+  return {
+    username: draft.username,
+    discordUsername: draft.discordUsername,
+    portfolioUrl: draft.portfolioUrl,
+  }
+}
+
+/** Returns why a draft cannot be saved yet, or null when it is valid. */
+function getDraftBlocker(draft: SettingsDraft): "username" | "roles" | null {
+  if (draft.username.length < 3) return "username"
+  if (
+    draft.primaryRole.length > 0 &&
+    draft.secondaryRole.length > 0 &&
+    draft.primaryRole.toLowerCase() === draft.secondaryRole.toLowerCase()
+  ) {
+    return "roles"
+  }
+  return null
+}
+
+function rolesFromDraft(draft: SettingsDraft) {
+  const roles: Array<{ role: string; experienceLevel: string; isPrimary: boolean }> = []
+  if (draft.primaryRole) {
+    roles.push({ role: draft.primaryRole, experienceLevel: draft.primaryExperience, isPrimary: true })
+  }
+  if (draft.secondaryRole) {
+    roles.push({ role: draft.secondaryRole, experienceLevel: draft.secondaryExperience, isPrimary: false })
+  }
+  return roles
+}
+
+function payloadFromDraft(draft: SettingsDraft) {
+  return {
+    username: draft.username,
+    discordUsername: draft.discordUsername || null,
+    defaultEngine: draft.defaultEngine || null,
+    defaultLanguage: draft.defaultLanguage || null,
+    programmingLanguages: draft.programmingLanguages,
+    portfolioUrl: draft.portfolioUrl || null,
+    jamStyle: draft.jamStyle || null,
+    roles: rolesFromDraft(draft),
+  }
+}
+
+function profilePatchFromDraft(draft: SettingsDraft, includeProgrammingLanguages: boolean): ProfileSettingsPatch {
+  return {
+    username: draft.username,
+    discord_username: draft.discordUsername || null,
+    default_role: draft.primaryRole || null,
+    jam_style: draft.jamStyle || null,
+    profile_roles: rolesFromDraft(draft).map((role) => ({
+      role: role.role,
+      experience_level: role.experienceLevel,
+      is_primary: role.isPrimary,
+    })),
+    default_engine: draft.defaultEngine || null,
+    default_language: draft.defaultLanguage || null,
+    portfolio_url: draft.portfolioUrl || null,
+    ...(includeProgrammingLanguages ? { programming_languages: [...draft.programmingLanguages] } : {}),
   }
 }
 
@@ -209,57 +315,19 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
   const [usernameTouched, setUsernameTouched] = useState(false)
 
   const [textBaseline, setTextBaseline] = useState<SavedTextBaseline>(() => buildTextBaseline(profile))
-  const [selectBaseline, setSelectBaseline] = useState<SavedSelectBaseline>(() =>
-    buildSelectBaseline(profile),
-  )
+
+  // Last draft confirmed by the server, and the latest draft typed/selected by the user.
+  // Refs (not state) so the save queue always reads fresh values without stale closures.
+  const savedDraftRef = useRef<SettingsDraft>(normalizeDraft(buildDraftFromProfile(profile)))
+  const draftRef = useRef<SettingsDraft>(savedDraftRef.current)
+  const profileIdRef = useRef<string | null>(profile?.id ?? null)
+  const onProfileUpdatedRef = useRef(onProfileUpdated)
 
   const autosaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const autosaveInFlightRef = useRef(false)
+  const lastScheduledDraftRef = useRef<SettingsDraft>(savedDraftRef.current)
   const [autosaving, setAutosaving] = useState(false)
   const [autosavedAt, setAutosavedAt] = useState<number | null>(null)
-
-  useEffect(() => {
-    // Avoid wiping unsaved username/Discord/portfolio drafts when selects autosave.
-    const nextText = buildTextBaseline(profile)
-    const nextSelect = buildSelectBaseline(profile)
-    const hasUnsavedText =
-      username.trim() !== textBaseline.username ||
-      discordUsername.trim() !== textBaseline.discordUsername ||
-      portfolioUrl.trim() !== textBaseline.portfolioUrl
-
-    if (!hasUnsavedText) {
-      setUsername(nextText.username)
-      setDiscordUsername(nextText.discordUsername)
-      setPortfolioUrl(nextText.portfolioUrl)
-      setTextBaseline(nextText)
-      setUsernameTouched(false)
-    }
-
-    setSelectBaseline(nextSelect)
-    const nextRoles = rolesFromProfile(profile)
-    setPrimaryRole(nextRoles[0]?.role?.trim() ?? profile?.default_role?.trim() ?? "")
-    setPrimaryExperience(nextRoles[0]?.experience_level?.trim() ?? "regular")
-    setSecondaryRole(nextRoles[1]?.role?.trim() ?? "")
-    setSecondaryExperience(nextRoles[1]?.experience_level?.trim() ?? "regular")
-    setJamStyle(profile?.jam_style?.trim() ?? "")
-    setDefaultEngine(profile?.default_engine?.trim() ?? "")
-    setDefaultLanguage(profile?.default_language?.trim() ?? "")
-    setProgrammingLanguages(parseProgrammingLanguages(profile?.programming_languages))
-    // Intentionally omit draft field values from deps — only re-sync from profile props.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    profile?.username,
-    profile?.discord_username,
-    profile?.default_role,
-    profile?.jam_style,
-    profile?.profile_roles,
-    profile?.default_engine,
-    profile?.default_language,
-    profile?.programming_languages,
-    profile?.portfolio_url,
-    profile?.xp,
-    profile?.current_title,
-  ])
 
   const trimmedUsername = username.trim()
   const usernameEmpty = trimmedUsername.length === 0
@@ -275,38 +343,77 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
     secondaryRole.trim().length > 0 &&
     primaryRole.trim().toLowerCase() === secondaryRole.trim().toLowerCase()
 
-  const textDirty = useMemo(() => {
-    return (
-      trimmedUsername !== textBaseline.username ||
-      discordUsername.trim() !== textBaseline.discordUsername ||
-      portfolioUrl.trim() !== textBaseline.portfolioUrl
-    )
-  }, [trimmedUsername, discordUsername, portfolioUrl, textBaseline])
+  const currentDraft = useMemo<SettingsDraft>(
+    () =>
+      normalizeDraft({
+        username,
+        discordUsername,
+        portfolioUrl,
+        primaryRole,
+        primaryExperience,
+        secondaryRole,
+        secondaryExperience,
+        jamStyle,
+        defaultEngine,
+        defaultLanguage,
+        programmingLanguages,
+      }),
+    [
+      username,
+      discordUsername,
+      portfolioUrl,
+      primaryRole,
+      primaryExperience,
+      secondaryRole,
+      secondaryExperience,
+      jamStyle,
+      defaultEngine,
+      defaultLanguage,
+      programmingLanguages,
+    ],
+  )
 
-  const selectDirty = useMemo(() => {
-    return (
-      primaryRole !== selectBaseline.primaryRole ||
-      primaryExperience !== selectBaseline.primaryExperience ||
-      secondaryRole !== selectBaseline.secondaryRole ||
-      secondaryExperience !== selectBaseline.secondaryExperience ||
-      jamStyle !== selectBaseline.jamStyle ||
-      defaultEngine !== selectBaseline.defaultEngine ||
-      defaultLanguage !== selectBaseline.defaultLanguage ||
-      !arraysEqual(programmingLanguages, selectBaseline.programmingLanguages)
-    )
-  }, [
-    primaryRole,
-    primaryExperience,
-    secondaryRole,
-    secondaryExperience,
-    jamStyle,
-    defaultEngine,
-    defaultLanguage,
-    programmingLanguages,
-    selectBaseline,
-  ])
+  useEffect(() => {
+    draftRef.current = currentDraft
+  }, [currentDraft])
 
-  const [saving, setSaving] = useState(false)
+  useEffect(() => {
+    profileIdRef.current = profile?.id ?? null
+    onProfileUpdatedRef.current = onProfileUpdated
+  }, [profile?.id, onProfileUpdated])
+
+  // Re-sync from props only when the user has nothing pending, so a parent refresh can never
+  // overwrite edits that are typed, debounced or in flight.
+  const incomingDraft = useMemo(() => normalizeDraft(buildDraftFromProfile(profile)), [profile])
+  const incomingDraftKey = useMemo(() => JSON.stringify(incomingDraft), [incomingDraft])
+  useEffect(() => {
+    const hasLocalChanges =
+      autosaveInFlightRef.current ||
+      autosaveTimerRef.current !== null ||
+      !draftsEqual(draftRef.current, savedDraftRef.current)
+    if (hasLocalChanges) return
+    if (draftsEqual(incomingDraft, savedDraftRef.current)) return
+
+    savedDraftRef.current = incomingDraft
+    draftRef.current = incomingDraft
+    lastScheduledDraftRef.current = incomingDraft
+    setUsername(incomingDraft.username)
+    setDiscordUsername(incomingDraft.discordUsername)
+    setPortfolioUrl(incomingDraft.portfolioUrl)
+    setPrimaryRole(incomingDraft.primaryRole)
+    setPrimaryExperience(incomingDraft.primaryExperience)
+    setSecondaryRole(incomingDraft.secondaryRole)
+    setSecondaryExperience(incomingDraft.secondaryExperience)
+    setJamStyle(incomingDraft.jamStyle)
+    setDefaultEngine(incomingDraft.defaultEngine)
+    setDefaultLanguage(incomingDraft.defaultLanguage)
+    setProgrammingLanguages([...incomingDraft.programmingLanguages])
+    setTextBaseline(textPart(incomingDraft))
+    setUsernameTouched(false)
+    // Only re-run when the incoming profile values actually change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [incomingDraftKey])
+
   const [showDeleteAccountDialog, setShowDeleteAccountDialog] = useState(false)
   const [deletingAccount, setDeletingAccount] = useState(false)
 
@@ -317,194 +424,124 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
     SETTINGS_SECTION_IDS.account,
   ])
 
-  const buildRolesPayload = useCallback(() => {
-    const roles = []
-    if (primaryRole.trim()) {
-      roles.push({
-        role: primaryRole.trim(),
-        experienceLevel: primaryExperience.trim() || "regular",
-        isPrimary: true,
-      })
+  /**
+   * Single serialized save queue. Only one request runs at a time; when it returns, the
+   * latest draft is re-checked and saved again if the user changed anything meanwhile.
+   * Rapid successive edits are therefore never lost, and an older request can never land
+   * after a newer one and overwrite it.
+   */
+  const flushSave = useCallback(async () => {
+    if (autosaveTimerRef.current) {
+      clearTimeout(autosaveTimerRef.current)
+      autosaveTimerRef.current = null
     }
-    if (secondaryRole.trim()) {
-      roles.push({
-        role: secondaryRole.trim(),
-        experienceLevel: secondaryExperience.trim() || "regular",
-        isPrimary: false,
-      })
-    }
-    return roles
-  }, [primaryRole, primaryExperience, secondaryRole, secondaryExperience])
+    if (!profileIdRef.current) return
+    // The running loop below picks up the newest draft when the current request returns.
+    if (autosaveInFlightRef.current) return
 
-  const persistSettings = useCallback(
-    async (textValues: SavedTextBaseline, mode: "manual" | "auto") => {
-      if (!profile?.id) return { ok: false as const }
-
-      const usernameValue = textValues.username.trim()
-      if (usernameValue.length < 3) {
-        if (mode === "manual") {
-          toast.error("Invalid username", {
-            description: "Username must be at least 3 characters long.",
-          })
-        }
-        return { ok: false as const }
-      }
-
-      if (duplicateRoleSelected) {
-        if (mode === "manual") {
-          toast.error("Roles must be different.", {
-            description: "Please choose a different secondary role.",
-          })
-        }
-        return { ok: false as const }
-      }
-
-      const result = await saveProfileSettings({
-        username: usernameValue,
-        discordUsername: textValues.discordUsername.trim() || null,
-        defaultEngine: defaultEngine.trim() || null,
-        defaultLanguage: defaultLanguage.trim() || null,
-        programmingLanguages,
-        portfolioUrl: textValues.portfolioUrl.trim() || null,
-        jamStyle: jamStyle.trim() || null,
-        roles: buildRolesPayload(),
-      })
-
-      if (!result.success) {
-        if (mode === "manual") {
-          toast.error("Could not update profile.", { description: result.error })
-        } else {
-          toast.error("Autosave failed.", { description: result.error })
-        }
-        return { ok: false as const }
-      }
-
-      const nextText = {
-        username: usernameValue,
-        discordUsername: textValues.discordUsername.trim(),
-        portfolioUrl: textValues.portfolioUrl.trim(),
-      }
-      setTextBaseline(nextText)
-      setSelectBaseline({
-        primaryRole,
-        primaryExperience,
-        secondaryRole,
-        secondaryExperience,
-        jamStyle,
-        defaultEngine,
-        defaultLanguage,
-        programmingLanguages: [...programmingLanguages],
-      })
-
-      if (mode === "manual") {
-        toast.success(
-          result.programmingLanguagesSaved === false && programmingLanguages.length > 0
-            ? "Profile updated. Programming languages will save after the database update."
-            : "Profile updated.",
-        )
-        onProfileUpdated?.({ discord_username: nextText.discordUsername || null })
-      } else {
-        setAutosavedAt(Date.now())
-        onProfileUpdated?.({ discord_username: nextText.discordUsername || null })
-      }
-
-      return { ok: true as const }
-    },
-    [
-      profile?.id,
-      defaultEngine,
-      defaultLanguage,
-      programmingLanguages,
-      jamStyle,
-      buildRolesPayload,
-      duplicateRoleSelected,
-      primaryRole,
-      primaryExperience,
-      secondaryRole,
-      secondaryExperience,
-      onProfileUpdated,
-    ],
-  )
-
-  const runAutosaveImpl = useCallback(async () => {
-    if (!profile?.id || !selectDirty || autosaveInFlightRef.current || duplicateRoleSelected) return
     autosaveInFlightRef.current = true
     setAutosaving(true)
     try {
-      await persistSettings(textBaseline, "auto")
+      while (true) {
+        const snapshot = draftRef.current
+        if (draftsEqual(snapshot, savedDraftRef.current)) break
+        // Invalid drafts are not sent; the inline field errors tell the user what to fix.
+        if (getDraftBlocker(snapshot)) break
+
+        const result = await saveProfileSettings(payloadFromDraft(snapshot))
+        if (!result.success) {
+          toast.error("Autosave failed.", {
+            id: PROFILE_AUTOSAVE_ERROR_TOAST_ID,
+            description: result.error,
+          })
+          break
+        }
+
+        savedDraftRef.current = snapshot
+        setTextBaseline(textPart(snapshot))
+        setAutosavedAt(Date.now())
+        toast.dismiss(PROFILE_AUTOSAVE_ERROR_TOAST_ID)
+        if (result.programmingLanguagesSaved === false && snapshot.programmingLanguages.length > 0) {
+          toast.message("Profile updated. Programming languages will save after the database update.", {
+            id: PROFILE_AUTOSAVE_TOAST_ID,
+          })
+        }
+        // Keep the parent copy in sync so remounting Settings shows the saved values.
+        onProfileUpdatedRef.current?.(
+          profilePatchFromDraft(snapshot, result.programmingLanguagesSaved !== false),
+        )
+      }
+    } catch (err) {
+      toast.error("Autosave failed.", {
+        id: PROFILE_AUTOSAVE_ERROR_TOAST_ID,
+        description: err instanceof Error ? err.message : "Please try again.",
+      })
     } finally {
       autosaveInFlightRef.current = false
       setAutosaving(false)
     }
-  }, [profile?.id, selectDirty, persistSettings, textBaseline, duplicateRoleSelected])
+  }, [])
 
+  // Debounced autosave on every change: short delay for selects, longer while typing.
   useEffect(() => {
-    if (!selectDirty || !profile?.id) return
-    if (duplicateRoleSelected) return
-
-    if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current)
-    autosaveTimerRef.current = setTimeout(() => {
-      void runAutosaveImpl()
-    }, AUTOSAVE_DEBOUNCE_MS)
-
-    return () => {
-      if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current)
+    if (!profile?.id) return
+    const previous = lastScheduledDraftRef.current
+    lastScheduledDraftRef.current = currentDraft
+    if (draftsEqual(currentDraft, savedDraftRef.current)) {
+      if (autosaveTimerRef.current) {
+        clearTimeout(autosaveTimerRef.current)
+        autosaveTimerRef.current = null
+      }
+      return
     }
-  }, [
-    selectDirty,
-    textDirty,
-    profile?.id,
-    duplicateRoleSelected,
-    runAutosaveImpl,
-    primaryRole,
-    primaryExperience,
-    secondaryRole,
-    secondaryExperience,
-    jamStyle,
-    defaultEngine,
-    defaultLanguage,
-    programmingLanguages,
-  ])
+    const typedText =
+      currentDraft.username !== previous.username ||
+      currentDraft.discordUsername !== previous.discordUsername ||
+      currentDraft.portfolioUrl !== previous.portfolioUrl
+    if (autosaveTimerRef.current) clearTimeout(autosaveTimerRef.current)
+    autosaveTimerRef.current = setTimeout(
+      () => {
+        autosaveTimerRef.current = null
+        void flushSave()
+      },
+      typedText ? TEXT_AUTOSAVE_DEBOUNCE_MS : AUTOSAVE_DEBOUNCE_MS,
+    )
+  }, [currentDraft, profile?.id, flushSave])
+
+  // Never drop a pending edit: save right away when leaving Settings or hiding the tab.
+  useEffect(() => {
+    const flushIfPending = () => {
+      if (!draftsEqual(draftRef.current, savedDraftRef.current)) void flushSave()
+    }
+    const handleVisibility = () => {
+      if (document.visibilityState === "hidden") flushIfPending()
+    }
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (autosaveInFlightRef.current || !draftsEqual(draftRef.current, savedDraftRef.current)) {
+        flushIfPending()
+        event.preventDefault()
+        event.returnValue = ""
+      }
+    }
+    document.addEventListener("visibilitychange", handleVisibility)
+    window.addEventListener("beforeunload", handleBeforeUnload)
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibility)
+      window.removeEventListener("beforeunload", handleBeforeUnload)
+      flushIfPending()
+    }
+  }, [flushSave])
+
+  const handleTextFieldBlur = useCallback(() => {
+    setUsernameTouched(true)
+    void flushSave()
+  }, [flushSave])
 
   useEffect(() => {
     if (!autosavedAt) return
     const timer = setTimeout(() => setAutosavedAt(null), 3500)
     return () => clearTimeout(timer)
   }, [autosavedAt])
-
-  useEffect(() => {
-    if (!textDirty) return
-    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
-      event.preventDefault()
-      event.returnValue = ""
-    }
-    window.addEventListener("beforeunload", handleBeforeUnload)
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload)
-  }, [textDirty])
-
-  const handleSaveProfile = async () => {
-    setUsernameTouched(true)
-    setSaving(true)
-    try {
-      await persistSettings(
-        {
-          username: trimmedUsername,
-          discordUsername,
-          portfolioUrl,
-        },
-        "manual",
-      )
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  const handleDiscardText = () => {
-    setUsername(textBaseline.username)
-    setDiscordUsername(textBaseline.discordUsername)
-    setPortfolioUrl(textBaseline.portfolioUrl)
-    setUsernameTouched(false)
-  }
 
   const handleDeleteAccount = async () => {
     setDeletingAccount(true)
@@ -600,7 +637,7 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
           className="min-w-0 space-y-8 lg:col-span-8"
           onSubmit={(event) => {
             event.preventDefault()
-            void handleSaveProfile()
+            void flushSave()
           }}
         >
           <SettingsSectionPanel
@@ -619,7 +656,7 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
                     id="profile-username"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
-                    onBlur={() => setUsernameTouched(true)}
+                    onBlur={handleTextFieldBlur}
                     placeholder="e.g. PixelWizard42"
                     autoComplete="username"
                     aria-invalid={showUsernameError}
@@ -647,6 +684,7 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
                       id="profile-discord"
                       value={discordUsername}
                       onChange={(e) => setDiscordUsername(e.target.value)}
+                      onBlur={handleTextFieldBlur}
                       placeholder="e.g. gamer123"
                       className="h-11 w-full rounded-xl border-border/50 bg-background"
                     />
@@ -661,6 +699,7 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
                       type="url"
                       value={portfolioUrl}
                       onChange={(e) => setPortfolioUrl(e.target.value)}
+                      onBlur={handleTextFieldBlur}
                       placeholder="https://yourname.itch.io"
                       className="h-11 w-full rounded-xl border-border/50 bg-background"
                     />
@@ -952,34 +991,6 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
           </CardContent>
         </Card>
       </SettingsSectionPanel>
-
-      {textDirty ? (
-        <div className="fixed inset-x-0 bottom-[calc(64px+env(safe-area-inset-bottom,0px))] z-50 border-t border-border/50 bg-card/95 px-4 py-3 shadow-lg backdrop-blur-md md:bottom-0">
-          <div className="mx-auto flex max-w-5xl items-center justify-between gap-3">
-            <p className="text-sm font-medium text-foreground">Unsaved text changes</p>
-            <div className="flex shrink-0 items-center gap-2">
-              <Button type="button" variant="outline" className="rounded-xl" onClick={handleDiscardText}>
-                Discard
-              </Button>
-              <Button
-                type="button"
-                className="gap-2 rounded-xl"
-                disabled={saving}
-                onClick={() => void handleSaveProfile()}
-              >
-                {saving ? (
-                  <>
-                    <AppIcon icon={ICON.loading} size="sm" className="animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  "Save"
-                )}
-              </Button>
-            </div>
-          </div>
-        </div>
-      ) : null}
 
       <AlertDialog
         open={showDeleteAccountDialog}

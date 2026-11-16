@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import {
   Drawer,
   DrawerContent,
+  DrawerDescription,
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
@@ -20,6 +21,7 @@ import {
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
@@ -201,6 +203,9 @@ export function NotificationsPanel({
   const [filter, setFilter] = useState<"all" | "unread">("all")
   const open = openProp ?? uncontrolledOpen
   const setOpen = (next: boolean) => {
+    if (!next && document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur()
+    }
     onOpenChange?.(next)
     if (openProp === undefined) setUncontrolledOpen(next)
   }
@@ -232,6 +237,9 @@ export function NotificationsPanel({
               <AppIcon icon={ICON.notifications} size="md" tone="primary" />
               Notifications
             </DrawerTitle>
+            <DrawerDescription className="sr-only">
+              Recent notifications and inbox alerts.
+            </DrawerDescription>
           </DrawerHeader>
           <div className="min-h-0 flex-1 px-4 pb-4">{body}</div>
         </DrawerContent>
@@ -252,6 +260,9 @@ export function NotificationsPanel({
               <AppIcon icon={ICON.notifications} size="md" tone="primary" />
               Notifications
             </SheetTitle>
+            <SheetDescription className="sr-only">
+              Recent notifications and inbox alerts.
+            </SheetDescription>
           </SheetHeader>
           <div className="min-h-0 flex-1 px-4 py-4">{body}</div>
         </SheetContent>

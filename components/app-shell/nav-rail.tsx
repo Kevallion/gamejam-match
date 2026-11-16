@@ -80,7 +80,9 @@ export function NavRail({
                     </span>
                   ) : null}
                 </span>
-                <span className="max-w-full truncate text-center leading-tight">{item.label}</span>
+                <span className="max-w-full text-center text-[11px] leading-tight whitespace-normal">
+                  {item.label}
+                </span>
               </Link>
             )
           })}

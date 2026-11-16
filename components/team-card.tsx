@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
@@ -183,6 +184,9 @@ export function TeamCard({
             <DialogTitle className="break-words text-xl font-extrabold text-foreground sm:truncate">
               {team.name}
             </DialogTitle>
+            <DialogDescription className="sr-only">
+              Squad details, roles, and how to apply.
+            </DialogDescription>
             <JamTitleBlock
               team={team}
               className="mt-0.5 block min-w-0 break-words text-sm font-semibold text-primary sm:truncate"

@@ -65,6 +65,47 @@ function normalizeRolePayload(input: SaveProfileSettingsInput["roles"]) {
   return normalized
 }
 
+type ProfileRoleRow = ReturnType<typeof normalizeRolePayload>[number]
+
+/** PostgREST error when the called function is not in the schema cache yet. */
+function isMissingRpcError(
+  error: { code?: string | null; message?: string | null } | null | undefined,
+  functionName: string,
+): boolean {
+  if (!error) return false
+  const code = (error.code ?? "").toUpperCase()
+  const message = (error.message ?? "").toLowerCase()
+  return (
+    code === "PGRST202" ||
+    (code === "42883" && message.includes(functionName.toLowerCase()))
+  )
+}
+
+async function replaceRolesLegacy(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+  profileRoles: ProfileRoleRow[],
+): Promise<string | null> {
+  const { error: deleteRolesError } = await supabase
+    .from("profile_roles")
+    .delete()
+    .eq("user_id", userId)
+  if (deleteRolesError) return deleteRolesError.message
+
+  if (profileRoles.length > 0) {
+    const { error: insertRolesError } = await supabase.from("profile_roles").insert(
+      profileRoles.map((role) => ({
+        user_id: userId,
+        role: role.role,
+        experience_level: role.experience_level,
+        is_primary: role.is_primary,
+      })),
+    )
+    if (insertRolesError) return insertRolesError.message
+  }
+  return null
+}
+
 export async function saveProfileSettings(
   input: SaveProfileSettingsInput,
 ): Promise<SaveProfileSettingsResult> {
@@ -95,26 +136,21 @@ export async function saveProfileSettings(
   const primaryExperienceLevel =
     profileRoles.find((role) => role.is_primary)?.experience_level ?? null
 
-  const { error: deleteRolesError } = await supabase
-    .from("profile_roles")
-    .delete()
-    .eq("user_id", user.id)
+  // One RPC = one transaction: concurrent saves (two tabs) are serialized server-side and can
+  // never leave the jammer with no roles. See supabase/migrations/*_profile_roles_atomic_replace.sql.
+  const { error: replaceRolesError } = await supabase.rpc("replace_own_profile_roles", {
+    p_roles: profileRoles,
+  })
 
-  if (deleteRolesError) {
-    return { success: false, error: deleteRolesError.message, code: "UNKNOWN" }
-  }
-
-  if (profileRoles.length > 0) {
-    const { error: insertRolesError } = await supabase.from("profile_roles").insert(
-      profileRoles.map((role) => ({
-        user_id: user.id,
-        role: role.role,
-        experience_level: role.experience_level,
-        is_primary: role.is_primary,
-      })),
-    )
-    if (insertRolesError) {
-      return { success: false, error: insertRolesError.message, code: "UNKNOWN" }
+  if (replaceRolesError) {
+    if (!isMissingRpcError(replaceRolesError, "replace_own_profile_roles")) {
+      return { success: false, error: replaceRolesError.message, code: "UNKNOWN" }
+    }
+    // Deploy-before-migration fallback: keep saving with the legacy (non-atomic) path until
+    // the migration is applied. Remove once the RPC exists in every environment.
+    const legacyError = await replaceRolesLegacy(supabase, user.id, profileRoles)
+    if (legacyError) {
+      return { success: false, error: legacyError, code: "UNKNOWN" }
     }
   }
 
