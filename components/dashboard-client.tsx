@@ -1725,16 +1725,8 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
                   profile={profile}
                   onProfileUpdated={(patch) => {
                     if (patch) {
-                      setProfile((prev) =>
-                        prev
-                          ? {
-                              ...prev,
-                              ...(patch.discord_username !== undefined
-                                ? { discord_username: patch.discord_username ?? null }
-                                : {}),
-                            }
-                          : prev,
-                      )
+                      // Mirror every saved field so remounting Settings shows the latest values.
+                      setProfile((prev) => (prev ? { ...prev, ...patch } : prev))
                     }
                   }}
                   displayNameFallback={displayName}
