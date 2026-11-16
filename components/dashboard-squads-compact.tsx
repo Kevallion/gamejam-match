@@ -59,7 +59,7 @@ function SquadCardCompact({
   const extraCount = Math.max(0, team.members - visibleMembers)
 
   return (
-    <Card className="card-interactive min-w-0 max-w-full overflow-hidden border-border/60 bg-card shadow-sm">
+    <Card className="card-interactive min-w-0 max-w-full !gap-0 overflow-hidden border-border/60 bg-card !py-0 shadow-sm">
       <div className={cn("h-1", accent === "pink" ? "bg-pink" : "bg-teal")} aria-hidden />
       <CardContent className="space-y-3 p-4 sm:p-5">
         <div className="flex min-w-0 flex-wrap items-start justify-between gap-2">

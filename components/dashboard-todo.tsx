@@ -168,7 +168,7 @@ export function DashboardTodo({
   if (items.length === 0) return null
 
   return (
-    <Card className="min-w-0 border-border/50 bg-card shadow-sm">
+    <Card className="min-w-0 !gap-0 border-border/50 bg-card !py-0 shadow-sm">
       <CardContent className="space-y-3 p-4">
         <div className="flex items-center justify-between gap-2">
           <h3 className="text-base font-bold text-foreground">To do</h3>

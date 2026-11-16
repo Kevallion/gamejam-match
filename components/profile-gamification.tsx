@@ -426,7 +426,7 @@ function AchievementsBadgesSections({
                         </span>
                         <RarityPill rarity={meta.rarity} />
                       </div>
-                      <p className="line-clamp-3 break-words text-[13px] leading-snug text-muted-foreground sm:text-sm">
+                      <p className="break-words text-[13px] leading-snug text-muted-foreground sm:text-sm">
                         {meta.blurb}
                       </p>
                       <p className="text-[13px] font-semibold text-teal sm:text-sm">
@@ -455,14 +455,14 @@ function AchievementsBadgesSections({
                   key={badgeId}
                   type="button"
                   onClick={() => onSelectBadge(badgeId)}
-                  className="card-interactive flex min-w-0 flex-col items-center gap-2 rounded-2xl border border-dashed border-border/40 bg-muted/10 p-3 text-center opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                  className="card-interactive flex min-w-0 flex-col items-center gap-1.5 rounded-2xl border border-dashed border-border/40 bg-muted/10 p-2.5 text-center opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 sm:gap-2 sm:p-3"
                 >
                   <BadgeMedallion badgeId={badgeId} rarity={meta.rarity} size="md" locked />
                   <span className="w-full text-balance break-words text-xs font-bold leading-tight text-muted-foreground sm:text-sm">
                     {meta.label}
                   </span>
                   <RarityPill rarity={meta.rarity} muted />
-                  <p className="line-clamp-3 w-full break-words text-[13px] leading-snug text-muted-foreground sm:text-sm">
+                  <p className="w-full whitespace-normal break-words text-[13px] leading-snug text-muted-foreground sm:text-sm">
                     {meta.lockedHint ?? meta.blurb}
                   </p>
                 </button>

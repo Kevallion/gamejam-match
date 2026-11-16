@@ -395,7 +395,7 @@ function DashboardHomeSideCard({
   const progress = gamificationLevelProgress(xp)
 
   return (
-    <Card className="gap-0 border-border/40 bg-card/70 py-0 shadow-sm backdrop-blur-sm">
+    <Card className="!gap-0 border-border/40 bg-card/70 !py-0 shadow-sm backdrop-blur-sm">
       <CardContent className="p-4">
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-sm font-bold text-foreground">Progress</h2>
@@ -1572,8 +1572,8 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
       className="min-w-0 overflow-x-clip"
     >
       <div className="min-w-0">
-        <section className="min-w-0 px-4 py-4 md:py-6 lg:px-6">
-          <div className="mx-auto min-w-0 max-w-6xl space-y-3 md:space-y-4">
+        <section className="min-w-0 px-4 pt-3 pb-2 md:pt-6 md:pb-4 lg:px-6">
+          <div className="mx-auto min-w-0 max-w-6xl">
             {hasKpiSignal ? (
               <div className="grid min-w-0 grid-cols-3 gap-1.5 md:gap-2">
                 <DashboardMiniKpi
@@ -1618,11 +1618,11 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
           </div>
         </section>
 
-        <section className="min-w-0 px-4 pb-8 lg:px-6 lg:pb-12">
+        <section className="min-w-0 px-4 pb-4 md:pb-8 lg:px-6 lg:pb-12">
           <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full min-w-0 max-w-full">
             <TabsContent value="squads" className="mt-0 min-w-0 max-w-full">
-              <div className="grid min-w-0 max-w-full items-start gap-4 lg:grid-cols-3">
-                <div className="min-w-0 space-y-4 lg:col-span-2">
+              <div className="grid min-w-0 max-w-full items-start gap-3 md:gap-4 lg:grid-cols-3">
+                <div className="min-w-0 space-y-3 md:space-y-4 lg:col-span-2">
                   <DashboardNextSteps
                     hasTeam={teams.length > 0}
                     hasAvailability={availabilityPosts.length > 0}
@@ -1644,7 +1644,7 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
                     renewingPostId={renewingAvailabilityPostId}
                   />
                   <DashboardSquadsCompact teams={teams} onLeave={handleLeaveTeam} />
-                  <div className="space-y-4 lg:hidden">
+                  <div className="space-y-3 md:space-y-4 lg:hidden">
                     <DashboardHomeSideCard
                       xp={headerXp}
                       currentTitle={headerTitle}
