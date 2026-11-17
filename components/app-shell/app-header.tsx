@@ -21,9 +21,13 @@ type AppHeaderProps = {
   subtitle?: string | null
   /** Greeting mode for Home on mobile */
   greetingName?: string | null
+  /** When true, greeting is mobile-only (desktop Bento owns the greeting). */
+  hideGreetingDesktop?: boolean
   levelLabel?: string | null
   avatarUrl?: string | null
   userId?: string | null
+  /** Prefer Me hub for Settings / My posts after rail removal. */
+  meHubHref?: string | null
   notifications: NormalizedNotificationRow[]
   unreadCount: number
   notifLoading: boolean
@@ -77,9 +81,11 @@ export function AppHeader({
   title,
   subtitle,
   greetingName,
+  hideGreetingDesktop = false,
   levelLabel,
   avatarUrl,
   userId,
+  meHubHref,
   notifications,
   unreadCount,
   notifLoading,
@@ -88,6 +94,9 @@ export function AppHeader({
   onRefetch,
   className,
 }: AppHeaderProps) {
+  const avatarHref = meHubHref ?? (userId ? `/jammer/${userId}` : null)
+  const avatarFallback = greetingName || title
+
   const bell = (
     <Button
       variant="ghost"
@@ -104,6 +113,15 @@ export function AppHeader({
     </Button>
   )
 
+  const avatar = (
+    <UserAvatar
+      src={avatarUrl ?? null}
+      fallbackName={avatarFallback}
+      size="md"
+      className="size-9 rounded-[14px] border-2 border-[var(--neo-shadow)] shadow-[3px_3px_0_0_var(--neo-shadow)]"
+    />
+  )
+
   return (
     <header
       className={cn(
@@ -115,32 +133,27 @@ export function AppHeader({
       <div className="flex h-14 items-center gap-3 px-4 md:h-16 md:px-6">
         <div className="min-w-0 flex-1">
           {greetingName ? (
-            <div className="flex min-w-0 items-center gap-2.5">
-              {userId ? (
-                <Link href={`/jammer/${userId}`} className="shrink-0">
-                  <UserAvatar
-                    src={avatarUrl ?? null}
-                    fallbackName={greetingName}
-                    size="md"
-                    className="size-8 rounded-full"
-                  />
-                </Link>
-              ) : (
-                <UserAvatar
-                  src={avatarUrl ?? null}
-                  fallbackName={greetingName}
-                  size="md"
-                  className="size-8 rounded-full"
-                />
+            <div
+              className={cn(
+                "flex min-w-0 items-center gap-2.5",
+                hideGreetingDesktop && "lg:hidden",
               )}
+            >
+              <span className="grid size-9 shrink-0 place-items-center rounded-[11px] border-2 border-[var(--neo-shadow)] bg-primary text-primary-foreground shadow-[3px_3px_0_0_var(--neo-shadow)] lg:hidden">
+                <AppIcon icon={ICON.jam} size="md" className="text-primary-foreground" />
+              </span>
               <div className="min-w-0">
-                <p className="truncate text-sm font-bold text-foreground">Hi {greetingName}</p>
-                {levelLabel ? (
-                  <p className="truncate text-[11px] font-medium text-peach">{levelLabel}</p>
-                ) : null}
+                <p className="truncate text-[11.5px] font-extrabold text-muted-foreground leading-tight">
+                  {levelLabel ?? "GameJamCrew"}
+                </p>
+                <p className="truncate text-lg font-black tracking-tight text-foreground">
+                  Hey {greetingName.split(/\s+/)[0] || greetingName}
+                </p>
               </div>
             </div>
-          ) : (
+          ) : null}
+
+          {!greetingName ? (
             <div className="min-w-0">
               <h1 className="truncate text-xl font-bold tracking-tight text-foreground md:text-[22px]">
                 {title}
@@ -149,10 +162,10 @@ export function AppHeader({
                 <p className="truncate text-xs text-muted-foreground">{subtitle}</p>
               ) : null}
             </div>
-          )}
+          ) : null}
         </div>
 
-        <div className="flex shrink-0 items-center gap-0.5">
+        <div className="flex shrink-0 items-center gap-1">
           <div className="md:hidden">
             <NotificationsPanel
               variant="mobile"
@@ -199,20 +212,17 @@ export function AppHeader({
             <ThemeButton />
           </div>
 
-          {userId && !greetingName ? (
+          {avatarHref ? (
             <Link
-              href={`/jammer/${userId}`}
-              className="ml-1 hidden size-11 items-center justify-center md:flex lg:hidden"
-              aria-label="Public profile"
+              href={avatarHref}
+              className="ml-0.5 flex size-11 items-center justify-center"
+              aria-label={meHubHref ? "Me" : "Public profile"}
             >
-              <UserAvatar
-                src={avatarUrl ?? null}
-                fallbackName={title}
-                size="md"
-                className="size-9 rounded-full"
-              />
+              {avatar}
             </Link>
-          ) : null}
+          ) : (
+            <span className="ml-0.5 flex size-11 items-center justify-center">{avatar}</span>
+          )}
         </div>
       </div>
     </header>

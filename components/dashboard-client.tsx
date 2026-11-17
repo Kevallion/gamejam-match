@@ -3,12 +3,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import { usePathname, useSearchParams } from "next/navigation"
 import { AppShell } from "@/components/app-shell/app-shell"
+import { BentoDashboard } from "@/components/dashboard/bento-dashboard"
 import type { TeamData } from "@/components/dashboard-my-teams"
-import { DashboardSquadsCompact } from "@/components/dashboard-squads-compact"
 import { DashboardRecommendedTeams } from "@/components/dashboard-recommended-teams"
 import { DashboardAvailabilityCompact } from "@/components/dashboard-availability-compact"
 import { DashboardInboxCompact } from "@/components/dashboard-inbox-compact"
-import { DashboardTodo } from "@/components/dashboard-todo"
 import type { ApplicationData } from "@/components/dashboard-incoming-applications"
 import type { InvitationData } from "@/components/dashboard-squad-invitations"
 import type {
@@ -18,14 +17,10 @@ import type {
 import { AppIcon } from "@/components/ui/app-icon"
 import { ICON } from "@/lib/icons"
 import { useNotifications } from "@/hooks/use-notifications"
-import {
-  Info,
-  Trash2,
-} from "lucide-react"
+import { Trash2 } from "lucide-react"
 import { Tabs, TabsContent } from "@/components/ui/tabs"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 import {
   AlertDialog,
@@ -48,7 +43,6 @@ import {
 } from "@/components/ui/drawer"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
 import { supabase } from "@/lib/supabase"
 import { cancelJoinRequest } from "@/app/actions/join-request-actions"
 import {
@@ -69,14 +63,12 @@ import {
   DashboardAchievementsTab,
 } from "@/components/gamification-dashboard"
 import { PushNotificationBanner } from "@/components/push-notification-banner"
-import { DashboardNextSteps } from "@/components/dashboard-next-steps"
 import type { Session } from "@supabase/supabase-js"
 import { showGamificationRewards } from "@/components/gamification-reward-toasts"
 import { gamificationRewardHasToast } from "@/lib/gamification-reward-types"
 import { toast } from "sonner"
 import { ENGINE_OPTIONS, EXPERIENCE_STYLES, ROLE_STYLES, parseProgrammingLanguages } from "@/lib/constants"
 import { isMissingColumnError } from "@/lib/optional-column"
-import { levelFromTotalXp, gamificationLevelProgress } from "@/lib/gamification-level"
 import {
   fetchDashboardJoinRequests,
   getRecommendedTeams,
@@ -376,86 +368,6 @@ function DashboardRecentActivity({
           <AppIcon icon={ICON.time} size="sm" tone="muted" />
         </div>
         <DashboardRecentActivityList items={items} />
-      </CardContent>
-    </Card>
-  )
-}
-
-/** Home side column: Progress + Recent activity in one card. */
-function DashboardHomeSideCard({
-  xp,
-  currentTitle,
-  items,
-}: {
-  xp: number
-  currentTitle: string
-  items: NormalizedNotificationFeedItem[]
-}) {
-  const level = levelFromTotalXp(xp)
-  const progress = gamificationLevelProgress(xp)
-
-  return (
-    <Card className="!gap-0 border-border/40 bg-card/70 !py-0 shadow-sm backdrop-blur-sm">
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="text-sm font-bold text-foreground">Progress</h2>
-          <span className="rounded-full border border-teal/35 bg-teal/10 px-2 text-sm font-bold leading-6 text-teal">
-            Level {level}
-          </span>
-        </div>
-        <div className="mt-2 flex items-baseline justify-between gap-3">
-          <p className="truncate text-sm font-semibold text-foreground">
-            {currentTitle || "Rookie Jammer"}
-          </p>
-          <p className="shrink-0 text-sm tabular-nums text-muted-foreground">
-            {progress.xpInLevel}/{progress.span} XP
-          </p>
-        </div>
-        <Progress value={progress.progressPercent} className="mt-2 h-1.5 bg-muted/80" />
-
-        <div className="mt-4 flex items-center justify-between gap-3 border-t border-border/40 pt-3">
-          <h2 className="text-sm font-bold text-foreground">Recent activity</h2>
-          <AppIcon icon={ICON.time} size="sm" tone="muted" />
-        </div>
-        <div className="mt-1">
-          <DashboardRecentActivityList items={items} />
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
-
-function DashboardMiniKpi({
-  icon,
-  label,
-  value,
-  toneClassName,
-  helper,
-  rightSlot,
-}: {
-  icon: ReactNode
-  label: string
-  value: number
-  toneClassName: string
-  helper?: string
-  rightSlot?: ReactNode
-}) {
-  return (
-    <Card className={cn("glass-card min-w-0 !gap-0 !py-0 border shadow-sm", toneClassName)}>
-      <CardContent className="flex items-center justify-between gap-1.5 p-2 sm:gap-2 sm:p-2.5">
-        <div className="flex min-w-0 items-center gap-1.5 sm:gap-2">
-          <div className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-background/60">
-            {icon}
-          </div>
-          <div className="min-w-0">
-            <p className="truncate text-xs font-semibold leading-none text-muted-foreground">{label}</p>
-            <p className="text-base font-extrabold tabular-nums leading-tight text-foreground">{value}</p>
-          </div>
-        </div>
-        <div className="flex shrink-0 items-center gap-1">
-          {helper ? <span className="hidden text-xs text-muted-foreground min-[420px]:inline">{helper}</span> : null}
-          {rightSlot}
-        </div>
       </CardContent>
     </Card>
   )
@@ -1533,10 +1445,6 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
   }
 
   const toActionCount = applications.length + invitations.length
-  const waitingResponseCount =
-    sentApplications.filter((s) => s.status === "pending").length +
-    sentInvitationsOutbox.filter((s) => s.status === "pending").length
-  const activityTotal = toActionCount + waitingResponseCount
 
   const meta = session?.user?.user_metadata as Record<string, string> | undefined
   const displayName =
@@ -1548,8 +1456,9 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
     "Jammer"
   const headerXp = typeof profile?.xp === "number" ? profile.xp : 0
   const headerTitle = profile?.current_title?.trim() || "Rookie Jammer"
-  const hasKpiSignal = teams.length > 0 || activityTotal > 0 || availabilityPosts.length > 0
-
+  // Home Bento is placeholders (T7); keep fetched squad data / leave handler for T8 wiring.
+  void teams
+  void handleLeaveTeam
   const shellAccount = {
     userId: session?.user?.id ?? fixture?.profile.id ?? "",
     displayName,
@@ -1572,95 +1481,11 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
       className="min-w-0 overflow-x-clip"
     >
       <div className="min-w-0">
-        <section className="min-w-0 px-4 pt-3 pb-2 md:pt-6 md:pb-4 lg:px-6">
-          <div className="mx-auto min-w-0 max-w-6xl">
-            {hasKpiSignal ? (
-              <div className="grid min-w-0 grid-cols-3 gap-1.5 md:gap-2">
-                <DashboardMiniKpi
-                  icon={<AppIcon icon={ICON.squad} size="sm" tone="teal" />}
-                  label="Squads"
-                  value={teams.length}
-                  helper={teams.length > 0 ? "active" : undefined}
-                  toneClassName="border-teal/20 bg-teal/5"
-                />
-                <DashboardMiniKpi
-                  icon={<AppIcon icon={ICON.applications} size="sm" tone="peach" />}
-                  label="To do"
-                  value={toActionCount}
-                  toneClassName="border-peach/20 bg-peach/5"
-                  rightSlot={
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <button
-                          type="button"
-                          className="cursor-pointer rounded-full p-0.5 text-muted-foreground hover:text-foreground"
-                          aria-label="Activity info"
-                        >
-                          <Info className="size-3" aria-hidden />
-                        </button>
-                      </TooltipTrigger>
-                      <TooltipContent side="top" className="max-w-56 text-xs">
-                        <p><span className="font-semibold">{toActionCount}</span> to action</p>
-                        <p><span className="font-semibold">{waitingResponseCount}</span> waiting</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  }
-                />
-                <DashboardMiniKpi
-                  icon={<AppIcon icon={ICON.available} size="sm" tone="lavender" />}
-                  label="My posts"
-                  value={availabilityPosts.length}
-                  helper={availabilityPosts.length > 0 ? "posts" : undefined}
-                  toneClassName="border-lavender/20 bg-lavender/5"
-                />
-              </div>
-            ) : null}
-          </div>
-        </section>
-
-        <section className="min-w-0 px-4 pb-4 md:pb-8 lg:px-6 lg:pb-12">
+        <section className="min-w-0 pb-4 md:pb-8">
           <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full min-w-0 max-w-full">
             <TabsContent value="squads" className="mt-0 min-w-0 max-w-full">
-              <div className="grid min-w-0 max-w-full items-start gap-3 md:gap-4 lg:grid-cols-3">
-                <div className="min-w-0 space-y-3 md:space-y-4 lg:col-span-2">
-                  <DashboardNextSteps
-                    hasTeam={teams.length > 0}
-                    hasAvailability={availabilityPosts.length > 0}
-                    hasDiscord={Boolean(profile?.discord_username?.trim())}
-                    hasPortfolio={Boolean(profile?.portfolio_url?.trim())}
-                    hasInboxActivity={activityTotal > 0}
-                    showSquadEmptyRow={teams.length === 0}
-                  />
-                  <DashboardTodo
-                    applications={applications}
-                    invitations={invitations}
-                    availabilityPosts={availabilityPosts}
-                    onAcceptApplication={handleAcceptApplication}
-                    onDeclineApplication={handleDeclineApplication}
-                    onAcceptInvitation={handleAcceptInvitation}
-                    onDeclineInvitation={handleDeclineInvitation}
-                    onRenewPost={handleRenewAvailabilityPost}
-                    busyRequestId={busyInboxRequestId}
-                    renewingPostId={renewingAvailabilityPostId}
-                  />
-                  <DashboardSquadsCompact teams={teams} onLeave={handleLeaveTeam} />
-                  <div className="space-y-3 md:space-y-4 lg:hidden">
-                    <DashboardHomeSideCard
-                      xp={headerXp}
-                      currentTitle={headerTitle}
-                      items={activityNotifications}
-                    />
-                    <DashboardRecommendedTeams teams={recommendedTeams} compact />
-                  </div>
-                </div>
-                <aside className="hidden min-w-0 lg:sticky lg:top-4 lg:col-span-1 lg:block lg:self-start">
-                  <DashboardHomeSideCard
-                    xp={headerXp}
-                    currentTitle={headerTitle}
-                    items={activityNotifications}
-                  />
-                </aside>
-              </div>
+              {/* T7: Bento structure/nav placeholders. Real card content is T8. */}
+              <BentoDashboard displayName={displayName} />
             </TabsContent>
 
             <TabsContent value="inbox" className="mt-0 flex min-w-0 max-w-full flex-col gap-4 md:gap-6">

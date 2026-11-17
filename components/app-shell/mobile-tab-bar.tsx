@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils"
 
 const BAR_PX = 64
 
+/** @deprecated Replaced by BentoHotbar (Nav 2). Kept for reference / possible rollback. */
 export function MobileTabBar({
   inboxCount = 0,
   availabilityCount = 0,

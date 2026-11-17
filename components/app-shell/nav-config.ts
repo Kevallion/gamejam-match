@@ -24,8 +24,13 @@ export function dashboardHref(tab: DashboardTabValue = "squads"): string {
   return `/dashboard?tab=${tab}`
 }
 
+/** True for the signed-in dashboard and the populated dev preview fixture. */
+export function isDashboardPath(pathname: string): boolean {
+  return pathname.startsWith("/dashboard") || pathname.startsWith("/dev/dashboard-preview")
+}
+
 export function tabFromPathname(pathname: string, search: string): DashboardTabValue | null {
-  if (!pathname.startsWith("/dashboard")) return null
+  if (!isDashboardPath(pathname)) return null
   const params = new URLSearchParams(search.startsWith("?") ? search.slice(1) : search)
   const raw = (params.get("tab") ?? "").trim().toLowerCase()
   if (!raw || raw === "squads" || raw === "overview" || raw === "teams") return "squads"
@@ -113,3 +118,51 @@ export const SIDEBAR_EXPLORE: {
   { label: "Members", href: "/find-members", icon: ICON.findJammers },
   { label: "How it works", href: "/showcase", icon: ICON.recommended },
 ]
+
+export type HotbarSlotId = "home" | "jams" | "squads" | "inbox" | "rewards" | "explore"
+
+/**
+ * Nav 2 floating hotbar (desktop numbered 1–6 + create).
+ * Same destinations as the previous rail / sidebar explore links.
+ * Settings & My posts remain reachable via the Me hub (avatar).
+ */
+export const HOTBAR_SLOTS: {
+  key: "1" | "2" | "3" | "4" | "5" | "6"
+  id: HotbarSlotId
+  label: string
+  href: string
+  icon: LucideIcon
+  badge?: "inbox"
+  /** Desktop-only slots (hidden on the compact mobile hotbar). */
+  desktopOnly?: boolean
+}[] = [
+  { key: "1", id: "home", label: "Home", href: dashboardHref("squads"), icon: ICON.dashboard },
+  { key: "2", id: "jams", label: "Jams", href: "/teams", icon: ICON.dates },
+  { key: "3", id: "squads", label: "Squads", href: "/teams", icon: ICON.squad, desktopOnly: true },
+  { key: "4", id: "inbox", label: "Inbox", href: dashboardHref("inbox"), icon: ICON.applications, badge: "inbox" },
+  { key: "5", id: "rewards", label: "Rewards", href: dashboardHref("achievements"), icon: ICON.achievement },
+  {
+    key: "6",
+    id: "explore",
+    label: "Explore",
+    href: "/find-members",
+    icon: ICON.findJammers,
+    desktopOnly: true,
+  },
+]
+
+/** Resolve which hotbar slot is active for the current route. */
+export function hotbarActiveId(pathname: string, search: string): HotbarSlotId | null {
+  const tab = tabFromPathname(pathname, search)
+  const hubMe =
+    new URLSearchParams(search.startsWith("?") ? search.slice(1) : search).get("hub") === "me"
+
+  if (pathname.startsWith("/find-members") || pathname.startsWith("/showcase")) return "explore"
+  if (pathname.startsWith("/teams") || pathname.startsWith("/create-team")) return "jams"
+  if (!isDashboardPath(pathname)) return null
+  if (hubMe) return null
+  if (tab === "inbox") return "inbox"
+  if (tab === "achievements") return "rewards"
+  if (tab === "availability" || tab === "settings") return null
+  return "home"
+}

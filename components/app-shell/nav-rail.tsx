@@ -10,6 +10,7 @@ import { AppIcon } from "@/components/ui/app-icon"
 import { ICON } from "@/lib/icons"
 import { cn } from "@/lib/utils"
 
+/** @deprecated Replaced by BentoHotbar (Nav 2). Kept for reference / possible rollback. */
 export function NavRail({
   inboxCount = 0,
   availabilityCount = 0,

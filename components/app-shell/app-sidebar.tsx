@@ -46,6 +46,7 @@ type AppSidebarProps = {
   availabilityCount?: number
 }
 
+/** @deprecated Replaced by BentoHotbar (Nav 2). Kept for reference / possible rollback. */
 export function AppSidebar({
   userId,
   displayName,
