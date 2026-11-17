@@ -43,7 +43,8 @@ type BentoCardProps = {
 }
 
 /**
- * Shared Bento tile — neo-brutalist border/shadow, pastel tone variants, empty state.
+ * Shared Bento tile — solid pastel tone variants (charter tokens), 1px border-border,
+ * rounded-2xl, softened 3px offset shadow (charter value), empty state.
  */
 export function BentoCard({
   title,
@@ -61,8 +62,8 @@ export function BentoCard({
   return (
     <article
       className={cn(
-        "relative flex min-w-0 flex-col overflow-hidden rounded-[22px] p-4 md:p-5",
-        neo && "border-2 border-[var(--neo-shadow)] shadow-[4px_4px_0_0_var(--neo-shadow)]",
+        "relative flex min-w-0 flex-col overflow-hidden rounded-2xl p-4 md:p-5",
+        neo && "border border-border shadow-[3px_3px_0_0_var(--neo-shadow)]",
         TONE_CLASS[tone],
         className,
       )}
@@ -70,7 +71,13 @@ export function BentoCard({
       {title ? (
         <header className="mb-3 flex items-center justify-between gap-2">
           <h2 className="flex items-center gap-2 text-base font-extrabold tracking-tight">
-            {icon ? <AppIcon icon={icon} size="md" tone={iconTone} /> : null}
+            {icon ? (
+              <AppIcon
+                icon={icon}
+                size="md"
+                tone={tone === "default" || tone === "hero" ? iconTone : undefined}
+              />
+            ) : null}
             {title}
           </h2>
           {action ? <div className="shrink-0">{action}</div> : null}
@@ -83,7 +90,7 @@ export function BentoCard({
             <Skeleton
               key={i}
               className={cn(
-                "h-3 rounded-full bg-[color-mix(in_oklch,var(--foreground)_12%,transparent)]",
+                "h-3 rounded-full bg-foreground/10",
                 i === skeletonLines - 1 ? "w-2/3" : "w-full",
                 tone !== "default" && tone !== "hero" && "opacity-40",
               )}

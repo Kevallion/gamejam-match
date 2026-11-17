@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { usePathname, useSearchParams } from "next/navigation"
 import { AppShell } from "@/components/app-shell/app-shell"
 import { BentoDashboard } from "@/components/dashboard/bento-dashboard"
+// T7c MOCK (remove in T9): fictional Bento card content, see components/dashboard/bento-mock.ts
+import { BENTO_MOCK } from "@/components/dashboard/bento-mock"
 import type { TeamData } from "@/components/dashboard-my-teams"
 import { DashboardRecommendedTeams } from "@/components/dashboard-recommended-teams"
 import { DashboardAvailabilityCompact } from "@/components/dashboard-availability-compact"
@@ -1484,8 +1486,8 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
         <section className="min-w-0 pb-4 md:pb-8">
           <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full min-w-0 max-w-full">
             <TabsContent value="squads" className="mt-0 min-w-0 max-w-full">
-              {/* T7: Bento structure/nav placeholders. Real card content is T8. */}
-              <BentoDashboard displayName={displayName} />
+              {/* T7c: cards filled with fictional BENTO_MOCK. T9: pass the real query result instead. */}
+              <BentoDashboard displayName={displayName} data={BENTO_MOCK} />
             </TabsContent>
 
             <TabsContent value="inbox" className="mt-0 flex min-w-0 max-w-full flex-col gap-4 md:gap-6">

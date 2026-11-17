@@ -139,7 +139,7 @@ export function AppHeader({
                 hideGreetingDesktop && "lg:hidden",
               )}
             >
-              <span className="grid size-9 shrink-0 place-items-center rounded-[11px] border-2 border-[var(--neo-shadow)] bg-primary text-primary-foreground shadow-[3px_3px_0_0_var(--neo-shadow)] lg:hidden">
+              <span className="grid size-9 shrink-0 place-items-center rounded-xl border border-border bg-primary text-primary-foreground shadow-[3px_3px_0_0_var(--neo-shadow)] lg:hidden">
                 <AppIcon icon={ICON.jam} size="md" className="text-primary-foreground" />
               </span>
               <div className="min-w-0">

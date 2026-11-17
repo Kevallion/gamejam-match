@@ -87,7 +87,7 @@ export function AppShell({
           className="flex items-center gap-2.5 font-black tracking-tight"
           aria-label="GameJamCrew home"
         >
-          <span className="grid size-[34px] place-items-center rounded-[11px] border-2 border-[var(--neo-shadow)] bg-primary text-primary-foreground shadow-[3px_3px_0_0_var(--neo-shadow)]">
+          <span className="grid size-[34px] place-items-center rounded-xl border border-border bg-primary text-primary-foreground shadow-[3px_3px_0_0_var(--neo-shadow)]">
             <AppIcon icon={ICON.jam} size="md" className="text-primary-foreground" />
           </span>
           <span className="text-[17px]">GameJamCrew</span>
@@ -95,14 +95,14 @@ export function AppShell({
         <div className="flex-1" />
         <div
           className={cn(
-            "flex h-11 max-w-[380px] flex-1 items-center gap-2.5 rounded-[15px] border-2 border-[var(--neo-shadow)] bg-card px-3.5",
+            "flex h-11 max-w-[380px] flex-1 items-center gap-2.5 rounded-xl border border-border bg-card px-3.5",
             "text-[13px] font-bold text-muted-foreground shadow-[3px_3px_0_0_var(--neo-shadow)]",
           )}
           aria-hidden
         >
           <AppIcon icon={ICON.search} size="sm" tone="muted" />
           <span className="truncate">Search jams, squads, members</span>
-          <span className="ml-auto rounded-md border-2 border-border px-1.5 text-[11px] font-black">
+          <span className="ml-auto rounded-md border border-border px-1.5 text-[11px] font-black">
             /
           </span>
         </div>

@@ -30,7 +30,7 @@ function isTypingTarget(target: EventTarget | null): boolean {
 function SlotBadge({ count }: { count: number }) {
   if (count <= 0) return null
   return (
-    <span className="absolute -right-2 -top-2 flex min-h-[22px] min-w-[22px] items-center justify-center rounded-full border-2 border-[var(--neo-shadow)] bg-peach px-1 text-[11px] font-bold text-peach-foreground">
+    <span className="absolute -right-2 -top-2 flex min-h-[22px] min-w-[22px] items-center justify-center rounded-full border border-border bg-peach px-1 text-[11px] font-bold text-peach-foreground">
       {count > 9 ? "9+" : count}
     </span>
   )
@@ -75,8 +75,8 @@ export function BentoHotbar({ inboxCount = 0, availabilityCount = 0 }: BentoHotb
       >
         <div
           className={cn(
-            "pointer-events-auto flex items-end gap-2 rounded-[26px] border-2 border-[var(--neo-shadow)] bg-card px-3 py-2.5",
-            "shadow-[5px_5px_0_0_var(--neo-shadow)]",
+            "pointer-events-auto flex items-end gap-2 rounded-3xl border border-border bg-card px-3 py-2.5",
+            "shadow-[3px_3px_0_0_var(--neo-shadow)]",
           )}
         >
           {leftDesktop.map((item) => (
@@ -126,8 +126,8 @@ export function BentoHotbar({ inboxCount = 0, availabilityCount = 0 }: BentoHotb
       <nav
         className={cn(
           "fixed z-40 flex items-center justify-between md:hidden",
-          "left-3 right-3 rounded-3xl border-2 border-[var(--neo-shadow)] bg-card",
-          "shadow-[4px_4px_0_0_var(--neo-shadow)]",
+          "left-3 right-3 rounded-3xl border border-border bg-card",
+          "shadow-[3px_3px_0_0_var(--neo-shadow)]",
           "h-[68px] px-2",
         )}
         style={{
@@ -195,12 +195,12 @@ function HotbarSlot({
       aria-current={active ? "page" : undefined}
       title={`${item.label} (${item.key})`}
       className={cn(
-        "relative flex size-[62px] flex-col items-center justify-center gap-0.5 rounded-[18px] border-2",
+        "relative flex size-[62px] flex-col items-center justify-center gap-0.5 rounded-xl border",
         "text-[10px] font-extrabold transition-transform focus-visible:outline-none",
         "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         active
-          ? "-translate-y-1.5 border-[var(--neo-shadow)] bg-primary text-primary-foreground shadow-[3px_3px_0_0_var(--neo-shadow)]"
-          : "border-[var(--neo-shadow)] bg-background text-muted-foreground hover:text-foreground",
+          ? "-translate-y-1.5 border-border bg-primary text-primary-foreground shadow-[3px_3px_0_0_var(--neo-shadow)]"
+          : "border-border bg-background text-muted-foreground hover:text-foreground",
       )}
     >
       <span
@@ -215,8 +215,8 @@ function HotbarSlot({
       {active && showLabel ? (
         <span
           className={cn(
-            "absolute -top-10 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-[10px]",
-            "border-2 border-[var(--neo-shadow)] bg-foreground px-2.5 py-1 text-xs font-black text-background",
+            "absolute -top-10 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-md",
+            "border border-border bg-foreground px-2.5 py-1 text-xs font-black text-background",
             "after:absolute after:left-1/2 after:top-full after:-ml-1.5 after:border-[6px] after:border-transparent",
             "after:border-t-foreground after:content-['']",
           )}
@@ -260,7 +260,7 @@ function MobileHotbarLink({
       <span className="relative">
         <AppIcon icon={item.icon} size="lg" tone={active ? "primary" : "muted"} />
         {item.badge === "inbox" ? (
-          <span className="absolute -right-2.5 -top-1.5 flex min-h-[18px] min-w-[18px] items-center justify-center rounded-full border-2 border-[var(--neo-shadow)] bg-peach px-0.5 text-[10px] font-bold text-peach-foreground">
+          <span className="absolute -right-2.5 -top-1.5 flex min-h-[18px] min-w-[18px] items-center justify-center rounded-full border border-border bg-peach px-0.5 text-[10px] font-bold text-peach-foreground">
             {inboxCount > 9 ? "9+" : inboxCount}
           </span>
         ) : null}
