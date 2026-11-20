@@ -13,7 +13,8 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { supabase } from "@/lib/supabase"
 import { fetchProfilesMap } from "@/lib/profiles"
 import { fetchTeammateDiscordUsernames } from "@/lib/profile-discord"
-import { fetchTeamDiscordLink } from "@/lib/team-discord"
+import { fetchTeamDiscordLink, TEAMS_READABLE_COLUMNS } from "@/lib/team-discord"
+import { anonymousMemberRows, fetchTeamMemberCounts } from "@/lib/team-member-counts"
 import { formatTeamToCardData, type TeamRowDb } from "@/lib/team-utils"
 import type { TeamCardData } from "@/components/team-card"
 import { ArrowLeft, UsersRound, Cpu, Globe, Info } from "lucide-react"
@@ -80,7 +81,7 @@ export function TeamPageClient() {
       // 1) Public fetch: team by id (non-expired first, then any for shared links)
       let { data: teamRow, error: teamError } = await supabase
         .from("teams")
-        .select("*, team_members(id, role, user_id)")
+        .select(`${TEAMS_READABLE_COLUMNS}, team_members(id, role, user_id)`)
         .eq("id", teamId)
         .gt("expires_at", new Date().toISOString())
         .single()
@@ -88,11 +89,29 @@ export function TeamPageClient() {
       if ((teamError || !teamRow)) {
         const fallback = await supabase
           .from("teams")
-          .select("*, team_members(id, role, user_id)")
+          .select(`${TEAMS_READABLE_COLUMNS}, team_members(id, role, user_id)`)
           .eq("id", teamId)
           .single()
         if (fallback.data) {
           teamRow = fallback.data
+          teamError = null
+        }
+      }
+
+      if (teamError || !teamRow) {
+        // Signed-out visitors cannot read team_members (S7): load the listing
+        // alone, with the member count from the get_team_member_counts RPC.
+        const listingOnly = await supabase
+          .from("teams")
+          .select(TEAMS_READABLE_COLUMNS)
+          .eq("id", teamId)
+          .maybeSingle()
+        if (listingOnly.data) {
+          const counts = await fetchTeamMemberCounts(supabase, [teamId])
+          teamRow = {
+            ...listingOnly.data,
+            team_members: anonymousMemberRows(teamId, counts[teamId] ?? 0),
+          } as typeof teamRow
           teamError = null
         }
       }
@@ -143,10 +162,11 @@ export function TeamPageClient() {
             ].filter(Boolean),
           ),
         )
-        const profiles = await fetchProfilesMap(rosterIds)
+        // Profiles are not readable without a session (S7): no roster for anon.
+        const profiles = session ? await fetchProfilesMap(rosterIds) : {}
         if (cancelled) return
         setPublicRoster(
-          rosterIds.map((id) => ({
+          (session ? rosterIds : []).map((id) => ({
             userId: id,
             username: profiles[id]?.username?.trim() || "Jammer",
             avatarUrl: profiles[id]?.avatar_url ?? null,

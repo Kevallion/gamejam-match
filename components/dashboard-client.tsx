@@ -90,7 +90,7 @@ import {
   type SmartMatchRoleInput,
   type SmartRecommendedTeam,
 } from "@/lib/queries"
-import { discordLinkFromEmbed } from "@/lib/team-discord"
+import { discordLinkFromEmbed, TEAMS_READABLE_COLUMNS } from "@/lib/team-discord"
 import { kudosCountsMapFromRpcRows, type KudosCounts } from "@/lib/kudos"
 import {
   NOTIFICATION_ENRICHED_SELECT,
@@ -875,7 +875,7 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
         fetchDashboardJoinRequests(uid, supabase),
         supabase
           .from("availability_posts")
-          .select("id, user_id, availability, expires_at, role, experience, jam_style, engine, language, bio, portfolio_link")
+          .select("id, user_id, availability, expires_at")
           .eq("user_id", uid)
           .order("updated_at", { ascending: false }),
         supabase
@@ -957,7 +957,7 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
 
       let teamsQuery = supabase
         .from("teams")
-        .select("*, team_members(count), team_discord_links(discord_link)")
+        .select(`${TEAMS_READABLE_COLUMNS}, team_members(count), team_discord_links(discord_link)`)
       if (memberTeamIds.length > 0) {
         teamsQuery = teamsQuery.or(`user_id.eq.${uid},id.in.(${memberTeamIds.join(",")})`)
       } else {
@@ -1071,10 +1071,48 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
       const profileUsername = profile?.username?.trim() ?? null
       const profileAvatarUrl = sessionAvatarUrl ?? profile?.avatar_url?.trim() ?? null
 
+      // Since S7, announcements no longer carry a copy of the profile: show the
+      // jammer's current profile fields on each of their posts.
+      type PostProfileFields = {
+        role?: string | null
+        default_role?: string | null
+        experience?: string | null
+        experience_level?: string | null
+        jam_style?: string | null
+        engine?: string | null
+        default_engine?: string | null
+        language?: string | null
+        default_language?: string | null
+        bio?: string | null
+        portfolio_link?: string | null
+        portfolio_url?: string | null
+      }
+      const postProfile: PostProfileFields | null =
+        (postsData?.length ?? 0) > 0
+          ? (((
+              await supabase
+                .from("profiles")
+                .select(
+                  "role, default_role, experience, experience_level, jam_style, engine, default_engine, language, default_language, bio, portfolio_link, portfolio_url",
+                )
+                .eq("id", uid)
+                .maybeSingle()
+            ).data ?? null) as PostProfileFields | null)
+          : null
+      const pick = (...values: (string | null | undefined)[]) =>
+        values.map((v) => v?.trim()).find((v) => Boolean(v)) ?? null
+
       let postsWithJam: AvailabilityPostRow[] = ((postsData ?? []) as Record<string, unknown>[]).map((p) => ({
         ...p,
         username: profileUsername,
         avatar_url: profileAvatarUrl,
+        role: pick(postProfile?.role, postProfile?.default_role),
+        experience: pick(postProfile?.experience, postProfile?.experience_level),
+        jam_style: pick(postProfile?.jam_style),
+        engine: pick(postProfile?.engine, postProfile?.default_engine),
+        language: pick(postProfile?.language, postProfile?.default_language),
+        bio: pick(postProfile?.bio),
+        portfolio_link: pick(postProfile?.portfolio_link, postProfile?.portfolio_url),
       })) as AvailabilityPostRow[]
 
       const jamId = (profileData as { jam_id?: string | null } | null)?.jam_id ?? null

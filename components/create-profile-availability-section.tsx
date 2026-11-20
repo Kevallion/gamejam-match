@@ -28,7 +28,7 @@ export function CreateProfileAvailabilitySection() {
       setCountLoading(true)
       const { count, error } = await supabase
         .from("availability_posts")
-        .select("*", { count: "exact", head: true })
+        .select("id", { count: "exact", head: true })
         .eq("user_id", uid)
         .gte("expires_at", new Date().toISOString())
       if (cancelled) return

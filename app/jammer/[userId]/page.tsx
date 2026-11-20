@@ -9,6 +9,7 @@ import { ProfileCard } from "@/components/profile-card"
 import { GiveKudosControl } from "@/components/give-kudos-control"
 import { InviteToSquadControl, type OwnedSquadOption } from "@/components/invite-to-squad-control"
 import { Button } from "@/components/ui/button"
+import { SignedOutNotice } from "@/components/signed-out-notice"
 import { parseProgrammingLanguages } from "@/lib/constants"
 import { levelFromTotalXp } from "@/lib/gamification-level"
 import { usersShareATeam } from "@/lib/kudos-collaboration"
@@ -70,6 +71,23 @@ export default async function JammerPublicProfilePage({ params }: PageProps) {
   }
 
   const supabase = await createClient()
+  const {
+    data: { user: viewer },
+  } = await supabase.auth.getUser()
+  if (!viewer) {
+    // Profiles are only readable with a session (S7).
+    return (
+      <div className="flex min-h-screen flex-col">
+        <Navbar />
+        <main className="flex-1 pt-20">
+          <SignedOutNotice
+            title="Sign in to view this jammer"
+            description="Jammer profiles are only visible to signed-in members."
+          />
+        </main>
+      </div>
+    )
+  }
   const profileColumns =
     "username, avatar_url, xp, current_title, default_role, default_engine, portfolio_url, jam_style, default_language, profile_roles(role, experience_level, is_primary)"
   const profileWithLanguages = await supabase
@@ -117,11 +135,7 @@ export default async function JammerPublicProfilePage({ params }: PageProps) {
   const primaryRole = sortedRoles[0]?.role?.trim() || profile.default_role || null
   const secondaryRole = sortedRoles[1]?.role?.trim() || null
 
-  const {
-    data: { user: viewer },
-  } = await supabase.auth.getUser()
-
-  const viewerId = viewer?.id ?? null
+  const viewerId = viewer.id
   let viewerSharesTeamWithReceiver = false
   let ownedSquads: OwnedSquadOption[] = []
   let alreadyInvitedTeamIds: string[] = []

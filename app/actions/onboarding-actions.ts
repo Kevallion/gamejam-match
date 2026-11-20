@@ -101,11 +101,6 @@ export async function completeOnboarding(
     existingProfile?.portfolio_link,
     existingProfile?.portfolio_url,
   )
-  const mergedExperience = firstNonEmpty(
-    existingProfile?.experience,
-    existingProfile?.experience_level,
-  )
-  const mergedBio = firstNonEmpty(existingProfile?.bio)
 
   // Ensure the profile row exists and keep onboarding data in sync
   // with both the default_* fields and the base profile fields.
@@ -121,7 +116,8 @@ export async function completeOnboarding(
         role: mergedRole,
         engine: mergedEngine,
         language: mergedLanguage,
-        discord_username: mergedDiscord,
+        // discord_username is kept only in profile_discord_usernames (below):
+        // since S7 an upsert of profiles.discord_username is refused (no SELECT on it).
         portfolio_url: mergedPortfolio,
         portfolio_link: mergedPortfolio,
         has_completed_onboarding: true,
@@ -203,16 +199,11 @@ export async function completeOnboarding(
   try {
     const { data: newPost, error: postError } = await supabase
       .from("availability_posts")
+      // S7: the post only stores availability; profile fields are read from
+      // the (now published) profile.
       .insert({
         user_id: user.id,
-        role: mergedRole,
-        engine: mergedEngine,
-        language: mergedLanguage,
-        portfolio_link: mergedPortfolio,
         availability: "Ready for upcoming game jams!",
-        jam_style: existingProfile?.jam_style?.trim() || null,
-        experience: mergedExperience ?? "regular",
-        bio: mergedBio ?? "Open to joining upcoming game jams.",
         expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
       })
       .select("id")

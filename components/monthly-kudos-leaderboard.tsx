@@ -28,24 +28,36 @@ export function MonthlyKudosLeaderboard() {
     ;(async () => {
       setLoading(true)
       const since = monthStartIso()
-      const { data: kudosRows, error } = await supabase
-        .from("kudos")
-        .select("receiver_id")
-        .gte("created_at", since)
-
-      if (cancelled) return
-      if (error || !kudosRows) {
-        setRows([])
-        setLoading(false)
-        return
-      }
-
       const countByUser = new Map<string, number>()
-      for (const row of kudosRows) {
-        const id = (row.receiver_id as string | null) ?? ""
-        if (!id) continue
-        countByUser.set(id, (countByUser.get(id) ?? 0) + 1)
+
+      // S7: kudos rows are private; the leaderboard uses an aggregate-only RPC.
+      // Falls back to reading kudos rows until the migration is applied.
+      const rpc = await supabase.rpc("get_kudos_leaderboard", { p_since: since, p_limit: 10 })
+      if (!rpc.error) {
+        for (const row of (rpc.data ?? []) as { receiver_id?: string | null; total?: number | string | null }[]) {
+          if (!row.receiver_id) continue
+          countByUser.set(row.receiver_id, Number(row.total ?? 0))
+        }
+      } else {
+        const { data: kudosRows, error } = await supabase
+          .from("kudos")
+          .select("receiver_id")
+          .gte("created_at", since)
+
+        if (cancelled) return
+        if (error || !kudosRows) {
+          setRows([])
+          setLoading(false)
+          return
+        }
+
+        for (const row of kudosRows) {
+          const id = (row.receiver_id as string | null) ?? ""
+          if (!id) continue
+          countByUser.set(id, (countByUser.get(id) ?? 0) + 1)
+        }
       }
+      if (cancelled) return
 
       const topIds = [...countByUser.entries()]
         .sort((a, b) => b[1] - a[1])
