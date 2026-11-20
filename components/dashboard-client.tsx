@@ -68,6 +68,7 @@ import { readOwnDiscordUsername } from "@/lib/profile-discord"
 import { claimDailyLoginXp } from "@/app/actions/gamification-actions"
 import { OnboardingModal } from "@/components/onboarding-modal"
 import { ProfileSettings, type ProfileSettingsProfile } from "@/components/profile-settings"
+import { EMAIL_PREFERENCE_SELECT, isMissingEmailPreferenceColumnError } from "@/lib/email-preferences"
 import { ProfileGamification } from "@/components/profile-gamification"
 import {
   GamificationDashboardFull,
@@ -850,6 +851,8 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
       setSession(authSession)
 
       const uid = authSession.user.id
+      /** S3: false while email_team_activity / email_matching_announcements are missing in the database. */
+      let emailPrefsAvailable = true
 
       const [
         { data: membershipRows },
@@ -862,15 +865,31 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
         (async () => {
           const withRoles =
             "id, has_completed_onboarding, onboarding_version, jam_id, username, avatar_url, default_role, default_engine, engine, default_language, portfolio_url, jam_style, xp, current_title, profile_roles(role, experience_level, is_primary)"
-          const withLanguages = await supabase
+          // Optional columns are dropped one by one while their migration is not applied.
+          let includeLanguages = true
+          let result = await supabase
             .from("profiles")
-            .select(`${withRoles}, programming_languages`)
+            .select(`${withRoles}, programming_languages, ${EMAIL_PREFERENCE_SELECT}`)
             .eq("id", uid)
             .maybeSingle()
-          if (withLanguages.error && isMissingColumnError(withLanguages.error, "programming_languages")) {
-            return supabase.from("profiles").select(withRoles).eq("id", uid).maybeSingle()
+          for (let attempt = 0; attempt < 2 && result.error; attempt += 1) {
+            if (emailPrefsAvailable && isMissingEmailPreferenceColumnError(result.error)) {
+              emailPrefsAvailable = false
+            } else if (includeLanguages && isMissingColumnError(result.error, "programming_languages")) {
+              includeLanguages = false
+            } else {
+              break
+            }
+            const columns = [
+              withRoles,
+              includeLanguages ? "programming_languages" : null,
+              emailPrefsAvailable ? EMAIL_PREFERENCE_SELECT : null,
+            ]
+              .filter(Boolean)
+              .join(", ")
+            result = await supabase.from("profiles").select(columns).eq("id", uid).maybeSingle()
           }
-          return withLanguages
+          return result
         })(),
         fetchDashboardJoinRequests(uid, supabase),
         supabase
@@ -904,11 +923,14 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
             xp?: number | null
             current_title?: string | null
             profile_roles?: SmartMatchRoleInput[] | null
+            email_team_activity?: boolean | null
+            email_matching_announcements?: boolean | null
           }
         | null
 
       // Fallback for environments where `profile_roles` relation is not yet available.
       if (profileQueryResult.error) {
+        emailPrefsAvailable = false
         const { data: fallbackProfileData, error: fallbackProfileError } = await supabase
           .from("profiles")
           .select(
@@ -1045,6 +1067,9 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
               portfolio_url: (profileData as { portfolio_url?: string | null }).portfolio_url,
               xp: typeof (profileData as { xp?: number | null }).xp === "number" ? (profileData as { xp: number }).xp : 0,
               current_title: (profileData as { current_title?: string | null }).current_title ?? null,
+              email_team_activity: profileData.email_team_activity ?? null,
+              email_matching_announcements: profileData.email_matching_announcements ?? null,
+              email_preferences_available: emailPrefsAvailable,
             }
           : authSession.user
             ? {

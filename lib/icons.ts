@@ -156,6 +156,7 @@ export const ICON = {
 
   // Privacy
   cookies: Cookie,
+  email: Mail,
 
   // Navigation
   more: Ellipsis,

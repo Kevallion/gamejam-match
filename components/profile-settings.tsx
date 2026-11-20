@@ -47,6 +47,8 @@ import { cn } from "@/lib/utils"
 import { TagIcon } from "@/components/tag-icon"
 import { AppIcon } from "@/components/ui/app-icon"
 import { ICON } from "@/lib/icons"
+import { EmailPreferencesRows } from "@/components/settings/email-preferences"
+import { readEmailPreferences } from "@/lib/email-preferences"
 import { openCookieSettings } from "@/lib/consent"
 import { useSignOut } from "@/hooks/use-sign-out"
 
@@ -70,6 +72,11 @@ export type ProfileSettingsProfile = {
   portfolio_url?: string | null
   xp?: number | null
   current_title?: string | null
+  /** S3 email preferences (true = subscribed). */
+  email_team_activity?: boolean | null
+  email_matching_announcements?: boolean | null
+  /** false when the S3 columns are missing in the database: switches are disabled. */
+  email_preferences_available?: boolean
 }
 
 type ProfileSettingsProps = {
@@ -647,6 +654,13 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
         <Card className="border-border/50 bg-muted/30">
           <CardContent className="p-6 md:p-8">
             <PushNotificationManager />
+            <div className="mt-6 border-t border-border/40 pt-6">
+              <EmailPreferencesRows
+                key={`${profile?.email_preferences_available === true}-${profile?.email_team_activity !== false}-${profile?.email_matching_announcements !== false}`}
+                initial={readEmailPreferences(profile)}
+                available={profile?.email_preferences_available === true}
+              />
+            </div>
           </CardContent>
         </Card>
       </section>
