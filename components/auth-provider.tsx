@@ -33,7 +33,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const isRefreshTokenError =
           err && typeof err === "object" && "code" in err && (err as { code?: string }).code === "refresh_token_not_found"
         if (isRefreshTokenError) {
-          await supabase.auth.signOut()
+          // Broken refresh token: clear this device only, nothing to revoke server-side.
+          await supabase.auth.signOut({ scope: "local" })
         }
       }
       if (!cancelled) {

@@ -45,6 +45,10 @@ import { ChevronDown, LoaderCircle, Trash2, UserRound, Settings, Bell, TriangleA
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { TagIcon } from "@/components/tag-icon"
+import { AppIcon } from "@/components/ui/app-icon"
+import { ICON } from "@/lib/icons"
+import { openCookieSettings } from "@/lib/consent"
+import { useSignOut } from "@/hooks/use-sign-out"
 
 type ProfileSettingsRole = {
   role: string
@@ -183,6 +187,8 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
   const [saving, setSaving] = useState(false)
   const [showDeleteAccountDialog, setShowDeleteAccountDialog] = useState(false)
   const [deletingAccount, setDeletingAccount] = useState(false)
+  const [showSignOutAllDialog, setShowSignOutAllDialog] = useState(false)
+  const { signOut, pending: signOutPending } = useSignOut()
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -644,6 +650,89 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
           </CardContent>
         </Card>
       </section>
+
+      <section id="privacy" className="scroll-mt-24 space-y-4">
+        <div className="flex items-center gap-3">
+          <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10">
+            <AppIcon icon={ICON.locked} tone="primary" />
+          </div>
+          <div>
+            <h2 className="text-base font-medium text-foreground">Privacy and sessions</h2>
+            <p className="text-sm text-muted-foreground">Cookies on this browser and where you are signed in</p>
+          </div>
+        </div>
+
+        <ul className="divide-y divide-border/40 overflow-hidden rounded-xl border border-border/50 bg-muted/30">
+          <li className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3">
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-foreground">Cookie settings</p>
+              <p className="text-xs text-muted-foreground">Allow or refuse optional analytics on this browser.</p>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="gap-1.5 rounded-lg"
+              aria-haspopup="dialog"
+              onClick={openCookieSettings}
+            >
+              <AppIcon icon={ICON.cookies} size="sm" />
+              Cookie settings
+            </Button>
+          </li>
+          <li className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3">
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-foreground">Log out of all devices</p>
+              <p className="text-xs text-muted-foreground">Ends every session of your account, including this one.</p>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="gap-1.5 rounded-lg"
+              disabled={signOutPending !== null}
+              onClick={() => setShowSignOutAllDialog(true)}
+            >
+              <AppIcon icon={ICON.signOutAll} size="sm" />
+              Log out of all devices
+            </Button>
+          </li>
+        </ul>
+      </section>
+
+      <AlertDialog open={showSignOutAllDialog} onOpenChange={(open) => signOutPending === null && setShowSignOutAllDialog(open)}>
+        <AlertDialogContent className="rounded-2xl border-border/50">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Log out of all devices?</AlertDialogTitle>
+            <AlertDialogDescription>
+              You will be signed out everywhere: this browser, your phone and any other device. You can sign in again anytime.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2 sm:gap-2">
+            <AlertDialogCancel disabled={signOutPending !== null} className="rounded-lg">
+              Cancel
+            </AlertDialogCancel>
+            <Button
+              type="button"
+              onClick={() => void signOut("global")}
+              disabled={signOutPending !== null}
+              className="gap-2 rounded-lg"
+            >
+              {signOutPending === "global" ? (
+                <>
+                  <AppIcon icon={ICON.loading} className="animate-spin" />
+                  Logging out…
+                </>
+              ) : (
+                <>
+                  <AppIcon icon={ICON.signOutAll} />
+                  Log out everywhere
+                </>
+              )}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <section className="space-y-6">
         <div className="flex items-center gap-3">

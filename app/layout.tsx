@@ -8,6 +8,8 @@ import { Toaster } from '@/components/ui/sonner'
 import { FeedbackButton } from '@/components/FeedbackButton'
 import { Footer } from '@/components/footer'
 import { ConsentProvider } from '@/components/consent/consent-provider'
+import { SigningOutCover } from '@/components/auth/signing-out-cover'
+import { BfcacheAuthGuard } from '@/components/auth/bfcache-auth-guard'
 import './globals.css'
 
 const _nunito = Nunito({
@@ -68,6 +70,8 @@ export default function RootLayout({
                   <Footer />
                 </div>
                 <Toaster richColors position="bottom-right" closeButton />
+                <SigningOutCover />
+                <BfcacheAuthGuard />
               </GamificationProvider>
             </AuthProvider>
           </ThemeProvider>

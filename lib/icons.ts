@@ -43,6 +43,7 @@ import {
   MessageCircle,
   MessageSquareText,
   Mic,
+  MonitorSmartphone,
   Music,
   Palette,
   PenLine,
@@ -151,6 +152,7 @@ export const ICON = {
   // Auth
   signIn: LogIn,
   signOut: LogOut,
+  signOutAll: MonitorSmartphone,
 
   // Privacy
   cookies: Cookie,
