@@ -1,6 +1,29 @@
 import { Resend } from "resend"
 import { getEmailLayout } from "@/lib/mail-template"
 import { getPublicDashboardUrl, getPublicSiteUrl } from "@/lib/site-url"
+import { isEmailCategoryEnabled } from "@/lib/email-preferences"
+import { buildUnsubscribeUrls } from "@/lib/email-unsubscribe"
+import type { EmailCategory } from "@/lib/email-unsubscribe-token"
+
+export type { EmailCategory } from "@/lib/email-unsubscribe-token"
+
+/**
+ * Who receives the email and which preference governs it.
+ * When set, the send is skipped if the user turned that category off, and the
+ * footer / List-Unsubscribe headers carry a signed one-category unsubscribe link
+ * (only when EMAIL_UNSUBSCRIBE_SECRET is configured).
+ * Omit it only for emails that must always be sent (auth, account deletion).
+ */
+export type EmailRecipientContext = {
+  userId: string
+  category: EmailCategory
+}
+
+export type SendEmailOptions = {
+  replyTo?: string
+  from?: string
+  recipient?: EmailRecipientContext
+}
 
 const FROM_EMAIL =
   process.env.RESEND_FROM_EMAIL ||
@@ -27,13 +50,18 @@ export async function sendEmailWithLayout(
   subject: string,
   layoutTitle: string,
   contentHtml: string,
-  options?: {
-    replyTo?: string
-    from?: string
-  },
+  options?: SendEmailOptions,
 ): Promise<boolean> {
-  const fullHtml = getEmailLayout(layoutTitle, contentHtml)
-  return sendEmailNotification(to, subject, fullHtml, options)
+  const recipient = options?.recipient
+  if (recipient && !(await isEmailCategoryEnabled(recipient.userId, recipient.category))) {
+    console.info(`[mail] skipped: recipient opted out of ${recipient.category} emails.`)
+    return false
+  }
+  const links = recipient ? buildUnsubscribeUrls(recipient.userId, recipient.category) : null
+  const fullHtml = getEmailLayout(layoutTitle, contentHtml, {
+    unsubscribeUrl: links?.pageUrl ?? null,
+  })
+  return deliverEmail(to, subject, fullHtml, options, links?.oneClickUrl ?? null)
 }
 
 /**
@@ -44,6 +72,7 @@ export async function notifySmartMatch(
   userName: string,
   teamName: string,
   matchingRole: string,
+  recipientUserId: string,
 ): Promise<boolean> {
   const safeUser = escapeHtml(userName)
   const safeTeam = escapeHtml(teamName)
@@ -70,7 +99,9 @@ export async function notifySmartMatch(
       <p style="margin:0;color:#6b7280;font-size:14px;line-height:1.5;">Happy jamming!<br/><span style="color:#9ca3af;">The GameJamCrew team</span></p>
     `
 
-  return sendEmailWithLayout(toEmail, subject, "New Squad Match! 🚀", contentHtml)
+  return sendEmailWithLayout(toEmail, subject, "New Squad Match! 🚀", contentHtml, {
+    recipient: { userId: recipientUserId, category: "matching_announcements" },
+  })
 }
 
 /**
@@ -79,6 +110,7 @@ export async function notifySmartMatch(
 export async function sendLaunchJamAnnouncement(
   to: string,
   username: string,
+  recipientUserId: string,
 ): Promise<boolean> {
   const safeName = escapeHtml(username)
   const dashboardUrl = getPublicDashboardUrl()
@@ -120,6 +152,7 @@ export async function sendLaunchJamAnnouncement(
     subject,
     "GameJamCrew Launch Jam",
     contentHtml,
+    { recipient: { userId: recipientUserId, category: "matching_announcements" } },
   )
 }
 
@@ -133,6 +166,7 @@ export async function sendTeamCreationFollowUp(
   to: string,
   teamName: string,
   teamId: string,
+  recipientUserId: string,
 ): Promise<boolean> {
   const safeTeamName = escapeHtml(teamName)
 
@@ -164,7 +198,9 @@ export async function sendTeamCreationFollowUp(
       </p>
     `
 
-  return sendEmailWithLayout(to, subject, layoutTitle, contentHtml)
+  return sendEmailWithLayout(to, subject, layoutTitle, contentHtml, {
+    recipient: { userId: recipientUserId, category: "matching_announcements" },
+  })
 }
 
 /**
@@ -176,6 +212,7 @@ export async function sendTeamCreationFollowUp(
 export async function sendPlayerPostFollowUp(
   to: string,
   username: string,
+  recipientUserId: string,
 ): Promise<boolean> {
   const safeUsername = escapeHtml(username)
 
@@ -207,7 +244,9 @@ export async function sendPlayerPostFollowUp(
       </p>
     `
 
-  return sendEmailWithLayout(to, subject, layoutTitle, contentHtml)
+  return sendEmailWithLayout(to, subject, layoutTitle, contentHtml, {
+    recipient: { userId: recipientUserId, category: "matching_announcements" },
+  })
 }
 
 /**
@@ -216,15 +255,30 @@ export async function sendPlayerPostFollowUp(
  *
  * By default, uses RESEND_FROM_EMAIL and RESEND_REPLY_TO_EMAIL,
  * but both can be overridden per call via options.
+ * With `options.recipient`, the send is skipped when that preference is off and
+ * List-Unsubscribe headers are added (the HTML body is sent as given).
  */
 export async function sendEmailNotification(
   to: string,
   subject: string,
   html: string,
-  options?: {
-    replyTo?: string
-    from?: string
+  options?: SendEmailOptions,
+): Promise<boolean> {
+  const recipient = options?.recipient
+  if (recipient && !(await isEmailCategoryEnabled(recipient.userId, recipient.category))) {
+    console.info(`[mail] skipped: recipient opted out of ${recipient.category} emails.`)
+    return false
   }
+  const links = recipient ? buildUnsubscribeUrls(recipient.userId, recipient.category) : null
+  return deliverEmail(to, subject, html, options, links?.oneClickUrl ?? null)
+}
+
+async function deliverEmail(
+  to: string,
+  subject: string,
+  html: string,
+  options: SendEmailOptions | undefined,
+  oneClickUnsubscribeUrl: string | null,
 ): Promise<boolean> {
   const apiKey = process.env.RESEND_API_KEY
   if (!apiKey) {
@@ -240,6 +294,14 @@ export async function sendEmailNotification(
       subject,
       html,
       replyTo: options?.replyTo || DEFAULT_REPLY_TO,
+      ...(oneClickUnsubscribeUrl
+        ? {
+            headers: {
+              "List-Unsubscribe": `<${oneClickUnsubscribeUrl}>`,
+              "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+            },
+          }
+        : {}),
     })
 
     if (error) {

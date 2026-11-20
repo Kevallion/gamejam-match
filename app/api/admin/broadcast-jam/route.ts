@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { createAdminClient, getUserEmail } from "@/lib/supabase/admin"
 import { sendLaunchJamAnnouncement } from "@/lib/mail"
+import { isMissingColumnError } from "@/lib/optional-column"
 
 export const dynamic = "force-dynamic"
 export const maxDuration = 300
@@ -17,7 +18,9 @@ const SEND_DELAY_MS = 200
  * - x-admin-broadcast-secret: <ADMIN_BROADCAST_SECRET>
  *
  * Fetches one fixed page of profiles (40 per page), resolves email from auth.users,
- * skips users without email and users already marked as sent.
+ * skips users without email, users already marked as sent and users who turned off
+ * "Matching & announcements" emails (email_matching_announcements = false).
+ * Opted-out rows are skipped in code, not in the query, so page ranges stay stable.
  *
  * GET and POST behave the same (Vercel Cron invokes scheduled routes with GET + Bearer CRON_SECRET).
  *
@@ -74,27 +77,44 @@ async function runBroadcastJam(request: Request): Promise<NextResponse> {
   let attempted = 0
   let alreadySent = 0
   let missingEmail = 0
+  let optedOut = 0
 
-  const { data: rows, error } = await supabaseAdmin
-    .from("profiles")
-    .select("id, username, launch_jam_announcement_sent_at")
-    .order("id", { ascending: true })
-    .range(start, end)
+  const fetchPage = (withPreference: boolean) =>
+    supabaseAdmin
+      .from("profiles")
+      .select(
+        withPreference
+          ? "id, username, launch_jam_announcement_sent_at, email_matching_announcements"
+          : "id, username, launch_jam_announcement_sent_at",
+      )
+      .order("id", { ascending: true })
+      .range(start, end)
+
+  let { data: rows, error } = await fetchPage(true)
+  if (error && isMissingColumnError(error, "email_matching_announcements")) {
+    ;({ data: rows, error } = await fetchPage(false))
+  }
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  const batch = rows ?? []
+  const batch = (rows ?? []) as unknown as Array<{
+    id: string
+    username?: string | null
+    launch_jam_announcement_sent_at?: string | null
+    email_matching_announcements?: boolean | null
+  }>
   for (let i = 0; i < batch.length; i += 1) {
-    const row = batch[i] as {
-      id: string
-      username?: string | null
-      launch_jam_announcement_sent_at?: string | null
-    }
+    const row = batch[i]
 
     if (row.launch_jam_announcement_sent_at) {
       alreadySent += 1
+      continue
+    }
+
+    if (row.email_matching_announcements === false) {
+      optedOut += 1
       continue
     }
 
@@ -111,7 +131,7 @@ async function runBroadcastJam(request: Request): Promise<NextResponse> {
         ? row.username.trim()
         : "Jammer"
 
-    const ok = await sendLaunchJamAnnouncement(email, displayName)
+    const ok = await sendLaunchJamAnnouncement(email, displayName, userId)
     if (ok) {
       sent += 1
       const { error: markError } = await supabaseAdmin
@@ -144,6 +164,7 @@ async function runBroadcastJam(request: Request): Promise<NextResponse> {
     sent,
     alreadySent,
     missingEmail,
+    optedOut,
   })
 }
 

@@ -185,6 +185,7 @@ export async function completeOnboarding(
         contentHtml,
         {
           from: "Wisllor | GameJamCrew <notifications@gamejamcrew.com>",
+          recipient: { userId: user.id, category: "matching_announcements" },
         },
       )
     }

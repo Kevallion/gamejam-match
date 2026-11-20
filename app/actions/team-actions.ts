@@ -243,7 +243,9 @@ export async function notifyOwnerNewApplication(
       <p style="${EMAIL_SIGNOFF}">— The GameJamCrew team</p>
     `
 
-    void sendEmailWithLayout(email, subject, "New application!", contentHtml)
+    void sendEmailWithLayout(email, subject, "New application!", contentHtml, {
+      recipient: { userId: ownerUserId, category: "team_activity" },
+    })
   } catch {
     // Silent error: don't crash the main action
   }
@@ -309,7 +311,9 @@ export async function notifyInviteeInvitation(
       <p style="${EMAIL_SIGNOFF}">— The GameJamCrew team</p>
     `
 
-    void sendEmailWithLayout(email, subject, "You're invited!", contentHtml)
+    void sendEmailWithLayout(email, subject, "You're invited!", contentHtml, {
+      recipient: { userId: inviteeUserId, category: "team_activity" },
+    })
   } catch {
     // Silent error: don't crash the main action
   }
@@ -354,7 +358,9 @@ export async function notifyApplicantDeclined(
       <p style="${EMAIL_SIGNOFF}">— The GameJamCrew team</p>
     `
 
-    void sendEmailWithLayout(email, subject, "Application update", contentHtml)
+    void sendEmailWithLayout(email, subject, "Application update", contentHtml, {
+      recipient: { userId: candidateUserId, category: "team_activity" },
+    })
   } catch {
     // Silent error: don't crash the main action
   }
@@ -399,7 +405,9 @@ export async function notifyCandidateAccepted(
       <p style="${EMAIL_SIGNOFF}">— The GameJamCrew team</p>
     `
 
-    void sendEmailWithLayout(email, subject, "You're in!", contentHtml)
+    void sendEmailWithLayout(email, subject, "You're in!", contentHtml, {
+      recipient: { userId: candidateUserId, category: "team_activity" },
+    })
   } catch {
     // Silent error: don't crash the main action
   }
@@ -429,7 +437,9 @@ export async function notifyMemberDiscordLink(
       <p style="${EMAIL_SIGNOFF}">— The GameJamCrew team</p>
     `
 
-    void sendEmailWithLayout(email, subject, "Discord invite", contentHtml)
+    void sendEmailWithLayout(email, subject, "Discord invite", contentHtml, {
+      recipient: { userId: memberUserId, category: "team_activity" },
+    })
   } catch {
     // Silent error: don't crash the main action
   }
@@ -534,7 +544,9 @@ export async function notifyTeamChatNewMessage(
         <p style="${EMAIL_SIGNOFF}">— The GameJamCrew team</p>
       `
 
-      void sendEmailWithLayout(email, subject, "New messages", contentHtml)
+      void sendEmailWithLayout(email, subject, "New messages", contentHtml, {
+        recipient: { userId: profileId, category: "team_activity" },
+      })
 
       try {
         await admin
@@ -666,7 +678,9 @@ export async function notifyPlayerKicked(
       <p style="${EMAIL_SIGNOFF}">— The GameJamCrew team</p>
     `
 
-    void sendEmailWithLayout(email, subject, "Squad update", contentHtml)
+    void sendEmailWithLayout(email, subject, "Squad update", contentHtml, {
+      recipient: { userId: playerUserId, category: "team_activity" },
+    })
   } catch {
     // Silent error
   }
@@ -744,7 +758,9 @@ export async function notifyTeamDiscordUpdated(
     for (const id of allRecipientIds) {
       const email = await getUserEmail(id)
       if (!email) continue
-      void sendEmailWithLayout(email, subject, "Discord link updated", contentHtml)
+      void sendEmailWithLayout(email, subject, "Discord link updated", contentHtml, {
+        recipient: { userId: id, category: "team_activity" },
+      })
     }
   } catch {
     // Silent error
@@ -775,6 +791,7 @@ export async function notifyOwnerJamListingArchived(
       subject,
       "Your Jam announcement has ended! 🏁",
       contentHtml,
+      { recipient: { userId: ownerUserId, category: "team_activity" } },
     )
   } catch {
     /* best-effort */
