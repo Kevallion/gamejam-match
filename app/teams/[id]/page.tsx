@@ -97,6 +97,19 @@ export default function TeamPage() {
         }
       }
 
+      if (teamError || !teamRow) {
+        // Signed-out visitors cannot read team_members (S7): load the listing alone.
+        const listingOnly = await supabase
+          .from("teams")
+          .select(TEAMS_READABLE_COLUMNS)
+          .eq("id", teamId)
+          .maybeSingle()
+        if (listingOnly.data) {
+          teamRow = { ...listingOnly.data, team_members: [] } as typeof teamRow
+          teamError = null
+        }
+      }
+
       if (cancelled) return
       if (teamError || !teamRow) {
         setViewMode("not_found")
@@ -143,10 +156,11 @@ export default function TeamPage() {
             ].filter(Boolean),
           ),
         )
-        const profiles = await fetchProfilesMap(rosterIds)
+        // Profiles are not readable without a session (S7): no roster for anon.
+        const profiles = session ? await fetchProfilesMap(rosterIds) : {}
         if (cancelled) return
         setPublicRoster(
-          rosterIds.map((id) => ({
+          (session ? rosterIds : []).map((id) => ({
             userId: id,
             username: profiles[id]?.username?.trim() || "Jammer",
             avatarUrl: profiles[id]?.avatar_url ?? null,

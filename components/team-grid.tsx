@@ -215,12 +215,26 @@ export function TeamGrid({
   }, [searchQuery])
 
   const fetchPage = useCallback(async (from: number, append: boolean) => {
-    const { data, error } = await supabase
+    const nowIso = new Date().toISOString()
+    let { data, error } = await supabase
       .from("teams")
       .select(`${TEAMS_READABLE_COLUMNS}, team_members(id, role, user_id)`)
-      .gt("expires_at", new Date().toISOString())
+      .gt("expires_at", nowIso)
       .order("created_at", { ascending: false })
       .range(from, from + PAGE_SIZE - 1)
+    if (error) {
+      // Signed-out visitors cannot read team_members (S7): list squads without it.
+      const listingOnly = await supabase
+        .from("teams")
+        .select(TEAMS_READABLE_COLUMNS)
+        .gt("expires_at", nowIso)
+        .order("created_at", { ascending: false })
+        .range(from, from + PAGE_SIZE - 1)
+      if (!listingOnly.error) {
+        data = (listingOnly.data ?? []).map((row) => ({ ...row, team_members: [] })) as typeof data
+        error = null
+      }
+    }
 
     if (!error && data) {
       const formatted = data.map(formatTeam)

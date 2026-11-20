@@ -11,9 +11,9 @@ import { sanitizeJamDisplayName } from "@/lib/teams-public"
 export const revalidate = 300
 
 /**
- * Profiles are only readable row by row when published (S7), so the public
- * counter uses an aggregate-only RPC. Falls back to the old count until the
- * migration is applied.
+ * Profiles are not readable without a session (S7), so the public counter uses
+ * an aggregate-only RPC. Falls back to the old count until the migration is
+ * applied.
  */
 async function countOnboardedJammers(
   supabase: ReturnType<typeof createAnonClient>,
@@ -25,6 +25,27 @@ async function countOnboardedJammers(
     .select("id", { count: "exact", head: true })
     .eq("has_completed_onboarding", true)
   return { count }
+}
+
+/**
+ * Featured squads with their member count. Signed-out visitors cannot read
+ * team_members (S7): fall back to the squads alone (count unknown, treated as 0).
+ */
+async function fetchFeaturedTeamRows(supabase: ReturnType<typeof createAnonClient>, nowIso: string) {
+  const withCount = await supabase
+    .from("teams")
+    .select("id, team_name, game_name, looking_for, team_members(count)")
+    .gt("expires_at", nowIso)
+    .order("created_at", { ascending: false })
+    .limit(5)
+  if (!withCount.error) return withCount.data ?? []
+  const { data } = await supabase
+    .from("teams")
+    .select("id, team_name, game_name, looking_for")
+    .gt("expires_at", nowIso)
+    .order("created_at", { ascending: false })
+    .limit(5)
+  return (data ?? []).map((row) => ({ ...row, team_members: [] as { count: number }[] }))
 }
 
 export const metadata: Metadata = {
@@ -52,18 +73,13 @@ export default async function HomePage() {
   const nowIso = new Date().toISOString()
 
   const [
-    { data: teamRows },
+    teamRows,
     { count: activeTeamsCount },
     { count: completedTeamsCount },
     { count: activeJammersCount },
     { data: upcomingJamRows },
   ] = await Promise.all([
-    supabase
-      .from("teams")
-      .select("id, team_name, game_name, looking_for, team_members(count)")
-      .gt("expires_at", nowIso)
-      .order("created_at", { ascending: false })
-      .limit(5),
+    fetchFeaturedTeamRows(supabase, nowIso),
     supabase
       .from("teams")
       .select("id", { count: "exact", head: true })
@@ -83,7 +99,7 @@ export default async function HomePage() {
       .limit(3),
   ])
 
-  const featuredTeams: LandingFeaturedTeam[] = (teamRows ?? [])
+  const featuredTeams: LandingFeaturedTeam[] = teamRows
     .map((row) => {
       const roles = Array.isArray(row.looking_for) ? row.looking_for : []
       const acceptedMembers = Number(row.team_members?.[0]?.count ?? 0)

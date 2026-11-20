@@ -1,126 +1,47 @@
--- S7: close public API reads on profiles and on the tables around them
--- (Forge audit, 20 Nov 2026; scope extended by Wisllor the same day).
+-- S7: close API reads on profiles and on the tables around them
+-- (Forge audit, 20 Nov 2026; scope extended and visibility rule decided by
+-- Wisllor the same day: "a profile is public no matter what, except for people
+-- who are not logged in").
 --
--- Summary
---   1. profiles: table-level SELECT revoked from anon/authenticated; only an
---      explicit column list is granted. Rows are readable when the profile is
---      published, is the caller's own, or is related to the caller.
---   2. discord_username: only via public.get_visible_discord_usernames()
---      (SECURITY DEFINER, authenticated): self, squadmates, or the other side of
---      an accepted application/invitation.
---   3. teams.discord_link: no longer readable through the API; squad members get
---      the invite through public.get_team_discord_link() / team_discord_links.
---   4. availability_posts: only active posts are public (owner still sees all of
---      their own); the profile copies stored on posts (username, bio, role, ...)
---      are no longer readable. Existing data is NOT modified.
---   5. user_badges, profile_roles, team_members follow the profile rule.
---   6. Private tables: no USING (true) / WITH CHECK (true) policies, no anon
---      SELECT; two policies whose subquery compared a column with itself
---      (any squad member could read every squad chat) are fixed.
+-- Access model
+--   anon (not signed in):
+--     * no row and no column of profiles, user_badges, profile_roles,
+--       team_members, availability_posts;
+--     * teams listing readable, except teams.discord_link;
+--     * private tables: nothing;
+--     * RPCs: count_onboarded_jammers() (a count, no row data) only.
+--   authenticated:
+--     * every profile, public columns only (column-level GRANT); never
+--       discord_username or the technical columns;
+--     * every user_badges / profile_roles / team_members row;
+--     * active availability posts (expires_at > now()), without the profile
+--       copies stored on them; plus all of their own posts;
+--     * discord_username only via get_visible_discord_usernames() (self,
+--       squadmates, other side of an accepted application/invitation);
+--     * squad Discord invite only via get_team_discord_link() / team_discord_links
+--       (owner and members);
+--     * private tables: per-user policies only (no USING/WITH CHECK true).
+--   owner: same as authenticated, plus INSERT/UPDATE/DELETE of their own rows
+--     (existing policies, unchanged).
 --
 -- service_role (admin client) is unaffected: it bypasses RLS and keeps its
 -- table privileges. No row is inserted, updated or deleted by this migration.
 -- Idempotent: safe to run more than once.
 
 -- ===========================================================================
--- 1. Visibility helpers
+-- 1. Helpers
 -- ===========================================================================
 
--- Published = onboarding completed AND the jammer chose to be publicly visible:
---   * an active availability post: this is what the onboarding "Publish my
---     profile" toggle (publishImmediately) and the Post Availability form
---     create; there is no separate profile column for the toggle, or
---   * owner or member of a squad (squad pages are public).
--- A fresh sign-up (has_completed_onboarding false/NULL) or a jammer who left the
--- toggle off and has no squad is therefore not public.
-CREATE OR REPLACE FUNCTION public.profile_is_published(p_user_id uuid)
-RETURNS boolean
-LANGUAGE sql
-STABLE
-SECURITY DEFINER
-SET search_path = public, pg_temp
-AS $$
-  SELECT p_user_id IS NOT NULL
-  AND EXISTS (
-    SELECT 1 FROM public.profiles p
-    WHERE p.id = p_user_id AND p.has_completed_onboarding IS TRUE
-  )
-  AND (
-    EXISTS (
-      SELECT 1 FROM public.availability_posts ap
-      WHERE ap.user_id = p_user_id AND ap.expires_at > now()
-    )
-    OR EXISTS (SELECT 1 FROM public.teams t WHERE t.user_id = p_user_id)
-    OR EXISTS (SELECT 1 FROM public.team_members tm WHERE tm.user_id = p_user_id)
-  );
-$$;
-
--- Related = the signed-in caller has a direct link with this jammer:
---   * it is the caller,
---   * an application/invitation between them (either side, any status),
---   * a notification this jammer sent to the caller,
---   * a chat message this jammer posted in a squad the caller owns or belongs to.
-CREATE OR REPLACE FUNCTION public.profile_is_related(p_user_id uuid)
-RETURNS boolean
-LANGUAGE sql
-STABLE
-SECURITY DEFINER
-SET search_path = public, pg_temp
-AS $$
-  SELECT auth.uid() IS NOT NULL AND p_user_id IS NOT NULL AND (
-    p_user_id = auth.uid()
-    OR EXISTS (
-      SELECT 1 FROM public.join_requests jr
-      JOIN public.teams t ON t.id = jr.team_id
-      WHERE (jr.sender_id = p_user_id AND t.user_id = auth.uid())
-         OR (jr.sender_id = auth.uid() AND t.user_id = p_user_id)
-    )
-    OR EXISTS (
-      SELECT 1 FROM public.notifications n
-      WHERE n.user_id = auth.uid() AND n.sender_id = p_user_id
-    )
-    OR EXISTS (
-      SELECT 1 FROM public.team_messages m
-      WHERE m.sender_id = p_user_id
-        AND (
-          EXISTS (SELECT 1 FROM public.teams t WHERE t.id = m.team_id AND t.user_id = auth.uid())
-          OR EXISTS (SELECT 1 FROM public.team_members me WHERE me.team_id = m.team_id AND me.user_id = auth.uid())
-        )
-    )
-  );
-$$;
-
--- The single entry point used by row policies (anon: published only).
-CREATE OR REPLACE FUNCTION public.can_view_profile(p_user_id uuid)
-RETURNS boolean
-LANGUAGE sql
-STABLE
-SECURITY DEFINER
-SET search_path = public, pg_temp
-AS $$
-  SELECT public.profile_is_published(p_user_id) OR public.profile_is_related(p_user_id);
-$$;
-
--- Internal helpers: not callable by API roles (Supabase grants EXECUTE on new
--- functions to anon/authenticated by default, so revoke explicitly).
-REVOKE ALL ON FUNCTION public.profile_is_published(uuid) FROM PUBLIC, anon, authenticated;
-REVOKE ALL ON FUNCTION public.profile_is_related(uuid) FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION public.profile_is_published(uuid) TO service_role;
-GRANT EXECUTE ON FUNCTION public.profile_is_related(uuid) TO service_role;
--- Called inside row policies, so the API roles need EXECUTE. Returns a boolean only.
-REVOKE ALL ON FUNCTION public.can_view_profile(uuid) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.can_view_profile(uuid) TO anon, authenticated, service_role;
-
--- Lookups used by the helpers (no-ops when they already exist).
+-- Lookups used by get_visible_discord_usernames / owner post queries
+-- (no-ops when they already exist).
 CREATE INDEX IF NOT EXISTS idx_availability_posts_user_expires ON public.availability_posts (user_id, expires_at);
 CREATE INDEX IF NOT EXISTS idx_teams_user_id ON public.teams (user_id);
 CREATE INDEX IF NOT EXISTS idx_team_members_user_id ON public.team_members (user_id);
 CREATE INDEX IF NOT EXISTS idx_join_requests_sender_id ON public.join_requests (sender_id);
-CREATE INDEX IF NOT EXISTS idx_notifications_user_sender ON public.notifications (user_id, sender_id);
-CREATE INDEX IF NOT EXISTS idx_team_messages_sender_team ON public.team_messages (sender_id, team_id);
 
--- Drops every SELECT/ALL policy granted to the API roles whose USING is a bare
--- `true` (prod may have dashboard-created ones with other names).
+-- Drops every policy granted to the API roles whose USING (or, when
+-- p_read_only is false, WITH CHECK) is a bare `true`. Prod may have
+-- dashboard-created ones with other names. Session-local, not kept.
 CREATE OR REPLACE FUNCTION pg_temp.drop_open_policies(p_table text, p_read_only boolean)
 RETURNS void
 LANGUAGE plpgsql
@@ -129,7 +50,7 @@ DECLARE
   pol record;
 BEGIN
   FOR pol IN
-    SELECT policyname, cmd, qual, with_check
+    SELECT policyname, cmd
     FROM pg_policies
     WHERE schemaname = 'public'
       AND tablename = p_table
@@ -149,28 +70,24 @@ END;
 $$;
 
 -- ===========================================================================
--- 2. profiles
+-- 2. profiles: signed-in users only, public columns only
 -- ===========================================================================
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
+-- Replaces "profiles_select_all" (USING true, every role) and any other open
+-- read policy.
 DROP POLICY IF EXISTS "profiles_select_all" ON public.profiles;
 DO $$ BEGIN PERFORM pg_temp.drop_open_policies('profiles', true); END $$;
-DROP POLICY IF EXISTS profiles_select_visible ON public.profiles;
-DROP POLICY IF EXISTS profiles_select_own ON public.profiles;
-
-CREATE POLICY profiles_select_visible
-  ON public.profiles FOR SELECT TO anon, authenticated
-  USING (public.can_view_profile(id));
-
-CREATE POLICY profiles_select_own
+DROP POLICY IF EXISTS profiles_select_authenticated ON public.profiles;
+CREATE POLICY profiles_select_authenticated
   ON public.profiles FOR SELECT TO authenticated
-  USING (id = auth.uid());
-
--- INSERT / UPDATE / DELETE policies (owner only) are unchanged.
+  USING (true);
+-- No SELECT policy for anon. INSERT / UPDATE / DELETE policies (owner only)
+-- are unchanged.
 
 -- Column privileges. A column-level REVOKE has no effect while a table-level
--- SELECT exists, so: revoke table SELECT, clear any column SELECT, then grant
--- only the listed columns. Columns missing in an environment are skipped.
+-- SELECT exists, so: revoke table SELECT, clear every column SELECT, then grant
+-- the listed columns to authenticated only. Missing columns are skipped.
 REVOKE SELECT ON TABLE public.profiles FROM anon, authenticated;
 REVOKE TRUNCATE, TRIGGER, REFERENCES ON TABLE public.profiles FROM anon, authenticated;
 -- anon never writes profiles (the policies already require auth.uid()).
@@ -178,8 +95,8 @@ REVOKE INSERT, UPDATE, DELETE ON TABLE public.profiles FROM anon;
 
 DO $$
 DECLARE
-  -- Shown on public pages (Directory, Available, /jammer, squads, chat,
-  -- notifications) or used as public filters.
+  -- Public profile columns: shown to signed-in users on Directory, Available,
+  -- /jammer, squads, chat and notifications, or used as filters.
   public_cols text[] := ARRAY[
     'id', 'username', 'avatar_url', 'bio',
     'role', 'main_role', 'default_role',
@@ -189,8 +106,8 @@ DECLARE
     'xp', 'current_title', 'jam_id', 'has_completed_onboarding'
   ];
   -- Read by the owner's own screens through the user session (dashboard,
-  -- gamification). Column grants are not per row, so these are also readable on
-  -- other visible profiles; they are low sensitivity.
+  -- gamification, Settings). Column grants are not per row, so signed-in users
+  -- can also read these on other profiles; they are low sensitivity.
   -- email_* (S3 email preferences, migration 20261120120000) are read by the
   -- owner's Settings tab; skipped harmlessly when the columns do not exist yet.
   authenticated_extra_cols text[] := ARRAY[
@@ -204,15 +121,13 @@ BEGIN
     WHERE a.attrelid = 'public.profiles'::regclass AND a.attnum > 0 AND NOT a.attisdropped
   LOOP
     EXECUTE format('REVOKE SELECT (%I) ON TABLE public.profiles FROM anon, authenticated', col.attname);
-    IF col.attname = ANY (public_cols) THEN
-      EXECUTE format('GRANT SELECT (%I) ON TABLE public.profiles TO anon, authenticated', col.attname);
-    ELSIF col.attname = ANY (authenticated_extra_cols) THEN
+    IF col.attname = ANY (public_cols) OR col.attname = ANY (authenticated_extra_cols) THEN
       EXECUTE format('GRANT SELECT (%I) ON TABLE public.profiles TO authenticated', col.attname);
     END IF;
   END LOOP;
 END $$;
--- Not readable through the API (never granted, whatever the row policy):
--- discord_username (only via get_visible_discord_usernames), last_chat_email_sent,
+-- Never readable through the API (whatever the row policy): discord_username
+-- (only via get_visible_discord_usernames), last_chat_email_sent,
 -- launch_jam_announcement_sent_at, last_daily_xp_at, daily_login_streak,
 -- invitations_sent_count, role_stats, level, availability, created_at,
 -- updated_at, and any column added later until it is granted explicitly.
@@ -280,7 +195,7 @@ CREATE POLICY profile_discord_usernames_select_self
   USING (user_id = auth.uid());
 
 -- ===========================================================================
--- 4. teams.discord_link (legacy copy of the invite)
+-- 4. teams: listing stays public (anon too), minus discord_link
 -- ===========================================================================
 REVOKE SELECT ON TABLE public.teams FROM anon, authenticated;
 REVOKE TRUNCATE, TRIGGER, REFERENCES ON TABLE public.teams FROM anon, authenticated;
@@ -322,27 +237,28 @@ GRANT EXECUTE ON FUNCTION public.get_team_discord_link(uuid) TO authenticated, s
 REVOKE ALL ON TABLE public.team_discord_links FROM anon;
 
 -- ===========================================================================
--- 5. availability_posts
+-- 5. availability_posts: signed-in users, active posts, no profile copies
 -- ===========================================================================
+-- anon gets nothing: without profiles a post is only a user id and dates.
 ALTER TABLE public.availability_posts ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "availability_posts_select_all" ON public.availability_posts;
 DO $$ BEGIN PERFORM pg_temp.drop_open_policies('availability_posts', true); END $$;
 DROP POLICY IF EXISTS availability_posts_select_active ON public.availability_posts;
 DROP POLICY IF EXISTS availability_posts_select_own ON public.availability_posts;
 
--- Active posts of published (hence onboarded) jammers only.
 CREATE POLICY availability_posts_select_active
-  ON public.availability_posts FOR SELECT TO anon, authenticated
-  USING (expires_at > now() AND public.can_view_profile(user_id));
+  ON public.availability_posts FOR SELECT TO authenticated
+  USING (expires_at > now());
 
 CREATE POLICY availability_posts_select_own
   ON public.availability_posts FOR SELECT TO authenticated
   USING (user_id = auth.uid());
 
 -- Profile copies stored on posts are no longer readable (the app reads the
--- published profile instead). The data itself is left untouched.
+-- profile instead). The data itself is left untouched.
 REVOKE SELECT ON TABLE public.availability_posts FROM anon, authenticated;
 REVOKE TRUNCATE, TRIGGER, REFERENCES ON TABLE public.availability_posts FROM anon, authenticated;
+REVOKE INSERT, UPDATE, DELETE ON TABLE public.availability_posts FROM anon;
 DO $$
 DECLARE
   copied_cols text[] := ARRAY[
@@ -355,16 +271,15 @@ BEGIN
     SELECT a.attname FROM pg_attribute a
     WHERE a.attrelid = 'public.availability_posts'::regclass AND a.attnum > 0 AND NOT a.attisdropped
   LOOP
-    IF col.attname = ANY (copied_cols) THEN
-      EXECUTE format('REVOKE SELECT (%I) ON TABLE public.availability_posts FROM anon, authenticated', col.attname);
-    ELSE
-      EXECUTE format('GRANT SELECT (%I) ON TABLE public.availability_posts TO anon, authenticated', col.attname);
+    EXECUTE format('REVOKE SELECT (%I) ON TABLE public.availability_posts FROM anon, authenticated', col.attname);
+    IF NOT (col.attname = ANY (copied_cols)) THEN
+      EXECUTE format('GRANT SELECT (%I) ON TABLE public.availability_posts TO authenticated', col.attname);
     END IF;
   END LOOP;
 END $$;
 
 -- ===========================================================================
--- 6. user_badges, profile_roles, team_members follow the profile rule
+-- 6. user_badges, profile_roles, team_members: same rule as profiles
 -- ===========================================================================
 DO $$
 DECLARE
@@ -377,11 +292,12 @@ BEGIN
     EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY', tbl);
     EXECUTE format('DROP POLICY IF EXISTS %I ON public.%I', tbl || '_select_all', tbl);
     PERFORM pg_temp.drop_open_policies(tbl, true);
-    EXECUTE format('DROP POLICY IF EXISTS %I ON public.%I', tbl || '_select_visible', tbl);
+    EXECUTE format('DROP POLICY IF EXISTS %I ON public.%I', tbl || '_select_authenticated', tbl);
     EXECUTE format(
-      'CREATE POLICY %I ON public.%I FOR SELECT TO anon, authenticated USING (public.can_view_profile(user_id))',
-      tbl || '_select_visible', tbl);
-    EXECUTE format('REVOKE TRUNCATE, TRIGGER, REFERENCES ON TABLE public.%I FROM anon, authenticated', tbl);
+      'CREATE POLICY %I ON public.%I FOR SELECT TO authenticated USING (true)',
+      tbl || '_select_authenticated', tbl);
+    EXECUTE format('REVOKE SELECT, TRUNCATE, TRIGGER, REFERENCES ON TABLE public.%I FROM anon', tbl);
+    EXECUTE format('REVOKE TRUNCATE, TRIGGER, REFERENCES ON TABLE public.%I FROM authenticated', tbl);
   END LOOP;
 END $$;
 
@@ -450,9 +366,9 @@ BEGIN
 END $$;
 
 -- ===========================================================================
--- 8. Aggregate-only RPCs that replace broad reads
+-- 8. Aggregate-only RPCs
 -- ===========================================================================
--- Landing-page counter.
+-- Landing-page counter: a number only, callable by anon.
 CREATE OR REPLACE FUNCTION public.count_onboarded_jammers()
 RETURNS integer
 LANGUAGE sql
@@ -465,8 +381,8 @@ $$;
 REVOKE ALL ON FUNCTION public.count_onboarded_jammers() FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.count_onboarded_jammers() TO anon, authenticated, service_role;
 
--- Monthly kudos leaderboard: totals per receiver the caller may see, never who
--- sent them.
+-- Monthly kudos leaderboard: totals per receiver, never who sent them.
+-- Signed-in users only (it names jammers); returns nothing without a session.
 CREATE OR REPLACE FUNCTION public.get_kudos_leaderboard(p_since timestamptz, p_limit integer DEFAULT 10)
 RETURNS TABLE (receiver_id uuid, total integer)
 LANGUAGE sql
@@ -476,11 +392,21 @@ SET search_path = public, pg_temp
 AS $$
   SELECT k.receiver_id, count(*)::integer AS total
   FROM public.kudos k
-  WHERE k.created_at >= COALESCE(p_since, now() - interval '31 days')
-    AND public.can_view_profile(k.receiver_id)
+  WHERE auth.uid() IS NOT NULL
+    AND k.created_at >= COALESCE(p_since, now() - interval '31 days')
   GROUP BY k.receiver_id
   ORDER BY total DESC, k.receiver_id
   LIMIT LEAST(GREATEST(COALESCE(p_limit, 10), 1), 50);
 $$;
-REVOKE ALL ON FUNCTION public.get_kudos_leaderboard(timestamptz, integer) FROM PUBLIC;
-GRANT EXECUTE ON FUNCTION public.get_kudos_leaderboard(timestamptz, integer) TO anon, authenticated, service_role;
+REVOKE ALL ON FUNCTION public.get_kudos_leaderboard(timestamptz, integer) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.get_kudos_leaderboard(timestamptz, integer) TO authenticated, service_role;
+
+-- Per-jammer kudos counts (Directory / Available cards, dashboard): linked to
+-- profiles, so signed-in users only, like the profiles themselves.
+DO $$
+BEGIN
+  IF to_regprocedure('public.get_kudos_counts_for_users(uuid[])') IS NOT NULL THEN
+    REVOKE ALL ON FUNCTION public.get_kudos_counts_for_users(uuid[]) FROM PUBLIC, anon;
+    GRANT EXECUTE ON FUNCTION public.get_kudos_counts_for_users(uuid[]) TO authenticated, service_role;
+  END IF;
+END $$;

@@ -42,6 +42,22 @@ export default async function MembersPage({ searchParams }: MembersPageProps) {
   const params = await searchParams
   const supabase = (await createClient()) as unknown as GamejamSupabaseClient
   const initialMode = params.view === "directory" ? "directory" : "available"
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) {
+    // Profiles and posts are not readable without a session (S7).
+    return (
+      <FindMembersShell
+        initialMembers={[]}
+        initialHasMore={false}
+        initialDirectory={[]}
+        initialDirectoryHasMore={false}
+        initialMode={initialMode}
+        signedIn={false}
+      />
+    )
+  }
   const [{ players, hasMore }, directory] = await Promise.all([
     getAvailablePlayers(
       {
