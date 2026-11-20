@@ -90,7 +90,7 @@ export default async function JammerPublicProfilePage({ params }: PageProps) {
     )
   }
   const profileColumns =
-    "username, avatar_url, xp, current_title, default_role, default_engine, portfolio_url, jam_style, default_language, profile_roles(role, experience_level, is_primary)"
+    "username, avatar_url, bio, xp, current_title, default_role, default_engine, portfolio_url, jam_style, default_language, profile_roles(role, experience_level, is_primary)"
   const profileWithLanguages = await supabase
     .from("profiles")
     .select(`${profileColumns}, programming_languages`)
@@ -112,6 +112,9 @@ export default async function JammerPublicProfilePage({ params }: PageProps) {
   )
 
   const displayName = profile.username?.trim() || "Jammer"
+  // Bio comes from the profile itself (readable by signed-in viewers since S7),
+  // not from an availability post, so it shows even without an active post.
+  const publicBio = typeof profile.bio === "string" ? profile.bio.trim() : ""
 
   const publicXp = typeof profile.xp === "number" ? profile.xp : 0
   const publicLevel = levelFromTotalXp(publicXp)
@@ -266,6 +269,16 @@ export default async function JammerPublicProfilePage({ params }: PageProps) {
                   }
                   className="w-full justify-start"
                 />
+                {publicBio ? (
+                  <section className="pt-4" aria-labelledby="jammer-about-heading">
+                    <h2 id="jammer-about-heading" className="text-sm font-semibold text-foreground">
+                      About
+                    </h2>
+                    <p className="mt-1 whitespace-pre-line break-words text-sm leading-relaxed text-muted-foreground">
+                      {publicBio}
+                    </p>
+                  </section>
+                ) : null}
                 <ProfileGamification userId={userId} badgesOnly unlockedOnly compact className="pt-3" />
                 <div className="flex flex-col gap-3 pt-4 sm:flex-row sm:flex-wrap sm:items-center">
                   {publicPortfolioUrl ? (
