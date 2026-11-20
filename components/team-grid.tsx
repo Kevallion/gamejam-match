@@ -18,6 +18,7 @@ import {
 import { getRecommendedTeams } from "@/lib/matchmaking"
 import { supabase } from "@/lib/supabase"
 import { fetchProfilesMap } from "@/lib/profiles"
+import { TEAMS_READABLE_COLUMNS } from "@/lib/team-discord"
 import { LoaderCircle, UsersRound } from "lucide-react"
 import { toast } from "sonner"
 import { EXPERIENCE_STYLES, JAM_STYLE_STYLES, ROLE_STYLES } from "@/lib/constants"
@@ -216,7 +217,7 @@ export function TeamGrid({
   const fetchPage = useCallback(async (from: number, append: boolean) => {
     const { data, error } = await supabase
       .from("teams")
-      .select("*, team_members(id, role, user_id)")
+      .select(`${TEAMS_READABLE_COLUMNS}, team_members(id, role, user_id)`)
       .gt("expires_at", new Date().toISOString())
       .order("created_at", { ascending: false })
       .range(from, from + PAGE_SIZE - 1)
@@ -277,7 +278,7 @@ export function TeamGrid({
     const ids = rec.map((t) => t.id)
     const { data: rows, error: teamsError } = await supabase
       .from("teams")
-      .select("*, team_members(id, role, user_id)")
+      .select(`${TEAMS_READABLE_COLUMNS}, team_members(id, role, user_id)`)
       .in("id", ids)
       .gt("expires_at", new Date().toISOString())
 

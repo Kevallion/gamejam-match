@@ -13,7 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { supabase } from "@/lib/supabase"
 import { fetchProfilesMap } from "@/lib/profiles"
 import { fetchTeammateDiscordUsernames } from "@/lib/profile-discord"
-import { fetchTeamDiscordLink } from "@/lib/team-discord"
+import { fetchTeamDiscordLink, TEAMS_READABLE_COLUMNS } from "@/lib/team-discord"
 import { formatTeamToCardData, type TeamRowDb } from "@/lib/team-utils"
 import type { TeamCardData } from "@/components/team-card"
 import { ArrowLeft, TriangleAlert, UsersRound, Cpu, Globe, Info } from "lucide-react"
@@ -80,7 +80,7 @@ export default function TeamPage() {
       // 1) Public fetch: team by id (non-expired first, then any for shared links)
       let { data: teamRow, error: teamError } = await supabase
         .from("teams")
-        .select("*, team_members(id, role, user_id)")
+        .select(`${TEAMS_READABLE_COLUMNS}, team_members(id, role, user_id)`)
         .eq("id", teamId)
         .gt("expires_at", new Date().toISOString())
         .single()
@@ -88,7 +88,7 @@ export default function TeamPage() {
       if ((teamError || !teamRow)) {
         const fallback = await supabase
           .from("teams")
-          .select("*, team_members(id, role, user_id)")
+          .select(`${TEAMS_READABLE_COLUMNS}, team_members(id, role, user_id)`)
           .eq("id", teamId)
           .single()
         if (fallback.data) {

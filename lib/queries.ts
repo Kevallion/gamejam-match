@@ -423,17 +423,11 @@ const LEGACY_EXPERIENCE_EQUIVALENTS: Record<string, string[]> = {
   senior: ["senior", "expert"],
 }
 
+/** Since S7 a post only carries its dates; profile fields come from `profiles`. */
 type AvailablePlayersPostRow = {
   id: string
   user_id: string
   availability: string | null
-  role: string | null
-  experience: string | null
-  jam_style: string | null
-  engine: string | null
-  language: string | null
-  bio: string | null
-  portfolio_link: string | null
 }
 
 type AvailablePlayerProfile = {
@@ -450,6 +444,10 @@ type AvailablePlayerProfile = {
   engine: string | null
   language: string | null
   default_language?: string | null
+  default_role?: string | null
+  main_role?: string | null
+  default_engine?: string | null
+  portfolio_url?: string | null
   programming_languages?: string[] | null
   bio: string | null
   portfolio_link: string | null
@@ -517,6 +515,11 @@ type AvailablePlayersResult = {
 
 function normalizedFilterValue(value: string | null | undefined): string {
   return (value ?? "").trim().toLowerCase()
+}
+
+/** Values interpolated in a PostgREST `or=(...)` filter must not contain separators. */
+function isSafeOrFilterValue(value: string): boolean {
+  return /^[a-z0-9_-]+$/.test(value)
 }
 
 function firstExternalJam(
@@ -589,8 +592,13 @@ export async function getAvailablePlayers(
   const safeOffset = Math.max(0, offset)
   const safeLimit = Math.max(1, limit)
   let profileIdsFilter: string[] | null = null
+  const hasRoleFilter = Boolean(cleanRole && cleanRole !== "all")
+  const hasEngineFilter = Boolean(cleanEngine && cleanEngine !== "all")
+  const hasExperienceFilter = Boolean(cleanExperience && cleanExperience !== "all")
 
-  if (cleanSearch || cleanJamId) {
+  // Since S7, role / level / engine / language are read from the published
+  // profile, not from a copy stored on the post.
+  if (cleanSearch || cleanJamId || hasRoleFilter || hasEngineFilter || hasExperienceFilter) {
     let profilesFilterQuery = client
       .from("profiles")
       .select("id")
@@ -600,6 +608,24 @@ export async function getAvailablePlayers(
     }
     if (cleanSearch) {
       profilesFilterQuery = profilesFilterQuery.ilike("username", `%${cleanSearch}%`)
+    }
+    if (hasRoleFilter) {
+      profilesFilterQuery = isSafeOrFilterValue(cleanRole)
+        ? profilesFilterQuery.or(`role.eq.${cleanRole},default_role.eq.${cleanRole},main_role.eq.${cleanRole}`)
+        : profilesFilterQuery.eq("role", cleanRole)
+    }
+    if (hasEngineFilter) {
+      profilesFilterQuery = isSafeOrFilterValue(cleanEngine)
+        ? profilesFilterQuery.or(`engine.eq.${cleanEngine},default_engine.eq.${cleanEngine}`)
+        : profilesFilterQuery.eq("engine", cleanEngine)
+    }
+    if (hasExperienceFilter) {
+      const equivalentValues = LEGACY_EXPERIENCE_EQUIVALENTS[cleanExperience] ?? [cleanExperience]
+      profilesFilterQuery = equivalentValues.every(isSafeOrFilterValue)
+        ? profilesFilterQuery.or(
+            `experience.in.(${equivalentValues.join(",")}),experience_level.in.(${equivalentValues.join(",")})`,
+          )
+        : profilesFilterQuery.in("experience", equivalentValues)
     }
 
     const { data: filteredProfiles, error: filteredProfilesError } = await profilesFilterQuery
@@ -656,26 +682,11 @@ export async function getAvailablePlayers(
 
   let query = client
     .from("availability_posts")
-    .select(
-      "id, user_id, availability, role, experience, jam_style, engine, language, bio, portfolio_link",
-    )
+    .select("id, user_id, availability")
     .gt("expires_at", new Date().toISOString())
     .not("availability", "is", null)
     .neq("availability", "")
     .order("updated_at", { ascending: false })
-
-  if (cleanRole && cleanRole !== "all") {
-    query = query.eq("role", cleanRole)
-  }
-
-  if (cleanEngine && cleanEngine !== "all") {
-    query = query.eq("engine", cleanEngine)
-  }
-
-  if (cleanExperience && cleanExperience !== "all") {
-    const equivalentValues = LEGACY_EXPERIENCE_EQUIVALENTS[cleanExperience] ?? [cleanExperience]
-    query = query.in("experience", equivalentValues)
-  }
 
   const languageFilterKey = (() => {
     if (!cleanLanguage || cleanLanguage === "all") return null
@@ -685,33 +696,32 @@ export async function getAvailablePlayers(
   })()
 
   if (languageFilterKey) {
-    const { data: defaultLangProfiles, error: defaultLangError } = await client
+    const { data: langProfiles, error: langError } = await client
       .from("profiles")
       .select("id")
-      .eq("default_language", languageFilterKey)
+      .or(`language.eq.${languageFilterKey},default_language.eq.${languageFilterKey}`)
 
-    if (defaultLangError) {
-      console.error("[getAvailablePlayers:languageFilter]", defaultLangError.message)
+    if (langError) {
+      console.error("[getAvailablePlayers:languageFilter]", langError.message)
       return {
         players: [],
         hasMore: false,
         nextOffset: safeOffset,
-        error: defaultLangError.message,
+        error: langError.message,
       }
     }
 
-    const userIdsWithDefaultLang = (defaultLangProfiles ?? [])
+    const langIds = (langProfiles ?? [])
       .map((row) => row.id)
       .filter((id): id is string => Boolean(id))
-
-    // Never emit `user_id.in.()` with zero UUIDs (malformed PostgREST filter). When no profile
-    // has this `default_language`, only `availability_posts.language` can match.
-    if (userIdsWithDefaultLang.length > 0) {
-      query = query.or(
-        `language.eq.${languageFilterKey},user_id.in.(${userIdsWithDefaultLang.join(",")})`,
-      )
+    if (profileIdsFilter) {
+      const allowed = new Set(langIds)
+      profileIdsFilter = profileIdsFilter.filter((id) => allowed.has(id))
     } else {
-      query = query.eq("language", languageFilterKey)
+      profileIdsFilter = langIds
+    }
+    if (profileIdsFilter.length === 0) {
+      return { players: [], hasMore: false, nextOffset: 0, error: null }
     }
   }
 
@@ -734,7 +744,7 @@ export async function getAvailablePlayers(
 
   if (userIds.length > 0) {
     const profileHydrateColumns =
-      "id, username, avatar_url, jam_id, xp, current_title, role, experience, experience_level, jam_style, engine, language, default_language, bio, portfolio_link, external_jams(id, title, url)"
+      "id, username, avatar_url, jam_id, xp, current_title, role, default_role, main_role, experience, experience_level, jam_style, engine, default_engine, language, default_language, bio, portfolio_link, portfolio_url, external_jams(id, title, url)"
     const profilesWithLanguages = await client
       .from("profiles")
       .select(`${profileHydrateColumns}, programming_languages`)
@@ -777,22 +787,12 @@ export async function getAvailablePlayers(
 
   const players: AvailablePlayerListItem[] = pageRows.map((row) => {
     const profile = profilesByUserId.get(row.user_id) ?? null
-    const roleRaw = (row.role ?? profile?.role ?? "").trim()
-    const levelRaw = (
-      row.experience ??
-      profile?.experience ??
-      profile?.experience_level ??
-      ""
-    ).trim()
-    const engineRaw = (row.engine ?? profile?.engine ?? "").trim()
-    const languageRaw = (
-      row.language ??
-      profile?.language ??
-      profile?.default_language ??
-      ""
-    ).trim()
-    const bioRaw = (row.bio ?? profile?.bio ?? "").trim()
-    const portfolioRaw = (row.portfolio_link ?? profile?.portfolio_link ?? "").trim()
+    const roleRaw = (profile?.role || profile?.default_role || profile?.main_role || "").trim()
+    const levelRaw = (profile?.experience || profile?.experience_level || "").trim()
+    const engineRaw = (profile?.engine || profile?.default_engine || "").trim()
+    const languageRaw = (profile?.language || profile?.default_language || "").trim()
+    const bioRaw = (profile?.bio ?? "").trim()
+    const portfolioRaw = (profile?.portfolio_link || profile?.portfolio_url || "").trim()
     const xp = typeof profile?.xp === "number" ? profile.xp : 0
     const jam = firstExternalJam(profile?.external_jams)
 
@@ -802,7 +802,7 @@ export async function getAvailablePlayers(
       avatar_url: profile?.avatar_url?.trim() || null,
       role: toDisplayRole(roleRaw),
       level: toDisplayLevel(levelRaw),
-      jamStyle: toDisplayJamStyle(row.jam_style ?? profile?.jam_style ?? ""),
+      jamStyle: toDisplayJamStyle(profile?.jam_style ?? ""),
       engine: engineRaw,
       bio: bioRaw,
       language: languageRaw,

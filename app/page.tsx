@@ -10,6 +10,23 @@ import { sanitizeJamDisplayName } from "@/lib/teams-public"
 
 export const revalidate = 300
 
+/**
+ * Profiles are only readable row by row when published (S7), so the public
+ * counter uses an aggregate-only RPC. Falls back to the old count until the
+ * migration is applied.
+ */
+async function countOnboardedJammers(
+  supabase: ReturnType<typeof createAnonClient>,
+): Promise<{ count: number | null }> {
+  const rpc = await supabase.rpc("count_onboarded_jammers")
+  if (!rpc.error && typeof rpc.data === "number") return { count: rpc.data }
+  const { count } = await supabase
+    .from("profiles")
+    .select("id", { count: "exact", head: true })
+    .eq("has_completed_onboarding", true)
+  return { count }
+}
+
 export const metadata: Metadata = {
   title: {
     absolute: "GameJamCrew | Find your perfect Game Jam Squad",
@@ -56,10 +73,7 @@ export default async function HomePage() {
       .select("id", { count: "exact", head: true })
       .not("jam_end_date", "is", null)
       .lt("jam_end_date", nowIso),
-    supabase
-      .from("profiles")
-      .select("id", { count: "exact", head: true })
-      .eq("has_completed_onboarding", true),
+    countOnboardedJammers(supabase),
     supabase
       .from("external_jams")
       .select("id, title, url, starts_at")
