@@ -99,7 +99,8 @@ export async function deleteUserAccount(): Promise<{ success: boolean; error?: s
     }
 
     // Sign out to clear any remaining session/cookies
-    await supabase.auth.signOut()
+    // Account is gone: revoke every session on every device.
+    await supabase.auth.signOut({ scope: "global" })
 
     redirect("/?account_deleted=1")
   } catch (err) {
