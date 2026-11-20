@@ -2,6 +2,7 @@ import { Gamepad2, Heart, MessageSquareText } from "lucide-react"
 import Link from "next/link"
 import { InstagramIcon, LinkedInIcon, XIcon } from "@/components/brand-icons"
 import { cn } from "@/lib/utils"
+import { CookieSettingsButton } from "@/components/consent/cookie-settings-button"
 
 const SOCIAL_CLASS =
   "text-muted-foreground transition-colors hover:text-primary"
@@ -61,6 +62,7 @@ export function Footer({ tagline, className }: FooterProps) {
               >
                 Legal
               </Link>
+              <CookieSettingsButton />
               <Link
                 href="https://docs.google.com/forms/d/e/1FAIpQLSfPFN9Y_zYZSld-6EEO3ybmPpflPWvTVaF5Le7ooxlIe9a09g/viewform?usp=dialog"
                 target="_blank"

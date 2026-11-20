@@ -16,6 +16,7 @@ import {
   Clock,
   CodeXml,
   Coffee,
+  Cookie,
   Cpu,
   Crown,
   Dices,
@@ -150,6 +151,9 @@ export const ICON = {
   // Auth
   signIn: LogIn,
   signOut: LogOut,
+
+  // Privacy
+  cookies: Cookie,
 
   // Navigation
   more: Ellipsis,
