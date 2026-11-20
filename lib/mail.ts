@@ -30,10 +30,13 @@ export async function sendEmailWithLayout(
   options?: {
     replyTo?: string
     from?: string
+    /** Omit the Unsubscribe footer (e.g. account-deletion confirmation). */
+    hideUnsubscribe?: boolean
   },
 ): Promise<boolean> {
-  const fullHtml = getEmailLayout(layoutTitle, contentHtml)
-  return sendEmailNotification(to, subject, fullHtml, options)
+  const { hideUnsubscribe, ...sendOptions } = options ?? {}
+  const fullHtml = getEmailLayout(layoutTitle, contentHtml, { hideUnsubscribe })
+  return sendEmailNotification(to, subject, fullHtml, sendOptions)
 }
 
 /**
