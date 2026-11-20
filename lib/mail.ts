@@ -50,18 +50,23 @@ export async function sendEmailWithLayout(
   subject: string,
   layoutTitle: string,
   contentHtml: string,
-  options?: SendEmailOptions,
+  options?: SendEmailOptions & {
+    /** No unsubscribe footer or List-Unsubscribe header (e.g. account-deletion confirmation, S6). */
+    hideUnsubscribe?: boolean
+  },
 ): Promise<boolean> {
-  const recipient = options?.recipient
+  const { hideUnsubscribe, ...sendOptions } = options ?? {}
+  const recipient = sendOptions.recipient
   if (recipient && !(await isEmailCategoryEnabled(recipient.userId, recipient.category))) {
     console.info(`[mail] skipped: recipient opted out of ${recipient.category} emails.`)
     return false
   }
-  const links = recipient ? buildUnsubscribeUrls(recipient.userId, recipient.category) : null
+  const links = recipient && !hideUnsubscribe ? buildUnsubscribeUrls(recipient.userId, recipient.category) : null
   const fullHtml = getEmailLayout(layoutTitle, contentHtml, {
     unsubscribeUrl: links?.pageUrl ?? null,
+    hideUnsubscribe,
   })
-  return deliverEmail(to, subject, fullHtml, options, links?.oneClickUrl ?? null)
+  return deliverEmail(to, subject, fullHtml, sendOptions, links?.oneClickUrl ?? null)
 }
 
 /**

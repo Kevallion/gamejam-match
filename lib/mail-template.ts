@@ -36,7 +36,11 @@ export function escapeHtml(text: string): string {
 export function getEmailLayout(
   title: string,
   content: string,
-  options?: { unsubscribeUrl?: string | null },
+  /**
+   * unsubscribeUrl: signed one-category link (S3). hideUnsubscribe: no
+   * unsubscribe footer at all (S6, account-deletion confirmation).
+   */
+  options?: { unsubscribeUrl?: string | null; hideUnsubscribe?: boolean },
 ): string {
   const safeTitle = escapeHtml(title)
   const baseUrl = getPublicSiteUrl()
@@ -92,9 +96,9 @@ export function getEmailLayout(
                 <span style="color:${DIVIDER};margin:0 8px;">·</span>
                 <a href="${SOCIAL.linkedin}" target="_blank" rel="noopener noreferrer" style="color:#6b7280;text-decoration:underline;">linkedin.com/company/gamejamcrew</a>
               </p>
-              <p style="margin:18px 0 0;font-size:12px;line-height:1.55;color:${TEXT_MUTED};">
+              ${options?.hideUnsubscribe ? "" : `<p style="margin:18px 0 0;font-size:12px;line-height:1.55;color:${TEXT_MUTED};">
                 ${footerNotice}
-              </p>
+              </p>`}
             </td>
           </tr>
         </table>
