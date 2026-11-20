@@ -41,7 +41,20 @@ function focusMainContent() {
   main.focus({ preventScroll: true })
 }
 
-export function ConsentProvider({ children }: { children: React.ReactNode }) {
+/**
+ * `analyticsEnabled` is computed on the server by the root layout
+ * (VERCEL_ENV === "production"). Outside production (preview, development,
+ * local builds) no analytics script is ever mounted, even after
+ * "Accept all", so preview visits never reach the production GA4 / GTM
+ * properties. The banner and the stored choice keep working everywhere.
+ */
+export function ConsentProvider({
+  children,
+  analyticsEnabled = false,
+}: {
+  children: React.ReactNode
+  analyticsEnabled?: boolean
+}) {
   const raw = useSyncExternalStore(subscribeConsent, readConsentRaw, () => SERVER_SNAPSHOT)
   const hydrated = raw !== SERVER_SNAPSHOT
   const consent = useMemo(() => (hydrated ? parseConsent(raw) : null), [hydrated, raw])
@@ -101,7 +114,7 @@ export function ConsentProvider({ children }: { children: React.ReactNode }) {
           }}
         />
       ) : null}
-      {consent?.categories.analytics ? <AnalyticsScripts /> : null}
+      {analyticsEnabled && consent?.categories.analytics ? <AnalyticsScripts /> : null}
     </ConsentContext.Provider>
   )
 }

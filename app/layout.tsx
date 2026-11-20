@@ -59,8 +59,10 @@ export default function RootLayout({
       <body
         className={`${_nunito.variable} font-sans antialiased`}
       >
-        {/* S1: GA4, GTM and Vercel Analytics load from ConsentProvider only after consent. */}
-        <ConsentProvider>
+        {/* S1: GA4, GTM and Vercel Analytics load from ConsentProvider only after consent,
+            and only on the production deployment (VERCEL_ENV is a Vercel system variable,
+            read here on the server; unset locally, "preview" on preview deployments). */}
+        <ConsentProvider analyticsEnabled={process.env.VERCEL_ENV === 'production'}>
           <ThemeProvider attribute="class" defaultTheme="dark">
             <AuthProvider>
               <GamificationProvider>
