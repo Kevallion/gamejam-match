@@ -22,8 +22,9 @@
 --     * every user_badges / profile_roles / team_members row;
 --     * active availability posts (expires_at > now()), without the profile
 --       copies stored on them; plus all of their own posts;
---     * discord_username only via get_visible_discord_usernames() (self,
---       squadmates, other side of an accepted application/invitation);
+--     * discord_username only via get_visible_discord_usernames(): self and
+--       people sharing a squad with the caller (owner or member on both
+--       sides), nothing else;
 --     * squad Discord invite only via get_team_discord_link() / team_discord_links
 --       (owner and members);
 --     * private tables: per-user policies only (no USING/WITH CHECK true).
@@ -163,22 +164,16 @@ AS $$
     FROM wanted w, me
     WHERE me.id IS NOT NULL AND (
       w.id = me.id
-      -- Same squad (owner or member on both sides).
+      -- Same squad (owner or member on both sides). Nothing else: an accepted
+      -- application or invitation alone does not reveal the handle (Wisllor,
+      -- 20 Nov 2026: "the Discord handle is only visible to people in the same
+      -- squad").
       OR EXISTS (
         SELECT 1 FROM public.teams t
         WHERE (t.user_id = me.id
                OR EXISTS (SELECT 1 FROM public.team_members a WHERE a.team_id = t.id AND a.user_id = me.id))
           AND (t.user_id = w.id
                OR EXISTS (SELECT 1 FROM public.team_members b WHERE b.team_id = t.id AND b.user_id = w.id))
-      )
-      -- Accepted application or invitation between the two (sender_id is the
-      -- jammer in both cases; the squad owner is the other side).
-      OR EXISTS (
-        SELECT 1 FROM public.join_requests jr
-        JOIN public.teams t ON t.id = jr.team_id
-        WHERE jr.status = 'accepted'
-          AND ((jr.sender_id = w.id AND t.user_id = me.id)
-               OR (jr.sender_id = me.id AND t.user_id = w.id))
       )
     )
   )

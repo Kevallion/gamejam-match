@@ -57,8 +57,8 @@ function isMissingFunction(error: { code?: string; message?: string } | null): b
 }
 
 /**
- * Discord handles the current user is allowed to see: self, squadmates, or the
- * other side of an accepted application/invitation. The check runs in the
+ * Discord handles the current user is allowed to see: self and squadmates
+ * (owner or member of a squad the viewer also owns or belongs to). The check runs in the
  * database (get_visible_discord_usernames, SECURITY DEFINER). Ids the viewer may
  * not see are absent from the result. Signed-out viewers get nothing.
  * Falls back to the older side-table read until the S7 migration is applied.
