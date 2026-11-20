@@ -191,7 +191,12 @@ DECLARE
   -- Read by the owner's own screens through the user session (dashboard,
   -- gamification). Column grants are not per row, so these are also readable on
   -- other visible profiles; they are low sensitivity.
-  authenticated_extra_cols text[] := ARRAY['onboarding_version', 'unlocked_titles'];
+  -- email_* (S3 email preferences, migration 20261120120000) are read by the
+  -- owner's Settings tab; skipped harmlessly when the columns do not exist yet.
+  authenticated_extra_cols text[] := ARRAY[
+    'onboarding_version', 'unlocked_titles',
+    'email_team_activity', 'email_matching_announcements'
+  ];
   col record;
 BEGIN
   FOR col IN
