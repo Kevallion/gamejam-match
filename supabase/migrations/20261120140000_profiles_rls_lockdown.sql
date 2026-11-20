@@ -9,7 +9,8 @@
 --       team_members, availability_posts;
 --     * teams listing readable, except teams.discord_link;
 --     * private tables: nothing;
---     * RPCs: count_onboarded_jammers() (a count, no row data) only.
+--     * RPCs: count_onboarded_jammers() and get_team_member_counts() (counts
+--       only, no names or user ids).
 --   authenticated:
 --     * every profile, public columns only (column-level GRANT); never
 --       discord_username or the technical columns;
@@ -22,7 +23,8 @@
 --       (owner and members);
 --     * private tables: per-user policies only (no USING/WITH CHECK true).
 --   owner: same as authenticated, plus INSERT/UPDATE/DELETE of their own rows
---     (existing policies, unchanged).
+--     (existing policies, unchanged), and their own S3 email preferences via
+--     get_my_email_preferences() (the columns are not selectable directly).
 --
 -- service_role (admin client) is unaffected: it bypasses RLS and keeps its
 -- table privileges. No row is inserted, updated or deleted by this migration.
@@ -106,14 +108,13 @@ DECLARE
     'xp', 'current_title', 'jam_id', 'has_completed_onboarding'
   ];
   -- Read by the owner's own screens through the user session (dashboard,
-  -- gamification, Settings). Column grants are not per row, so signed-in users
-  -- can also read these on other profiles; they are low sensitivity.
-  -- email_* (S3 email preferences, migration 20261120120000) are read by the
-  -- owner's Settings tab; skipped harmlessly when the columns do not exist yet.
-  authenticated_extra_cols text[] := ARRAY[
-    'onboarding_version', 'unlocked_titles',
-    'email_team_activity', 'email_matching_announcements'
-  ];
+  -- gamification). Column grants are not per row, so signed-in users can also
+  -- read these on other profiles; they are low sensitivity.
+  -- email_team_activity / email_matching_announcements (S3) are deliberately
+  -- NOT listed: owner only, through get_my_email_preferences() (section 9).
+  -- The loop below also removes the SELECT that migration 20261120120000
+  -- grants on them to authenticated.
+  authenticated_extra_cols text[] := ARRAY['onboarding_version', 'unlocked_titles'];
   col record;
 BEGIN
   FOR col IN
@@ -410,3 +411,54 @@ BEGIN
     GRANT EXECUTE ON FUNCTION public.get_kudos_counts_for_users(uuid[]) TO authenticated, service_role;
   END IF;
 END $$;
+
+-- ===========================================================================
+-- 9. Owner-only email preferences, public member counts
+-- ===========================================================================
+-- S3 email preferences of the caller only. Column SELECT on them is revoked for
+-- anon and authenticated (section 2); UPDATE stays (policy profiles_update_own),
+-- so the app updates without RETURNING and reads back through this function.
+-- plpgsql so it can be created before the S3 columns exist; calling it then
+-- raises undefined_column (42703), which the app treats as "unavailable".
+CREATE OR REPLACE FUNCTION public.get_my_email_preferences()
+RETURNS TABLE (email_team_activity boolean, email_matching_announcements boolean)
+LANGUAGE plpgsql
+STABLE
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
+BEGIN
+  IF auth.uid() IS NULL THEN
+    RETURN;
+  END IF;
+  RETURN QUERY
+    SELECT p.email_team_activity, p.email_matching_announcements
+    FROM public.profiles p
+    WHERE p.id = auth.uid();
+END;
+$$;
+REVOKE ALL ON FUNCTION public.get_my_email_preferences() FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.get_my_email_preferences() TO authenticated, service_role;
+
+-- Recruited members per squad (rows of team_members; the owner is not counted,
+-- the UI adds 1 for the captain). No names, no user ids: readable by anon so
+-- signed-out visitors see correct "x/y filled" counts.
+CREATE OR REPLACE FUNCTION public.get_team_member_counts(p_team_ids uuid[])
+RETURNS TABLE (team_id uuid, member_count integer)
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
+  WITH wanted AS (
+    SELECT DISTINCT u AS id
+    FROM unnest(COALESCE(p_team_ids, ARRAY[]::uuid[])) AS u
+    WHERE u IS NOT NULL
+    LIMIT 200
+  )
+  SELECT t.id, (SELECT count(*)::integer FROM public.team_members tm WHERE tm.team_id = t.id)
+  FROM public.teams t
+  JOIN wanted w ON w.id = t.id;
+$$;
+REVOKE ALL ON FUNCTION public.get_team_member_counts(uuid[]) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.get_team_member_counts(uuid[]) TO anon, authenticated, service_role;

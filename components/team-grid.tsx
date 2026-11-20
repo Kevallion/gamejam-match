@@ -19,6 +19,7 @@ import { getRecommendedTeams } from "@/lib/matchmaking"
 import { supabase } from "@/lib/supabase"
 import { fetchProfilesMap } from "@/lib/profiles"
 import { TEAMS_READABLE_COLUMNS } from "@/lib/team-discord"
+import { anonymousMemberRows, fetchTeamMemberCounts } from "@/lib/team-member-counts"
 import { LoaderCircle, UsersRound } from "lucide-react"
 import { toast } from "sonner"
 import { EXPERIENCE_STYLES, JAM_STYLE_STYLES, ROLE_STYLES } from "@/lib/constants"
@@ -223,7 +224,8 @@ export function TeamGrid({
       .order("created_at", { ascending: false })
       .range(from, from + PAGE_SIZE - 1)
     if (error) {
-      // Signed-out visitors cannot read team_members (S7): list squads without it.
+      // Signed-out visitors cannot read team_members (S7): list squads without it,
+      // with counts from the get_team_member_counts RPC.
       const listingOnly = await supabase
         .from("teams")
         .select(TEAMS_READABLE_COLUMNS)
@@ -231,7 +233,12 @@ export function TeamGrid({
         .order("created_at", { ascending: false })
         .range(from, from + PAGE_SIZE - 1)
       if (!listingOnly.error) {
-        data = (listingOnly.data ?? []).map((row) => ({ ...row, team_members: [] })) as typeof data
+        const rows = listingOnly.data ?? []
+        const counts = await fetchTeamMemberCounts(supabase, rows.map((row) => row.id as string))
+        data = rows.map((row) => ({
+          ...row,
+          team_members: anonymousMemberRows(row.id as string, counts[row.id as string] ?? 0),
+        })) as typeof data
         error = null
       }
     }

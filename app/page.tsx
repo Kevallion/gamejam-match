@@ -7,6 +7,7 @@ import {
 } from "@/components/landing/landing-home"
 import { createAnonClient } from "@/lib/supabase/anon"
 import { sanitizeJamDisplayName } from "@/lib/teams-public"
+import { fetchTeamMemberCounts } from "@/lib/team-member-counts"
 
 export const revalidate = 300
 
@@ -29,7 +30,8 @@ async function countOnboardedJammers(
 
 /**
  * Featured squads with their member count. Signed-out visitors cannot read
- * team_members (S7): fall back to the squads alone (count unknown, treated as 0).
+ * team_members (S7): fall back to the squads alone, counted with the
+ * get_team_member_counts RPC (counts only).
  */
 async function fetchFeaturedTeamRows(supabase: ReturnType<typeof createAnonClient>, nowIso: string) {
   const withCount = await supabase
@@ -45,7 +47,12 @@ async function fetchFeaturedTeamRows(supabase: ReturnType<typeof createAnonClien
     .gt("expires_at", nowIso)
     .order("created_at", { ascending: false })
     .limit(5)
-  return (data ?? []).map((row) => ({ ...row, team_members: [] as { count: number }[] }))
+  const rows = data ?? []
+  const counts = await fetchTeamMemberCounts(supabase, rows.map((row) => row.id as string))
+  return rows.map((row) => ({
+    ...row,
+    team_members: [{ count: counts[row.id as string] ?? 0 }] as { count: number }[],
+  }))
 }
 
 export const metadata: Metadata = {

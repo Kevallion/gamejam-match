@@ -14,6 +14,7 @@ import { supabase } from "@/lib/supabase"
 import { fetchProfilesMap } from "@/lib/profiles"
 import { fetchTeammateDiscordUsernames } from "@/lib/profile-discord"
 import { fetchTeamDiscordLink, TEAMS_READABLE_COLUMNS } from "@/lib/team-discord"
+import { anonymousMemberRows, fetchTeamMemberCounts } from "@/lib/team-member-counts"
 import { formatTeamToCardData, type TeamRowDb } from "@/lib/team-utils"
 import type { TeamCardData } from "@/components/team-card"
 import { ArrowLeft, TriangleAlert, UsersRound, Cpu, Globe, Info } from "lucide-react"
@@ -98,14 +99,19 @@ export default function TeamPage() {
       }
 
       if (teamError || !teamRow) {
-        // Signed-out visitors cannot read team_members (S7): load the listing alone.
+        // Signed-out visitors cannot read team_members (S7): load the listing
+        // alone, with the member count from the get_team_member_counts RPC.
         const listingOnly = await supabase
           .from("teams")
           .select(TEAMS_READABLE_COLUMNS)
           .eq("id", teamId)
           .maybeSingle()
         if (listingOnly.data) {
-          teamRow = { ...listingOnly.data, team_members: [] } as typeof teamRow
+          const counts = await fetchTeamMemberCounts(supabase, [teamId])
+          teamRow = {
+            ...listingOnly.data,
+            team_members: anonymousMemberRows(teamId, counts[teamId] ?? 0),
+          } as typeof teamRow
           teamError = null
         }
       }
