@@ -45,12 +45,24 @@ export default async function MembersPage({ searchParams }: MembersPageProps) {
   const {
     data: { user },
   } = await supabase.auth.getUser()
+  const availableFilters = {
+    searchQuery: params.q,
+    role: params.role,
+    engine: params.engine,
+    experience: params.level,
+    language: params.lang,
+    programmingLanguage: params.code,
+    jamId: params.jam_id,
+    offset: 0,
+  }
   if (!user) {
-    // Profiles and posts are not readable without a session (S7).
+    // Signed out (S7): active posts with card fields only (RPC, picked inside
+    // getAvailablePlayers); the Directory and profiles stay signed-in only.
+    const { players, hasMore } = await getAvailablePlayers(availableFilters, supabase)
     return (
       <FindMembersShell
-        initialMembers={[]}
-        initialHasMore={false}
+        initialMembers={players}
+        initialHasMore={hasMore}
         initialDirectory={[]}
         initialDirectoryHasMore={false}
         initialMode={initialMode}
@@ -59,19 +71,7 @@ export default async function MembersPage({ searchParams }: MembersPageProps) {
     )
   }
   const [{ players, hasMore }, directory] = await Promise.all([
-    getAvailablePlayers(
-      {
-        searchQuery: params.q,
-        role: params.role,
-        engine: params.engine,
-        experience: params.level,
-        language: params.lang,
-        programmingLanguage: params.code,
-        jamId: params.jam_id,
-        offset: 0,
-      },
-      supabase,
-    ),
+    getAvailablePlayers(availableFilters, supabase),
     getDirectoryJammers(
       {
         searchQuery: params.q,

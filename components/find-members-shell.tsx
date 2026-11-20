@@ -249,8 +249,12 @@ export function FindMembersShell({
           </section>
         )}
 
-        {!signedIn ? (
-          <SignedOutNotice />
+        {isDirectory && !signedIn ? (
+          <SignedOutNotice
+            title="Sign in to browse the directory"
+            description="The jammer directory is only visible to signed-in members."
+            next="/find-members?view=directory"
+          />
         ) : isDirectory ? (
           <DirectoryGrid
             key={`${searchQuery}|${roleFilter}|${engineFilter}|${levelFilter}|${langFilter}|${codeFilter}`}

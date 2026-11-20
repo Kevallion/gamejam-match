@@ -7,10 +7,15 @@
 --   anon (not signed in):
 --     * no row and no column of profiles, user_badges, profile_roles,
 --       team_members, availability_posts;
---     * teams listing readable, except teams.discord_link;
+--     * teams listing readable, except teams.discord_link (no roster: team_members
+--       stays closed, member counts come from get_team_member_counts());
 --     * private tables: nothing;
 --     * RPCs: count_onboarded_jammers() and get_team_member_counts() (counts
---       only, no names or user ids).
+--       only, no names or user ids), and get_public_availability_posts():
+--       active availability posts for /find-members, card fields only (post id,
+--       author id, availability text, dates, pseudo, avatar, role, level, jam
+--       style, engine, language, programming languages). Public profiles
+--       (/jammer/<id>) and the Directory stay signed-in only.
 --   authenticated:
 --     * every profile, public columns only (column-level GRANT); never
 --       discord_username or the technical columns;
@@ -462,3 +467,88 @@ AS $$
 $$;
 REVOKE ALL ON FUNCTION public.get_team_member_counts(uuid[]) FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.get_team_member_counts(uuid[]) TO anon, authenticated, service_role;
+
+-- Active availability posts for signed-out visitors on /find-members (Wisllor,
+-- 20 Nov 2026: "someone not signed in can see the availability posts in Members
+-- and the teams, but cannot open public profiles"). Same filters, order and
+-- pagination as getAvailablePlayers (lib/queries.ts). Returns only what the card
+-- needs: the post (id, author id, availability text, dates) and the author's
+-- pseudo, avatar and card tags (role, level, jam style, engine, language,
+-- programming languages). Never bio, portfolio, discord_username, xp/title,
+-- kudos, jam, email_* or activity columns, and never the copies stored on the
+-- post. profiles / availability_posts stay closed to anon.
+-- p_experience takes the already-expanded legacy equivalents
+-- (e.g. {regular,confirmed}); p_limit is capped at 101 (page of 100 + 1 to
+-- detect "has more").
+DROP FUNCTION IF EXISTS public.get_public_availability_posts(text, text, text, text[], text, text, uuid, integer, integer);
+CREATE FUNCTION public.get_public_availability_posts(
+  p_search text DEFAULT NULL,
+  p_role text DEFAULT NULL,
+  p_engine text DEFAULT NULL,
+  p_experience text[] DEFAULT NULL,
+  p_language text DEFAULT NULL,
+  p_programming_language text DEFAULT NULL,
+  p_jam_id uuid DEFAULT NULL,
+  p_offset integer DEFAULT 0,
+  p_limit integer DEFAULT 25
+)
+RETURNS TABLE (
+  post_id uuid,
+  user_id uuid,
+  availability text,
+  created_at timestamptz,
+  updated_at timestamptz,
+  expires_at timestamptz,
+  username text,
+  avatar_url text,
+  role text,
+  experience text,
+  jam_style text,
+  engine text,
+  language text,
+  programming_languages text[]
+)
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+  SELECT
+    ap.id,
+    ap.user_id,
+    ap.availability::text,
+    ap.created_at,
+    ap.updated_at,
+    ap.expires_at,
+    p.username::text,
+    p.avatar_url::text,
+    COALESCE(NULLIF(btrim(p.role::text), ''), NULLIF(btrim(p.default_role::text), ''), NULLIF(btrim(p.main_role::text), '')),
+    COALESCE(NULLIF(btrim(p.experience::text), ''), NULLIF(btrim(p.experience_level::text), '')),
+    NULLIF(btrim(p.jam_style::text), ''),
+    COALESCE(NULLIF(btrim(p.engine::text), ''), NULLIF(btrim(p.default_engine::text), '')),
+    COALESCE(NULLIF(btrim(p.language::text), ''), NULLIF(btrim(p.default_language::text), '')),
+    COALESCE(p.programming_languages, ARRAY[]::text[])
+  FROM public.availability_posts ap
+  JOIN public.profiles p ON p.id = ap.user_id
+  WHERE ap.expires_at > pg_catalog.now()
+    AND ap.availability IS NOT NULL
+    AND ap.availability <> ''
+    AND (NULLIF(btrim(p_search), '') IS NULL
+         OR pg_catalog.strpos(pg_catalog.lower(p.username), pg_catalog.lower(btrim(p_search))) > 0)
+    AND (p_jam_id IS NULL OR p.jam_id = p_jam_id)
+    AND (NULLIF(btrim(p_role), '') IS NULL
+         OR btrim(p_role) IN (p.role, p.default_role, p.main_role))
+    AND (NULLIF(btrim(p_engine), '') IS NULL
+         OR btrim(p_engine) IN (p.engine, p.default_engine))
+    AND (p_experience IS NULL OR pg_catalog.cardinality(p_experience) = 0
+         OR p.experience = ANY (p_experience) OR p.experience_level = ANY (p_experience))
+    AND (NULLIF(btrim(p_language), '') IS NULL
+         OR btrim(p_language) IN (p.language, p.default_language))
+    AND (NULLIF(btrim(p_programming_language), '') IS NULL
+         OR p.programming_languages @> ARRAY[btrim(p_programming_language)])
+  ORDER BY ap.updated_at DESC NULLS LAST, ap.id
+  OFFSET GREATEST(COALESCE(p_offset, 0), 0)
+  LIMIT LEAST(GREATEST(COALESCE(p_limit, 25), 1), 101);
+$$;
+REVOKE ALL ON FUNCTION public.get_public_availability_posts(text, text, text, text[], text, text, uuid, integer, integer) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.get_public_availability_posts(text, text, text, text[], text, text, uuid, integer, integer) TO anon, authenticated, service_role;

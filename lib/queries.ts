@@ -568,6 +568,106 @@ function toDisplayJamStyle(rawJamStyle: string) {
   return style ? { ...style, key: jamStyleKey } : undefined
 }
 
+function resolveLanguageFilterKey(cleanLanguage: string | null | undefined): string | null {
+  if (!cleanLanguage || cleanLanguage === "all") return null
+  if (AVAILABLE_PLAYERS_LANGUAGE_KEYS.has(cleanLanguage)) return cleanLanguage
+  const fromAlias = LANGUAGE_OPTION_VALUE_ALIASES[cleanLanguage]
+  return fromAlias && AVAILABLE_PLAYERS_LANGUAGE_KEYS.has(fromAlias) ? fromAlias : null
+}
+
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+/** Row returned by the S7 RPC get_public_availability_posts (card fields only). */
+type PublicAvailabilityPostRow = {
+  post_id: string
+  user_id: string
+  availability: string | null
+  created_at: string | null
+  updated_at: string | null
+  expires_at: string | null
+  username: string | null
+  avatar_url: string | null
+  role: string | null
+  experience: string | null
+  jam_style: string | null
+  engine: string | null
+  language: string | null
+  programming_languages: string[] | null
+}
+
+/**
+ * Available jammers for signed-out visitors: active posts with the author's
+ * pseudo, avatar and card tags only. No bio, portfolio, xp/title, kudos or jam:
+ * those stay signed-in only, like the profile page itself.
+ */
+async function getPublicAvailablePlayers(
+  filters: {
+    search: string
+    role: string | null
+    engine: string | null
+    experience: string[] | null
+    language: string | null
+    programmingLanguage: string | null
+    jamId: string | null
+    invalidJamId: boolean
+    offset: number
+    limit: number
+  },
+  client: GamejamSupabaseClient,
+): Promise<AvailablePlayersResult> {
+  if (filters.invalidJamId) {
+    return { players: [], hasMore: false, nextOffset: 0, error: null }
+  }
+  const { data, error } = await client.rpc("get_public_availability_posts", {
+    p_search: filters.search || null,
+    p_role: filters.role,
+    p_engine: filters.engine,
+    p_experience: filters.experience,
+    p_language: filters.language,
+    p_programming_language: filters.programmingLanguage,
+    p_jam_id: filters.jamId,
+    p_offset: filters.offset,
+    p_limit: filters.limit + 1,
+  })
+  if (error) {
+    console.error("[getAvailablePlayers:public]", error.message)
+    return { players: [], hasMore: false, nextOffset: filters.offset, error: error.message }
+  }
+  const rows = (Array.isArray(data) ? data : []) as PublicAvailabilityPostRow[]
+  const hasMore = rows.length > filters.limit
+  const pageRows = hasMore ? rows.slice(0, filters.limit) : rows
+  const players: AvailablePlayerListItem[] = pageRows.map((row) => {
+    const roleRaw = (row.role ?? "").trim()
+    const levelRaw = (row.experience ?? "").trim()
+    const engineRaw = (row.engine ?? "").trim()
+    return {
+      id: row.user_id,
+      username: row.username?.trim() || "Anonymous",
+      avatar_url: row.avatar_url?.trim() || null,
+      role: toDisplayRole(roleRaw),
+      level: toDisplayLevel(levelRaw),
+      jamStyle: toDisplayJamStyle(row.jam_style ?? ""),
+      engine: engineRaw,
+      bio: "",
+      language: (row.language ?? "").trim(),
+      availability: row.availability || undefined,
+      jammerTitle: null,
+      kudosCounts: null,
+      programmingLanguages: parseProgrammingLanguages(row.programming_languages),
+      rawRole: roleRaw,
+      rawEngine: engineRaw,
+      rawLevel: levelRaw,
+      availabilityPostId: row.post_id,
+    }
+  })
+  return {
+    players,
+    hasMore,
+    nextOffset: filters.offset + players.length,
+    error: null,
+  }
+}
+
 export async function getAvailablePlayers(
   {
     searchQuery = "",
@@ -595,6 +695,31 @@ export async function getAvailablePlayers(
   const hasRoleFilter = Boolean(cleanRole && cleanRole !== "all")
   const hasEngineFilter = Boolean(cleanEngine && cleanEngine !== "all")
   const hasExperienceFilter = Boolean(cleanExperience && cleanExperience !== "all")
+
+  // Signed-out visitors cannot read profiles / availability_posts (S7): they get
+  // the card fields only, through the get_public_availability_posts RPC.
+  const {
+    data: { session },
+  } = await client.auth.getSession()
+  if (!session) {
+    return getPublicAvailablePlayers(
+      {
+        search: cleanSearch,
+        role: hasRoleFilter ? cleanRole : null,
+        engine: hasEngineFilter ? cleanEngine : null,
+        experience: hasExperienceFilter
+          ? LEGACY_EXPERIENCE_EQUIVALENTS[cleanExperience] ?? [cleanExperience]
+          : null,
+        language: resolveLanguageFilterKey(cleanLanguage),
+        programmingLanguage: codeFilterKey,
+        jamId: cleanJamId && UUID_PATTERN.test(cleanJamId) ? cleanJamId : null,
+        invalidJamId: Boolean(cleanJamId && !UUID_PATTERN.test(cleanJamId)),
+        offset: safeOffset,
+        limit: safeLimit,
+      },
+      client,
+    )
+  }
 
   // Since S7, role / level / engine / language are read from the published
   // profile, not from a copy stored on the post.
@@ -688,12 +813,7 @@ export async function getAvailablePlayers(
     .neq("availability", "")
     .order("updated_at", { ascending: false })
 
-  const languageFilterKey = (() => {
-    if (!cleanLanguage || cleanLanguage === "all") return null
-    if (AVAILABLE_PLAYERS_LANGUAGE_KEYS.has(cleanLanguage)) return cleanLanguage
-    const fromAlias = LANGUAGE_OPTION_VALUE_ALIASES[cleanLanguage]
-    return fromAlias && AVAILABLE_PLAYERS_LANGUAGE_KEYS.has(fromAlias) ? fromAlias : null
-  })()
+  const languageFilterKey = resolveLanguageFilterKey(cleanLanguage)
 
   if (languageFilterKey) {
     const { data: langProfiles, error: langError } = await client

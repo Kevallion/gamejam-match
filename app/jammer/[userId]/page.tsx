@@ -83,6 +83,7 @@ export default async function JammerPublicProfilePage({ params }: PageProps) {
           <SignedOutNotice
             title="Sign in to view this jammer"
             description="Jammer profiles are only visible to signed-in members."
+            next={`/jammer/${userId}`}
           />
         </main>
       </div>
