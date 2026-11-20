@@ -969,7 +969,8 @@ export async function getDirectoryJammers(
 
   const { data: publishedRows, error: publishedError } = await client
     .from("availability_posts")
-    .select("user_id, bio, updated_at")
+    // S7: profile copies on posts (bio, role...) are not readable; bio comes from profiles.bio.
+    .select("user_id, updated_at")
     .gt("expires_at", new Date().toISOString())
     .not("availability", "is", null)
     .neq("availability", "")
@@ -980,13 +981,14 @@ export async function getDirectoryJammers(
     return { jammers: [], hasMore: false, nextOffset: safeOffset, error: publishedError.message }
   }
 
-  // Most recent active post per user (rows are ordered by updated_at desc).
-  const publishedBioByUser = new Map<string, string>()
-  for (const row of (publishedRows ?? []) as { user_id?: string | null; bio?: string | null }[]) {
-    if (!row.user_id || publishedBioByUser.has(row.user_id)) continue
-    publishedBioByUser.set(row.user_id, (row.bio ?? "").trim())
-  }
-  const publishedUserIds = [...publishedBioByUser.keys()]
+  // Users with at least one active post (rows are ordered by updated_at desc).
+  const publishedUserIds = [
+    ...new Set(
+      ((publishedRows ?? []) as { user_id?: string | null }[])
+        .map((row) => row.user_id)
+        .filter((id): id is string => Boolean(id)),
+    ),
+  ]
   if (publishedUserIds.length === 0) {
     return { jammers: [], hasMore: false, nextOffset: safeOffset, error: null }
   }
@@ -1107,8 +1109,8 @@ export async function getDirectoryJammers(
     const levelRaw = (profile.experience ?? profile.experience_level ?? "").trim()
     const engineRaw = resolveDirectoryEngine(profile)
     const languageRaw = resolveDirectoryLanguage(profile)
-    // Bio comes only from the active availability post, never from a leftover profile bio.
-    const bioRaw = publishedBioByUser.get(profile.id) ?? ""
+    // S7: bio is read from the profile (post copies are no longer readable).
+    const bioRaw = (profile.bio ?? "").trim()
     const portfolioRaw = (profile.portfolio_link ?? profile.portfolio_url ?? "").trim()
     const xp = typeof profile.xp === "number" ? profile.xp : 0
     const jam = firstExternalJam(profile.external_jams)
