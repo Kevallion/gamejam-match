@@ -1,7 +1,7 @@
 import { Resend } from "resend"
 import { getEmailLayout } from "@/lib/mail-template"
 import { getPublicDashboardUrl, getPublicSiteUrl } from "@/lib/site-url"
-import { isEmailCategoryEnabled } from "@/lib/email-preferences"
+import { isEmailCategoryEnabled } from "@/lib/email-preferences-server"
 import { buildUnsubscribeUrls } from "@/lib/email-unsubscribe"
 import type { EmailCategory } from "@/lib/email-unsubscribe-token"
 

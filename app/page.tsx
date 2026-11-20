@@ -6,6 +6,7 @@ import {
   type LandingUpcomingJam,
 } from "@/components/landing/landing-home"
 import { createAnonClient } from "@/lib/supabase/anon"
+import { AccountDeletedNotice } from "@/components/account-deleted-notice"
 import { sanitizeJamDisplayName } from "@/lib/teams-public"
 import { fetchTeamMemberCounts } from "@/lib/team-member-counts"
 
@@ -136,10 +137,14 @@ export default async function HomePage() {
     }))
 
   return (
-    <LandingHome
-      featuredTeams={featuredTeams}
-      socialProofStats={socialProofStats}
-      upcomingJams={upcomingJams}
-    />
+    <>
+      {/* S6: confirmation after account deletion (/?account_deleted=1), client-only. */}
+      <AccountDeletedNotice />
+      <LandingHome
+        featuredTeams={featuredTeams}
+        socialProofStats={socialProofStats}
+        upcomingJams={upcomingJams}
+      />
+    </>
   )
 }
