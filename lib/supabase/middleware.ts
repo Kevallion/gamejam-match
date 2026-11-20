@@ -2,6 +2,28 @@ import { createServerClient } from "@supabase/ssr"
 import { NextResponse, type NextRequest } from "next/server"
 
 /**
+ * Authenticated pages that must never be stored by the browser (or bfcache),
+ * so their content is not visible via Back after a logout.
+ */
+const PRIVATE_NO_STORE_PATHS = [
+  /^\/dashboard(?:\/|$)/,
+  /^\/teams\/[^/]+\/manage(?:\/|$)/,
+  /^\/invitation(?:\/|$)/,
+  /^\/sync-jams(?:\/|$)/,
+]
+
+function isPrivateNoStorePath(pathname: string): boolean {
+  return PRIVATE_NO_STORE_PATHS.some((pattern) => pattern.test(pathname))
+}
+
+function applyPrivateNoStore(request: NextRequest, response: NextResponse): NextResponse {
+  if (isPrivateNoStorePath(request.nextUrl.pathname)) {
+    response.headers.set("Cache-Control", "private, no-store")
+  }
+  return response
+}
+
+/**
  * Met à jour la session Supabase (refresh des tokens).
  * Ne redirige JAMAIS vers /login sur les routes d'auth pour éviter les boucles.
  */
@@ -39,8 +61,9 @@ export async function updateSession(request: NextRequest) {
     const { data } = await supabase.auth.getUser()
     user = data.user
   } catch {
-    // refresh_token_not_found : session invalide, on signe out pour nettoyer les cookies
-    await supabase.auth.signOut()
+    // refresh_token_not_found : session invalide, on signe out pour nettoyer les cookies.
+    // Scope local : ne révoque que la session de ce navigateur, pas celles des autres appareils.
+    await supabase.auth.signOut({ scope: "local" })
   }
 
   // Keep `/` statically cacheable: authenticated jammers are sent to the dashboard here.
@@ -54,5 +77,5 @@ export async function updateSession(request: NextRequest) {
     return redirectResponse
   }
 
-  return supabaseResponse
+  return applyPrivateNoStore(request, supabaseResponse)
 }
