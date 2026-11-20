@@ -931,7 +931,11 @@ function resolveDirectoryLanguage(profile: DirectoryProfileRow): string {
 }
 
 /**
- * Lists onboarded jammers for the public directory (all completed profiles).
+ * Lists jammers for the public directory.
+ * Privacy (GDPR): only profiles that are currently published, i.e. that have an active
+ * availability post (not expired, non-empty availability), are listed, whether the viewer
+ * is signed in or not. The bio shown is the one from the active post, so the text of a
+ * deleted post is never exposed as a public bio.
  * Filters by role, engine, experience, and language using profile defaults / primary role.
  */
 export async function getDirectoryJammers(
@@ -962,6 +966,30 @@ export async function getDirectoryJammers(
     const fromAlias = LANGUAGE_OPTION_VALUE_ALIASES[cleanLanguage]
     return fromAlias && AVAILABLE_PLAYERS_LANGUAGE_KEYS.has(fromAlias) ? fromAlias : null
   })()
+
+  const { data: publishedRows, error: publishedError } = await client
+    .from("availability_posts")
+    .select("user_id, bio, updated_at")
+    .gt("expires_at", new Date().toISOString())
+    .not("availability", "is", null)
+    .neq("availability", "")
+    .order("updated_at", { ascending: false })
+
+  if (publishedError) {
+    console.error("[getDirectoryJammers:availability_posts]", publishedError.message)
+    return { jammers: [], hasMore: false, nextOffset: safeOffset, error: publishedError.message }
+  }
+
+  // Most recent active post per user (rows are ordered by updated_at desc).
+  const publishedBioByUser = new Map<string, string>()
+  for (const row of (publishedRows ?? []) as { user_id?: string | null; bio?: string | null }[]) {
+    if (!row.user_id || publishedBioByUser.has(row.user_id)) continue
+    publishedBioByUser.set(row.user_id, (row.bio ?? "").trim())
+  }
+  const publishedUserIds = [...publishedBioByUser.keys()]
+  if (publishedUserIds.length === 0) {
+    return { jammers: [], hasMore: false, nextOffset: safeOffset, error: null }
+  }
 
   let roleUserIds: string[] | null = null
   if (cleanRole && cleanRole !== "all") {
@@ -994,6 +1022,7 @@ export async function getDirectoryJammers(
         includeProgrammingLanguages ? `${directoryColumns}, programming_languages` : directoryColumns,
       )
       .eq("has_completed_onboarding", true)
+      .in("id", publishedUserIds)
       .order("username", { ascending: true })
 
   if (cleanSearch) {
@@ -1078,7 +1107,8 @@ export async function getDirectoryJammers(
     const levelRaw = (profile.experience ?? profile.experience_level ?? "").trim()
     const engineRaw = resolveDirectoryEngine(profile)
     const languageRaw = resolveDirectoryLanguage(profile)
-    const bioRaw = (profile.bio ?? "").trim()
+    // Bio comes only from the active availability post, never from a leftover profile bio.
+    const bioRaw = publishedBioByUser.get(profile.id) ?? ""
     const portfolioRaw = (profile.portfolio_link ?? profile.portfolio_url ?? "").trim()
     const xp = typeof profile.xp === "number" ? profile.xp : 0
     const jam = firstExternalJam(profile.external_jams)

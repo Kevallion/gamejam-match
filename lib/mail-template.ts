@@ -33,9 +33,17 @@ export function escapeHtml(text: string): string {
 /**
  * Envelope HTML for transactional emails. `title` is escaped; `content` is injected as HTML (caller must sanitize user input).
  */
-export function getEmailLayout(title: string, content: string): string {
+export function getEmailLayout(
+  title: string,
+  content: string,
+  options?: { unsubscribeUrl?: string | null },
+): string {
   const safeTitle = escapeHtml(title)
   const baseUrl = getPublicSiteUrl()
+  const unsubscribeUrl = options?.unsubscribeUrl?.trim()
+  const footerNotice = unsubscribeUrl
+    ? `<a href="${escapeHtml(unsubscribeUrl)}" style="color:${TEXT_MUTED};text-decoration:underline;">Unsubscribe</a> from this type of email, or manage all your email preferences in <a href="${baseUrl}/dashboard?tab=settings" style="color:${TEXT_MUTED};text-decoration:underline;">Settings</a>.`
+    : `<a href="${baseUrl}/dashboard?tab=settings" style="color:${TEXT_MUTED};text-decoration:underline;">Unsubscribe</a> from these emails by adjusting your notification preferences in your dashboard settings.`
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -85,7 +93,7 @@ export function getEmailLayout(title: string, content: string): string {
                 <a href="${SOCIAL.linkedin}" target="_blank" rel="noopener noreferrer" style="color:#6b7280;text-decoration:underline;">linkedin.com/company/gamejamcrew</a>
               </p>
               <p style="margin:18px 0 0;font-size:12px;line-height:1.55;color:${TEXT_MUTED};">
-                <a href="${baseUrl}/dashboard" style="color:${TEXT_MUTED};text-decoration:underline;">Unsubscribe</a> from these emails by adjusting your notification preferences in your dashboard.
+                ${footerNotice}
               </p>
             </td>
           </tr>

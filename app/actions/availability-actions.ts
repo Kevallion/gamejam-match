@@ -45,7 +45,7 @@ export async function claimAvailabilityPostXp(postId: string) {
 
       const username = profileRow?.username?.trim()
       if (username) {
-        await sendPlayerPostFollowUp(user.email, username)
+        await sendPlayerPostFollowUp(user.email, username, user.id)
       }
     } catch {
       // Silent: email issues shouldn't block XP claiming.

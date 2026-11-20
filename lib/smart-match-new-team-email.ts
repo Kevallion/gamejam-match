@@ -1,6 +1,7 @@
 import { ROLE_STYLES } from "@/lib/constants"
 import { notifySmartMatch } from "@/lib/mail"
 import { createAdminClient, getUserEmail } from "@/lib/supabase/admin"
+import { isMissingColumnError } from "@/lib/optional-column"
 
 /** One slot from `teams.looking_for` (équivalent produit des rôles recherchés). */
 export type TeamLookingForRoleEntry = { role: string; level?: string }
@@ -78,6 +79,18 @@ function matchingRoleLabelForEmail(
 const PROFILE_SELECT =
   "id, username, main_role, default_role, role" as const
 
+const EMAIL_PREF_COLUMN = "email_matching_announcements"
+
+function fetchProfilesByRole(
+  admin: ReturnType<typeof createAdminClient>,
+  column: "main_role" | "default_role" | "role",
+  keys: string[],
+  filterByPreference: boolean,
+) {
+  const query = admin.from("profiles").select(PROFILE_SELECT).in(column, keys)
+  return filterByPreference ? query.eq(EMAIL_PREF_COLUMN, true) : query
+}
+
 async function sendSmartMatchEmailsForNewTeam(
   ownerUserId: string,
   teamName: string,
@@ -91,53 +104,27 @@ async function sendSmartMatchEmailsForNewTeam(
   const merged = new Map<string, SmartMatchProfileRow>()
 
   try {
-    const { data: byMain, error: errMain } = await admin
-      .from("profiles")
-      .select(PROFILE_SELECT)
-      .in("main_role", keys)
-
-    if (errMain) {
-      console.error(
-        "[smart-match-email] Supabase profiles query (.in main_role) failed:",
-        errMain,
-      )
-      return
-    }
-
-    const { data: byDefault, error: errDefault } = await admin
-      .from("profiles")
-      .select(PROFILE_SELECT)
-      .in("default_role", keys)
-
-    if (errDefault) {
-      console.error(
-        "[smart-match-email] Supabase profiles query (.in default_role) failed:",
-        errDefault,
-      )
-      return
-    }
-
-    const { data: byRole, error: errRole } = await admin
-      .from("profiles")
-      .select(PROFILE_SELECT)
-      .in("role", keys)
-
-    if (errRole) {
-      console.error(
-        "[smart-match-email] Supabase profiles query (.in role) failed:",
-        errRole,
-      )
-      return
-    }
-
-    for (const row of [
-      ...(byMain ?? []),
-      ...(byDefault ?? []),
-      ...(byRole ?? []),
-    ]) {
-      const id = row.id as string | undefined
-      if (!id) continue
-      merged.set(id, row as SmartMatchProfileRow)
+    // Prefer filtering opted-out jammers in the query; fall back to the old
+    // query when the preference column is not deployed yet.
+    let filterByPreference = true
+    for (const column of ["main_role", "default_role", "role"] as const) {
+      let { data, error } = await fetchProfilesByRole(admin, column, keys, filterByPreference)
+      if (error && filterByPreference && isMissingColumnError(error, EMAIL_PREF_COLUMN)) {
+        filterByPreference = false
+        ;({ data, error } = await fetchProfilesByRole(admin, column, keys, false))
+      }
+      if (error) {
+        console.error(
+          `[smart-match-email] Supabase profiles query (.in ${column}) failed:`,
+          error,
+        )
+        return
+      }
+      for (const row of data ?? []) {
+        const id = row.id as string | undefined
+        if (!id) continue
+        merged.set(id, row as SmartMatchProfileRow)
+      }
     }
   } catch (err) {
     console.error("[smart-match-email] Supabase profiles fetch threw:", err)
@@ -170,7 +157,7 @@ async function sendSmartMatchEmailsForNewTeam(
     const displayName = (row.username ?? "").trim() || "there"
 
     try {
-      await notifySmartMatch(email, displayName, teamName, matchingRoleLabel)
+      await notifySmartMatch(email, displayName, teamName, matchingRoleLabel, row.id)
       emailedUserIds.add(row.id)
     } catch (err) {
       console.error(
