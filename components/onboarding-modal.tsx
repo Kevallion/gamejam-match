@@ -247,12 +247,12 @@ export function OnboardingModal({ open, onOpenChange, profile }: OnboardingModal
     <Dialog open={open} onOpenChange={handleDialogOpenChange}>
       <DialogContent
         data-onboarding-version="2"
-        className="max-h-[90vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] rounded-3xl border-border/60 bg-background p-0 shadow-2xl sm:max-w-xl"
+        className="flex max-h-[min(90dvh,calc(100dvh-1.5rem))] min-h-0 flex-col gap-0 overflow-hidden rounded-3xl border-border/60 bg-background p-0 shadow-2xl sm:max-w-xl"
         showCloseButton={false}
         onPointerDownOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
-        <div className="px-6 pt-6">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 pt-6 pb-6">
           <DialogHeader className="space-y-2 text-center">
             <DialogTitle className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
               {stepContent.title}
@@ -262,9 +262,8 @@ export function OnboardingModal({ open, onOpenChange, profile }: OnboardingModal
             </DialogDescription>
           </DialogHeader>
           <Progress value={progressValue} className="mt-4 h-1.5" />
-        </div>
 
-        <div className="px-6 pt-6 pb-8 sm:pb-10">
+          <div className="pt-6">
           {step === 1 && (
             <div className="mt-6 space-y-5">
               <div
@@ -478,7 +477,9 @@ export function OnboardingModal({ open, onOpenChange, profile }: OnboardingModal
             </div>
           )}
 
-          <DialogFooter className="mt-8 border-t border-border/60 pt-5 sm:justify-between">
+          </div>
+        </div>
+        <DialogFooter className="shrink-0 border-t border-border/60 bg-background px-6 pt-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:justify-between">
             <Button
               type="button"
               variant="ghost"
@@ -517,8 +518,7 @@ export function OnboardingModal({ open, onOpenChange, profile }: OnboardingModal
             ) : (
               <div />
             )}
-          </DialogFooter>
-        </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   )
