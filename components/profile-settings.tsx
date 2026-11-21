@@ -1,7 +1,6 @@
 "use client"
 
-import { useState, useEffect, type ReactNode } from "react"
-import { Card, CardContent } from "@/components/ui/card"
+import { useEffect, useState, type FormEvent, type ReactNode } from "react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
@@ -24,11 +23,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible"
 import { deleteUserAccount } from "@/app/actions/auth-actions"
 import { saveProfileSettings } from "@/app/actions/profile-settings-actions"
 import {
@@ -41,16 +35,268 @@ import {
   parseProgrammingLanguages,
   type ProgrammingLanguageValue,
 } from "@/lib/constants"
-import { ChevronDown, LoaderCircle, Trash2, UserRound, Settings, Bell, TriangleAlert, Link2, CodeXml, MessageSquareText } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 import { TagIcon } from "@/components/tag-icon"
-import { AppIcon } from "@/components/ui/app-icon"
+import { AppIcon, IconTile, type AppIconTone } from "@/components/ui/app-icon"
 import { ICON } from "@/lib/icons"
 import { EmailPreferencesRows } from "@/components/settings/email-preferences"
 import { readEmailPreferences } from "@/lib/email-preferences"
 import { openCookieSettings } from "@/lib/consent"
 import { useSignOut } from "@/hooks/use-sign-out"
+import { useSectionScrollSpy } from "@/hooks/use-section-scroll-spy"
+
+/** Anchors of the Settings sections: `/dashboard?tab=settings#settings-notifications`. */
+export const SETTINGS_SECTION_IDS = {
+  profile: "settings-profile",
+  preferences: "settings-preferences",
+  notifications: "settings-notifications",
+  account: "settings-account",
+} as const
+
+type SectionIcon = (typeof ICON)[keyof typeof ICON]
+
+const SECTIONS: { id: string; label: string; hint: string; icon: SectionIcon }[] = [
+  { id: SETTINGS_SECTION_IDS.profile, label: "Profile", hint: "Public profile", icon: ICON.jammer },
+  { id: SETTINGS_SECTION_IDS.preferences, label: "Preferences", hint: "Post defaults", icon: ICON.filters },
+  { id: SETTINGS_SECTION_IDS.notifications, label: "Notifications", hint: "Push and email", icon: ICON.notifications },
+  { id: SETTINGS_SECTION_IDS.account, label: "Account", hint: "Sessions, delete", icon: ICON.locked },
+]
+const SECTION_ID_LIST = SECTIONS.map((s) => s.id)
+/** Legacy anchor kept working (`#privacy` scrolls to the sessions block). */
+const LEGACY_ANCHORS = ["privacy"]
+
+const FOCUS = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+const CARD = "rounded-2xl border border-border bg-card text-card-foreground shadow-[3px_3px_0_0_var(--neo-shadow)]"
+const FIELD = "h-10 w-full rounded-xl border-border bg-background"
+const TRIGGER = "w-full rounded-xl border-border bg-background data-[size=default]:h-10"
+const ROW = "flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-xl border border-border bg-background/40 p-3"
+
+function scrollToSection(id: string, behavior: ScrollBehavior = "smooth") {
+  const el = document.getElementById(id)
+  if (!el) return
+  el.scrollIntoView({ behavior, block: "start" })
+}
+
+function SectionLink({
+  section,
+  active,
+  variant,
+}: {
+  section: (typeof SECTIONS)[number]
+  active: boolean
+  variant: "rail" | "bar"
+}) {
+  const onClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault()
+    scrollToSection(section.id)
+    window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}#${section.id}`)
+  }
+  if (variant === "bar") {
+    return (
+      <a
+        href={`#${section.id}`}
+        aria-current={active ? "location" : undefined}
+        onClick={onClick}
+        className={cn(
+          "flex min-w-0 flex-col items-center gap-0.5 rounded-xl px-1 py-1.5 text-[11px] font-bold transition-colors",
+          active ? "bg-teal text-teal-foreground shadow-[2px_2px_0_0_var(--neo-shadow)]" : "text-muted-foreground hover:text-foreground",
+          FOCUS,
+        )}
+      >
+        <AppIcon icon={section.icon} size="md" />
+        <span className="max-w-full truncate">{section.label}</span>
+      </a>
+    )
+  }
+  return (
+    <a
+      href={`#${section.id}`}
+      aria-current={active ? "location" : undefined}
+      onClick={onClick}
+      className={cn(
+        "flex items-center gap-2.5 rounded-xl border px-2 py-1.5 transition-colors",
+        active
+          ? "border-teal/40 bg-teal/15 text-foreground"
+          : "border-transparent text-muted-foreground hover:bg-secondary/60 hover:text-foreground",
+        FOCUS,
+      )}
+    >
+      <span className={cn("grid size-8 shrink-0 place-items-center rounded-lg", active ? "bg-teal text-teal-foreground" : "bg-secondary/80")}>
+        <AppIcon icon={section.icon} size="sm" />
+      </span>
+      <span className="min-w-0">
+        <span className="block text-sm font-bold">{section.label}</span>
+        <span className="block truncate text-[11px] text-muted-foreground">{section.hint}</span>
+      </span>
+    </a>
+  )
+}
+
+/** Desktop (lg+): sticky rail with the section list and the save reminder. */
+function SectionRail({ activeSection }: { activeSection: string }) {
+  return (
+    <nav aria-label="Settings sections" className={cn(CARD, "sticky top-24 flex flex-col gap-3 p-3")}>
+      <p className="px-1.5 pt-1 text-sm text-muted-foreground">Manage your profile and preferences</p>
+      <ul className="flex flex-col gap-1">
+        {SECTIONS.map((s) => (
+          <li key={s.id}>
+            <SectionLink section={s} active={activeSection === s.id} variant="rail" />
+          </li>
+        ))}
+      </ul>
+      <p className="flex items-start gap-1.5 border-t border-border/60 px-1.5 pt-2.5 pb-0.5 text-xs text-muted-foreground">
+        <AppIcon icon={ICON.info} size="sm" tone="muted" className="mt-px" />
+        Profile and preferences apply when you save. Other settings save on their own.
+      </p>
+    </nav>
+  )
+}
+
+/** Mobile / tablet: sticky 4-up section bar under the header. */
+function SectionBar({ activeSection }: { activeSection: string }) {
+  return (
+    <nav
+      aria-label="Settings sections"
+      className={cn(CARD, "sticky top-[60px] z-20 grid grid-cols-4 gap-1 bg-card/90 p-1 backdrop-blur-md lg:hidden")}
+    >
+      {SECTIONS.map((s) => (
+        <SectionLink key={s.id} section={s} active={activeSection === s.id} variant="bar" />
+      ))}
+    </nav>
+  )
+}
+
+function SectionCard({
+  id,
+  icon,
+  tone,
+  title,
+  description,
+  danger,
+  className,
+  children,
+}: {
+  id?: string
+  icon: SectionIcon
+  tone: AppIconTone
+  title: string
+  description: string
+  danger?: boolean
+  className?: string
+  children: ReactNode
+}) {
+  return (
+    <section
+      id={id}
+      aria-labelledby={id ? `${id}-title` : undefined}
+      className={cn(
+        CARD,
+        "flex min-w-0 scroll-mt-32 flex-col gap-4 p-4 md:p-5 lg:scroll-mt-24",
+        danger && "border-destructive/40",
+        className,
+      )}
+    >
+      <header className="flex items-start gap-3">
+        <IconTile icon={icon} tone={tone} />
+        <div className="min-w-0 flex-1">
+          <h2 id={id ? `${id}-title` : undefined} className={cn("text-base font-extrabold tracking-tight", danger ? "text-destructive" : "text-foreground")}>
+            {title}
+          </h2>
+          <p className="text-sm text-muted-foreground">{description}</p>
+        </div>
+      </header>
+      {children}
+    </section>
+  )
+}
+
+function SubLabel({ id, icon, children, aside }: { id?: string; icon?: SectionIcon; children: ReactNode; aside?: ReactNode }) {
+  return (
+    <div className="flex items-center justify-between gap-2">
+      <h3 id={id} className="flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-[0.08em] text-muted-foreground">
+        {icon ? <AppIcon icon={icon} size="sm" tone="muted" /> : null}
+        {children}
+      </h3>
+      {aside}
+    </div>
+  )
+}
+
+function Field({ id, label, icon, hint, children }: { id: string; label: string; icon?: SectionIcon; hint?: ReactNode; children: ReactNode }) {
+  return (
+    <div className="min-w-0 space-y-1.5">
+      <Label htmlFor={id} className="flex items-center gap-1.5 text-sm font-semibold">
+        {icon ? <AppIcon icon={icon} size="sm" tone="muted" /> : null}
+        {label}
+      </Label>
+      {children}
+      {hint}
+    </div>
+  )
+}
+
+function Hint({ id, children }: { id?: string; children: ReactNode }) {
+  return (
+    <p id={id} className="text-xs text-muted-foreground">
+      {children}
+    </p>
+  )
+}
+
+function RoleSelect({ id, value, onChange, noneLabel, invalid }: { id: string; value: string; onChange: (v: string) => void; noneLabel: string; invalid?: boolean }) {
+  return (
+    <Select value={value || "any"} onValueChange={(v) => onChange(v === "any" ? "" : v)}>
+      <SelectTrigger id={id} className={cn(TRIGGER, invalid && "border-destructive/60 focus-visible:ring-destructive/20")}>
+        <SelectValue placeholder={noneLabel} />
+      </SelectTrigger>
+      <SelectContent className="rounded-xl">
+        <SelectItem value="any">{noneLabel}</SelectItem>
+        {ROLE_OPTIONS.map((opt) => (
+          <SelectItem key={opt.value} value={opt.value}>
+            <span className="inline-flex min-w-0 items-center gap-2">
+              <TagIcon kind="role" value={opt.value} size="xs" withTooltip={false} />
+              <span className="truncate">{opt.label}</span>
+            </span>
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  )
+}
+
+function ExperienceSelect({ id, value, onChange, disabled }: { id: string; value: string; onChange: (v: string) => void; disabled?: boolean }) {
+  return (
+    <Select value={value} onValueChange={onChange} disabled={disabled}>
+      <SelectTrigger id={id} className={TRIGGER}>
+        <SelectValue placeholder="Select your experience level" />
+      </SelectTrigger>
+      <SelectContent className="rounded-xl">
+        {EXPERIENCE_OPTIONS.map((opt) => (
+          <SelectItem key={opt.value} value={opt.value}>
+            <span className="inline-flex min-w-0 items-center gap-2">
+              <TagIcon kind="level" value={opt.value} size="xs" withTooltip={false} />
+              <span className="truncate">{opt.label}</span>
+            </span>
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  )
+}
+
+/** One role slot (Primary / Secondary): equal panels side by side from sm. */
+function RoleSlot({ title, role, children }: { title: string; role: string; children: ReactNode }) {
+  return (
+    <div className="flex min-w-0 flex-col gap-3 rounded-xl border border-border bg-background/40 p-3">
+      <div className="flex min-h-6 items-center justify-between gap-2">
+        <span className="text-sm font-extrabold text-foreground">{title}</span>
+        {role ? <TagIcon kind="role" value={role} size="xs" withTooltip={false} /> : <span className="text-xs text-muted-foreground">Not set</span>}
+      </div>
+      {children}
+    </div>
+  )
+}
 
 type ProfileSettingsRole = {
   role: string
@@ -84,48 +330,6 @@ type ProfileSettingsProps = {
   onProfileUpdated?: (patch?: { discord_username?: string | null }) => void
   /** Fallback when profile.username is empty (e.g. OAuth name before profile is saved) */
   displayNameFallback?: string | null
-}
-
-function SettingsSection({
-  title,
-  description,
-  icon,
-  defaultOpen = false,
-  children,
-}: {
-  title: string
-  description: string
-  icon: ReactNode
-  defaultOpen?: boolean
-  children: ReactNode
-}) {
-  const [open, setOpen] = useState(defaultOpen)
-
-  return (
-    <Collapsible open={open} onOpenChange={setOpen} className="space-y-4">
-      <CollapsibleTrigger asChild>
-        <button
-          type="button"
-          className="flex w-full items-center gap-3 rounded-xl border border-border/40 bg-card/40 px-3 py-3 text-left transition-colors hover:bg-card/70"
-        >
-          <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-            {icon}
-          </div>
-          <div className="min-w-0 flex-1">
-            <h2 className="text-base font-medium text-foreground">{title}</h2>
-            <p className="text-sm text-muted-foreground">{description}</p>
-          </div>
-          <ChevronDown
-            className={cn(
-              "size-4 shrink-0 text-muted-foreground transition-transform",
-              open && "rotate-180",
-            )}
-          />
-        </button>
-      </CollapsibleTrigger>
-      <CollapsibleContent className="space-y-4">{children}</CollapsibleContent>
-    </Collapsible>
-  )
 }
 
 export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback }: ProfileSettingsProps) {
@@ -197,7 +401,7 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
   const [showSignOutAllDialog, setShowSignOutAllDialog] = useState(false)
   const { signOut, pending: signOutPending } = useSignOut()
 
-  const handleSaveProfile = async (e: React.FormEvent) => {
+  const handleSaveProfile = async (e: FormEvent) => {
     e.preventDefault()
     if (!profile?.id) return
 
@@ -288,44 +492,47 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
     displayNameFallback?.trim() ||
     "Jammer"
 
+  const activeSection = useSectionScrollSpy(SECTION_ID_LIST, 132)
+
+  // Deep links (`?tab=settings#settings-notifications`): scroll once the tab content is laid out.
+  useEffect(() => {
+    const target = window.location.hash.replace(/^#/, "")
+    if (!target || (!SECTION_ID_LIST.includes(target) && !LEGACY_ANCHORS.includes(target))) return
+    let frame = requestAnimationFrame(() => {
+      frame = requestAnimationFrame(() => scrollToSection(target, "auto"))
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [])
+
   return (
-    <div className="flex w-full min-w-0 max-w-full flex-col space-y-8 py-2 md:space-y-10 md:py-8">
-      {/* Page Header — hidden on mobile (MobileSectionTitle already shows Settings) */}
-      <div className="hidden space-y-1 md:block">
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Settings</h1>
-        <p className="text-sm text-muted-foreground">Manage your profile and preferences</p>
+    <div className="grid w-full min-w-0 max-w-full gap-3 py-2 md:gap-4 md:py-4 lg:grid-cols-12 lg:gap-[18px]">
+      <div className="hidden lg:col-span-3 lg:block">
+        <SectionRail activeSection={activeSection} />
       </div>
+      <SectionBar activeSection={activeSection} />
 
-      <form onSubmit={handleSaveProfile} className="space-y-6">
-        <SettingsSection
-          title="Public profile"
-          description="This is how others will see you on the platform."
-          icon={<UserRound className="size-4 text-primary" />}
-          defaultOpen
-        >
-          <Card className="border-border/50 bg-muted/30">
-            <CardContent className="p-6 md:p-8">
-              <div className="mb-8">
-                <ProfileCard
-                  avatarUrl={profile?.avatar_url ?? null}
-                  displayName={displayName}
-                  fallbackName={displayNameFallback ?? undefined}
-                  currentTitle={
-                    profile?.current_title?.trim()
-                      ? profile.current_title.trim()
-                      : "Rookie Jammer"
-                  }
-                  level={levelFromTotalXp(typeof profile?.xp === "number" ? profile.xp : 0)}
-                  programmingLanguages={programmingLanguages}
-                  size="lg"
-                  subtitle="Your avatar is synced from your login provider"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="profile-username" className="text-sm font-medium">
-                  Username
-                </Label>
+      <div className="grid min-w-0 gap-3 md:gap-4 lg:col-span-9 lg:gap-[18px]">
+        <form onSubmit={handleSaveProfile} className="grid min-w-0 gap-3 md:gap-4 lg:gap-[18px]" aria-label="Profile and preferences">
+          <div className="grid min-w-0 gap-3 md:gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,300px)] lg:gap-[18px]">
+            <SectionCard
+              id={SETTINGS_SECTION_IDS.profile}
+              icon={ICON.jammer}
+              tone="teal"
+              title="Public profile"
+              description="This is how others will see you on the platform."
+            >
+              <Field
+                id="profile-username"
+                label="Username"
+                hint={
+                  <>
+                    <Hint id="profile-username-hint">Your unique display name across the platform</Hint>
+                    {showUsernameError && usernameErrorMessage ? (
+                      <p className="text-xs font-medium text-destructive">{usernameErrorMessage}</p>
+                    ) : null}
+                  </>
+                }
+              >
                 <Input
                   id="profile-username"
                   value={username}
@@ -335,194 +542,120 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
                   autoComplete="username"
                   aria-invalid={showUsernameError}
                   aria-describedby="profile-username-hint"
-                  className={cn(
-                    "h-11 rounded-lg border-border/50 bg-background transition-colors focus:border-primary/50",
-                    showUsernameError && "border-destructive/60 focus-visible:ring-destructive/20",
-                  )}
+                  className={cn(FIELD, showUsernameError && "border-destructive/60 focus-visible:ring-destructive/20")}
                 />
-                <p id="profile-username-hint" className="text-xs text-muted-foreground">
-                  Your unique display name across the platform
-                </p>
-                {showUsernameError && usernameErrorMessage ? (
-                  <p className="text-xs font-medium text-destructive">{usernameErrorMessage}</p>
-                ) : null}
-              </div>
-            </CardContent>
-          </Card>
-        </SettingsSection>
-
-        <SettingsSection
-          title="Links"
-          description="Discord and portfolio links for teammates"
-          icon={<Link2 className="size-4 text-primary" />}
-        >
-          <Card className="border-border/50 bg-muted/30">
-            <CardContent className="space-y-6 p-6 md:p-8">
-              <div className="grid min-w-0 gap-6 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="profile-discord" className="flex items-center gap-2 text-sm font-medium">
-                    <MessageSquareText className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
-                    Discord Username
-                  </Label>
+              </Field>
+              <div className="grid min-w-0 gap-4 sm:grid-cols-2">
+                <Field
+                  id="profile-discord"
+                  label="Discord Username"
+                  icon={ICON.chat}
+                  hint={<Hint>Visible to teammates for group chat invites</Hint>}
+                >
                   <Input
                     id="profile-discord"
                     value={discordUsername}
                     onChange={(e) => setDiscordUsername(e.target.value)}
                     placeholder="e.g. gamer123"
-                    className="h-11 w-full rounded-lg border-border/50 bg-background transition-colors focus:border-primary/50"
+                    className={FIELD}
                   />
-                  <p className="text-xs text-muted-foreground">
-                    Visible to teammates for group chat invites
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="profile-portfolio-url" className="flex items-center gap-2 text-sm font-medium">
-                    <Link2 className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
-                    Portfolio URL
-                  </Label>
+                </Field>
+                <Field
+                  id="profile-portfolio-url"
+                  label="Portfolio URL"
+                  icon={ICON.link}
+                  hint={<Hint>Showcase your work to potential teammates</Hint>}
+                >
                   <Input
                     id="profile-portfolio-url"
                     type="url"
                     value={portfolioUrl}
                     onChange={(e) => setPortfolioUrl(e.target.value)}
                     placeholder="https://yourname.itch.io or https://yourportfolio.com"
-                    className="h-11 w-full rounded-lg border-border/50 bg-background transition-colors focus:border-primary/50"
+                    className={FIELD}
                   />
-                  <p className="text-xs text-muted-foreground">
-                    Showcase your work to potential teammates
-                  </p>
-                </div>
+                </Field>
               </div>
-            </CardContent>
-          </Card>
-        </SettingsSection>
+            </SectionCard>
 
-        <SettingsSection
-          title="Default preferences"
-          description="Pre-fill your availability posts automatically"
-          icon={<Settings className="size-4 text-primary" />}
-        >
-          <Card className="border-border/50 bg-muted/30">
-            <CardContent className="p-6 md:p-8">
-              <div className="grid min-w-0 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                <div className="space-y-2 sm:col-span-2 lg:col-span-1">
-                  <Label htmlFor="profile-primary-role" className="text-sm font-medium">
-                    Primary Role
-                  </Label>
-                  <Select value={primaryRole || "any"} onValueChange={(v) => setPrimaryRole(v === "any" ? "" : v)}>
-                    <SelectTrigger id="profile-primary-role" className="h-11 rounded-lg border-border/50 bg-background">
-                      <SelectValue placeholder="None / No default" />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-lg">
-                      <SelectItem value="any">None / No default</SelectItem>
-                      {ROLE_OPTIONS.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          <span className="inline-flex min-w-0 items-center gap-2">
-                            <TagIcon kind="role" value={opt.value} size="xs" withTooltip={false} />
-                            <span className="truncate">{opt.label}</span>
-                          </span>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-muted-foreground">
-                    Main role used as your default role
-                  </p>
-                </div>
-                <div className="space-y-2 sm:col-span-2 lg:col-span-1">
-                  <Label htmlFor="profile-primary-experience" className="text-sm font-medium">
-                    Primary Role Experience
-                  </Label>
-                  <Select value={primaryExperience} onValueChange={setPrimaryExperience}>
-                    <SelectTrigger id="profile-primary-experience" className="h-11 rounded-lg border-border/50 bg-background">
-                      <SelectValue placeholder="Select your experience level" />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-lg">
-                      {EXPERIENCE_OPTIONS.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          <span className="inline-flex min-w-0 items-center gap-2">
-                            <TagIcon kind="level" value={opt.value} size="xs" withTooltip={false} />
-                            <span className="truncate">{opt.label}</span>
-                          </span>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-muted-foreground">
-                    Your experience for this role
-                  </p>
-                </div>
-                <div className="space-y-2 sm:col-span-2 lg:col-span-1">
-                  <Label htmlFor="profile-secondary-role" className="text-sm font-medium">
-                    Secondary Role (optional)
-                  </Label>
-                  <Select value={secondaryRole || "any"} onValueChange={(v) => setSecondaryRole(v === "any" ? "" : v)}>
-                    <SelectTrigger
-                      id="profile-secondary-role"
-                      className={cn(
-                        "h-11 rounded-lg border-border/50 bg-background",
-                        duplicateRoleSelected && "border-destructive/60 focus-visible:ring-destructive/20",
-                      )}
-                    >
-                      <SelectValue placeholder="None / No secondary role" />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-lg">
-                      <SelectItem value="any">None / No secondary role</SelectItem>
-                      {ROLE_OPTIONS.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          <span className="inline-flex min-w-0 items-center gap-2">
-                            <TagIcon kind="role" value={opt.value} size="xs" withTooltip={false} />
-                            <span className="truncate">{opt.label}</span>
-                          </span>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-muted-foreground">
-                    Add a second role you can also contribute with
-                  </p>
-                  {duplicateRoleSelected ? (
-                    <p className="text-xs font-medium text-destructive">
-                      Secondary role must be different from primary role.
-                    </p>
-                  ) : null}
-                </div>
-                <div className="space-y-2 sm:col-span-2 lg:col-span-1">
-                  <Label htmlFor="profile-secondary-experience" className="text-sm font-medium">
-                    Secondary Role Experience
-                  </Label>
-                  <Select
-                    value={secondaryExperience}
-                    onValueChange={setSecondaryExperience}
-                    disabled={!secondaryRole.trim()}
+            <aside
+              aria-label="Your profile card"
+              className={cn(CARD, "flex min-w-0 flex-col gap-3 bg-gradient-to-br from-lavender/20 via-card to-teal/15 p-4")}
+            >
+              <h2 className="text-xs font-extrabold uppercase tracking-[0.08em] text-muted-foreground">Your profile card</h2>
+              <ProfileCard
+                avatarUrl={profile?.avatar_url ?? null}
+                displayName={displayName}
+                fallbackName={displayNameFallback ?? undefined}
+                currentTitle={profile?.current_title?.trim() ? profile.current_title.trim() : "Rookie Jammer"}
+                level={levelFromTotalXp(typeof profile?.xp === "number" ? profile.xp : 0)}
+                programmingLanguages={programmingLanguages}
+                size="lg"
+                subtitle="Your avatar is synced from your login provider"
+              />
+            </aside>
+          </div>
+
+          <SectionCard
+            id={SETTINGS_SECTION_IDS.preferences}
+            icon={ICON.filters}
+            tone="lavender"
+            title="Default preferences"
+            description="Pre-fill your availability posts automatically."
+          >
+            <div className="space-y-2">
+              <SubLabel>Roles</SubLabel>
+              <div className="grid min-w-0 gap-3 sm:grid-cols-2">
+                <RoleSlot title="Primary" role={primaryRole}>
+                  <Field id="profile-primary-role" label="Primary Role" hint={<Hint>Main role used as your default role</Hint>}>
+                    <RoleSelect id="profile-primary-role" value={primaryRole} onChange={setPrimaryRole} noneLabel="None / No default" />
+                  </Field>
+                  <Field id="profile-primary-experience" label="Primary Role Experience" hint={<Hint>Your experience for this role</Hint>}>
+                    <ExperienceSelect id="profile-primary-experience" value={primaryExperience} onChange={setPrimaryExperience} />
+                  </Field>
+                </RoleSlot>
+                <RoleSlot title="Secondary (optional)" role={secondaryRole}>
+                  <Field
+                    id="profile-secondary-role"
+                    label="Secondary Role"
+                    hint={
+                      <>
+                        <Hint>Add a second role you can also contribute with</Hint>
+                        {duplicateRoleSelected ? (
+                          <p className="text-xs font-medium text-destructive">Secondary role must be different from primary role.</p>
+                        ) : null}
+                      </>
+                    }
                   >
-                    <SelectTrigger id="profile-secondary-experience" className="h-11 rounded-lg border-border/50 bg-background">
-                      <SelectValue placeholder="Select your experience level" />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-lg">
-                      {EXPERIENCE_OPTIONS.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          <span className="inline-flex min-w-0 items-center gap-2">
-                            <TagIcon kind="level" value={opt.value} size="xs" withTooltip={false} />
-                            <span className="truncate">{opt.label}</span>
-                          </span>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-muted-foreground">
-                    Only used when a secondary role is set
-                  </p>
-                </div>
-                <div className="space-y-2 sm:col-span-2 lg:col-span-1">
-                  <Label htmlFor="profile-jam-style" className="text-sm font-medium">
-                    Jam Style
-                  </Label>
+                    <RoleSelect
+                      id="profile-secondary-role"
+                      value={secondaryRole}
+                      onChange={setSecondaryRole}
+                      noneLabel="None / No secondary role"
+                      invalid={duplicateRoleSelected}
+                    />
+                  </Field>
+                  <Field id="profile-secondary-experience" label="Secondary Role Experience" hint={<Hint>Only used when a secondary role is set</Hint>}>
+                    <ExperienceSelect
+                      id="profile-secondary-experience"
+                      value={secondaryExperience}
+                      onChange={setSecondaryExperience}
+                      disabled={!secondaryRole.trim()}
+                    />
+                  </Field>
+                </RoleSlot>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <SubLabel>Jam defaults</SubLabel>
+              <div className="grid min-w-0 gap-3 sm:grid-cols-3">
+                <Field id="profile-jam-style" label="Jam Style" hint={<Hint>The vibe you prefer during game jams</Hint>}>
                   <Select value={jamStyle || "any"} onValueChange={(v) => setJamStyle(v === "any" ? "" : v)}>
-                    <SelectTrigger id="profile-jam-style" className="h-11 rounded-lg border-border/50 bg-background">
+                    <SelectTrigger id="profile-jam-style" className={TRIGGER}>
                       <SelectValue placeholder="None / No preference" />
                     </SelectTrigger>
-                    <SelectContent className="rounded-lg">
+                    <SelectContent className="rounded-xl">
                       <SelectItem value="any">None / No preference</SelectItem>
                       {JAM_STYLE_OPTIONS.map((opt) => (
                         <SelectItem key={opt.value} value={opt.value}>
@@ -534,188 +667,184 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
                       ))}
                     </SelectContent>
                   </Select>
-                  <p className="text-xs text-muted-foreground">
-                    The vibe you prefer during game jams
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="profile-default-engine" className="text-sm font-medium">
-                    Default Engine
-                  </Label>
+                </Field>
+                <Field id="profile-default-engine" label="Default Engine" icon={ICON.engine} hint={<Hint>Preferred game engine</Hint>}>
                   <Select value={defaultEngine || "any"} onValueChange={(v) => setDefaultEngine(v === "any" ? "" : v)}>
-                    <SelectTrigger id="profile-default-engine" className="h-11 rounded-lg border-border/50 bg-background">
+                    <SelectTrigger id="profile-default-engine" className={TRIGGER}>
                       <SelectValue placeholder="Any / No Preference" />
                     </SelectTrigger>
-                    <SelectContent className="rounded-lg">
+                    <SelectContent className="rounded-xl">
                       {ENGINE_OPTIONS_WITH_ANY.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                  <p className="text-xs text-muted-foreground">
-                    Preferred game engine
-                  </p>
-                </div>
-                <div className="space-y-2 sm:col-span-2 lg:col-span-1">
-                  <Label htmlFor="profile-default-language" className="text-sm font-medium">
-                    Default Language
-                  </Label>
+                </Field>
+                <Field id="profile-default-language" label="Default Language" icon={ICON.language} hint={<Hint>Communication language</Hint>}>
                   <Select value={defaultLanguage || "any"} onValueChange={(v) => setDefaultLanguage(v === "any" ? "" : v)}>
-                    <SelectTrigger id="profile-default-language" className="h-11 rounded-lg border-border/50 bg-background">
+                    <SelectTrigger id="profile-default-language" className={TRIGGER}>
                       <SelectValue placeholder="None / No default" />
                     </SelectTrigger>
-                    <SelectContent className="rounded-lg">
+                    <SelectContent className="rounded-xl">
                       <SelectItem value="any">None / No default</SelectItem>
                       {LANGUAGE_OPTIONS.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                  <p className="text-xs text-muted-foreground">
-                    Communication language
-                  </p>
-                </div>
-                <div className="space-y-2 sm:col-span-2 lg:col-span-3">
-                  <Label id="profile-programming-languages" className="flex items-center gap-2 text-sm font-medium">
-                    <CodeXml className="size-3.5 text-muted-foreground" />
-                    Programming languages
-                  </Label>
-                  <div
-                    role="group"
-                    aria-labelledby="profile-programming-languages"
-                    className="flex min-w-0 flex-wrap gap-2"
-                  >
-                    {PROGRAMMING_LANGUAGE_OPTIONS.map((option) => {
-                      const selected = programmingLanguages.includes(option.value)
-                      return (
-                        <button
-                          key={option.value}
-                          type="button"
-                          aria-pressed={selected}
-                          onClick={() =>
-                            setProgrammingLanguages((current) =>
-                              current.includes(option.value)
-                                ? current.filter((value) => value !== option.value)
-                                : [...current, option.value],
-                            )
-                          }
-                          className={cn(
-                            "inline-flex max-w-full min-h-9 items-center gap-1.5 rounded-full border px-3 text-xs font-semibold transition-colors",
-                            selected
-                              ? "border-lavender/40 bg-lavender/15 text-lavender"
-                              : "border-border/60 bg-card text-muted-foreground hover:border-border hover:text-foreground",
-                          )}
-                        >
-                          <span aria-hidden>{option.short}</span>
-                          {option.label}
-                        </button>
-                      )
-                    })}
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Languages you write in. Shown on your profile and member cards.
-                  </p>
-                </div>
+                </Field>
               </div>
-            </CardContent>
-          </Card>
-        </SettingsSection>
-
-        <div className="flex justify-end pt-2">
-          <Button
-            type="submit"
-            disabled={saving}
-            size="lg"
-            className="min-w-[160px] gap-2 rounded-lg font-medium shadow-sm transition-all hover:shadow-md"
-          >
-            {saving ? (
-              <>
-                <LoaderCircle className="size-4 animate-spin" />
-                Saving...
-              </>
-            ) : (
-              "Save Changes"
-            )}
-          </Button>
-        </div>
-      </form>
-
-      <section className="space-y-6">
-        <div className="flex items-center gap-3">
-          <div className="flex size-9 items-center justify-center rounded-lg bg-accent">
-            <Bell className="size-4 text-accent-foreground" />
-          </div>
-          <div>
-            <h2 className="text-base font-medium text-foreground">Notifications</h2>
-            <p className="text-sm text-muted-foreground">Get notified about squad applications and invites</p>
-          </div>
-        </div>
-
-        <Card className="border-border/50 bg-muted/30">
-          <CardContent className="p-6 md:p-8">
-            <PushNotificationManager />
-            <div className="mt-6 border-t border-border/40 pt-6">
-              <EmailPreferencesRows
-                key={`${profile?.email_preferences_available === true}-${profile?.email_team_activity !== false}-${profile?.email_matching_announcements !== false}`}
-                initial={readEmailPreferences(profile)}
-                available={profile?.email_preferences_available === true}
-              />
             </div>
-          </CardContent>
-        </Card>
-      </section>
 
-      <section id="privacy" className="scroll-mt-24 space-y-4">
-        <div className="flex items-center gap-3">
-          <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10">
-            <AppIcon icon={ICON.locked} tone="primary" />
-          </div>
-          <div>
-            <h2 className="text-base font-medium text-foreground">Privacy and sessions</h2>
-            <p className="text-sm text-muted-foreground">Cookies on this browser and where you are signed in</p>
-          </div>
-        </div>
+            <div className="space-y-2">
+              <SubLabel
+                id="profile-programming-languages"
+                icon={ICON.programmingLanguage}
+                aside={<span className="text-xs font-semibold tabular-nums text-muted-foreground">{programmingLanguages.length} selected</span>}
+              >
+                Programming languages
+              </SubLabel>
+              <div role="group" aria-labelledby="profile-programming-languages" className="flex min-w-0 flex-wrap gap-2">
+                {PROGRAMMING_LANGUAGE_OPTIONS.map((option) => {
+                  const selected = programmingLanguages.includes(option.value)
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      aria-pressed={selected}
+                      onClick={() =>
+                        setProgrammingLanguages((current) =>
+                          current.includes(option.value)
+                            ? current.filter((value) => value !== option.value)
+                            : [...current, option.value],
+                        )
+                      }
+                      className={cn(
+                        "inline-flex min-h-9 max-w-full items-center gap-1.5 rounded-lg border px-2.5 text-xs font-bold transition-colors",
+                        selected
+                          ? "border-lavender/60 bg-lavender/20 text-foreground shadow-[2px_2px_0_0_var(--neo-shadow)]"
+                          : "border-border bg-background/50 text-muted-foreground hover:text-foreground",
+                        FOCUS,
+                      )}
+                    >
+                      <span aria-hidden className="grid min-w-5 place-items-center rounded bg-secondary/80 px-1 text-[10px] font-black">
+                        {option.short}
+                      </span>
+                      {option.label}
+                      {selected ? <AppIcon icon={ICON.confirm} size="xs" tone="lavender" /> : null}
+                    </button>
+                  )
+                })}
+              </div>
+              <Hint>Languages you write in. Shown on your profile and member cards.</Hint>
+            </div>
 
-        <ul className="divide-y divide-border/40 overflow-hidden rounded-xl border border-border/50 bg-muted/30">
-          <li className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3">
-            <div className="min-w-0">
-              <p className="text-sm font-medium text-foreground">Cookie settings</p>
-              <p className="text-xs text-muted-foreground">Allow or refuse optional analytics on this browser.</p>
+            <div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-2 border-t border-border/60 pt-4">
+              <p className="text-xs text-muted-foreground">Saves your public profile and default preferences.</p>
+              <Button type="submit" disabled={saving} className="gap-2 rounded-xl font-semibold">
+                {saving ? (
+                  <>
+                    <AppIcon icon={ICON.loading} size="sm" className="animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <AppIcon icon={ICON.confirm} size="sm" />
+                    Save Changes
+                  </>
+                )}
+              </Button>
             </div>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="gap-1.5 rounded-lg"
-              aria-haspopup="dialog"
-              onClick={openCookieSettings}
-            >
-              <AppIcon icon={ICON.cookies} size="sm" />
-              Cookie settings
-            </Button>
-          </li>
-          <li className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3">
-            <div className="min-w-0">
-              <p className="text-sm font-medium text-foreground">Log out of all devices</p>
-              <p className="text-xs text-muted-foreground">Ends every session of your account, including this one.</p>
+          </SectionCard>
+        </form>
+
+        <SectionCard
+          id={SETTINGS_SECTION_IDS.notifications}
+          icon={ICON.notifications}
+          tone="peach"
+          title="Notifications"
+          description="Get notified about squad applications and invites"
+        >
+          <div className={ROW}>
+            <div className="min-w-0 flex-1 basis-48">
+              <p className="text-sm font-bold text-foreground">Push notifications</p>
+              <p className="text-xs text-muted-foreground">Alerts on this device for applications, invites and replies.</p>
             </div>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="gap-1.5 rounded-lg"
-              disabled={signOutPending !== null}
-              onClick={() => setShowSignOutAllDialog(true)}
-            >
-              <AppIcon icon={ICON.signOutAll} size="sm" />
-              Log out of all devices
-            </Button>
-          </li>
-        </ul>
-      </section>
+            <div className="shrink-0">
+              <PushNotificationManager />
+            </div>
+          </div>
+          <div className="rounded-xl border border-border bg-background/40 p-3">
+            <EmailPreferencesRows
+              key={`${profile?.email_preferences_available === true}-${profile?.email_team_activity !== false}-${profile?.email_matching_announcements !== false}`}
+              initial={readEmailPreferences(profile)}
+              available={profile?.email_preferences_available === true}
+            />
+          </div>
+        </SectionCard>
+
+        <SectionCard
+          id={SETTINGS_SECTION_IDS.account}
+          icon={ICON.locked}
+          tone="primary"
+          title="Account"
+          description="Cookies, sessions and account deletion"
+        >
+          <div id="privacy" className="scroll-mt-32 space-y-2 lg:scroll-mt-24">
+            <SubLabel>Privacy and sessions</SubLabel>
+            <ul className="divide-y divide-border/60 overflow-hidden rounded-xl border border-border bg-background/40">
+              <li className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 p-3">
+                <div className="min-w-0 flex-1 basis-48">
+                  <p className="text-sm font-bold text-foreground">Cookie settings</p>
+                  <p className="text-xs text-muted-foreground">Allow or refuse optional analytics on this browser.</p>
+                </div>
+                <Button type="button" variant="outline" size="sm" className="shrink-0 gap-1.5 rounded-xl" aria-haspopup="dialog" onClick={openCookieSettings}>
+                  <AppIcon icon={ICON.cookies} size="sm" />
+                  Cookie settings
+                </Button>
+              </li>
+              <li className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 p-3">
+                <div className="min-w-0 flex-1 basis-48">
+                  <p className="text-sm font-bold text-foreground">Log out of all devices</p>
+                  <p className="text-xs text-muted-foreground">Ends every session of your account, including this one.</p>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="shrink-0 gap-1.5 rounded-xl"
+                  disabled={signOutPending !== null}
+                  onClick={() => setShowSignOutAllDialog(true)}
+                >
+                  <AppIcon icon={ICON.signOutAll} size="sm" />
+                  Log out of all devices
+                </Button>
+              </li>
+            </ul>
+          </div>
+
+          <div className="space-y-2">
+            <SubLabel>Danger zone</SubLabel>
+            <div className={cn(ROW, "border-destructive/30 bg-destructive/5")}>
+              <div className="min-w-0 flex-1 basis-56">
+                <p className="text-sm font-bold text-foreground">Delete Account</p>
+                <p className="text-xs text-muted-foreground">Permanently delete your account and all associated data. This cannot be undone.</p>
+              </div>
+              <Button type="button" variant="destructive" size="sm" onClick={() => setShowDeleteAccountDialog(true)} className="shrink-0 gap-2 rounded-xl">
+                <AppIcon icon={ICON.delete} size="sm" />
+                Delete Account
+              </Button>
+            </div>
+          </div>
+        </SectionCard>
+      </div>
 
       <AlertDialog open={showSignOutAllDialog} onOpenChange={(open) => signOutPending === null && setShowSignOutAllDialog(open)}>
-        <AlertDialogContent className="rounded-2xl border-border/50">
+        <AlertDialogContent className="rounded-2xl border-border">
           <AlertDialogHeader>
             <AlertDialogTitle>Log out of all devices?</AlertDialogTitle>
             <AlertDialogDescription>
@@ -723,15 +852,10 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2 sm:gap-2">
-            <AlertDialogCancel disabled={signOutPending !== null} className="rounded-lg">
+            <AlertDialogCancel disabled={signOutPending !== null} className="rounded-xl">
               Cancel
             </AlertDialogCancel>
-            <Button
-              type="button"
-              onClick={() => void signOut("global")}
-              disabled={signOutPending !== null}
-              className="gap-2 rounded-lg"
-            >
+            <Button type="button" onClick={() => void signOut("global")} disabled={signOutPending !== null} className="gap-2 rounded-xl">
               {signOutPending === "global" ? (
                 <>
                   <AppIcon icon={ICON.loading} className="animate-spin" />
@@ -748,74 +872,30 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
         </AlertDialogContent>
       </AlertDialog>
 
-      <section className="space-y-6">
-        <div className="flex items-center gap-3">
-          <div className="flex size-9 items-center justify-center rounded-lg bg-destructive/10">
-            <TriangleAlert className="size-4 text-destructive" />
-          </div>
-          <div>
-            <h2 className="text-base font-medium text-destructive">Danger Zone</h2>
-            <p className="text-sm text-muted-foreground">Irreversible actions. Proceed with caution.</p>
-          </div>
-        </div>
-
-        <Card className="border-destructive/20 bg-destructive/5">
-          <CardContent className="p-6 md:p-8">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-foreground">Delete Account</p>
-                <p className="text-sm text-muted-foreground">
-                  Permanently delete your account and all associated data. This cannot be undone.
-                </p>
-              </div>
-              <Button
-                type="button"
-                variant="destructive"
-                onClick={() => setShowDeleteAccountDialog(true)}
-                className="shrink-0 gap-2 rounded-lg font-medium"
-              >
-                <Trash2 className="size-4" />
-                Delete Account
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </section>
-
       <AlertDialog open={showDeleteAccountDialog} onOpenChange={(open) => !deletingAccount && setShowDeleteAccountDialog(open)}>
-        <AlertDialogContent className="rounded-2xl border-border/50">
+        <AlertDialogContent className="rounded-2xl border-border">
           <AlertDialogHeader>
             <div className="flex items-center gap-4">
-              <div className="flex size-12 items-center justify-center rounded-xl bg-destructive/10">
-                <TriangleAlert className="size-6 text-destructive" />
-              </div>
+              <IconTile icon={ICON.danger} tone="destructive" />
               <div className="space-y-1">
                 <AlertDialogTitle className="text-left">Delete your account?</AlertDialogTitle>
-                <AlertDialogDescription className="text-left text-sm">
-                  This action cannot be undone.
-                </AlertDialogDescription>
+                <AlertDialogDescription className="text-left text-sm">This action cannot be undone.</AlertDialogDescription>
               </div>
             </div>
           </AlertDialogHeader>
-          <div className="rounded-lg bg-muted/50 p-4">
+          <div className="rounded-xl bg-muted/50 p-4">
             <p className="text-sm text-muted-foreground">
               This will permanently delete your account, your profile, your availability posts, and remove you from any teams.
             </p>
           </div>
           <AlertDialogFooter className="gap-2 sm:gap-2">
-            <AlertDialogCancel disabled={deletingAccount} className="rounded-lg">
+            <AlertDialogCancel disabled={deletingAccount} className="rounded-xl">
               Cancel
             </AlertDialogCancel>
-            <Button
-              type="button"
-              variant="destructive"
-              onClick={handleDeleteAccount}
-              disabled={deletingAccount}
-              className="gap-2 rounded-lg"
-            >
+            <Button type="button" variant="destructive" onClick={handleDeleteAccount} disabled={deletingAccount} className="gap-2 rounded-xl">
               {deletingAccount ? (
                 <>
-                  <LoaderCircle className="size-4 animate-spin" />
+                  <AppIcon icon={ICON.loading} size="sm" className="animate-spin" />
                   Deleting...
                 </>
               ) : (

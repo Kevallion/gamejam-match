@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import {
   Dialog,
@@ -103,6 +103,8 @@ export function OnboardingModal({ open, onOpenChange, profile }: OnboardingModal
   const [portfolioUrl, setPortfolioUrl] = useState("")
   const [publishImmediately, setPublishImmediately] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const scrollPanelRef = useRef<HTMLDivElement>(null)
+  const [canScrollMore, setCanScrollMore] = useState(false)
 
   useEffect(() => {
     if (!open) return
@@ -127,6 +129,42 @@ export function OnboardingModal({ open, onOpenChange, profile }: OnboardingModal
     profile?.discord_username,
     profile?.portfolio_url,
   ])
+
+  useEffect(() => {
+    if (!open) {
+      setCanScrollMore(false)
+      return
+    }
+
+    const el = scrollPanelRef.current
+    if (!el) return
+
+    el.scrollTop = 0
+
+    const updateCanScrollMore = () => {
+      setCanScrollMore(el.scrollHeight - el.scrollTop - el.clientHeight > 1)
+    }
+
+    updateCanScrollMore()
+    let frame2 = 0
+    const frame = requestAnimationFrame(() => {
+      updateCanScrollMore()
+      frame2 = requestAnimationFrame(updateCanScrollMore)
+    })
+    el.addEventListener("scroll", updateCanScrollMore, { passive: true })
+    const observer = new ResizeObserver(updateCanScrollMore)
+    observer.observe(el)
+    for (const child of el.children) observer.observe(child)
+    window.addEventListener("resize", updateCanScrollMore)
+
+    return () => {
+      cancelAnimationFrame(frame)
+      cancelAnimationFrame(frame2)
+      el.removeEventListener("scroll", updateCanScrollMore)
+      observer.disconnect()
+      window.removeEventListener("resize", updateCanScrollMore)
+    }
+  }, [open, step])
 
   const trimmedUsername = username.trim()
   const usernameInvalidEmpty = trimmedUsername.length === 0
@@ -247,12 +285,19 @@ export function OnboardingModal({ open, onOpenChange, profile }: OnboardingModal
     <Dialog open={open} onOpenChange={handleDialogOpenChange}>
       <DialogContent
         data-onboarding-version="2"
-        className="max-h-[90vh] overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] rounded-3xl border-border/60 bg-background p-0 shadow-2xl sm:max-w-xl"
+        className="flex max-h-[min(90dvh,calc(100dvh-1.5rem))] min-h-0 flex-col gap-0 overflow-hidden rounded-3xl border-border/60 bg-background p-0 shadow-2xl sm:max-w-xl"
         showCloseButton={false}
         onPointerDownOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
-        <div className="px-6 pt-6">
+        <div className="relative flex min-h-0 flex-1 flex-col">
+          <div
+            ref={scrollPanelRef}
+            tabIndex={0}
+            role="region"
+            aria-label="Onboarding step content"
+            className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 pt-6 pb-6 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+          >
           <DialogHeader className="space-y-2 text-center">
             <DialogTitle className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
               {stepContent.title}
@@ -262,9 +307,8 @@ export function OnboardingModal({ open, onOpenChange, profile }: OnboardingModal
             </DialogDescription>
           </DialogHeader>
           <Progress value={progressValue} className="mt-4 h-1.5" />
-        </div>
 
-        <div className="px-6 pt-6 pb-8 sm:pb-10">
+          <div className="pt-6">
           {step === 1 && (
             <div className="mt-6 space-y-5">
               <div
@@ -478,7 +522,17 @@ export function OnboardingModal({ open, onOpenChange, profile }: OnboardingModal
             </div>
           )}
 
-          <DialogFooter className="mt-8 border-t border-border/60 pt-5 sm:justify-between">
+          </div>
+          </div>
+          <div
+            aria-hidden="true"
+            className={cn(
+              "pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-background to-transparent transition-opacity",
+              canScrollMore ? "opacity-100" : "opacity-0"
+            )}
+          />
+        </div>
+        <DialogFooter className="shrink-0 border-t border-border/60 bg-background px-6 pt-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:justify-between">
             <Button
               type="button"
               variant="ghost"
@@ -517,8 +571,7 @@ export function OnboardingModal({ open, onOpenChange, profile }: OnboardingModal
             ) : (
               <div />
             )}
-          </DialogFooter>
-        </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   )
