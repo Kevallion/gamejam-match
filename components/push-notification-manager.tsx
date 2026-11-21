@@ -2,7 +2,8 @@
 
 import { Button } from '@/components/ui/button'
 import { usePushNotifications } from '@/hooks/use-push-notifications'
-import { Bell } from 'lucide-react'
+import { AppIcon } from '@/components/ui/app-icon'
+import { ICON } from '@/lib/icons'
 
 export function PushNotificationManager() {
   const { permission, activate, isActivating, error } = usePushNotifications()
@@ -16,7 +17,7 @@ export function PushNotificationManager() {
         disabled={isActivating || permission === 'granted'}
         className="gap-2"
       >
-        <Bell className="size-4" />
+        <AppIcon icon={ICON.notifications} size="md" />
         {isActivating
           ? 'Activating...'
           : permission === 'granted'
