@@ -809,23 +809,6 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
               </li>
               <li className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 p-3">
                 <div className="min-w-0 flex-1 basis-48">
-                  <p className="text-sm font-bold text-foreground">Log out</p>
-                  <p className="text-xs text-muted-foreground">Ends your session on this browser only.</p>
-                </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="shrink-0 gap-1.5 rounded-xl"
-                  disabled={signOutPending !== null}
-                  onClick={() => void signOut("local")}
-                >
-                  <AppIcon icon={signOutPending === "local" ? ICON.loading : ICON.signOut} size="sm" className={signOutPending === "local" ? "animate-spin" : undefined} />
-                  {signOutPending === "local" ? "Logging out…" : "Log out"}
-                </Button>
-              </li>
-              <li className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 p-3">
-                <div className="min-w-0 flex-1 basis-48">
                   <p className="text-sm font-bold text-foreground">Log out of all devices</p>
                   <p className="text-xs text-muted-foreground">Ends every session of your account, including this one.</p>
                 </div>
