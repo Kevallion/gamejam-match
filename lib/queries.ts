@@ -593,11 +593,12 @@ type PublicAvailabilityPostRow = {
   engine: string | null
   language: string | null
   programming_languages: string[] | null
+  bio: string | null
 }
 
 /**
  * Available jammers for signed-out visitors: active posts with the author's
- * pseudo, avatar and card tags only. No bio, portfolio, xp/title, kudos or jam:
+ * pseudo, avatar, card tags and bio only. No portfolio, xp/title, kudos or jam:
  * those stay signed-in only, like the profile page itself.
  */
 async function getPublicAvailablePlayers(
@@ -648,7 +649,7 @@ async function getPublicAvailablePlayers(
       level: toDisplayLevel(levelRaw),
       jamStyle: toDisplayJamStyle(row.jam_style ?? ""),
       engine: engineRaw,
-      bio: "",
+      bio: (row.bio ?? "").trim(),
       language: (row.language ?? "").trim(),
       availability: row.availability || undefined,
       jammerTitle: null,
