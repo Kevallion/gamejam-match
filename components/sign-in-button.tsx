@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { LogIn } from "lucide-react"
 import { AuthModal } from "@/components/auth-modal"
 
-export function SignInButton({ className }: { className?: string }) {
+export function SignInButton({ className, next }: { className?: string; next?: string }) {
   const [modalOpen, setModalOpen] = useState(false)
 
   return (
@@ -17,7 +17,7 @@ export function SignInButton({ className }: { className?: string }) {
         <LogIn className="size-4" />
         Sign In
       </Button>
-      <AuthModal open={modalOpen} onOpenChange={setModalOpen} />
+      <AuthModal open={modalOpen} onOpenChange={setModalOpen} next={next} />
     </>
   )
 }

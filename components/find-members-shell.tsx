@@ -8,6 +8,7 @@ import { MembersGrid } from "@/components/members-grid"
 import { DirectoryFilters } from "@/components/directory-filters"
 import { DirectoryGrid } from "@/components/directory-grid"
 import { ActiveFilterChips, type ActiveFilterChip } from "@/components/active-filter-chips"
+import { SignedOutNotice } from "@/components/signed-out-notice"
 import { UserRoundSearch, Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -28,6 +29,8 @@ type FindMembersShellProps = {
   initialDirectory: DirectoryJammerListItem[]
   initialDirectoryHasMore: boolean
   initialMode?: MembersBrowseMode
+  /** False for signed-out visitors: no jammer data, sign-in prompt instead. */
+  signedIn?: boolean
 }
 
 export function FindMembersShell({
@@ -36,6 +39,7 @@ export function FindMembersShell({
   initialDirectory,
   initialDirectoryHasMore,
   initialMode = "available",
+  signedIn = true,
 }: FindMembersShellProps) {
   const router = useRouter()
   const pathname = usePathname()
@@ -245,7 +249,13 @@ export function FindMembersShell({
           </section>
         )}
 
-        {isDirectory ? (
+        {isDirectory && !signedIn ? (
+          <SignedOutNotice
+            title="Sign in to browse the directory"
+            description="The jammer directory is only visible to signed-in members."
+            next="/find-members?view=directory"
+          />
+        ) : isDirectory ? (
           <DirectoryGrid
             key={`${searchQuery}|${roleFilter}|${engineFilter}|${levelFilter}|${langFilter}|${codeFilter}`}
             searchQuery={searchQuery}

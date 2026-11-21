@@ -9,6 +9,7 @@ import { ProfileCard } from "@/components/profile-card"
 import { GiveKudosControl } from "@/components/give-kudos-control"
 import { InviteToSquadControl, type OwnedSquadOption } from "@/components/invite-to-squad-control"
 import { Button } from "@/components/ui/button"
+import { SignedOutNotice } from "@/components/signed-out-notice"
 import { parseProgrammingLanguages } from "@/lib/constants"
 import { levelFromTotalXp } from "@/lib/gamification-level"
 import { usersShareATeam } from "@/lib/kudos-collaboration"
@@ -70,8 +71,26 @@ export default async function JammerPublicProfilePage({ params }: PageProps) {
   }
 
   const supabase = await createClient()
+  const {
+    data: { user: viewer },
+  } = await supabase.auth.getUser()
+  if (!viewer) {
+    // Profiles are only readable with a session (S7).
+    return (
+      <div className="flex min-h-screen flex-col">
+        <Navbar />
+        <main className="flex-1 pt-20">
+          <SignedOutNotice
+            title="Sign in to view this jammer"
+            description="Jammer profiles are only visible to signed-in members."
+            next={`/jammer/${userId}`}
+          />
+        </main>
+      </div>
+    )
+  }
   const profileColumns =
-    "username, avatar_url, xp, current_title, default_role, default_engine, portfolio_url, jam_style, default_language, profile_roles(role, experience_level, is_primary)"
+    "username, avatar_url, bio, xp, current_title, default_role, default_engine, portfolio_url, jam_style, default_language, profile_roles(role, experience_level, is_primary)"
   const profileWithLanguages = await supabase
     .from("profiles")
     .select(`${profileColumns}, programming_languages`)
@@ -93,6 +112,9 @@ export default async function JammerPublicProfilePage({ params }: PageProps) {
   )
 
   const displayName = profile.username?.trim() || "Jammer"
+  // Bio comes from the profile itself (readable by signed-in viewers since S7),
+  // not from an availability post, so it shows even without an active post.
+  const publicBio = typeof profile.bio === "string" ? profile.bio.trim() : ""
 
   const publicXp = typeof profile.xp === "number" ? profile.xp : 0
   const publicLevel = levelFromTotalXp(publicXp)
@@ -117,11 +139,7 @@ export default async function JammerPublicProfilePage({ params }: PageProps) {
   const primaryRole = sortedRoles[0]?.role?.trim() || profile.default_role || null
   const secondaryRole = sortedRoles[1]?.role?.trim() || null
 
-  const {
-    data: { user: viewer },
-  } = await supabase.auth.getUser()
-
-  const viewerId = viewer?.id ?? null
+  const viewerId = viewer.id
   let viewerSharesTeamWithReceiver = false
   let ownedSquads: OwnedSquadOption[] = []
   let alreadyInvitedTeamIds: string[] = []
@@ -251,6 +269,16 @@ export default async function JammerPublicProfilePage({ params }: PageProps) {
                   }
                   className="w-full justify-start"
                 />
+                {publicBio ? (
+                  <section className="pt-4" aria-labelledby="jammer-about-heading">
+                    <h2 id="jammer-about-heading" className="text-sm font-semibold text-foreground">
+                      About
+                    </h2>
+                    <p className="mt-1 whitespace-pre-line break-words text-sm leading-relaxed text-muted-foreground">
+                      {publicBio}
+                    </p>
+                  </section>
+                ) : null}
                 <ProfileGamification userId={userId} badgesOnly unlockedOnly compact className="pt-3" />
                 <div className="flex flex-col gap-3 pt-4 sm:flex-row sm:flex-wrap sm:items-center">
                   {publicPortfolioUrl ? (

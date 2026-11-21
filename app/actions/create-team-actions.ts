@@ -156,7 +156,7 @@ export async function createTeam(input: CreateTeamInput): Promise<CreateTeamResu
   // Best-effort transactional follow-up (doesn't block team creation).
   if (user.email) {
     try {
-      await sendTeamCreationFollowUp(user.email, teamName, data.id as string)
+      await sendTeamCreationFollowUp(user.email, teamName, data.id as string, user.id)
     } catch {
       // Silent: email issues shouldn't block the primary flow.
     }

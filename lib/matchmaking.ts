@@ -130,13 +130,67 @@ export async function getSuggestedPlayers(
     return { players: [], error: null }
   }
 
-  const { data: posts, error: postsError } = await supabase
+  // Since S7 posts no longer carry a copy of the profile: match on the
+  // published profile, then keep the jammers that have an active post.
+  const safeRoles = roles.filter((r) => /^[a-z0-9_-]+$/.test(r))
+  if (safeRoles.length === 0) {
+    return { players: [], error: null }
+  }
+  const roleList = safeRoles.join(",")
+  const { data: roleProfiles, error: roleProfilesError } = await supabase
+    .from("profiles")
+    .select("id, role, default_role, main_role, engine, default_engine, experience, experience_level, language, default_language")
+    .or(`role.in.(${roleList}),default_role.in.(${roleList}),main_role.in.(${roleList})`)
+  if (roleProfilesError) {
+    console.error("[getSuggestedPlayers:profiles]", roleProfilesError.message)
+    return { players: [], error: roleProfilesError.message }
+  }
+  const profileFieldsById = new Map(
+    (roleProfiles ?? []).map((p) => {
+      const pick = (...values: (string | null | undefined)[]) =>
+        values.map((v) => v?.trim()).find((v) => Boolean(v)) ?? null
+      const roleKey =
+        [p.role, p.default_role, p.main_role]
+          .map((v) => (v as string | null | undefined)?.trim().toLowerCase())
+          .find((v) => Boolean(v && safeRoles.includes(v))) ?? null
+      return [
+        p.id as string,
+        {
+          role: roleKey,
+          engine: pick(p.engine, p.default_engine),
+          experience: pick(p.experience, p.experience_level),
+          language: pick(p.language, p.default_language),
+        },
+      ] as const
+    }),
+  )
+  const candidateIds = [...profileFieldsById.keys()]
+  if (candidateIds.length === 0) {
+    return { players: [], error: null }
+  }
+
+  const { data: rawPosts, error: postsError } = await supabase
     .from("availability_posts")
-    .select("id, user_id, role, engine, experience, language, created_at, username, avatar_url")
-    .in("role", roles)
+    .select("id, user_id, created_at")
+    .in("user_id", candidateIds)
     .gt("expires_at", new Date().toISOString())
     .order("created_at", { ascending: false })
     .limit(SUGGESTED_PLAYERS_FETCH_WINDOW)
+
+  const posts = (rawPosts ?? []).map((post) => {
+    const fields = profileFieldsById.get(post.user_id as string)
+    return {
+      id: post.id as string,
+      user_id: post.user_id as string,
+      created_at: (post.created_at as string | null) ?? null,
+      role: fields?.role ?? null,
+      engine: fields?.engine ?? null,
+      experience: fields?.experience ?? null,
+      language: fields?.language ?? null,
+      username: null,
+      avatar_url: null,
+    }
+  })
 
   if (postsError) {
     console.error("[getSuggestedPlayers]", postsError.message)

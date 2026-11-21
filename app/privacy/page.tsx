@@ -1,6 +1,7 @@
 import { Navbar } from "@/components/navbar"
 import type { Metadata } from "next"
 import Link from "next/link"
+import { CookieSettingsButton } from "@/components/consent/cookie-settings-button"
 
 export const metadata: Metadata = {
   title: "Privacy Policy — GameJamCrew",
@@ -40,7 +41,7 @@ export default function PrivacyPage() {
               Privacy Policy
             </h1>
             <p className="mt-2 text-muted-foreground">
-              Last updated: April 2026
+              Last updated: November 2026
             </p>
           </header>
 
@@ -172,17 +173,39 @@ export default function PrivacyPage() {
               </p>
             </section>
 
-            <section>
+            <section id="cookies" className="scroll-mt-24">
               <h2 className="mb-4 text-xl font-semibold text-foreground">
-                4. Cookies
+                4. Cookies and analytics
               </h2>
               <p className="leading-relaxed text-muted-foreground">
-                We use cookies strictly necessary for the operation of the
-                service: Supabase session cookies to keep you logged in. These
-                cookies do not require your prior consent under the GDPR, as
-                they are essential for the service to function. We do not use
-                Google Analytics, advertising pixels, or any third-party tracking
-                cookies.
+                <strong className="text-foreground">Strictly necessary (always on):</strong>{" "}
+                Supabase session cookies keep you signed in; they are removed
+                when you log out. Your browser also stores your theme and your
+                cookie choice (local storage, not sent to us). These do not
+                require consent because the service cannot work without them.
+              </p>
+              <p className="mt-4 leading-relaxed text-muted-foreground">
+                <strong className="text-foreground">Analytics (only with your consent):</strong>{" "}
+                if you click &quot;Accept all&quot; or enable Analytics in Cookie
+                settings, we load Google Analytics 4 (through Google Tag Manager,
+                provided by Google) and Vercel Web Analytics. They measure visits,
+                pages viewed and basic device information so we can improve the
+                site. Google Analytics sets the cookies <code>_ga</code> and{" "}
+                <code>_ga_*</code>, kept for up to 13 months. Vercel Web Analytics
+                does not use cookies. Nothing is loaded before you choose, and
+                nothing is loaded if you reject. We do not use advertising
+                cookies or pixels.
+              </p>
+              <p className="mt-4 leading-relaxed text-muted-foreground">
+                <strong className="text-foreground">Your choice:</strong>{" "}
+                it is saved in your browser for 6 months, then we ask again. You
+                can change or withdraw it at any time with the &quot;Cookie
+                settings&quot; link in the footer, in your Settings, or here:{" "}
+                <CookieSettingsButton className="font-medium text-primary underline underline-offset-4 hover:text-primary/80">
+                  open Cookie settings
+                </CookieSettingsButton>
+                . When you withdraw consent, analytics stop and their cookies are
+                deleted from this browser.
               </p>
             </section>
 
@@ -195,7 +218,10 @@ export default function PrivacyPage() {
                 GameJamCrew. They process data on our instructions only:
                 Supabase (authentication and database), Vercel (hosting),
                 Resend (transactional email), and when you use them, Discord or
-                Google (OAuth login). Public jam pages may be retrieved from
+                Google (OAuth login). With your consent only, Google (Google
+                Analytics 4 and Google Tag Manager) and Vercel (Web Analytics)
+                process visit statistics; Google may process this data outside
+                the European Union under the EU-US Data Privacy Framework. Public jam pages may be retrieved from
                 Itch.io when importing a jam. We do not sell personal data.
                 Other users can see information you publish on the platform
                 (profiles, teams, availability) according to the product&apos;s

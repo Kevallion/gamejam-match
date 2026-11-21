@@ -6,9 +6,55 @@ import {
   type LandingUpcomingJam,
 } from "@/components/landing/landing-home"
 import { createAnonClient } from "@/lib/supabase/anon"
+import { AccountDeletedNotice } from "@/components/account-deleted-notice"
 import { sanitizeJamDisplayName } from "@/lib/teams-public"
+import { fetchTeamMemberCounts } from "@/lib/team-member-counts"
 
 export const revalidate = 300
+
+/**
+ * Profiles are not readable without a session (S7), so the public counter uses
+ * an aggregate-only RPC. Falls back to the old count until the migration is
+ * applied.
+ */
+async function countOnboardedJammers(
+  supabase: ReturnType<typeof createAnonClient>,
+): Promise<{ count: number | null }> {
+  const rpc = await supabase.rpc("count_onboarded_jammers")
+  if (!rpc.error && typeof rpc.data === "number") return { count: rpc.data }
+  const { count } = await supabase
+    .from("profiles")
+    .select("id", { count: "exact", head: true })
+    .eq("has_completed_onboarding", true)
+  return { count }
+}
+
+/**
+ * Featured squads with their member count. Signed-out visitors cannot read
+ * team_members (S7): fall back to the squads alone, counted with the
+ * get_team_member_counts RPC (counts only).
+ */
+async function fetchFeaturedTeamRows(supabase: ReturnType<typeof createAnonClient>, nowIso: string) {
+  const withCount = await supabase
+    .from("teams")
+    .select("id, team_name, game_name, looking_for, team_members(count)")
+    .gt("expires_at", nowIso)
+    .order("created_at", { ascending: false })
+    .limit(5)
+  if (!withCount.error) return withCount.data ?? []
+  const { data } = await supabase
+    .from("teams")
+    .select("id, team_name, game_name, looking_for")
+    .gt("expires_at", nowIso)
+    .order("created_at", { ascending: false })
+    .limit(5)
+  const rows = data ?? []
+  const counts = await fetchTeamMemberCounts(supabase, rows.map((row) => row.id as string))
+  return rows.map((row) => ({
+    ...row,
+    team_members: [{ count: counts[row.id as string] ?? 0 }] as { count: number }[],
+  }))
+}
 
 export const metadata: Metadata = {
   title: {
@@ -35,18 +81,13 @@ export default async function HomePage() {
   const nowIso = new Date().toISOString()
 
   const [
-    { data: teamRows },
+    teamRows,
     { count: activeTeamsCount },
     { count: completedTeamsCount },
     { count: activeJammersCount },
     { data: upcomingJamRows },
   ] = await Promise.all([
-    supabase
-      .from("teams")
-      .select("id, team_name, game_name, looking_for, team_members(count)")
-      .gt("expires_at", nowIso)
-      .order("created_at", { ascending: false })
-      .limit(5),
+    fetchFeaturedTeamRows(supabase, nowIso),
     supabase
       .from("teams")
       .select("id", { count: "exact", head: true })
@@ -56,10 +97,7 @@ export default async function HomePage() {
       .select("id", { count: "exact", head: true })
       .not("jam_end_date", "is", null)
       .lt("jam_end_date", nowIso),
-    supabase
-      .from("profiles")
-      .select("id", { count: "exact", head: true })
-      .eq("has_completed_onboarding", true),
+    countOnboardedJammers(supabase),
     supabase
       .from("external_jams")
       .select("id, title, url, starts_at")
@@ -69,7 +107,7 @@ export default async function HomePage() {
       .limit(3),
   ])
 
-  const featuredTeams: LandingFeaturedTeam[] = (teamRows ?? [])
+  const featuredTeams: LandingFeaturedTeam[] = teamRows
     .map((row) => {
       const roles = Array.isArray(row.looking_for) ? row.looking_for : []
       const acceptedMembers = Number(row.team_members?.[0]?.count ?? 0)
@@ -99,10 +137,14 @@ export default async function HomePage() {
     }))
 
   return (
-    <LandingHome
-      featuredTeams={featuredTeams}
-      socialProofStats={socialProofStats}
-      upcomingJams={upcomingJams}
-    />
+    <>
+      {/* S6: confirmation after account deletion (/?account_deleted=1), client-only. */}
+      <AccountDeletedNotice />
+      <LandingHome
+        featuredTeams={featuredTeams}
+        socialProofStats={socialProofStats}
+        upcomingJams={upcomingJams}
+      />
+    </>
   )
 }

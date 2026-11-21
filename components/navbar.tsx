@@ -41,6 +41,7 @@ import { supabase } from "@/lib/supabase"
 import { useEffect, useState } from "react"
 import type { User } from "@supabase/supabase-js"
 import { useNotifications } from "@/hooks/use-notifications"
+import { useSignOut } from "@/hooks/use-sign-out"
 import { NavbarNotificationRow } from "@/components/navbar-notification-row"
 import { JammerLevelBadge, JammerTitleBadge } from "@/components/profile-card"
 import { levelFromTotalXp } from "@/lib/gamification-level"
@@ -139,9 +140,10 @@ export function Navbar() {
     }
   }, [])
 
+  const { signOut } = useSignOut()
   const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    router.replace("/")
+    // S4: this device only; private data is hidden before the redirect.
+    await signOut("local")
   }
 
   const displayName = getDisplayName(user, profile)
@@ -341,7 +343,7 @@ export function Navbar() {
                     className="text-destructive focus:text-destructive rounded-xl"
                   >
                     <LogOut className="size-4" />
-                    Sign Out
+                    Log out
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

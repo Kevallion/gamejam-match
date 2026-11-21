@@ -47,9 +47,21 @@ export async function readOwnDiscordUsername(
   return value || null
 }
 
+function isMissingFunction(error: { code?: string; message?: string } | null): boolean {
+  if (!error) return false
+  return (
+    error.code === "42883" ||
+    error.code === "PGRST202" ||
+    /get_visible_discord_usernames|could not find the function/i.test(error.message ?? "")
+  )
+}
+
 /**
- * Discord handles the current user is allowed to see (self or shared squad).
- * Falls back to profiles.discord_username only when the side table is absent.
+ * Discord handles the current user is allowed to see: self and squadmates
+ * (owner or member of a squad the viewer also owns or belongs to). The check runs in the
+ * database (get_visible_discord_usernames, SECURITY DEFINER). Ids the viewer may
+ * not see are absent from the result. Signed-out viewers get nothing.
+ * Falls back to the older side-table read until the S7 migration is applied.
  */
 export async function fetchTeammateDiscordUsernames(
   client: SupabaseClient,
@@ -57,6 +69,20 @@ export async function fetchTeammateDiscordUsernames(
 ): Promise<Record<string, string | null>> {
   const ids = [...new Set(userIds.filter(Boolean))]
   if (ids.length === 0) return {}
+
+  const rpc = await client.rpc("get_visible_discord_usernames", { p_user_ids: ids })
+  if (!rpc.error) {
+    const map: Record<string, string | null> = {}
+    for (const row of (rpc.data ?? []) as { user_id?: string | null; discord_username?: string | null }[]) {
+      if (!row.user_id) continue
+      map[row.user_id] = row.discord_username?.trim() || null
+    }
+    return map
+  }
+  if (!isMissingFunction(rpc.error)) {
+    // Includes "permission denied" for signed-out viewers.
+    return {}
+  }
 
   const { data, error } = await client
     .from("profile_discord_usernames")

@@ -42,20 +42,36 @@ export default async function MembersPage({ searchParams }: MembersPageProps) {
   const params = await searchParams
   const supabase = (await createClient()) as unknown as GamejamSupabaseClient
   const initialMode = params.view === "directory" ? "directory" : "available"
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  const availableFilters = {
+    searchQuery: params.q,
+    role: params.role,
+    engine: params.engine,
+    experience: params.level,
+    language: params.lang,
+    programmingLanguage: params.code,
+    jamId: params.jam_id,
+    offset: 0,
+  }
+  if (!user) {
+    // Signed out (S7): active posts with card fields only (RPC, picked inside
+    // getAvailablePlayers); the Directory and profiles stay signed-in only.
+    const { players, hasMore } = await getAvailablePlayers(availableFilters, supabase)
+    return (
+      <FindMembersShell
+        initialMembers={players}
+        initialHasMore={hasMore}
+        initialDirectory={[]}
+        initialDirectoryHasMore={false}
+        initialMode={initialMode}
+        signedIn={false}
+      />
+    )
+  }
   const [{ players, hasMore }, directory] = await Promise.all([
-    getAvailablePlayers(
-      {
-        searchQuery: params.q,
-        role: params.role,
-        engine: params.engine,
-        experience: params.level,
-        language: params.lang,
-        programmingLanguage: params.code,
-        jamId: params.jam_id,
-        offset: 0,
-      },
-      supabase,
-    ),
+    getAvailablePlayers(availableFilters, supabase),
     getDirectoryJammers(
       {
         searchQuery: params.q,
