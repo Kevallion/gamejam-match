@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import {
   Dialog,
@@ -103,6 +103,8 @@ export function OnboardingModal({ open, onOpenChange, profile }: OnboardingModal
   const [portfolioUrl, setPortfolioUrl] = useState("")
   const [publishImmediately, setPublishImmediately] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const scrollPanelRef = useRef<HTMLDivElement>(null)
+  const [canScrollMore, setCanScrollMore] = useState(false)
 
   useEffect(() => {
     if (!open) return
@@ -127,6 +129,42 @@ export function OnboardingModal({ open, onOpenChange, profile }: OnboardingModal
     profile?.discord_username,
     profile?.portfolio_url,
   ])
+
+  useEffect(() => {
+    if (!open) {
+      setCanScrollMore(false)
+      return
+    }
+
+    const el = scrollPanelRef.current
+    if (!el) return
+
+    el.scrollTop = 0
+
+    const updateCanScrollMore = () => {
+      setCanScrollMore(el.scrollHeight - el.scrollTop - el.clientHeight > 1)
+    }
+
+    updateCanScrollMore()
+    let frame2 = 0
+    const frame = requestAnimationFrame(() => {
+      updateCanScrollMore()
+      frame2 = requestAnimationFrame(updateCanScrollMore)
+    })
+    el.addEventListener("scroll", updateCanScrollMore, { passive: true })
+    const observer = new ResizeObserver(updateCanScrollMore)
+    observer.observe(el)
+    for (const child of el.children) observer.observe(child)
+    window.addEventListener("resize", updateCanScrollMore)
+
+    return () => {
+      cancelAnimationFrame(frame)
+      cancelAnimationFrame(frame2)
+      el.removeEventListener("scroll", updateCanScrollMore)
+      observer.disconnect()
+      window.removeEventListener("resize", updateCanScrollMore)
+    }
+  }, [open, step])
 
   const trimmedUsername = username.trim()
   const usernameInvalidEmpty = trimmedUsername.length === 0
@@ -252,7 +290,14 @@ export function OnboardingModal({ open, onOpenChange, profile }: OnboardingModal
         onPointerDownOutside={(e) => e.preventDefault()}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 pt-6 pb-6">
+        <div className="relative flex min-h-0 flex-1 flex-col">
+          <div
+            ref={scrollPanelRef}
+            tabIndex={0}
+            role="region"
+            aria-label="Onboarding step content"
+            className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 pt-6 pb-6 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+          >
           <DialogHeader className="space-y-2 text-center">
             <DialogTitle className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
               {stepContent.title}
@@ -478,6 +523,14 @@ export function OnboardingModal({ open, onOpenChange, profile }: OnboardingModal
           )}
 
           </div>
+          </div>
+          <div
+            aria-hidden="true"
+            className={cn(
+              "pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-background to-transparent transition-opacity",
+              canScrollMore ? "opacity-100" : "opacity-0"
+            )}
+          />
         </div>
         <DialogFooter className="shrink-0 border-t border-border/60 bg-background px-6 pt-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:justify-between">
             <Button
