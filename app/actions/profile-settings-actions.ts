@@ -1,5 +1,6 @@
 "use server"
 
+import { revalidatePath } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
 import { parseProgrammingLanguages } from "@/lib/constants"
 import { isMissingColumnError } from "@/lib/optional-column"
@@ -165,4 +166,43 @@ export async function saveProfileSettings(
   await upsertOwnDiscordUsername(supabase, user.id, normalizeText(payload.discordUsername))
 
   return { success: true, programmingLanguagesSaved }
+}
+
+export type SetDirectoryVisibilityResult =
+  | { success: true; visible: boolean }
+  | { success: false; error: string; code: "UNAUTHORIZED" | "INVALID_INPUT" | "UNKNOWN" }
+
+/**
+ * DIR-1: lets the signed-in user show or hide their own profile in the members
+ * directory (profiles.directory_visible). Only the caller's row is updated
+ * (.eq("id", user.id), and RLS "profiles_update_own" checks auth.uid() = id).
+ */
+export async function setDirectoryVisibility(
+  visible: boolean,
+): Promise<SetDirectoryVisibilityResult> {
+  if (typeof visible !== "boolean") {
+    return { success: false, error: "Invalid visibility value.", code: "INVALID_INPUT" }
+  }
+
+  const supabase = await createClient()
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser()
+
+  if (authError || !user) {
+    return { success: false, error: "You must be signed in.", code: "UNAUTHORIZED" }
+  }
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ directory_visible: visible })
+    .eq("id", user.id)
+
+  if (error) {
+    return { success: false, error: error.message, code: "UNKNOWN" }
+  }
+
+  revalidatePath("/find-members")
+  return { success: true, visible }
 }
