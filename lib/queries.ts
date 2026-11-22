@@ -1052,11 +1052,11 @@ function resolveDirectoryLanguage(profile: DirectoryProfileRow): string {
 }
 
 /**
- * Lists jammers for the public directory.
- * Privacy (GDPR): only profiles that are currently published, i.e. that have an active
- * availability post (not expired, non-empty availability), are listed, whether the viewer
- * is signed in or not. The bio shown is the one from the active post, so the text of a
- * deleted post is never exposed as a public bio.
+ * Lists jammers for the members directory (signed-in only, see app/find-members).
+ * DIR-1: every onboarded profile is listed, except the ones that opted out with
+ * profiles.directory_visible = false (setDirectoryVisibility in
+ * app/actions/profile-settings-actions.ts). No active availability post is required.
+ * The bio shown is profiles.bio.
  * Filters by role, engine, experience, and language using profile defaults / primary role.
  */
 export async function getDirectoryJammers(
@@ -1087,32 +1087,6 @@ export async function getDirectoryJammers(
     const fromAlias = LANGUAGE_OPTION_VALUE_ALIASES[cleanLanguage]
     return fromAlias && AVAILABLE_PLAYERS_LANGUAGE_KEYS.has(fromAlias) ? fromAlias : null
   })()
-
-  const { data: publishedRows, error: publishedError } = await client
-    .from("availability_posts")
-    // S7: profile copies on posts (bio, role...) are not readable; bio comes from profiles.bio.
-    .select("user_id, updated_at")
-    .gt("expires_at", new Date().toISOString())
-    .not("availability", "is", null)
-    .neq("availability", "")
-    .order("updated_at", { ascending: false })
-
-  if (publishedError) {
-    console.error("[getDirectoryJammers:availability_posts]", publishedError.message)
-    return { jammers: [], hasMore: false, nextOffset: safeOffset, error: publishedError.message }
-  }
-
-  // Users with at least one active post (rows are ordered by updated_at desc).
-  const publishedUserIds = [
-    ...new Set(
-      ((publishedRows ?? []) as { user_id?: string | null }[])
-        .map((row) => row.user_id)
-        .filter((id): id is string => Boolean(id)),
-    ),
-  ]
-  if (publishedUserIds.length === 0) {
-    return { jammers: [], hasMore: false, nextOffset: safeOffset, error: null }
-  }
 
   let roleUserIds: string[] | null = null
   if (cleanRole && cleanRole !== "all") {
@@ -1145,7 +1119,7 @@ export async function getDirectoryJammers(
         includeProgrammingLanguages ? `${directoryColumns}, programming_languages` : directoryColumns,
       )
       .eq("has_completed_onboarding", true)
-      .in("id", publishedUserIds)
+      .eq("directory_visible", true)
       .order("username", { ascending: true })
 
   if (cleanSearch) {

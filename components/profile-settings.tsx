@@ -1,7 +1,8 @@
 "use client"
 
-import { useEffect, useState, type FormEvent, type ReactNode } from "react"
+import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from "react"
 import { Input } from "@/components/ui/input"
+import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { ProfileCard } from "@/components/profile-card"
@@ -24,7 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { deleteUserAccount } from "@/app/actions/auth-actions"
-import { saveProfileSettings } from "@/app/actions/profile-settings-actions"
+import { saveProfileSettings, setDirectoryVisibility } from "@/app/actions/profile-settings-actions"
 import {
   ROLE_OPTIONS,
   EXPERIENCE_OPTIONS,
@@ -323,6 +324,8 @@ export type ProfileSettingsProfile = {
   email_matching_announcements?: boolean | null
   /** false when the S3 columns are missing in the database: switches are disabled. */
   email_preferences_available?: boolean
+  /** DIR-2: false hides the profile from the member directory. Defaults to true. */
+  directory_visible?: boolean | null
 }
 
 type ProfileSettingsProps = {
@@ -330,6 +333,71 @@ type ProfileSettingsProps = {
   onProfileUpdated?: (patch?: { discord_username?: string | null }) => void
   /** Fallback when profile.username is empty (e.g. OAuth name before profile is saved) */
   displayNameFallback?: string | null
+}
+
+function directoryVisibilityError(
+  result: Extract<Awaited<ReturnType<typeof setDirectoryVisibility>>, { success: false }>,
+): string {
+  if (result.code === "UNAUTHORIZED") return "You must be signed in to change this."
+  if (result.code === "INVALID_INPUT") return "That visibility setting is not valid."
+  return result.error?.trim() || "Could not update directory visibility. Please try again."
+}
+
+function DirectoryVisibilityRow({ initialVisible }: { initialVisible: boolean }) {
+  const [visible, setVisible] = useState(initialVisible)
+  const [pending, setPending] = useState(false)
+  const requestId = useRef(0)
+  const switchId = useId()
+  const descId = `${switchId}-desc`
+
+  const update = async (next: boolean) => {
+    const previous = visible
+    setVisible(next)
+    setPending(true)
+    const id = ++requestId.current
+    try {
+      const result = await setDirectoryVisibility(next)
+      if (id !== requestId.current) return
+      if (result.success) {
+        setVisible(result.visible)
+        return
+      }
+      setVisible(previous)
+      toast.error("Could not update directory visibility.", {
+        description: directoryVisibilityError(result),
+      })
+    } catch (err) {
+      if (id !== requestId.current) return
+      setVisible(previous)
+      toast.error("Could not update directory visibility.", {
+        description: err instanceof Error ? err.message : "Could not update directory visibility. Please try again.",
+      })
+    } finally {
+      if (id === requestId.current) setPending(false)
+    }
+  }
+
+  return (
+    <li className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 p-3">
+      <div className="min-w-0 flex-1 basis-48">
+        <label htmlFor={switchId} className="text-sm font-bold text-foreground">
+          Show me in the member directory
+        </label>
+        <p id={descId} className="text-xs text-muted-foreground">
+          Other signed-in members can see your username, avatar, title, roles, engine, languages, and bio in the member directory.
+        </p>
+      </div>
+      <Switch
+        id={switchId}
+        checked={visible}
+        disabled={pending}
+        aria-describedby={descId}
+        aria-busy={pending}
+        onCheckedChange={(value) => void update(value)}
+        className="shrink-0"
+      />
+    </li>
+  )
 }
 
 export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback }: ProfileSettingsProps) {
@@ -797,6 +865,20 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
           <div id="privacy" className="scroll-mt-32 space-y-2 lg:scroll-mt-24">
             <SubLabel>Privacy and sessions</SubLabel>
             <ul className="divide-y divide-border/60 overflow-hidden rounded-xl border border-border bg-background/40">
+              {profile ? (
+                <DirectoryVisibilityRow
+                  key={`${profile.id}-${profile.directory_visible === false ? "hidden" : "visible"}`}
+                  initialVisible={profile.directory_visible !== false}
+                />
+              ) : (
+                <li className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 p-3">
+                  <div className="min-w-0 flex-1 basis-48">
+                    <p className="text-sm font-bold text-foreground">Show me in the member directory</p>
+                    <p className="text-xs text-muted-foreground">This setting could not be loaded. Refresh the page to try again.</p>
+                  </div>
+                  <Switch checked disabled aria-label="Show me in the member directory" className="shrink-0" />
+                </li>
+              )}
               <li className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 p-3">
                 <div className="min-w-0 flex-1 basis-48">
                   <p className="text-sm font-bold text-foreground">Cookie settings</p>
