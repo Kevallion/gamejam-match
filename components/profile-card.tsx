@@ -2,12 +2,14 @@
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { UserAvatar } from "@/components/user-avatar"
 import {
   ENGINE_OPTIONS_WITH_ANY,
   LANGUAGE_OPTIONS,
   ROLE_OPTIONS,
   parseProgrammingLanguages,
+  programmingLanguageOption,
 } from "@/lib/constants"
 import { cn } from "@/lib/utils"
 import { ExternalLink } from "lucide-react"
@@ -58,6 +60,8 @@ export type ProfileCardProps = {
   framedAvatar?: boolean
   /** Earned after at least one completed jam */
   showVerifiedJammer?: boolean
+  /** When set, only this many programming-language badges are shown; the rest collapse into a +N badge. Unset keeps the current "show all" behavior. */
+  maxVisibleProgrammingLanguages?: number
 }
 
 function defaultRoleLabel(value: string | null | undefined): string | null {
@@ -159,6 +163,7 @@ export function ProfileCard({
   className,
   framedAvatar = true,
   showVerifiedJammer = false,
+  maxVisibleProgrammingLanguages,
 }: ProfileCardProps) {
   const name = displayName?.trim() || fallbackName?.trim() || "Jammer"
   const fb = fallbackName?.trim() || name
@@ -168,6 +173,15 @@ export function ProfileCard({
   const engineLabel = defaultEngineLabel(defaultEngine)
   const langLabel = languageLabel(defaultLanguage)
   const codeKeys = parseProgrammingLanguages(programmingLanguages)
+  const visibleCodeKeys =
+    typeof maxVisibleProgrammingLanguages === "number"
+      ? codeKeys.slice(0, Math.max(0, maxVisibleProgrammingLanguages))
+      : codeKeys
+  const hiddenCodeKeys =
+    typeof maxVisibleProgrammingLanguages === "number"
+      ? codeKeys.slice(Math.max(0, maxVisibleProgrammingLanguages))
+      : []
+  const hiddenCodeLabels = hiddenCodeKeys.map((key) => programmingLanguageOption(key)?.label ?? key)
   const safePortfolioUrl = normalizePortfolioUrl(portfolioUrl)
 
   const slots = (roleSlots ?? []).filter((s) => s?.role?.trim())
@@ -183,7 +197,7 @@ export function ProfileCard({
   )
 
   return (
-    <div className={cn("flex items-start gap-3 sm:items-center sm:gap-5", className)}>
+    <div className={cn("flex items-start gap-3 sm:gap-5", className)}>
       {framedAvatar ? (
         <div className="shrink-0 rounded-2xl border border-amber-500/25 bg-gradient-to-br from-amber-500/10 via-card to-teal/10 p-1 shadow-lg shadow-amber-500/10 ring-1 ring-amber-400/20">
           {avatar}
@@ -213,9 +227,29 @@ export function ProfileCard({
 
         {codeKeys.length > 0 ? (
           <div className="flex flex-wrap items-center gap-2">
-            {codeKeys.map((key) => (
+            {visibleCodeKeys.map((key) => (
               <TagIcon key={key} kind="code" value={key} size="sm" showLabel />
             ))}
+            {hiddenCodeKeys.length > 0 ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    className="inline-flex h-6 shrink-0 items-center rounded-full bg-muted px-2 text-[11px] font-semibold text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+                    aria-label={`${hiddenCodeKeys.length} more languages: ${hiddenCodeLabels.join(", ")}`}
+                  >
+                    +{hiddenCodeKeys.length}
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="max-w-xs">
+                  <ul className="flex flex-col gap-0.5 text-left">
+                    {hiddenCodeLabels.map((label) => (
+                      <li key={label}>{label}</li>
+                    ))}
+                  </ul>
+                </TooltipContent>
+              </Tooltip>
+            ) : null}
           </div>
         ) : null}
 

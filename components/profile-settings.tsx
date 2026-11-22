@@ -658,6 +658,7 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
                 currentTitle={profile?.current_title?.trim() ? profile.current_title.trim() : "Rookie Jammer"}
                 level={levelFromTotalXp(typeof profile?.xp === "number" ? profile.xp : 0)}
                 programmingLanguages={programmingLanguages}
+                maxVisibleProgrammingLanguages={3}
                 size="lg"
                 subtitle="Your avatar is synced from your login provider"
               />
