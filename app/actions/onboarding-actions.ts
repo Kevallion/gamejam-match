@@ -102,32 +102,41 @@ export async function completeOnboarding(
     existingProfile?.portfolio_url,
   )
 
-  // Ensure the profile row exists and keep onboarding data in sync
-  // with both the default_* fields and the base profile fields.
-  const { error } = await supabase
-    .from("profiles")
-    .upsert(
-      {
-        id: user.id,
-        username: chosenUsername,
-        default_role: pickedDefaultRole,
-        default_engine: pickedDefaultEngine,
-        default_language: pickedDefaultLanguage,
-        role: mergedRole,
-        engine: mergedEngine,
-        language: mergedLanguage,
-        // discord_username is kept only in profile_discord_usernames (below):
-        // since S7 an upsert of profiles.discord_username is refused (no SELECT on it).
-        portfolio_url: mergedPortfolio,
-        portfolio_link: mergedPortfolio,
-        has_completed_onboarding: true,
-        onboarding_version: CURRENT_ONBOARDING_VERSION,
-      },
-      { onConflict: "id" }
-    )
+  // Prefer UPDATE on the existing signup row (same path as Settings).
+  // Upsert/INSERT can fail or skip columns when the profile already exists.
+  // discord_username is kept only in profile_discord_usernames (below):
+  // since S7 an upsert of profiles.discord_username is refused (no SELECT on it).
+  const profilePatch = {
+    username: chosenUsername,
+    default_role: pickedDefaultRole,
+    default_engine: pickedDefaultEngine,
+    default_language: pickedDefaultLanguage,
+    role: mergedRole,
+    engine: mergedEngine,
+    language: mergedLanguage,
+    portfolio_url: mergedPortfolio,
+    portfolio_link: mergedPortfolio,
+    has_completed_onboarding: true,
+    onboarding_version: CURRENT_ONBOARDING_VERSION,
+  }
 
-  if (error) {
-    return { success: false, error: error.message }
+  const write = existingProfile
+    ? await supabase.from("profiles").update(profilePatch).eq("id", user.id).select("username").maybeSingle()
+    : await supabase.from("profiles").insert({ id: user.id, ...profilePatch }).select("username").maybeSingle()
+
+  if (write.error) {
+    if (write.error.code === "23505") {
+      return { success: false, error: "This username is already taken. Please choose another one." }
+    }
+    return { success: false, error: write.error.message }
+  }
+
+  const savedUsername = write.data?.username?.trim() ?? ""
+  if (!savedUsername || savedUsername !== chosenUsername) {
+    return {
+      success: false,
+      error: "Your username could not be saved. Please try another name, or try again.",
+    }
   }
 
   await upsertOwnDiscordUsername(supabase, user.id, mergedDiscord)
