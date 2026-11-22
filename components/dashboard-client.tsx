@@ -863,7 +863,7 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
         supabase.from("team_members").select("team_id").eq("user_id", uid),
         (async () => {
           const withRoles =
-            "id, has_completed_onboarding, onboarding_version, jam_id, username, avatar_url, default_role, default_engine, engine, default_language, portfolio_url, jam_style, xp, current_title, profile_roles(role, experience_level, is_primary)"
+            "id, has_completed_onboarding, onboarding_version, jam_id, username, avatar_url, default_role, default_engine, engine, default_language, portfolio_url, jam_style, xp, current_title, directory_visible, profile_roles(role, experience_level, is_primary)"
           const withLanguages = await supabase
             .from("profiles")
             .select(`${withRoles}, programming_languages`)
@@ -908,6 +908,7 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
             jam_style?: string | null
             xp?: number | null
             current_title?: string | null
+            directory_visible?: boolean | null
             profile_roles?: SmartMatchRoleInput[] | null
           }
         | null
@@ -917,7 +918,7 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
         const { data: fallbackProfileData, error: fallbackProfileError } = await supabase
           .from("profiles")
           .select(
-            "id, has_completed_onboarding, onboarding_version, jam_id, username, avatar_url, default_role, default_engine, engine, default_language, portfolio_url, jam_style, xp, current_title",
+            "id, has_completed_onboarding, onboarding_version, jam_id, username, avatar_url, default_role, default_engine, engine, default_language, portfolio_url, jam_style, xp, current_title, directory_visible",
           )
           .eq("id", uid)
           .maybeSingle()
@@ -1050,6 +1051,7 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
               portfolio_url: (profileData as { portfolio_url?: string | null }).portfolio_url,
               xp: typeof (profileData as { xp?: number | null }).xp === "number" ? (profileData as { xp: number }).xp : 0,
               current_title: (profileData as { current_title?: string | null }).current_title ?? null,
+              directory_visible: (profileData as { directory_visible?: boolean | null }).directory_visible !== false,
               email_team_activity: emailPrefsResult.success ? emailPrefsResult.prefs.emailTeamActivity : null,
               email_matching_announcements: emailPrefsResult.success
                 ? emailPrefsResult.prefs.emailMatchingAnnouncements
@@ -1073,6 +1075,7 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
                 portfolio_url: null,
                 xp: 0,
                 current_title: null,
+                directory_visible: true,
               }
             : null,
       )
