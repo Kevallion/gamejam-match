@@ -257,6 +257,7 @@ export function OnboardingModal({ open, onOpenChange, profile }: OnboardingModal
       }
 
       onOpenChange?.(false)
+      router.refresh()
       router.push(selectedChoice.href)
     } catch {
       toast.error("An error occurred.", { description: "Please try again." })
@@ -287,7 +288,16 @@ export function OnboardingModal({ open, onOpenChange, profile }: OnboardingModal
         data-onboarding-version="2"
         className="flex max-h-[min(90dvh,calc(100dvh-1.5rem))] min-h-0 flex-col gap-0 overflow-hidden rounded-3xl border-border/60 bg-background p-0 shadow-2xl sm:max-w-xl"
         showCloseButton={false}
-        onPointerDownOutside={(e) => e.preventDefault()}
+        onPointerDownOutside={(e) => {
+          const target = e.target as EventTarget | null
+          if (target instanceof Element && target.closest("[data-slot='select-content']")) return
+          e.preventDefault()
+        }}
+        onFocusOutside={(e) => {
+          const target = e.target as EventTarget | null
+          if (target instanceof Element && target.closest("[data-slot='select-content']")) return
+          e.preventDefault()
+        }}
         onEscapeKeyDown={(e) => e.preventDefault()}
       >
         <div className="relative flex min-h-0 flex-1 flex-col">
@@ -330,7 +340,7 @@ export function OnboardingModal({ open, onOpenChange, profile }: OnboardingModal
                   autoComplete="username"
                   aria-invalid={showUsernameError}
                   aria-describedby="onboarding-username-hint"
-                  className="h-11 rounded-xl border-border/60 bg-background"
+                  className="h-11 w-full rounded-xl border-border/60 bg-background"
                 />
                 <p id="onboarding-username-hint" className="text-xs leading-relaxed text-muted-foreground">
                   This is how you will appear to other jammers.
@@ -383,10 +393,10 @@ export function OnboardingModal({ open, onOpenChange, profile }: OnboardingModal
                   Default Role
                 </Label>
                 <Select value={defaultRole || "none"} onValueChange={(value) => setDefaultRole(value === "none" ? "" : value)}>
-                  <SelectTrigger id="onboarding-default-role" className="h-11 rounded-xl border-border/60 bg-background">
+                  <SelectTrigger id="onboarding-default-role" className="h-11 w-full rounded-xl border-border/60 bg-background">
                     <SelectValue placeholder="Choose a role" />
                   </SelectTrigger>
-                  <SelectContent className="rounded-xl">
+                  <SelectContent position="popper" className="pointer-events-auto z-[70] rounded-xl">
                     <SelectItem value="none">None / No default</SelectItem>
                     {ROLE_OPTIONS.map((option) => (
                       <SelectItem key={option.value} value={option.value}>
@@ -404,10 +414,10 @@ export function OnboardingModal({ open, onOpenChange, profile }: OnboardingModal
                   Default Engine
                 </Label>
                 <Select value={defaultEngine || "none"} onValueChange={(value) => setDefaultEngine(value === "none" ? "" : value)}>
-                  <SelectTrigger id="onboarding-default-engine" className="h-11 rounded-xl border-border/60 bg-background">
+                  <SelectTrigger id="onboarding-default-engine" className="h-11 w-full rounded-xl border-border/60 bg-background">
                     <SelectValue placeholder="Choose an engine" />
                   </SelectTrigger>
-                  <SelectContent className="rounded-xl">
+                  <SelectContent position="popper" className="pointer-events-auto z-[70] rounded-xl">
                     <SelectItem value="none">None / No default</SelectItem>
                     {ENGINE_OPTIONS.map((option) => (
                       <SelectItem key={option.value} value={option.value}>
@@ -425,10 +435,10 @@ export function OnboardingModal({ open, onOpenChange, profile }: OnboardingModal
                   Default Language
                 </Label>
                 <Select value={defaultLanguage || "none"} onValueChange={(value) => setDefaultLanguage(value === "none" ? "" : value)}>
-                  <SelectTrigger id="onboarding-default-language" className="h-11 rounded-xl border-border/60 bg-background">
+                  <SelectTrigger id="onboarding-default-language" className="h-11 w-full rounded-xl border-border/60 bg-background">
                     <SelectValue placeholder="Choose a language" />
                   </SelectTrigger>
-                  <SelectContent className="rounded-xl">
+                  <SelectContent position="popper" className="pointer-events-auto z-[70] rounded-xl">
                     <SelectItem value="none">None / No default</SelectItem>
                     {LANGUAGE_OPTIONS.map((option) => (
                       <SelectItem key={option.value} value={option.value}>
@@ -455,7 +465,7 @@ export function OnboardingModal({ open, onOpenChange, profile }: OnboardingModal
                     value={discordUsername}
                     onChange={(event) => setDiscordUsername(event.target.value)}
                     placeholder="e.g. jammer_42"
-                    className="h-11 rounded-xl border-border/60 bg-background"
+                    className="h-11 w-full rounded-xl border-border/60 bg-background"
                   />
                   <p className="text-xs text-muted-foreground">This helps teammates message you quickly after matching.</p>
                 </div>
@@ -471,7 +481,7 @@ export function OnboardingModal({ open, onOpenChange, profile }: OnboardingModal
                     value={portfolioUrl}
                     onChange={(event) => setPortfolioUrl(event.target.value)}
                     placeholder="https://yourportfolio.com"
-                    className="h-11 rounded-xl border-border/60 bg-background"
+                    className="h-11 w-full rounded-xl border-border/60 bg-background"
                   />
                   <p className="text-xs text-muted-foreground">Share your itch.io page, website, or portfolio.</p>
                 </div>
