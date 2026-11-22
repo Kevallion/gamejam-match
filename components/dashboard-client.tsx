@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import { usePathname, useSearchParams } from "next/navigation"
-import { AppShell } from "@/components/app-shell/app-shell"
 import { BentoDashboard } from "@/components/dashboard/bento-dashboard"
 // T7c MOCK (remove in T9): fictional Bento card content, see components/dashboard/bento-mock.ts
 import { BENTO_MOCK } from "@/components/dashboard/bento-mock"
@@ -18,7 +17,6 @@ import type {
 } from "@/components/dashboard-sent-outbox"
 import { AppIcon } from "@/components/ui/app-icon"
 import { ICON } from "@/lib/icons"
-import { useNotifications } from "@/hooks/use-notifications"
 import { Trash2 } from "lucide-react"
 import { Tabs, TabsContent } from "@/components/ui/tabs"
 import { Card, CardContent } from "@/components/ui/card"
@@ -487,15 +485,6 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
   const isMobile = useIsMobile()
   const mountedRef = useRef(true)
   const pendingInboxActionsRef = useRef<Map<string, PendingInboxAction>>(new Map())
-  const {
-    notifications: shellNotifications,
-    unreadCount: shellUnreadCount,
-    loading: shellNotifLoading,
-    refetch: refetchShellNotifications,
-    dismissNotification,
-    markAllAsRead,
-  } = useNotifications(session?.user?.id ?? fixture?.profile.id ?? null)
-
   const vibrateLight = useCallback(() => {
     try {
       if (typeof navigator !== "undefined" && typeof navigator.vibrate === "function") {
@@ -1497,8 +1486,6 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
     return <DashboardLoadingSkeleton />
   }
 
-  const toActionCount = applications.length + invitations.length
-
   const meta = session?.user?.user_metadata as Record<string, string> | undefined
   const displayName =
     profile?.username?.trim() ||
@@ -1507,32 +1494,11 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
     meta?.full_name?.trim() ||
     meta?.name?.trim() ||
     "Jammer"
-  const headerXp = typeof profile?.xp === "number" ? profile.xp : 0
-  const headerTitle = profile?.current_title?.trim() || "Rookie Jammer"
   // Home Bento is placeholders (T7); keep fetched squad data / leave handler for T8 wiring.
   void teams
   void handleLeaveTeam
-  const shellAccount = {
-    userId: session?.user?.id ?? fixture?.profile.id ?? "",
-    displayName,
-    avatarUrl: profile?.avatar_url ?? null,
-    xp: headerXp,
-    currentTitle: headerTitle,
-  }
-
   return (
-    <AppShell
-      account={shellAccount}
-      inboxCount={toActionCount}
-      availabilityCount={availabilityPosts.length}
-      notifications={shellNotifications}
-      unreadCount={shellUnreadCount}
-      notifLoading={shellNotifLoading}
-      onMarkRead={(id) => void dismissNotification(id)}
-      onMarkAllRead={() => void markAllAsRead()}
-      onRefetchNotifications={() => void refetchShellNotifications()}
-      className="min-w-0 overflow-x-clip"
-    >
+    <div className="min-w-0 overflow-x-clip">
       <div className="min-w-0">
         <section className="min-w-0 pb-4 md:pb-8">
           <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full min-w-0 max-w-full">
@@ -1676,6 +1642,6 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
         onCancel={() => setAvailabilityPostIdToDelete(null)}
         confirmClassName="bg-destructive text-destructive-foreground hover:bg-destructive/90"
       />
-    </AppShell>
+    </div>
   )
 }

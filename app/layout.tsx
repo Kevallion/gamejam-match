@@ -6,7 +6,6 @@ import { ThemeProvider } from '@/components/theme-provider'
 import { GamificationProvider } from '@/components/gamification-provider'
 import { Toaster } from '@/components/ui/sonner'
 import { FeedbackButton } from '@/components/FeedbackButton'
-import { Footer } from '@/components/footer'
 import { ConsentProvider } from '@/components/consent/consent-provider'
 import { SigningOutCover } from '@/components/auth/signing-out-cover'
 import { BfcacheAuthGuard } from '@/components/auth/bfcache-auth-guard'
@@ -67,10 +66,7 @@ export default function RootLayout({
             <AuthProvider>
               <GamificationProvider>
                 <AuthCallbackHandler />
-                <div className="flex min-h-svh flex-col">
-                  <div className="flex min-h-0 flex-1 flex-col">{children}</div>
-                  <Footer />
-                </div>
+                {children}
                 <Toaster richColors position="bottom-right" closeButton />
                 <SigningOutCover />
                 <BfcacheAuthGuard />

@@ -7,7 +7,7 @@ import { AppHeader } from "@/components/app-shell/app-header"
 import { MeHub } from "@/components/app-shell/me-hub"
 import {
   isDashboardPath,
-  sectionTitleForTab,
+  sectionTitleForPath,
   tabFromPathname,
 } from "@/components/app-shell/nav-config"
 import {
@@ -66,7 +66,7 @@ export function AppShell({
   const searchParams = useSearchParams()
   const tab = tabFromPathname(pathname, searchParams.toString())
   const hubMe = showMeHub ?? searchParams.get("hub") === "me"
-  const title = sectionTitleForTab(tab, hubMe)
+  const title = sectionTitleForPath(pathname, searchParams.toString())
   const xp = account.xp ?? 0
   const level = levelFromTotalXp(xp)
   const levelLabel = `Lvl ${level} · ${account.currentTitle?.trim() || "Rookie Jammer"}`

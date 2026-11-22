@@ -37,6 +37,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { subscribeToAuthComplete } from "@/lib/auth-utils"
 import { AuthModal } from "@/components/auth-modal"
+import { useIsInAppShell } from "@/components/app-shell/app-shell-context"
 import { supabase } from "@/lib/supabase"
 import { useEffect, useState } from "react"
 import type { User } from "@supabase/supabase-js"
@@ -78,6 +79,12 @@ function getDisplayName(user: User | null, profile: NavbarProfile | null): strin
 }
 
 export function Navbar() {
+  const inAppShell = useIsInAppShell()
+  if (inAppShell) return null
+  return <NavbarChrome />
+}
+
+function NavbarChrome() {
   const router = useRouter()
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<NavbarProfile | null>(null)
