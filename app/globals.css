@@ -237,6 +237,15 @@
   --color-mint-foreground: var(--mint-foreground);
   --color-card-hover-border: var(--card-hover-border);
   --color-card-glow: var(--card-glow);
+  --color-role-developer: var(--role-developer);
+  --color-role-artist-2d: var(--role-artist-2d);
+  --color-role-artist-3d: var(--role-artist-3d);
+  --color-role-audio: var(--role-audio);
+  --color-role-voice: var(--role-voice);
+  --color-role-writer: var(--role-writer);
+  --color-role-design: var(--role-design);
+  --color-role-ux: var(--role-ux);
+  --color-role-qa: var(--role-qa);
 }
 
 @layer base {

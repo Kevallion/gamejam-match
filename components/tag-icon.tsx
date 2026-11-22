@@ -289,7 +289,7 @@ export type TagIconItem = {
 /** Icon row with a +N overflow popover that lists the rest in text. */
 export function TagIconRow({
   items,
-  max = 5,
+  max = 3,
   size = "sm",
   className,
 }: {

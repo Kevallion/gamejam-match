@@ -7,7 +7,9 @@ import { usePathname, useSearchParams } from "next/navigation"
 import { CreateSheet } from "@/components/app-shell/create-sheet"
 import {
   HOTBAR_SLOTS,
+  MOBILE_TABS,
   hotbarActiveId,
+  mobileHotbarActiveId,
   type HotbarSlotId,
 } from "@/components/app-shell/nav-config"
 import { AppIcon } from "@/components/ui/app-icon"
@@ -46,6 +48,7 @@ export function BentoHotbar({ inboxCount = 0, availabilityCount = 0 }: BentoHotb
   const router = useRouter()
   const [createOpen, setCreateOpen] = useState(false)
   const activeId = hotbarActiveId(pathname, searchParams.toString())
+  const mobileActiveId = mobileHotbarActiveId(pathname, searchParams.toString())
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -64,7 +67,7 @@ export function BentoHotbar({ inboxCount = 0, availabilityCount = 0 }: BentoHotb
 
   const leftDesktop = HOTBAR_SLOTS.filter((s) => s.key === "1" || s.key === "2" || s.key === "3")
   const rightDesktop = HOTBAR_SLOTS.filter((s) => s.key === "4" || s.key === "5" || s.key === "6")
-  const mobileSlots = HOTBAR_SLOTS.filter((s) => !s.desktopOnly)
+  const mobileSlots = MOBILE_TABS.filter((item) => !item.create)
 
   return (
     <>
@@ -139,7 +142,7 @@ export function BentoHotbar({ inboxCount = 0, availabilityCount = 0 }: BentoHotb
           <MobileHotbarLink
             key={item.id}
             item={item}
-            active={activeId === item.id}
+            active={mobileActiveId === item.id}
             inboxCount={inboxCount}
           />
         ))}
@@ -162,7 +165,7 @@ export function BentoHotbar({ inboxCount = 0, availabilityCount = 0 }: BentoHotb
           <MobileHotbarLink
             key={item.id}
             item={item}
-            active={activeId === item.id}
+            active={mobileActiveId === item.id}
             inboxCount={inboxCount}
           />
         ))}
@@ -242,10 +245,11 @@ function MobileHotbarLink({
   active,
   inboxCount,
 }: {
-  item: (typeof HOTBAR_SLOTS)[number]
+  item: (typeof MOBILE_TABS)[number]
   active: boolean
   inboxCount: number
 }) {
+  if (!item.href) return null
   return (
     <Link
       href={item.href}

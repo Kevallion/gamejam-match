@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from "react"
+import Link from "next/link"
 import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
@@ -574,6 +575,15 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
 
   return (
     <div className="grid w-full min-w-0 max-w-full gap-3 py-2 md:gap-4 md:py-4 lg:grid-cols-12 lg:gap-[18px]">
+      <div className="lg:col-span-12">
+        <Link
+          href="/dashboard?hub=me"
+          className="inline-flex min-h-11 items-center gap-1.5 rounded-xl px-1 text-sm font-bold text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+        >
+          <AppIcon icon={ICON.navLeft} size="sm" />
+          Me
+        </Link>
+      </div>
       <div className="hidden lg:col-span-3 lg:block">
         <SectionRail activeSection={activeSection} />
       </div>

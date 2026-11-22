@@ -48,6 +48,19 @@ export function tabFromPathname(pathname: string, search: string): DashboardTabV
   return "squads"
 }
 
+export function sectionTitleForPath(pathname: string, search: string): string {
+  const hubMe =
+    new URLSearchParams(search.startsWith("?") ? search.slice(1) : search).get("hub") === "me"
+  if (hubMe) return "Me"
+  if (pathname.startsWith("/find-members") || pathname.startsWith("/directory")) return "Explore"
+  if (pathname.startsWith("/teams") || pathname.startsWith("/create-team")) return "Jams"
+  if (pathname.startsWith("/jammer")) return "Jammer"
+  if (pathname.startsWith("/showcase")) return "How it works"
+  if (pathname.startsWith("/create-profile")) return "Profile"
+  if (pathname.startsWith("/invitation")) return "Invitation"
+  return sectionTitleForTab(tabFromPathname(pathname, search), false)
+}
+
 export function sectionTitleForTab(tab: DashboardTabValue | null, meHub = false): string {
   if (meHub) return "Me"
   switch (tab) {
@@ -71,11 +84,12 @@ export const MOBILE_TABS: {
   href?: string
   icon: LucideIcon
   create?: boolean
+  badge?: "inbox"
 }[] = [
   { id: "home", label: "Home", href: dashboardHref("squads"), icon: ICON.dashboard },
-  { id: "explore", label: "Explore", href: "/teams", icon: ICON.squad },
+  { id: "explore", label: "Explore", href: "/find-members", icon: ICON.findJammers },
   { id: "create", label: "Create", icon: ICON.create, create: true },
-  { id: "inbox", label: "Inbox", href: dashboardHref("inbox"), icon: ICON.applications },
+  { id: "inbox", label: "Inbox", href: dashboardHref("inbox"), icon: ICON.applications, badge: "inbox" },
   { id: "me", label: "Me", href: "/dashboard?hub=me", icon: ICON.jammer },
 ]
 
@@ -157,12 +171,33 @@ export function hotbarActiveId(pathname: string, search: string): HotbarSlotId |
   const hubMe =
     new URLSearchParams(search.startsWith("?") ? search.slice(1) : search).get("hub") === "me"
 
-  if (pathname.startsWith("/find-members") || pathname.startsWith("/showcase")) return "explore"
+  if (pathname.startsWith("/find-members") || pathname.startsWith("/directory") || pathname.startsWith("/showcase")) return "explore"
   if (pathname.startsWith("/teams") || pathname.startsWith("/create-team")) return "jams"
   if (!isDashboardPath(pathname)) return null
   if (hubMe) return null
   if (tab === "inbox") return "inbox"
   if (tab === "achievements") return "rewards"
   if (tab === "availability" || tab === "settings") return null
+  return "home"
+}
+
+export type MobileHotbarId = "home" | "explore" | "inbox" | "me"
+
+/** Mobile hotbar highlight: Me is lit on the Me hub, Settings, My posts, and Rewards. */
+export function mobileHotbarActiveId(pathname: string, search: string): MobileHotbarId | null {
+  const tab = tabFromPathname(pathname, search)
+  const hubMe =
+    new URLSearchParams(search.startsWith("?") ? search.slice(1) : search).get("hub") === "me"
+
+  if (
+    pathname.startsWith("/find-members") ||
+    pathname.startsWith("/directory") ||
+    pathname.startsWith("/showcase")
+  ) {
+    return "explore"
+  }
+  if (!isDashboardPath(pathname)) return null
+  if (hubMe || tab === "settings" || tab === "availability" || tab === "achievements") return "me"
+  if (tab === "inbox") return "inbox"
   return "home"
 }

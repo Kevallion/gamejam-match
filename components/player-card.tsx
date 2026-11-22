@@ -155,9 +155,10 @@ function parseAvailability(availability: string | undefined): { label: string; i
 interface JammerCardProps {
   player: JammerCardData
   mySquads: SquadOption[]
+  cardClassName?: string
 }
 
-export function JammerCard({ player, mySquads }: JammerCardProps) {
+export function JammerCard({ player, mySquads, cardClassName }: JammerCardProps) {
   const [selectedSquad, setSelectedSquad] = useState<SquadOption | null>(null)
   const [selectedRoleIdx, setSelectedRoleIdx] = useState<number | null>(null)
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -327,10 +328,10 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
     <>
       <Dialog>
         <DialogTrigger asChild>
-          <Card className="card-interactive group relative flex w-full flex-col cursor-pointer overflow-hidden py-4 transition-all hover:ring-2 hover:ring-primary/50 sm:py-6">
+          <Card className={cn("card-interactive group relative flex w-full cursor-pointer flex-col overflow-hidden py-4 transition-all hover:ring-2 hover:ring-primary/50 sm:py-6", cardClassName)}>
             <CardContent className="flex flex-1 flex-col gap-4 px-4 pt-0 sm:px-6 sm:pt-0">
               {/* Avatar + Username + Share */}
-              <div className="flex min-w-0 items-center gap-3.5">
+              <div className="flex min-w-0 items-start gap-3.5">
                 <UserAvatar
                   src={player.avatar_url}
                   fallbackName={player.username}
@@ -385,7 +386,7 @@ export function JammerCard({ player, mySquads }: JammerCardProps) {
               {player.programmingLanguages && player.programmingLanguages.length > 0 ? (
                 <TagIconRow
                   items={player.programmingLanguages.map((value) => ({ kind: "code" as const, value }))}
-                  max={6}
+                  max={3}
                   size="xs"
                 />
               ) : null}
@@ -894,7 +895,7 @@ export function JammerCardPreview({ player, className }: { player: JammerCardDat
         {player.programmingLanguages && player.programmingLanguages.length > 0 ? (
           <TagIconRow
             items={player.programmingLanguages.map((value) => ({ kind: "code" as const, value }))}
-            max={6}
+            max={3}
             size="xs"
           />
         ) : null}

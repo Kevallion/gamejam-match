@@ -2,7 +2,6 @@
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { UserAvatar } from "@/components/user-avatar"
 import {
   ENGINE_OPTIONS_WITH_ANY,
@@ -14,6 +13,7 @@ import {
 import { cn } from "@/lib/utils"
 import { ExternalLink } from "lucide-react"
 import { TagIcon } from "@/components/tag-icon"
+import { BadgeGroup } from "@/components/ui/badge-group"
 
 const avatarSize = {
   sm: "size-12 rounded-xl",
@@ -173,15 +173,6 @@ export function ProfileCard({
   const engineLabel = defaultEngineLabel(defaultEngine)
   const langLabel = languageLabel(defaultLanguage)
   const codeKeys = parseProgrammingLanguages(programmingLanguages)
-  const visibleCodeKeys =
-    typeof maxVisibleProgrammingLanguages === "number"
-      ? codeKeys.slice(0, Math.max(0, maxVisibleProgrammingLanguages))
-      : codeKeys
-  const hiddenCodeKeys =
-    typeof maxVisibleProgrammingLanguages === "number"
-      ? codeKeys.slice(Math.max(0, maxVisibleProgrammingLanguages))
-      : []
-  const hiddenCodeLabels = hiddenCodeKeys.map((key) => programmingLanguageOption(key)?.label ?? key)
   const safePortfolioUrl = normalizePortfolioUrl(portfolioUrl)
 
   const slots = (roleSlots ?? []).filter((s) => s?.role?.trim())
@@ -226,31 +217,15 @@ export function ProfileCard({
         </div>
 
         {codeKeys.length > 0 ? (
-          <div className="flex flex-wrap items-center gap-2">
-            {visibleCodeKeys.map((key) => (
-              <TagIcon key={key} kind="code" value={key} size="sm" showLabel />
-            ))}
-            {hiddenCodeKeys.length > 0 ? (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    type="button"
-                    className="inline-flex h-6 shrink-0 items-center rounded-full bg-muted px-2 text-[11px] font-semibold text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
-                    aria-label={`${hiddenCodeKeys.length} more languages: ${hiddenCodeLabels.join(", ")}`}
-                  >
-                    +{hiddenCodeKeys.length}
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent side="top" className="max-w-xs">
-                  <ul className="flex flex-col gap-0.5 text-left">
-                    {hiddenCodeLabels.map((label) => (
-                      <li key={label}>{label}</li>
-                    ))}
-                  </ul>
-                </TooltipContent>
-              </Tooltip>
-            ) : null}
-          </div>
+          <BadgeGroup
+            overflowAriaPrefix="more languages"
+            max={typeof maxVisibleProgrammingLanguages === "number" ? maxVisibleProgrammingLanguages : codeKeys.length}
+            items={codeKeys.map((key) => ({
+              key,
+              label: programmingLanguageOption(key)?.label ?? key,
+              node: <TagIcon kind="code" value={key} size="sm" showLabel />,
+            }))}
+          />
         ) : null}
 
         {showRoleSlots ? (

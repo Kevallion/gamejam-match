@@ -1,7 +1,8 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
-import { JammerCard, type JammerCardData, type SquadOption } from "@/components/player-card"
+import { type JammerCardData, type SquadOption } from "@/components/player-card"
+import { DirectoryCard } from "@/components/directory-card"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
@@ -293,7 +294,7 @@ export function DirectoryGrid({
         ) : (
           <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {jammers.map((jammer) => (
-              <JammerCard key={jammer.id} player={toCardData(jammer)} mySquads={mySquads} />
+              <DirectoryCard key={jammer.id} player={toCardData(jammer)} mySquads={mySquads} />
             ))}
           </div>
         )}

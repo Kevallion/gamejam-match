@@ -1,6 +1,7 @@
-"use client"
+﻿"use client"
 
 import { X } from "lucide-react"
+import { FilterChip } from "@/components/ui/filter-chip"
 
 export type ActiveFilterChip = {
   id: string
@@ -19,16 +20,15 @@ export function ActiveFilterChips({
   return (
     <div className="flex flex-wrap gap-2">
       {chips.map((chip) => (
-        <button
+        <FilterChip
           key={chip.id}
-          type="button"
+          pressed
           onClick={() => onRemove(chip.id)}
-          className="inline-flex items-center gap-1.5 rounded-full border border-border/60 bg-secondary/50 px-3 py-1 text-xs font-semibold text-foreground transition-colors hover:border-primary/40"
+          aria-label={`Remove ${chip.label}`}
         >
           {chip.label}
-          <X className="size-3 text-muted-foreground" aria-hidden />
-          <span className="sr-only">Remove {chip.label}</span>
-        </button>
+          <X className="size-3 opacity-80" aria-hidden />
+        </FilterChip>
       ))}
     </div>
   )

@@ -286,7 +286,7 @@ export function OnboardingModal({ open, onOpenChange, profile }: OnboardingModal
     <Dialog open={open} onOpenChange={handleDialogOpenChange}>
       <DialogContent
         data-onboarding-version="2"
-        className="flex max-h-[min(90dvh,calc(100dvh-1.5rem))] min-h-0 flex-col gap-0 overflow-hidden rounded-3xl border-border/60 bg-background p-0 shadow-2xl sm:max-w-xl"
+        className="flex max-h-[min(90dvh,calc(100dvh-1.5rem))] min-h-0 flex-col gap-0 overflow-hidden rounded-3xl border border-border bg-background p-0 shadow-[3px_3px_0_0_var(--neo-shadow)] sm:max-w-xl"
         showCloseButton={false}
         onPointerDownOutside={(e) => {
           const target = e.target as EventTarget | null

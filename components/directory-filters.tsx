@@ -74,7 +74,7 @@ export function DirectoryFilters({
   const filterSelects = (
     <>
       <Select onValueChange={onRoleChange} value={role}>
-        <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40 sm:w-[170px]">
+        <SelectTrigger className="h-10 w-full rounded-xl border-border bg-background text-foreground transition-colors sm:w-[170px]">
           <SelectValue placeholder="Role" />
         </SelectTrigger>
         <SelectContent className="rounded-xl">
@@ -88,7 +88,7 @@ export function DirectoryFilters({
       </Select>
 
       <Select onValueChange={onEngineChange} value={engine}>
-        <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40 sm:w-[170px]">
+        <SelectTrigger className="h-10 w-full rounded-xl border-border bg-background text-foreground transition-colors sm:w-[170px]">
           <SelectValue placeholder="Engine" />
         </SelectTrigger>
         <SelectContent className="rounded-xl">
@@ -102,7 +102,7 @@ export function DirectoryFilters({
       </Select>
 
       <Select onValueChange={onLevelChange} value={level}>
-        <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40 sm:w-[170px]">
+        <SelectTrigger className="h-10 w-full rounded-xl border-border bg-background text-foreground transition-colors sm:w-[170px]">
           <SelectValue placeholder="Experience" />
         </SelectTrigger>
         <SelectContent className="rounded-xl">
@@ -116,7 +116,7 @@ export function DirectoryFilters({
       </Select>
 
       <Select onValueChange={onLanguageChange} value={language}>
-        <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40 sm:w-[170px]">
+        <SelectTrigger className="h-10 w-full rounded-xl border-border bg-background text-foreground transition-colors sm:w-[170px]">
           <SelectValue placeholder="Language" />
         </SelectTrigger>
         <SelectContent className="rounded-xl">
@@ -130,7 +130,7 @@ export function DirectoryFilters({
       </Select>
 
       <Select onValueChange={onProgrammingLanguageChange} value={programmingLanguage}>
-        <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40 sm:w-[190px]">
+        <SelectTrigger className="h-10 w-full rounded-xl border-border bg-background text-foreground transition-colors sm:w-[190px]">
           <SelectValue placeholder="Code" />
         </SelectTrigger>
         <SelectContent className="rounded-xl">
