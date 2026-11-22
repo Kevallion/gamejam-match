@@ -1,25 +1,9 @@
 "use client"
 
 import { useEffect, useState, useTransition } from "react"
-import { Check, Lock, Trophy, ChevronRight } from "lucide-react"
-import { Card, CardContent } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { AppIcon } from "@/components/ui/app-icon"
+import { ICON } from "@/lib/icons"
 import { cn } from "@/lib/utils"
 import {
   TITLE_CATALOG,
@@ -45,7 +29,6 @@ export function TitleSelection({
 }: TitleSelectionProps) {
   const [equipped, setEquipped] = useState(currentTitle)
   const [pending, startTransition] = useTransition()
-  const [modalOpen, setModalOpen] = useState(false)
 
   useEffect(() => {
     setEquipped(currentTitle)
@@ -67,170 +50,90 @@ export function TitleSelection({
     })
   }
 
-  const handleEquipFromModal = (title: string) => {
-    handleEquip(title)
-    setModalOpen(false)
-  }
-
-  const selectValue = isTitleUnlocked(unlockedTitles, equipped)
-    ? equipped
-    : unlockedTitles[0] ?? "Rookie Jammer"
-
-  const unlockedCount = TITLE_CATALOG.filter((e) =>
-    isTitleUnlocked(unlockedTitles, e.title),
-  ).length
-  const totalCount = TITLE_CATALOG.length
+  const owned = TITLE_CATALOG.filter((entry) => isTitleUnlocked(unlockedTitles, entry.title))
+  const locked = TITLE_CATALOG.filter((entry) => !isTitleUnlocked(unlockedTitles, entry.title))
 
   return (
-    <Card
-      className={cn(
-        "min-w-0 max-w-full border border-border/50 bg-white/[0.05] shadow-sm backdrop-blur-xl dark:border-border/60 dark:bg-slate-900/45 light:bg-white/75",
-        className,
-      )}
-    >
-      <CardContent className="min-w-0 space-y-3 p-4">
-        {/* Header row */}
-        <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
-          <div className="flex min-w-0 items-center gap-2">
-            <div className="flex size-8 items-center justify-center rounded-lg bg-peach/15 ring-1 ring-peach/25">
-              <Trophy className="size-3.5 text-peach" />
-            </div>
-            <div>
-              <h3 className="text-sm font-semibold tracking-tight text-foreground">
-                Title selection
-              </h3>
-              <p className="text-xs text-muted-foreground">
-                {unlockedCount} / {totalCount} titles unlocked
-              </p>
-            </div>
-          </div>
-
-          {/* "Browse all" modal trigger */}
-          <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-            <DialogTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 gap-1 rounded-lg px-2.5 text-xs text-muted-foreground hover:text-foreground"
+    <div className={cn("flex min-w-0 flex-col gap-6", className)}>
+      <section className="space-y-3">
+        <h3 className="text-sm font-bold text-foreground">
+          Owned titles · {owned.length}
+        </h3>
+        <ul className="space-y-2">
+          {owned.map((entry) => {
+            const active = equipped === entry.title
+            return (
+              <li
+                key={entry.title}
+                className={cn(
+                  "flex min-w-0 items-center gap-3 rounded-2xl border px-3 py-3",
+                  active
+                    ? "border-teal/40 bg-teal/10"
+                    : "border-border/50 bg-card/60",
+                )}
               >
-                Browse all
-                <ChevronRight className="size-3" />
-              </Button>
-            </DialogTrigger>
-
-            <DialogContent className="flex max-h-[80vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-lg">
-              <DialogHeader className="shrink-0 border-b border-border/50 px-5 pb-4 pt-5 pr-14">
-                <div className="flex items-center gap-3">
-                  <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-peach/15 ring-1 ring-peach/25">
-                    <Trophy className="size-4 text-peach" />
-                  </div>
-                  <div>
-                    <DialogTitle className="text-base font-semibold">
-                      All Titles
-                    </DialogTitle>
-                    <p className="text-xs text-muted-foreground">
-                      {unlockedCount} unlocked · click to equip
-                    </p>
-                  </div>
+                <span
+                  className={cn(
+                    "flex size-9 shrink-0 items-center justify-center rounded-xl",
+                    active ? "bg-teal/20 text-teal" : "bg-muted/60 text-muted-foreground",
+                  )}
+                >
+                  <AppIcon icon={ICON.title} size="sm" tone={active ? "teal" : "muted"} />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-balance text-foreground">{entry.title}</p>
+                  {active ? (
+                    <p className="text-xs font-medium text-teal">Equipped</p>
+                  ) : (
+                    <p className="text-xs text-muted-foreground text-balance">{entry.unlockHint}</p>
+                  )}
                 </div>
-              </DialogHeader>
+                {active ? (
+                  <span className="shrink-0 rounded-lg bg-teal px-2.5 py-1.5 text-xs font-bold text-teal-foreground">
+                    Equipped
+                  </span>
+                ) : (
+                  <Button
+                    type="button"
+                    size="sm"
+                    className="h-9 shrink-0 rounded-lg bg-teal px-3 text-sm font-semibold text-teal-foreground hover:bg-teal/90"
+                    disabled={disabled || pending}
+                    onClick={() => handleEquip(entry.title)}
+                  >
+                    Equip
+                  </Button>
+                )}
+              </li>
+            )
+          })}
+        </ul>
+      </section>
 
-              <div className="min-h-0 flex-1 overflow-y-auto p-4">
-                <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                  {TITLE_CATALOG.map((entry) => {
-                    const unlocked = isTitleUnlocked(unlockedTitles, entry.title)
-                    const active = equipped === entry.title
-
-                    const tile = (
-                      <button
-                        type="button"
-                        disabled={disabled || pending || !unlocked}
-                        onClick={() => unlocked && handleEquipFromModal(entry.title)}
-                        className={cn(
-                          "flex w-full flex-col gap-1 rounded-xl border px-3 py-2.5 text-left transition-all",
-                          unlocked
-                            ? cn(
-                                "border-border/40 bg-background/60 backdrop-blur-sm hover:border-peach/40 hover:bg-peach/5 dark:bg-background/30",
-                                active &&
-                                  "border-peach/50 bg-peach/10 ring-1 ring-peach/30 shadow-sm",
-                              )
-                            : "cursor-not-allowed border-dashed border-border/35 bg-muted/10 opacity-55",
-                        )}
-                      >
-                        <div className="flex items-center justify-between gap-2">
-                          <span
-                            className={cn(
-                              "truncate text-sm font-semibold",
-                              unlocked ? "text-foreground" : "text-muted-foreground",
-                            )}
-                          >
-                            {entry.title}
-                          </span>
-                          {unlocked ? (
-                            active ? (
-                              <Check
-                                className="size-3.5 shrink-0 text-peach"
-                                aria-label="Equipped"
-                              />
-                            ) : null
-                          ) : (
-                            <Lock
-                              className="size-3.5 shrink-0 text-muted-foreground/60"
-                              aria-hidden
-                            />
-                          )}
-                        </div>
-                        <p className="text-[11px] leading-snug text-muted-foreground">
-                          {unlocked ? "Click to equip" : entry.unlockHint}
-                        </p>
-                      </button>
-                    )
-
-                    if (unlocked) {
-                      return <div key={entry.title}>{tile}</div>
-                    }
-
-                    return (
-                      <Tooltip key={entry.title}>
-                        <TooltipTrigger asChild>
-                          <div>{tile}</div>
-                        </TooltipTrigger>
-                        <TooltipContent side="top" className="max-w-[220px] text-balance">
-                          <p className="font-semibold">{entry.title}</p>
-                          <p className="mt-0.5 text-background/85">{entry.unlockHint}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    )
-                  })}
+      {locked.length > 0 ? (
+        <section className="space-y-3">
+          <h3 className="text-sm font-bold text-foreground">
+            Titles to unlock · {locked.length}
+          </h3>
+          <ul className="space-y-2">
+            {locked.map((entry) => (
+              <li
+                key={entry.title}
+                className="flex min-w-0 items-center gap-3 rounded-2xl border border-dashed border-border/40 bg-muted/10 px-3 py-3 opacity-80"
+              >
+                <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-muted/50 text-muted-foreground">
+                  <AppIcon icon={ICON.locked} size="sm" tone="muted" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-balance text-muted-foreground">
+                    {entry.title}
+                  </p>
+                  <p className="truncate text-xs text-muted-foreground">{entry.unlockHint}</p>
                 </div>
-              </div>
-            </DialogContent>
-          </Dialog>
-        </div>
-
-        {/* Quick equip select */}
-        <div className="space-y-1.5">
-          <Label className="text-xs font-semibold uppercase tracking-tight text-muted-foreground">
-            Quick equip
-          </Label>
-          <Select
-            value={selectValue}
-            onValueChange={(v) => void handleEquip(v)}
-            disabled={disabled || pending}
-          >
-            <SelectTrigger className="h-9 w-full min-w-0 max-w-full rounded-xl border-border/50 bg-background/80 text-sm backdrop-blur-sm dark:bg-background/60">
-              <SelectValue placeholder="Choose a title" />
-            </SelectTrigger>
-            <SelectContent className="rounded-xl">
-              {unlockedTitles.map((t) => (
-                <SelectItem key={t} value={t} className="text-sm">
-                  {t}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </CardContent>
-    </Card>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+    </div>
   )
 }

@@ -1,13 +1,14 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import { Trophy } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { AppIcon } from "@/components/ui/app-icon"
 import { UserAvatar } from "@/components/user-avatar"
 import type { NormalizedNotificationRow } from "@/hooks/use-notifications"
 import { getNotificationDetailPath } from "@/lib/notification-detail-link"
 import { isSystemNotificationType } from "@/lib/notifications-enriched"
+import { ICON } from "@/lib/icons"
 import { cn } from "@/lib/utils"
 
 export function NavbarNotificationRow({
@@ -46,7 +47,7 @@ export function NavbarNotificationRow({
     >
       {isSystem ? (
         <div className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full border border-peach/30 bg-peach/10">
-          <Trophy className="size-4 text-peach" aria-hidden />
+          <AppIcon icon={ICON.achievement} size="md" tone="peach" />
         </div>
       ) : (
         <button

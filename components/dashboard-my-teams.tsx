@@ -15,6 +15,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
@@ -483,10 +484,10 @@ export function DashboardMyTeams({
                 <DialogTitle className="text-base leading-tight sm:text-lg">
                   Suggested Developers
                 </DialogTitle>
-                <p className="text-sm text-muted-foreground">
+                <DialogDescription className="text-sm text-muted-foreground">
                   <span className="text-foreground/80">for </span>
                   {teamMatchesContext?.name ?? "…"}
-                </p>
+                </DialogDescription>
               </div>
             </div>
           </DialogHeader>

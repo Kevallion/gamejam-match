@@ -116,6 +116,7 @@ export const ICON = {
   // Gamification
   xp: Star,
   achievement: Trophy,
+  title: Medal,
   leaderboardFirst: Crown,
   leaderboardOther: Medal,
   kudos: HandHeart,

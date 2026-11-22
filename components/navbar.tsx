@@ -47,7 +47,7 @@ import { JammerLevelBadge, JammerTitleBadge } from "@/components/profile-card"
 import { levelFromTotalXp } from "@/lib/gamification-level"
 
 const NAV_ITEMS = [
-  { href: "/teams", label: "Squads", icon: UsersRound },
+  { href: "/teams", label: "Explore", icon: UsersRound },
   { href: "/find-members", label: "Members", icon: UserRoundSearch },
   { href: "/create-team", label: "Create a Squad", icon: PenLine },
   { href: "/create-profile", label: "Available", icon: Hand },
@@ -458,7 +458,7 @@ export function Navbar() {
               </DropdownMenu>
             )}
 
-            {/* Menu — Sheet monté après hydratation pour éviter mismatch Radix (aria-controls / useId). */}
+            {/* Burger menu — kept for signed-in users outside AppShell routes (Explore, etc.). */}
             {mounted ? (
               <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
                 <SheetTrigger asChild>
@@ -474,7 +474,7 @@ export function Navbar() {
                   <div className="flex min-h-0 flex-1 flex-col pt-4 px-4">
                     {/* User Info */}
                     <div className="border-b border-border/40 pb-4">
-                      {!mounted || loading ? (
+                      {loading ? (
                         <LoaderCircle className="size-5 animate-spin text-muted-foreground" />
                       ) : user ? (
                         <div className="space-y-2">

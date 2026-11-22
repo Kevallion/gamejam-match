@@ -13,7 +13,11 @@ export const FEEDBACK_URL =
 
 export function FeedbackButton() {
   const pathname = usePathname()
-  if (pathname?.startsWith("/dashboard")) return null
+  // Floating feedback lives in Me hub / app sidebar on the dashboard shell.
+  // Keep it on create flows — those pages use Navbar only (no Me hub).
+  if (pathname?.startsWith("/dashboard")) {
+    return null
+  }
 
   return (
     <div
