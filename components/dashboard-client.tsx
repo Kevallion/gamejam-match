@@ -57,10 +57,10 @@ import {
   leaveTeam,
 } from "@/app/actions/team-membership-actions"
 import { readOwnDiscordUsername } from "@/lib/profile-discord"
-import { claimDailyLoginXp, getMyGamificationSnapshot } from "@/app/actions/gamification-actions"
+import { getMyGamificationSnapshot } from "@/app/actions/gamification-actions"
 import { OnboardingModal } from "@/components/onboarding-modal"
 import { ProfileSettings, type ProfileSettingsProfile } from "@/components/profile-settings"
-import { getEmailPreferences } from "@/app/actions/email-preferences-actions"
+import { getEmailPreferences, type EmailPreferencesResult } from "@/app/actions/email-preferences-actions"
 import {
   DashboardAchievementsTab,
 } from "@/components/gamification-dashboard"
@@ -375,6 +375,32 @@ function DashboardRecentActivity({
   )
 }
 
+/**
+ * DS-3a perf: own email preferences straight from the browser through the
+ * owner-only RPC (get_my_email_preferences, EXECUTE for authenticated). Falls back
+ * to the server action (older schemas, errors).
+ */
+async function readOwnEmailPreferences(): Promise<EmailPreferencesResult> {
+  try {
+    const rpc = await supabase.rpc("get_my_email_preferences")
+    if (!rpc.error) {
+      const row = Array.isArray(rpc.data) ? (rpc.data[0] as Record<string, unknown> | undefined) : undefined
+      if (row) {
+        return {
+          success: true,
+          prefs: {
+            emailTeamActivity: row.email_team_activity !== false,
+            emailMatchingAnnouncements: row.email_matching_announcements !== false,
+          },
+        }
+      }
+    }
+  } catch {
+    // fall through to the server action
+  }
+  return getEmailPreferences().catch(() => ({ success: false as const, error: "UPDATE_FAILED" }))
+}
+
 export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: DashboardClientProps = {}) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
@@ -648,9 +674,15 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
           .limit(40),
         // S3 email preferences are owner-only (S7): read through the server action,
         // not through the profiles select.
-        getEmailPreferences().catch(() => ({ success: false as const, error: "UPDATE_FAILED" })),
-        // DS-3a skeleton: these used to run one after the other after this batch.
-        getMyGamificationSnapshot().catch(() => ({ ok: false as const, error: "UNKNOWN" })),
+        // DS-3a perf: read straight from the browser (owner-only RPC, same as the
+        // server action's first path); the server action is only the fallback.
+        readOwnEmailPreferences(),
+        // DS-3a skeleton: single server action (daily login claim + snapshot).
+        (() => {
+          const claimDailyLogin = !dailyXpClaimRef.current
+          dailyXpClaimRef.current = true
+          return getMyGamificationSnapshot({ claimDailyLogin }).catch(() => ({ ok: false as const, error: "UNKNOWN" }))
+        })(),
         readOwnDiscordUsername(supabase, uid),
         supabase
           .from("profiles")
@@ -662,6 +694,10 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
         supabase.rpc("get_kudos_counts_for_users", { p_user_ids: [uid] }),
       ])
       setGamification(gamificationResult.ok ? gamificationResult.snapshot : null)
+      const dailyLogin = gamificationResult.ok ? gamificationResult.dailyLogin : undefined
+      if (dailyLogin?.ok && dailyLogin.reward && gamificationRewardHasToast(dailyLogin.reward)) {
+        showGamificationRewards("DAILY_LOGIN", dailyLogin.reward)
+      }
       let profileData = profileQueryResult.data as
         | {
             id: string
@@ -954,23 +990,6 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
         }),
       )
 
-      if (authSession.user && !dailyXpClaimRef.current) {
-        dailyXpClaimRef.current = true
-        void claimDailyLoginXp().then((res) => {
-          if (!res.ok && res.error) {
-            return
-          }
-          if (res.ok && res.reward && gamificationRewardHasToast(res.reward)) {
-            showGamificationRewards("DAILY_LOGIN", res.reward)
-          }
-          // The claim may add XP / streak: refresh the shared snapshot.
-          if (res.ok) {
-            void getMyGamificationSnapshot().then((next) => {
-              if (next.ok && mountedRef.current) setGamification(next.snapshot)
-            })
-          }
-        })
-      }
     } catch (err) {
       toast.error("Error loading the dashboard.", {
         description: err instanceof Error ? err.message : "Please refresh the page.",
