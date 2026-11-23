@@ -54,7 +54,7 @@ export function sectionTitleForPath(pathname: string, search: string): string {
     new URLSearchParams(search.startsWith("?") ? search.slice(1) : search).get("hub") === "me"
   if (hubMe) return "Me"
   if (pathname.startsWith("/find-members") || pathname.startsWith("/directory")) return "Explore"
-  if (pathname.startsWith("/teams") || pathname.startsWith("/create-team")) return "Jams"
+  if (pathname.startsWith("/teams") || pathname.startsWith("/create-team")) return "Squads"
   if (pathname.startsWith("/jammer")) return "Jammer"
   if (pathname.startsWith("/showcase")) return "How it works"
   if (pathname.startsWith("/create-profile")) return "Profile"
@@ -135,15 +135,15 @@ export const SIDEBAR_EXPLORE: {
   { label: "How it works", href: "/showcase", icon: ICON.recommended },
 ]
 
-export type HotbarSlotId = "home" | "jams" | "squads" | "inbox" | "rewards" | "explore"
+export type HotbarSlotId = "home" | "squads" | "inbox" | "rewards" | "explore"
 
 /**
- * Nav 2 floating hotbar (desktop numbered 1–6 + create).
+ * Nav 2 floating hotbar (desktop numbered 1–5 + create).
  * Same destinations as the previous rail / sidebar explore links.
  * Settings & My posts remain reachable via the Me hub (avatar).
  */
 export const HOTBAR_SLOTS: {
-  key: "1" | "2" | "3" | "4" | "5" | "6"
+  key: "1" | "2" | "3" | "4" | "5"
   id: HotbarSlotId
   label: string
   href: string
@@ -153,12 +153,11 @@ export const HOTBAR_SLOTS: {
   desktopOnly?: boolean
 }[] = [
   { key: "1", id: "home", label: "Home", href: dashboardHref("squads"), icon: ICON.dashboard },
-  { key: "2", id: "jams", label: "Jams", href: "/teams", icon: ICON.dates },
-  { key: "3", id: "squads", label: "Squads", href: "/teams", icon: ICON.squad, desktopOnly: true },
-  { key: "4", id: "inbox", label: "Inbox", href: dashboardHref("inbox"), icon: ICON.applications, badge: "inbox" },
-  { key: "5", id: "rewards", label: "Rewards", href: dashboardHref("achievements"), icon: ICON.achievement },
+  { key: "2", id: "squads", label: "Squads", href: "/teams", icon: ICON.squad },
+  { key: "3", id: "inbox", label: "Inbox", href: dashboardHref("inbox"), icon: ICON.applications, badge: "inbox" },
+  { key: "4", id: "rewards", label: "Rewards", href: dashboardHref("achievements"), icon: ICON.achievement },
   {
-    key: "6",
+    key: "5",
     id: "explore",
     label: "Explore",
     href: "/find-members",
@@ -175,8 +174,7 @@ export const MORE_SHEET_ITEMS: {
   href: string
   icon: LucideIcon
 }[] = [
-  { id: "jams", label: "Jams", hint: "Browse game jams", href: "/teams", icon: ICON.dates },
-  { id: "squads", label: "Squads", hint: "Find a squad", href: "/teams", icon: ICON.squad },
+  { id: "squads", label: "Squads", hint: "Browse open squads", href: "/teams", icon: ICON.squad },
   {
     id: "rewards",
     label: "Rewards",
@@ -200,15 +198,15 @@ export const MORE_SHEET_ITEMS: {
   },
 ]
 
-export type MoreSheetItemId = "jams" | "squads" | "rewards" | "me" | "settings"
+export type MoreSheetItemId = "squads" | "rewards" | "me" | "settings"
 
-/** Which More-sheet row is current. Jams wins over Squads when both share /teams. */
+/** Which More-sheet row is current. */
 export function moreSheetActiveId(pathname: string, search: string): MoreSheetItemId | null {
   const tab = tabFromPathname(pathname, search)
   const hubMe =
     new URLSearchParams(search.startsWith("?") ? search.slice(1) : search).get("hub") === "me"
 
-  if (pathname.startsWith("/teams") || pathname.startsWith("/create-team")) return "jams"
+  if (pathname.startsWith("/teams") || pathname.startsWith("/create-team")) return "squads"
   if (!isDashboardPath(pathname)) return null
   if (hubMe) return "me"
   if (tab === "achievements") return "rewards"
@@ -223,7 +221,7 @@ export function hotbarActiveId(pathname: string, search: string): HotbarSlotId |
     new URLSearchParams(search.startsWith("?") ? search.slice(1) : search).get("hub") === "me"
 
   if (pathname.startsWith("/find-members") || pathname.startsWith("/directory") || pathname.startsWith("/showcase")) return "explore"
-  if (pathname.startsWith("/teams") || pathname.startsWith("/create-team")) return "jams"
+  if (pathname.startsWith("/teams") || pathname.startsWith("/create-team")) return "squads"
   if (!isDashboardPath(pathname)) return null
   if (hubMe) return null
   if (tab === "inbox") return "inbox"

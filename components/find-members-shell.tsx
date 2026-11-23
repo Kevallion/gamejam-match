@@ -2,6 +2,8 @@
 
 import { useState, useTransition } from "react"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import { useIsInAppShell } from "@/components/app-shell/app-shell-context"
+import { cn } from "@/lib/utils"
 import { Navbar } from "@/components/navbar"
 import { MemberFilters } from "@/components/member-filters"
 import { MembersGrid } from "@/components/members-grid"
@@ -125,11 +127,18 @@ export function FindMembersShell({
     activeFilterChips.push({ id: "code", label: `Code: ${codeLabel}` })
   }
 
+  const inAppShell = useIsInAppShell()
+
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className={cn("flex flex-col", inAppShell ? "min-h-0" : "min-h-screen")}>
       <Navbar />
       <main className="flex-1">
-        <section className="relative overflow-hidden px-4 pb-8 pt-16 sm:px-6 lg:pt-24 lg:pb-12">
+        <section
+          className={cn(
+            "relative overflow-hidden px-4 pb-8 sm:px-6",
+            inAppShell ? "pt-4 lg:pb-8 lg:pt-6" : "pt-16 lg:pb-12 lg:pt-24",
+          )}
+        >
           <div className="pointer-events-none absolute inset-0 opacity-30" aria-hidden="true">
             <div className="absolute left-1/2 top-0 size-[600px] -translate-x-1/2 -translate-y-1/3 rounded-full bg-lavender/20 blur-[120px]" />
             <div className="absolute right-0 top-1/2 size-[400px] -translate-y-1/2 rounded-full bg-pink/15 blur-[100px]" />

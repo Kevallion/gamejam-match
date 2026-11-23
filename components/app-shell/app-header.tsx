@@ -25,6 +25,8 @@ type AppHeaderProps = {
   hideGreetingDesktop?: boolean
   levelLabel?: string | null
   avatarUrl?: string | null
+  /** Stable name for the avatar fallback (never the page title). */
+  displayName?: string | null
   userId?: string | null
   /** Prefer Me hub for Settings / My posts after rail removal. */
   meHubHref?: string | null
@@ -84,6 +86,7 @@ export function AppHeader({
   hideGreetingDesktop = false,
   levelLabel,
   avatarUrl,
+  displayName,
   userId,
   meHubHref,
   notifications,
@@ -95,7 +98,7 @@ export function AppHeader({
   className,
 }: AppHeaderProps) {
   const avatarHref = meHubHref ?? (userId ? `/jammer/${userId}` : null)
-  const avatarFallback = greetingName || title
+  const avatarFallback = displayName?.trim() || greetingName?.trim() || "Jammer"
 
   const bell = (
     <Button

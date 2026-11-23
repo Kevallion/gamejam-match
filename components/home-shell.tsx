@@ -16,7 +16,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { useIsInAppShell } from "@/components/app-shell/app-shell-context"
 import { ENGINE_OPTIONS, EXPERIENCE_OPTIONS, JAM_STYLE_OPTIONS, LANGUAGE_OPTIONS, ROLE_OPTIONS } from "@/lib/constants"
+import { cn } from "@/lib/utils"
 
 export function HomeShell() {
   const searchParams = useSearchParams()
@@ -148,8 +150,10 @@ export function HomeShell() {
     if (id === "style") handleStyleChange("all")
   }
 
+  const inAppShell = useIsInAppShell()
+
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className={cn("flex flex-col", inAppShell ? "min-h-0" : "min-h-screen")}>
       <main className="flex-1">
         {/* Hero — top of page */}
         <Hero />

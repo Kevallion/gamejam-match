@@ -41,7 +41,7 @@ function SlotBadge({ count }: { count: number }) {
 
 /**
  * Nav 2 — floating game-style hotbar (desktop numbered dock + mobile FAB bar).
- * Keyboard 1–6 switches slots when not typing in a field.
+ * Keyboard 1–5 switches slots when not typing in a field.
  */
 export function BentoHotbar({ inboxCount = 0, availabilityCount = 0 }: BentoHotbarProps) {
   const pathname = usePathname()
@@ -57,7 +57,7 @@ export function BentoHotbar({ inboxCount = 0, availabilityCount = 0 }: BentoHotb
       if (event.metaKey || event.ctrlKey || event.altKey) return
       if (isTypingTarget(event.target)) return
       const key = event.key
-      if (!/^[1-6]$/.test(key)) return
+      if (!/^[1-5]$/.test(key)) return
       const slot = HOTBAR_SLOTS.find((item) => item.key === key)
       if (!slot) return
       event.preventDefault()
@@ -67,8 +67,8 @@ export function BentoHotbar({ inboxCount = 0, availabilityCount = 0 }: BentoHotb
     return () => window.removeEventListener("keydown", onKeyDown)
   }, [router])
 
-  const leftDesktop = HOTBAR_SLOTS.filter((s) => s.key === "1" || s.key === "2" || s.key === "3")
-  const rightDesktop = HOTBAR_SLOTS.filter((s) => s.key === "4" || s.key === "5" || s.key === "6")
+  const leftDesktop = HOTBAR_SLOTS.filter((s) => s.key === "1" || s.key === "2")
+  const rightDesktop = HOTBAR_SLOTS.filter((s) => s.key === "3" || s.key === "4" || s.key === "5")
   const mobileSlots = MOBILE_TABS.filter((item) => !item.create && !item.more)
   const moreActive = mobileActiveId === "more"
 

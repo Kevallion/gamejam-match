@@ -11,6 +11,7 @@ import {
   KpiGrid,
   LevelHero,
   LiveJamCard,
+  LiveJamEmpty,
   LiveJamSlide,
   MobileBadgeShelf,
   MobileKpiStrip as MobileKpiStripFilled,
@@ -227,7 +228,7 @@ function KpiPlaceholderGrid() {
     { tone: "pink" as const, label: "Applications", tilt: "-rotate-1" },
   ]
   return (
-    <div className="grid h-full grid-cols-2 gap-[18px]">
+    <div className="grid h-full min-w-0 grid-cols-2 gap-[18px] overflow-visible p-[3px] pr-2 pb-2">
       {tones.map((item) => (
         <BentoCard
           key={item.label}
@@ -301,7 +302,7 @@ export function BentoDashboard({ displayName, data }: BentoDashboardProps) {
           </span>
           <span className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-border bg-card px-3.5 text-[13px] font-extrabold shadow-[3px_3px_0_0_var(--neo-shadow)]">
             <AppIcon icon={ICON.info} size="sm" tone="lavender" />
-            Press 1–6 to switch
+            Press 1–5 to switch
           </span>
         </div>
       </div>
@@ -311,13 +312,15 @@ export function BentoDashboard({ displayName, data }: BentoDashboardProps) {
         <BentoCell span={7}>
           {data ? <LevelHero level={data.level} /> : <LevelHeroPlaceholder />}
         </BentoCell>
-        <BentoCell span={5}>
+        <BentoCell span={5} className="overflow-visible">
           {data ? <KpiGrid kpis={data.kpis} /> : <KpiPlaceholderGrid />}
         </BentoCell>
 
         <BentoCell span={4}>
           {data?.liveJam ? (
             <LiveJamCard jam={data.liveJam} />
+          ) : data ? (
+            <LiveJamEmpty />
           ) : (
             <BentoCard
               tone="live"
@@ -326,7 +329,7 @@ export function BentoDashboard({ displayName, data }: BentoDashboardProps) {
               iconTone="muted"
               placeholder
               emptyLabel="No live jam right now"
-              skeletonLines={data ? 0 : 5}
+              skeletonLines={5}
               className="min-h-[280px]"
             />
           )}
@@ -464,6 +467,8 @@ export function BentoDashboard({ displayName, data }: BentoDashboardProps) {
                   ...(data.liveJam ? [<LiveJamSlide key="live" jam={data.liveJam} />] : []),
                   ...data.upcoming.slice(0, 2).map((jam) => <UpcomingJamSlide key={jam.id} jam={jam} />),
                 ]
+              : data
+              ? [<LiveJamEmpty key="empty" />]
               : [
                 <BentoCard
               key="placeholder-1"
@@ -472,7 +477,7 @@ export function BentoDashboard({ displayName, data }: BentoDashboardProps) {
               className="h-[188px]"
               placeholder
               emptyLabel="No live jam"
-              skeletonLines={data ? 0 : 4}
+              skeletonLines={4}
             />,
             <BentoCard
               key="placeholder-2"

@@ -469,8 +469,13 @@
   }
 
   .app-shell-main {
-    padding-bottom: calc(var(--app-hotbar-h) + max(var(--app-hotbar-inset), env(safe-area-inset-bottom, 0px)));
     scroll-padding-bottom: calc(var(--app-hotbar-h) + max(var(--app-hotbar-inset), env(safe-area-inset-bottom, 0px)));
+  }
+
+  .app-shell-hotbar-spacer {
+    flex-shrink: 0;
+    pointer-events: none;
+    height: calc(var(--app-hotbar-h) + max(var(--app-hotbar-inset), env(safe-area-inset-bottom, 0px)));
   }
 
   /* Spacing system utilities */

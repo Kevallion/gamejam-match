@@ -114,6 +114,7 @@ export function AppShell({
         hideGreetingDesktop={isHomeGreeting}
         levelLabel={isHomeGreeting ? levelLabel : null}
         avatarUrl={account.avatarUrl}
+        displayName={account.displayName}
         userId={account.userId}
         meHubHref="/dashboard?hub=me"
         notifications={notifications}
@@ -127,12 +128,12 @@ export function AppShell({
 
       <main
         className={cn(
-          "mx-auto w-full min-w-0 max-w-[1280px] flex-1 px-4 lg:px-6 xl:px-10",
+          "mx-auto flex w-full min-w-0 max-w-[1280px] flex-1 flex-col px-4 lg:px-6 xl:px-10",
           BENTO_HOTBAR_OFFSET_CLASS,
         )}
       >
         {hubMe ? (
-          <div className="py-4">
+          <div className="min-w-0 flex-1 py-4">
             <MeHub
               userId={account.userId}
               displayName={account.displayName}
@@ -143,8 +144,9 @@ export function AppShell({
             />
           </div>
         ) : (
-          <div className="min-w-0 py-3 md:py-4">{children}</div>
+          <div className="min-w-0 flex-1 py-3 md:py-4">{children}</div>
         )}
+        <div className="app-shell-hotbar-spacer" aria-hidden />
       </main>
 
       <BentoHotbar inboxCount={inboxCount} availabilityCount={availabilityCount} />

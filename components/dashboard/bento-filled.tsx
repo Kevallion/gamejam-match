@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { BadgeMedallion } from "@/components/badge-medallion"
 import { BentoCard } from "@/components/dashboard/bento-card"
 import type {
@@ -159,25 +160,25 @@ export function KpiGrid({ kpis }: { kpis: BentoKpis }) {
     { tone: "pink" as const, label: "Applications", icon: ICON.applications, tilt: "-rotate-1", ...kpis.applications },
   ]
   return (
-    <div className="grid h-full grid-cols-2 gap-[18px]">
+    <div className="grid h-full min-w-0 grid-cols-2 gap-[18px] overflow-visible p-[3px] pr-2 pb-2">
       {items.map((item) => (
         <BentoCard
           key={item.label}
           tone={item.tone}
           neo
-          className={cn("min-h-[126px] justify-between p-4", item.tilt)}
+          className={cn("min-h-[126px] min-w-0 justify-between p-4", item.tilt)}
         >
-          <div className="flex items-start justify-between gap-2">
+          <div className="flex min-w-0 items-start justify-between gap-2">
             <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-background/20">
               <AppIcon icon={item.icon} size="md" />
             </span>
-            <span className="truncate pt-1 text-right text-[11px] font-extrabold opacity-75">
+            <span className="min-w-0 truncate pt-1 text-right text-[11px] font-extrabold opacity-75">
               {item.hint}
             </span>
           </div>
-          <div>
+          <div className="min-w-0">
             <p className="mb-1 text-[32px] font-black leading-none">{item.value ?? "—"}</p>
-            <p className="text-[13px] font-extrabold">{item.label}</p>
+            <p className="truncate text-[13px] font-extrabold">{item.label}</p>
           </div>
         </BentoCard>
       ))}
@@ -232,6 +233,22 @@ function JamTimeBar({ jam }: { jam: BentoLiveJam }) {
         <div className="h-full rounded-full bg-pink-foreground" style={{ width: `${jam.elapsedPercent}%` }} />
       </div>
     </div>
+  )
+}
+
+/** Compact empty state — sized to its content, no data fetching. */
+export function LiveJamEmpty() {
+  return (
+    <BentoCard tone="default" title="Live jam" icon={ICON.jam} iconTone="pink">
+      <p className="text-sm font-semibold text-muted-foreground">No live jam right now</p>
+      <Link
+        href="/teams"
+        className="mt-3 inline-flex min-h-11 w-fit items-center gap-1.5 rounded-xl border border-border bg-card px-3 text-sm font-extrabold shadow-[3px_3px_0_0_var(--neo-shadow)] transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+      >
+        Browse squads
+        <AppIcon icon={ICON.navRight} size="sm" tone="muted" />
+      </Link>
+    </BentoCard>
   )
 }
 

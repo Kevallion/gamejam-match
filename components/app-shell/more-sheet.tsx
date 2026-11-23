@@ -43,15 +43,22 @@ export function MoreSheet({ open, onOpenChange }: MoreSheetProps) {
     >
       <DrawerContent
         id="app-more-sheet"
-        className="rounded-t-3xl border-border/50 bg-card pb-[env(safe-area-inset-bottom,0px)]"
+        className={cn(
+          "flex max-h-[min(85dvh,calc(100dvh-env(safe-area-inset-top,0px)-1rem))] flex-col",
+          "rounded-t-3xl border-border/50 bg-card",
+        )}
       >
-        <DrawerHeader className="text-left">
+        <DrawerHeader className="shrink-0 text-left">
           <DrawerTitle className="text-lg font-bold tracking-tight">More</DrawerTitle>
           <DrawerDescription className="sr-only">
-            Open Jams, Squads, Rewards, Me, or Settings.
+            Open Squads, Rewards, Me, or Settings.
           </DrawerDescription>
         </DrawerHeader>
-        <nav aria-label="More" className="flex flex-col gap-3 px-4 pb-4">
+        <nav
+          aria-label="More"
+          className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 pb-[calc(1rem+env(safe-area-inset-bottom,0px))]"
+        >
+          <div className="flex flex-col gap-3">
           {MORE_SHEET_ITEMS.map((item) => {
             const active = activeId === item.id
             return (
@@ -87,6 +94,7 @@ export function MoreSheet({ open, onOpenChange }: MoreSheetProps) {
               </Link>
             )
           })}
+          </div>
         </nav>
       </DrawerContent>
     </Drawer>
