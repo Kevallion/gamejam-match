@@ -2,8 +2,11 @@ import type { BadgeProgressSnapshot } from "@/lib/gamification-badge-progress"
 
 /**
  * Shape of the data the Bento home renders.
- * T7c: filled from `bento-mock.ts` (fictional). T9 wires the real server query to this type.
- * When `BentoDashboard` gets no `data`, every card falls back to its T7 placeholder.
+ * DS-3a: built from real data by `buildBentoDashboardData` (bento-real.ts): the
+ * gamification snapshot (lib/gamification-snapshot.ts) plus the dashboard's squads,
+ * applications, posts and notifications. No fictional data.
+ * When `BentoDashboard` gets no `data` (still loading), every card shows its skeleton;
+ * a null field or an empty list shows that card's empty state.
  */
 
 export type BentoTone = "teal" | "pink" | "lavender" | "peach" | "mint"
@@ -11,32 +14,36 @@ export type BentoTone = "teal" | "pink" | "lavender" | "peach" | "mint"
 export type BentoLevel = {
   level: number
   title: string
-  nextTitle: string
-  nextTitleLevel: number
+  nextTitle: string | null
+  nextTitleLevel: number | null
   xp: number
   xpForNextLevel: number
-  seasonRank: number
+  /** No season ranking exists yet: null. */
+  seasonRank: number | null
   streakDays: number
   kudos: number
-  xpThisWeek: number
+  /** No XP ledger exists yet: null. */
+  xpThisWeek: number | null
 }
 
+export type BentoKpi = { value: number | null; hint: string }
+
 export type BentoKpis = {
-  activeSquads: { value: number; hint: string }
-  jamsJoined: { value: number; hint: string }
-  gamesShipped: { value: number; hint: string }
-  applications: { value: number; hint: string }
+  activeSquads: BentoKpi
+  jamsJoined: BentoKpi
+  gamesShipped: BentoKpi
+  applications: BentoKpi
 }
 
 export type BentoLiveJam = {
   name: string
-  theme: string
+  theme: string | null
   endsIn: string
   elapsedPercent: number
   squadName: string
   squadMembers: number
   squadMax: number
-  entries: number
+  entries: number | null
 }
 
 export type BentoQuest = {
@@ -98,7 +105,7 @@ export type BentoSquadMatch = {
 export type BentoDashboardData = {
   level: BentoLevel
   kpis: BentoKpis
-  liveJam: BentoLiveJam
+  liveJam: BentoLiveJam | null
   upcoming: BentoUpcomingJam[]
   quests: BentoQuest[]
   badges: BentoBadge[]
@@ -107,5 +114,5 @@ export type BentoDashboardData = {
   xpWeekly: BentoXpWeek[]
   feed: BentoFeedItem[]
   squads: BentoSquad[]
-  match: BentoSquadMatch
+  match: BentoSquadMatch | null
 }

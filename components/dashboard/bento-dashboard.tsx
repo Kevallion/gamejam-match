@@ -38,8 +38,8 @@ import { cn } from "@/lib/utils"
 type BentoDashboardProps = {
   displayName: string
   /**
-   * Card content. T7c passes the fictional `BENTO_MOCK`; T9 passes the real query result.
-   * When omitted, every card shows its T7 placeholder.
+   * Card content built from real data (DS-3a, bento-real.ts); undefined while loading.
+   * When omitted, every card shows its skeleton.
    */
   data?: BentoDashboardData
 }
@@ -316,7 +316,7 @@ export function BentoDashboard({ displayName, data }: BentoDashboardProps) {
         </BentoCell>
 
         <BentoCell span={4}>
-          {data ? (
+          {data?.liveJam ? (
             <LiveJamCard jam={data.liveJam} />
           ) : (
             <BentoCard
@@ -326,13 +326,13 @@ export function BentoDashboard({ displayName, data }: BentoDashboardProps) {
               iconTone="muted"
               placeholder
               emptyLabel="No live jam right now"
-              skeletonLines={5}
+              skeletonLines={data ? 0 : 5}
               className="min-h-[280px]"
             />
           )}
         </BentoCell>
         <BentoCell span={3}>
-          {data ? (
+          {data && data.quests.length > 0 ? (
             <QuestsCard quests={data.quests} />
           ) : (
             <BentoCard
@@ -340,8 +340,8 @@ export function BentoDashboard({ displayName, data }: BentoDashboardProps) {
               icon={ICON.roleWanted}
               iconTone="peach"
               placeholder
-              emptyLabel="No quests yet"
-              skeletonLines={4}
+              emptyLabel={data ? "All quests done for today" : "No quests yet"}
+              skeletonLines={data ? 0 : 4}
               className="min-h-[280px]"
             />
           )}
@@ -356,14 +356,14 @@ export function BentoDashboard({ displayName, data }: BentoDashboardProps) {
               iconTone="lavender"
               placeholder
               emptyLabel="Badges unlock as you play"
-              skeletonLines={4}
+              skeletonLines={data ? 0 : 4}
               className="min-h-[280px]"
             />
           )}
         </BentoCell>
 
         <BentoCell span={5}>
-          {data ? (
+          {data && data.xpWeekly.length > 0 ? (
             <XpWeekCard weeks={data.xpWeekly} />
           ) : (
             <BentoCard
@@ -371,14 +371,14 @@ export function BentoDashboard({ displayName, data }: BentoDashboardProps) {
               icon={ICON.xp}
               iconTone="teal"
               placeholder
-              emptyLabel="XP chart coming soon"
-              skeletonLines={4}
+              emptyLabel={data ? "Weekly XP history is not tracked yet" : "XP chart coming soon"}
+              skeletonLines={data ? 0 : 4}
               className="min-h-[220px]"
             />
           )}
         </BentoCell>
         <BentoCell span={3}>
-          {data ? (
+          {data && data.upcoming.length > 0 ? (
             <UpNextCard jams={data.upcoming} />
           ) : (
             <BentoCard
@@ -387,13 +387,13 @@ export function BentoDashboard({ displayName, data }: BentoDashboardProps) {
               iconTone="mint"
               placeholder
               emptyLabel="No upcoming jams"
-              skeletonLines={4}
+              skeletonLines={data ? 0 : 4}
               className="min-h-[220px]"
             />
           )}
         </BentoCell>
         <BentoCell span={4}>
-          {data ? (
+          {data && data.feed.length > 0 ? (
             <CrewFeedCard items={data.feed} />
           ) : (
             <BentoCard
@@ -402,14 +402,14 @@ export function BentoDashboard({ displayName, data }: BentoDashboardProps) {
               iconTone="pink"
               placeholder
               emptyLabel="Activity will show up here"
-              skeletonLines={4}
+              skeletonLines={data ? 0 : 4}
               className="min-h-[220px]"
             />
           )}
         </BentoCell>
 
         <BentoCell span={8}>
-          {data ? (
+          {data && data.squads.length > 0 ? (
             <MySquadsCard squads={data.squads} />
           ) : (
             <BentoCard
@@ -418,13 +418,13 @@ export function BentoDashboard({ displayName, data }: BentoDashboardProps) {
               iconTone="teal"
               placeholder
               emptyLabel="Create or join a squad to get started"
-              skeletonLines={3}
+              skeletonLines={data ? 0 : 3}
               className="min-h-[200px]"
             />
           )}
         </BentoCell>
         <BentoCell span={4}>
-          {data ? (
+          {data?.match ? (
             <SquadMatchCard match={data.match} />
           ) : (
             <BentoCard
@@ -433,7 +433,7 @@ export function BentoDashboard({ displayName, data }: BentoDashboardProps) {
               icon={ICON.recommended}
               placeholder
               emptyLabel="Matches appear when a seat is open"
-              skeletonLines={3}
+              skeletonLines={data ? 0 : 3}
               className="min-h-[200px]"
             />
           )}
@@ -459,9 +459,9 @@ export function BentoDashboard({ displayName, data }: BentoDashboardProps) {
             action="All jams"
           />
           <BentoCarousel label="Live and upcoming jams" itemClassName="w-[min(292px,85%)]">
-            {data
+            {data && (data.liveJam || data.upcoming.length > 0)
               ? [
-                  <LiveJamSlide key="live" jam={data.liveJam} />,
+                  ...(data.liveJam ? [<LiveJamSlide key="live" jam={data.liveJam} />] : []),
                   ...data.upcoming.slice(0, 2).map((jam) => <UpcomingJamSlide key={jam.id} jam={jam} />),
                 ]
               : [
@@ -472,7 +472,7 @@ export function BentoDashboard({ displayName, data }: BentoDashboardProps) {
               className="h-[188px]"
               placeholder
               emptyLabel="No live jam"
-              skeletonLines={4}
+              skeletonLines={data ? 0 : 4}
             />,
             <BentoCard
               key="placeholder-2"
@@ -480,7 +480,7 @@ export function BentoDashboard({ displayName, data }: BentoDashboardProps) {
               className="h-[188px]"
               placeholder
               emptyLabel="Upcoming jam"
-              skeletonLines={3}
+              skeletonLines={data ? 0 : 3}
             />,
             <BentoCard
               key="placeholder-3"
@@ -488,7 +488,7 @@ export function BentoDashboard({ displayName, data }: BentoDashboardProps) {
               className="h-[188px]"
               placeholder
               emptyLabel="More jams soon"
-              skeletonLines={2}
+              skeletonLines={data ? 0 : 2}
             />]}
           </BentoCarousel>
         </section>
@@ -503,12 +503,12 @@ export function BentoDashboard({ displayName, data }: BentoDashboardProps) {
         <section>
           <SectionHeading icon={ICON.squad} tone="teal" title="My squads" action="Manage" />
           <BentoCarousel label="My squads" itemClassName="w-[min(226px,72%)]">
-            {data
+            {data && data.squads.length > 0
               ? data.squads.map((squad) => <SquadSlide key={squad.id} squad={squad} />)
               : [
-                <BentoCard key="placeholder-1" neo className="min-h-[160px]" placeholder emptyLabel="No squad yet" skeletonLines={3} />,
-            <BentoCard key="placeholder-2" neo className="min-h-[160px]" placeholder emptyLabel="Join a squad" skeletonLines={3} />,
-            <BentoCard key="placeholder-3" neo className="min-h-[160px]" placeholder emptyLabel="Create a squad" skeletonLines={2} />]}
+                <BentoCard key="placeholder-1" neo className="min-h-[160px]" placeholder emptyLabel="No squad yet" skeletonLines={data ? 0 : 3} />,
+            <BentoCard key="placeholder-2" neo className="min-h-[160px]" placeholder emptyLabel="Join a squad" skeletonLines={data ? 0 : 3} />,
+            <BentoCard key="placeholder-3" neo className="min-h-[160px]" placeholder emptyLabel="Create a squad" skeletonLines={data ? 0 : 2} />]}
           </BentoCarousel>
         </section>
 
@@ -523,7 +523,7 @@ export function BentoDashboard({ displayName, data }: BentoDashboardProps) {
           {data ? (
             <MobileBadgeShelf badges={data.badges} progress={data.badgeProgress} />
           ) : (
-            <BentoCard neo className="p-3.5" placeholder emptyLabel="Earn badges by jamming" skeletonLines={2} />
+            <BentoCard neo className="p-3.5" placeholder emptyLabel="Earn badges by jamming" skeletonLines={data ? 0 : 2} />
           )}
         </section>
       </div>

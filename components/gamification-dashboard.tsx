@@ -6,10 +6,11 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { UserAvatar } from "@/components/user-avatar"
 import { supabase } from "@/lib/supabase"
+import { getMyGamificationSnapshot } from "@/app/actions/gamification-actions"
 import { gamificationLevelProgress, levelFromTotalXp } from "@/lib/gamification-level"
+import type { GamificationSnapshot } from "@/lib/gamification-snapshot"
 import {
   isTitleUnlocked,
-  parseUnlockedTitlesJson,
   TITLE_CATALOG,
 } from "@/lib/gamification-titles-catalog"
 import { TitleSelection } from "@/components/title-selection"
@@ -20,11 +21,7 @@ import {
   ProfileGamification,
 } from "@/components/profile-gamification"
 import { BadgeMedallion } from "@/components/badge-medallion"
-import {
-  countRolesWithAtLeastOneJoin,
-  parseRoleStats,
-  type BadgeProgressSnapshot,
-} from "@/lib/gamification-badge-progress"
+import type { BadgeProgressSnapshot } from "@/lib/gamification-badge-progress"
 import { AppIcon } from "@/components/ui/app-icon"
 import { ICON } from "@/lib/icons"
 import { cn } from "@/lib/utils"
@@ -265,6 +262,8 @@ export function GamificationDashboard(props: GamificationDashboardProps) {
 
 export type DashboardAchievementsTabProps = {
   userId: string
+  /** DS-3a: snapshot already loaded by the dashboard (skips the tab's own fetch). */
+  snapshot?: GamificationSnapshot | null
   onDataChanged?: () => void
   className?: string
 }
@@ -460,6 +459,7 @@ function AchievementsSegmentedControl({
 
 export function DashboardAchievementsTab({
   userId,
+  snapshot = null,
   onDataChanged,
   className,
 }: DashboardAchievementsTabProps) {
@@ -474,7 +474,7 @@ export function DashboardAchievementsTab({
   const [unlockedTitles, setUnlockedTitles] = useState<string[]>(["Rookie Jammer"])
   const [earnedBadgeIds, setEarnedBadgeIds] = useState<Set<string>>(new Set())
   const [progressCtx, setProgressCtx] = useState<BadgeProgressSnapshot | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(!snapshot)
 
   const setView = useCallback(
     (next: AchievementsView) => {
@@ -492,60 +492,46 @@ export function DashboardAchievementsTab({
     [pathname, router, searchParams],
   )
 
+  const applySnapshot = useCallback((s: GamificationSnapshot) => {
+    setDisplayName(s.username || "Jammer")
+    setXp(s.xp)
+    setCurrentTitle(s.currentTitle)
+    setUnlockedTitles(s.unlockedTitles)
+    setEarnedBadgeIds(new Set(s.earnedBadgeIds))
+    setProgressCtx(s.badgeProgress)
+  }, [])
+
   const load = useCallback(async () => {
     if (!userId) return
     setLoading(true)
     try {
-      const [profileRes, badgesRes, teamsRes] = await Promise.all([
-        supabase
-          .from("profiles")
-          .select(
-            "username, xp, current_title, unlocked_titles, daily_login_streak, invitations_sent_count, role_stats, has_completed_onboarding",
-          )
-          .eq("id", userId)
-          .maybeSingle(),
-        supabase.from("user_badges").select("badge_id").eq("user_id", userId),
-        supabase.from("teams").select("id", { count: "exact", head: true }).eq("user_id", userId),
-      ])
-
-      const profile = profileRes.data
-      const name =
-        typeof profile?.username === "string" && profile.username.trim()
-          ? profile.username.trim()
-          : "Jammer"
-      setDisplayName(name)
-      setXp(typeof profile?.xp === "number" ? profile.xp : 0)
-      const title = profile?.current_title
-      setCurrentTitle(typeof title === "string" && title.trim() ? title.trim() : "Rookie Jammer")
-      setUnlockedTitles(parseUnlockedTitlesJson(profile?.unlocked_titles))
-
-      const earned = new Set(
-        (badgesRes.data ?? [])
-          .map((row) => (typeof row.badge_id === "string" ? row.badge_id : ""))
-          .filter(Boolean),
-      )
-      setEarnedBadgeIds(earned)
-
-      const roleStats = parseRoleStats(profile?.role_stats)
-      setProgressCtx({
-        dailyStreak:
-          typeof profile?.daily_login_streak === "number" ? profile.daily_login_streak : 0,
-        invitesSent:
-          typeof profile?.invitations_sent_count === "number"
-            ? profile.invitations_sent_count
-            : 0,
-        distinctRoles: countRolesWithAtLeastOneJoin(roleStats),
-        squadListings: teamsRes.count ?? 0,
-        onboardingDone: profile?.has_completed_onboarding === true,
-      })
+      // DS-3a: same source as the Dashboard (lib/gamification-snapshot.ts). The
+      // direct profiles select failed since S7 (private columns) and showed 0 XP.
+      const res = await getMyGamificationSnapshot()
+      if (res.ok) applySnapshot(res.snapshot)
     } finally {
       setLoading(false)
     }
-  }, [userId])
+  }, [userId, applySnapshot])
 
+  // The dashboard passes the snapshot it already loaded: no second fetch.
+  const [appliedSnapshot, setAppliedSnapshot] = useState<GamificationSnapshot | null>(null)
+  if (snapshot && snapshot !== appliedSnapshot) {
+    setAppliedSnapshot(snapshot)
+    setDisplayName(snapshot.username || "Jammer")
+    setXp(snapshot.xp)
+    setCurrentTitle(snapshot.currentTitle)
+    setUnlockedTitles(snapshot.unlockedTitles)
+    setEarnedBadgeIds(new Set(snapshot.earnedBadgeIds))
+    setProgressCtx(snapshot.badgeProgress)
+    setLoading(false)
+  }
+
+  const hasSnapshot = snapshot != null
   useEffect(() => {
+    if (hasSnapshot) return
     void load()
-  }, [load])
+  }, [load, hasSnapshot])
 
   const level = levelFromTotalXp(xp)
   const nextUnlock = useMemo(
@@ -612,7 +598,7 @@ export function DashboardAchievementsTab({
 
         {view === "badges" ? (
           <section id={ACHIEVEMENTS_SECTION_IDS.badges} className="min-w-0">
-            <ProfileGamification userId={userId} badgesOnly />
+            <ProfileGamification userId={userId} badgesOnly progress={progressCtx} />
           </section>
         ) : (
           <section id={ACHIEVEMENTS_SECTION_IDS.title} className="min-w-0">

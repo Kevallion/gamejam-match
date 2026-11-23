@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server"
 import { awardXP } from "@/lib/gamification"
+import { loadGamificationSnapshot, type GamificationSnapshot } from "@/lib/gamification-snapshot"
 import { isTitleUnlocked, parseUnlockedTitlesJson } from "@/lib/gamification-titles-catalog"
 
 export async function claimDailyLoginXp() {
@@ -66,4 +67,27 @@ export async function updateCurrentTitle(nextTitle: string): Promise<UpdateCurre
   }
 
   return { ok: true }
+}
+
+export type GetMyGamificationSnapshotResult =
+  | { ok: true; snapshot: GamificationSnapshot }
+  | { ok: false; error: string }
+
+/** DS-3a: level / XP / badges of the signed-in user (Dashboard + Rewards). */
+export async function getMyGamificationSnapshot(): Promise<GetMyGamificationSnapshotResult> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser()
+
+  if (authError || !user) {
+    return { ok: false, error: "Not authenticated" }
+  }
+
+  try {
+    return { ok: true, snapshot: await loadGamificationSnapshot(supabase, user.id) }
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Could not load rewards." }
+  }
 }

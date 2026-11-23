@@ -183,6 +183,11 @@ export type ProfileGamificationProps = {
   unlockedOnly?: boolean
   /** Public profile: top 3 medallions, +N opens the full list. */
   compact?: boolean
+  /**
+   * DS-3a: badge progress of the signed-in user (gamification snapshot). When
+   * given, the private counters are not read here (not readable since S7).
+   */
+  progress?: BadgeProgressSnapshot | null
 }
 
 type BadgeRow = { badge_id: string; earned_at: string }
@@ -704,7 +709,9 @@ export function ProfileGamification({
   badgesOnly = false,
   unlockedOnly = false,
   compact = false,
+  progress: progressOverride,
 }: ProfileGamificationProps) {
+  const hasProgressOverride = progressOverride !== undefined
   const [xp, setXp] = useState<number | null>(null)
   const [currentTitle, setCurrentTitle] = useState<string>("Rookie Jammer")
   const [badges, setBadges] = useState<BadgeRow[]>([])
@@ -719,6 +726,16 @@ export function ProfileGamification({
     setLoading(true)
     setError(null)
     try {
+      if (badgesOnly && hasProgressOverride) {
+        const badgesRes = await supabase.from("user_badges").select("badge_id, earned_at").eq("user_id", userId)
+        if (badgesRes.error) {
+          setError(badgesRes.error.message)
+          setBadges([])
+        } else {
+          setBadges((badgesRes.data ?? []) as BadgeRow[])
+        }
+        return
+      }
       if (badgesOnly) {
         const [badgesRes, profileRes, teamsRes] = await Promise.all([
           supabase.from("user_badges").select("badge_id, earned_at").eq("user_id", userId),
@@ -782,7 +799,8 @@ export function ProfileGamification({
     } finally {
       setLoading(false)
     }
-  }, [userId, badgesOnly])
+  }, [userId, badgesOnly, hasProgressOverride])
+  const effectiveProgress = hasProgressOverride ? (progressOverride ?? null) : progressCtx
 
   useEffect(() => {
     void load()
@@ -871,8 +889,8 @@ export function ProfileGamification({
     : undefined
   const selectedUnlocked = selectedBadgeId ? earnedIds.has(selectedBadgeId) : false
   const selectedProgress =
-    selectedBadgeId && progressCtx
-      ? badgeProgressLine(selectedBadgeId, progressCtx, selectedUnlocked)
+    selectedBadgeId && effectiveProgress
+      ? badgeProgressLine(selectedBadgeId, effectiveProgress, selectedUnlocked)
       : null
 
   if (badgesOnly) {
@@ -903,7 +921,7 @@ export function ProfileGamification({
             <AchievementsBadgesSections
               earnedIds={earnedIds}
               badges={badges}
-              progressCtx={progressCtx}
+              progressCtx={effectiveProgress}
               onSelectBadge={openBadgeDetail}
             />
           )}

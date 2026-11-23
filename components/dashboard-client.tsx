@@ -3,8 +3,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import { usePathname, useSearchParams } from "next/navigation"
 import { BentoDashboard } from "@/components/dashboard/bento-dashboard"
-// T7c MOCK (remove in T9): fictional Bento card content, see components/dashboard/bento-mock.ts
-import { BENTO_MOCK } from "@/components/dashboard/bento-mock"
+// DS-3a: Bento home cards are built from real data only (bento-real.ts).
+import { buildBentoDashboardData } from "@/components/dashboard/bento-real"
+import type { GamificationSnapshot } from "@/lib/gamification-snapshot"
 import type { TeamData } from "@/components/dashboard-my-teams"
 import { DashboardRecommendedTeams } from "@/components/dashboard-recommended-teams"
 import { DashboardAvailabilityCompact } from "@/components/dashboard-availability-compact"
@@ -56,7 +57,7 @@ import {
   leaveTeam,
 } from "@/app/actions/team-membership-actions"
 import { readOwnDiscordUsername } from "@/lib/profile-discord"
-import { claimDailyLoginXp } from "@/app/actions/gamification-actions"
+import { claimDailyLoginXp, getMyGamificationSnapshot } from "@/app/actions/gamification-actions"
 import { OnboardingModal } from "@/components/onboarding-modal"
 import { ProfileSettings, type ProfileSettingsProfile } from "@/components/profile-settings"
 import { getEmailPreferences } from "@/app/actions/email-preferences-actions"
@@ -480,6 +481,8 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
   const [recommendedTeams, setRecommendedTeams] = useState<SmartRecommendedTeam[]>(fixture?.recommendedTeams ?? [])
   const [showOnboardingModal, setShowOnboardingModal] = useState(false)
   const [profile, setProfile] = useState<ProfileSettingsProfile | null>(fixture?.profile ?? null)
+  // DS-3a: level / XP / badges, same source as Rewards (lib/gamification-snapshot.ts).
+  const [gamification, setGamification] = useState<GamificationSnapshot | null>(null)
 
   const dailyXpClaimRef = useRef(false)
   const isMobile = useIsMobile()
@@ -612,6 +615,10 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
         { data: postsData },
         { data: notifRaw, error: notifErr },
         emailPrefsResult,
+        gamificationResult,
+        ownDiscord,
+        postProfileResult,
+        kudosRpcResult,
       ] = await Promise.all([
         supabase.from("team_members").select("team_id").eq("user_id", uid),
         (async () => {
@@ -642,7 +649,19 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
         // S3 email preferences are owner-only (S7): read through the server action,
         // not through the profiles select.
         getEmailPreferences().catch(() => ({ success: false as const, error: "UPDATE_FAILED" })),
+        // DS-3a skeleton: these used to run one after the other after this batch.
+        getMyGamificationSnapshot().catch(() => ({ ok: false as const, error: "UNKNOWN" })),
+        readOwnDiscordUsername(supabase, uid),
+        supabase
+          .from("profiles")
+          .select(
+            "role, default_role, experience, experience_level, jam_style, engine, default_engine, language, default_language, bio, portfolio_link, portfolio_url",
+          )
+          .eq("id", uid)
+          .maybeSingle(),
+        supabase.rpc("get_kudos_counts_for_users", { p_user_ids: [uid] }),
       ])
+      setGamification(gamificationResult.ok ? gamificationResult.snapshot : null)
       let profileData = profileQueryResult.data as
         | {
             id: string
@@ -683,17 +702,15 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
         }
       }
 
-      const ownDiscord = await readOwnDiscordUsername(supabase, uid)
-
-      if (!notifErr && notifRaw) {
-        const normalized = await fetchNotificationsAsNormalized(
-          supabase,
-          notifRaw as EnrichedNotificationRow[],
-        )
-        setActivityNotifications(normalized)
-      } else {
-        setActivityNotifications([])
-      }
+      // Started now, awaited after the squads query (they do not depend on each other).
+      const notificationsPromise =
+        !notifErr && notifRaw
+          ? fetchNotificationsAsNormalized(supabase, notifRaw as EnrichedNotificationRow[])
+          : Promise.resolve([] as NormalizedNotificationFeedItem[])
+      const jamIdForPosts = (profileData as { jam_id?: string | null } | null)?.jam_id ?? null
+      const jamLookupPromise = jamIdForPosts
+        ? supabase.from("external_jams").select("id, title, url").eq("id", jamIdForPosts).maybeSingle()
+        : Promise.resolve({ data: null })
 
       if (joinBundleResult.error) {
         toast.error("Could not load inbox data.", { description: joinBundleResult.error })
@@ -722,7 +739,11 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
       } else {
         teamsQuery = teamsQuery.eq("user_id", uid)
       }
-      const { data: allTeamsRows } = await teamsQuery
+      const [{ data: allTeamsRows }, normalizedNotifications] = await Promise.all([
+        teamsQuery,
+        notificationsPromise,
+      ])
+      setActivityNotifications(normalizedNotifications)
 
       const merged = new Map<string, TeamData>()
       for (const t of (allTeamsRows ?? []) as TeamRow[]) {
@@ -735,6 +756,20 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
       ] as string[]
       const senderIds = [...new Set(((appsData || []) as ApplicationRow[]).map((a) => a.sender_id).filter(Boolean))]
       const profileIds = [...new Set([...senderIds, ...inviteeIdsForSent])]
+      const profilePrefs = profileData as {
+        default_role?: string | null
+        default_engine?: string | null
+        engine?: string | null
+        profile_roles?: SmartMatchRoleInput[] | null
+      } | null
+      const recommendedPromise = getRecommendedTeams({
+        id: uid,
+        default_role: profilePrefs?.default_role ?? null,
+        profile_roles: profilePrefs?.profile_roles ?? [],
+        default_engine: profilePrefs?.default_engine ?? null,
+        profile_engine: profilePrefs?.engine ?? null,
+        excludeTeamIds: Array.from(merged.keys()),
+      })
       const profileMap: Record<string, { username?: string; avatar_url?: string }> = {}
       if (profileIds.length > 0) {
         const { data: profilesData } = await supabase
@@ -745,21 +780,7 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
           profileMap[p.id] = { username: p.username, avatar_url: p.avatar_url ?? undefined }
         }
       }
-
-      const profilePrefs = profileData as {
-        default_role?: string | null
-        default_engine?: string | null
-        engine?: string | null
-        profile_roles?: SmartMatchRoleInput[] | null
-      } | null
-      const { teams: smartMatches } = await getRecommendedTeams({
-        id: uid,
-        default_role: profilePrefs?.default_role ?? null,
-        profile_roles: profilePrefs?.profile_roles ?? [],
-        default_engine: profilePrefs?.default_engine ?? null,
-        profile_engine: profilePrefs?.engine ?? null,
-        excludeTeamIds: Array.from(merged.keys()),
-      })
+      const { teams: smartMatches } = await recommendedPromise
       setRecommendedTeams(smartMatches)
 
       // Show onboarding only for users that never completed it.
@@ -854,17 +875,7 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
         portfolio_url?: string | null
       }
       const postProfile: PostProfileFields | null =
-        (postsData?.length ?? 0) > 0
-          ? (((
-              await supabase
-                .from("profiles")
-                .select(
-                  "role, default_role, experience, experience_level, jam_style, engine, default_engine, language, default_language, bio, portfolio_link, portfolio_url",
-                )
-                .eq("id", uid)
-                .maybeSingle()
-            ).data ?? null) as PostProfileFields | null)
-          : null
+        (postsData?.length ?? 0) > 0 ? ((postProfileResult.data ?? null) as PostProfileFields | null) : null
       const pick = (...values: (string | null | undefined)[]) =>
         values.map((v) => v?.trim()).find((v) => Boolean(v)) ?? null
 
@@ -881,13 +892,7 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
         portfolio_link: pick(postProfile?.portfolio_link, postProfile?.portfolio_url),
       })) as AvailabilityPostRow[]
 
-      const jamId = (profileData as { jam_id?: string | null } | null)?.jam_id ?? null
-      const [kudosRpcResult, jamLookupResult] = await Promise.all([
-        supabase.rpc("get_kudos_counts_for_users", { p_user_ids: [uid] }),
-        jamId
-          ? supabase.from("external_jams").select("id, title, url").eq("id", jamId).maybeSingle()
-          : Promise.resolve({ data: null }),
-      ])
+      const jamLookupResult = await jamLookupPromise
       const kudosMap = kudosCountsMapFromRpcRows(
         (kudosRpcResult.data ?? []) as { receiver_id: string; category: string; cnt: number | string }[],
       )
@@ -957,6 +962,12 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
           }
           if (res.ok && res.reward && gamificationRewardHasToast(res.reward)) {
             showGamificationRewards("DAILY_LOGIN", res.reward)
+          }
+          // The claim may add XP / streak: refresh the shared snapshot.
+          if (res.ok) {
+            void getMyGamificationSnapshot().then((next) => {
+              if (next.ok && mountedRef.current) setGamification(next.snapshot)
+            })
           }
         })
       }
@@ -1482,6 +1493,27 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
     setAvailabilityModalContext(null)
   }
 
+  const bentoData = useMemo(
+    () =>
+      buildBentoDashboardData({
+        snapshot: gamification,
+        squads: teams.map((t) => ({
+          id: t.id,
+          name: t.name,
+          jam: t.jam,
+          members: t.members,
+          maxMembers: t.maxMembers,
+          isOwner: t.isOwner,
+          jamStartDate: t.jamStartDate ?? null,
+          jamEndDate: t.jamEndDate ?? null,
+        })),
+        sentApplications,
+        hasActiveAvailabilityPost: availabilityPosts.length > 0,
+        notifications: activityNotifications,
+      }),
+    [gamification, teams, sentApplications, availabilityPosts, activityNotifications],
+  )
+
   if (loading) {
     return <DashboardLoadingSkeleton />
   }
@@ -1494,8 +1526,7 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
     meta?.full_name?.trim() ||
     meta?.name?.trim() ||
     "Jammer"
-  // Home Bento is placeholders (T7); keep fetched squad data / leave handler for T8 wiring.
-  void teams
+  // Leave handler kept for the squads view wiring.
   void handleLeaveTeam
   return (
     <div className="min-w-0 overflow-x-clip">
@@ -1503,8 +1534,7 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
         <section className="min-w-0 pb-4 md:pb-8">
           <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full min-w-0 max-w-full">
             <TabsContent value="squads" className="mt-0 min-w-0 max-w-full">
-              {/* T7c: cards filled with fictional BENTO_MOCK. T9: pass the real query result instead. */}
-              <BentoDashboard displayName={displayName} data={BENTO_MOCK} />
+              <BentoDashboard displayName={displayName} data={bentoData} />
             </TabsContent>
 
             <TabsContent value="inbox" className="mt-0 flex min-w-0 max-w-full flex-col gap-4 md:gap-6">
@@ -1557,6 +1587,7 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
                 {session?.user?.id ? (
                   <DashboardAchievementsTab
                     userId={session.user.id}
+                    snapshot={gamification}
                     onDataChanged={() => void loadData()}
                   />
                 ) : null}

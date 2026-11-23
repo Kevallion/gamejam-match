@@ -86,7 +86,7 @@ export function LevelHero({ level, compact }: { level: BentoLevel; compact?: boo
           <span className="inline-flex h-6 items-center rounded-full border border-teal/40 bg-teal/15 px-2.5 text-xs font-extrabold text-teal">
             {level.title}
           </span>
-          {!compact ? (
+          {!compact && level.seasonRank != null ? (
             <span className="inline-flex h-6 items-center rounded-full border border-lavender/40 bg-lavender/15 px-2.5 text-xs font-extrabold text-lavender">
               Season rank #{level.seasonRank}
             </span>
@@ -115,14 +115,18 @@ export function LevelHero({ level, compact }: { level: BentoLevel; compact?: boo
         </div>
         <div className="mt-3 flex flex-wrap gap-2">
           <HeroPill icon={ICON.dates} tone="peach" label={`${level.streakDays}-day streak`} />
-          <HeroPill icon={ICON.xp} tone="teal" label={`+${level.xpThisWeek} XP this week`} />
+          {level.xpThisWeek != null ? (
+            <HeroPill icon={ICON.xp} tone="teal" label={`+${level.xpThisWeek} XP this week`} />
+          ) : null}
           {!compact ? (
             <HeroPill icon={ICON.kudos} tone="pink" label={`${level.kudos} kudos received`} />
           ) : null}
         </div>
-        <p className="mt-3 text-xs font-semibold text-muted-foreground">
-          Next title: {level.nextTitle} at Level {level.nextTitleLevel}
-        </p>
+        {level.nextTitle && level.nextTitleLevel != null ? (
+          <p className="mt-3 text-xs font-semibold text-muted-foreground">
+            Next title: {level.nextTitle} at Level {level.nextTitleLevel}
+          </p>
+        ) : null}
       </div>
     </BentoCard>
   )
@@ -172,7 +176,7 @@ export function KpiGrid({ kpis }: { kpis: BentoKpis }) {
             </span>
           </div>
           <div>
-            <p className="mb-1 text-[32px] font-black leading-none">{item.value}</p>
+            <p className="mb-1 text-[32px] font-black leading-none">{item.value ?? "—"}</p>
             <p className="text-[13px] font-extrabold">{item.label}</p>
           </div>
         </BentoCard>
@@ -181,7 +185,7 @@ export function KpiGrid({ kpis }: { kpis: BentoKpis }) {
   )
 }
 
-export function MobileKpiStrip({ kpis, xpThisWeek }: { kpis: BentoKpis; xpThisWeek: number }) {
+export function MobileKpiStrip({ kpis, xpThisWeek }: { kpis: BentoKpis; xpThisWeek: number | null }) {
   const items = [
     { tone: "bg-mint text-mint-foreground", label: "Squads", value: kpis.activeSquads.value },
     { tone: "bg-peach text-peach-foreground", label: "Jams", value: kpis.jamsJoined.value },
@@ -195,7 +199,7 @@ export function MobileKpiStrip({ kpis, xpThisWeek }: { kpis: BentoKpis; xpThisWe
           key={item.label}
           className={cn("flex flex-col items-center rounded-xl px-1 py-1.5", item.tone)}
         >
-          <span className="mb-0.5 text-base font-black leading-4">{item.value}</span>
+          <span className="mb-0.5 text-base font-black leading-4">{item.value ?? "—"}</span>
           <span className="text-[10px] font-extrabold">{item.label}</span>
         </div>
       ))}
@@ -242,7 +246,7 @@ export function LiveJamCard({ jam }: { jam: BentoLiveJam }) {
     >
       <div className="flex flex-1 flex-col">
         <p className="text-xl font-black leading-tight">{jam.name}</p>
-        <p className="mt-1 text-sm font-bold opacity-80">Theme: {jam.theme}</p>
+        {jam.theme ? <p className="mt-1 text-sm font-bold opacity-80">Theme: {jam.theme}</p> : null}
         <div className="mt-4">
           <JamTimeBar jam={jam} />
         </div>
@@ -253,7 +257,8 @@ export function LiveJamCard({ jam }: { jam: BentoLiveJam }) {
           <div className="min-w-0">
             <p className="truncate text-sm font-extrabold">{jam.squadName}</p>
             <p className="truncate text-xs font-semibold opacity-75">
-              {jam.squadMembers}/{jam.squadMax} members · {jam.entries} entries so far
+              {jam.squadMembers}/{jam.squadMax} members
+              {jam.entries != null ? ` · ${jam.entries} entries so far` : ""}
             </p>
           </div>
         </div>
@@ -268,7 +273,7 @@ export function LiveJamSlide({ jam }: { jam: BentoLiveJam }) {
       <div className="flex flex-1 flex-col">
         <LivePill />
         <p className="mt-2 truncate text-lg font-black leading-tight">{jam.name}</p>
-        <p className="truncate text-xs font-bold opacity-80">Theme: {jam.theme}</p>
+        {jam.theme ? <p className="truncate text-xs font-bold opacity-80">Theme: {jam.theme}</p> : null}
         <div className="mt-3">
           <JamTimeBar jam={jam} />
         </div>
