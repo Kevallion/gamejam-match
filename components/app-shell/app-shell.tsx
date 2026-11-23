@@ -75,7 +75,7 @@ export function AppShell({
   return (
     <div
       className={cn(
-        "flex min-h-dvh min-w-0 flex-col bg-background",
+        "app-shell flex min-h-dvh min-w-0 flex-col bg-background",
         "bg-[radial-gradient(circle_at_15%_0%,color-mix(in_oklch,var(--lavender)_12%,transparent),transparent_40%),radial-gradient(circle_at_95%_30%,color-mix(in_oklch,var(--teal)_8%,transparent),transparent_35%)]",
         className,
       )}

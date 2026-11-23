@@ -18,6 +18,7 @@ export type AppNavId =
   | "my-posts"
   | "achievements"
   | "settings"
+  | "more"
 
 export function dashboardHref(tab: DashboardTabValue = "squads"): string {
   if (tab === "squads") return "/dashboard"
@@ -84,13 +85,14 @@ export const MOBILE_TABS: {
   href?: string
   icon: LucideIcon
   create?: boolean
+  more?: boolean
   badge?: "inbox"
 }[] = [
   { id: "home", label: "Home", href: dashboardHref("squads"), icon: ICON.dashboard },
   { id: "explore", label: "Explore", href: "/find-members", icon: ICON.findJammers },
   { id: "create", label: "Create", icon: ICON.create, create: true },
   { id: "inbox", label: "Inbox", href: dashboardHref("inbox"), icon: ICON.applications, badge: "inbox" },
-  { id: "me", label: "Me", href: "/dashboard?hub=me", icon: ICON.jammer },
+  { id: "more", label: "More", icon: ICON.more, more: true },
 ]
 
 export const RAIL_ITEMS: {
@@ -165,6 +167,55 @@ export const HOTBAR_SLOTS: {
   },
 ]
 
+/** Destinations grouped behind the mobile More sheet (5th slot). */
+export const MORE_SHEET_ITEMS: {
+  id: MoreSheetItemId
+  label: string
+  hint: string
+  href: string
+  icon: LucideIcon
+}[] = [
+  { id: "jams", label: "Jams", hint: "Browse game jams", href: "/teams", icon: ICON.dates },
+  { id: "squads", label: "Squads", hint: "Find a squad", href: "/teams", icon: ICON.squad },
+  {
+    id: "rewards",
+    label: "Rewards",
+    hint: "Badges, level, and XP",
+    href: dashboardHref("achievements"),
+    icon: ICON.achievement,
+  },
+  {
+    id: "me",
+    label: "Me",
+    hint: "Your hub, posts, and profile",
+    href: "/dashboard?hub=me",
+    icon: ICON.jammer,
+  },
+  {
+    id: "settings",
+    label: "Settings",
+    hint: "Account, privacy, and preferences",
+    href: dashboardHref("settings"),
+    icon: ICON.settings,
+  },
+]
+
+export type MoreSheetItemId = "jams" | "squads" | "rewards" | "me" | "settings"
+
+/** Which More-sheet row is current. Jams wins over Squads when both share /teams. */
+export function moreSheetActiveId(pathname: string, search: string): MoreSheetItemId | null {
+  const tab = tabFromPathname(pathname, search)
+  const hubMe =
+    new URLSearchParams(search.startsWith("?") ? search.slice(1) : search).get("hub") === "me"
+
+  if (pathname.startsWith("/teams") || pathname.startsWith("/create-team")) return "jams"
+  if (!isDashboardPath(pathname)) return null
+  if (hubMe) return "me"
+  if (tab === "achievements") return "rewards"
+  if (tab === "settings") return "settings"
+  return null
+}
+
 /** Resolve which hotbar slot is active for the current route. */
 export function hotbarActiveId(pathname: string, search: string): HotbarSlotId | null {
   const tab = tabFromPathname(pathname, search)
@@ -181,9 +232,9 @@ export function hotbarActiveId(pathname: string, search: string): HotbarSlotId |
   return "home"
 }
 
-export type MobileHotbarId = "home" | "explore" | "inbox" | "me"
+export type MobileHotbarId = "home" | "explore" | "inbox" | "more"
 
-/** Mobile hotbar highlight: Me is lit on the Me hub, Settings, My posts, and Rewards. */
+/** Mobile hotbar highlight: More is lit on Jams, Squads, Rewards, Me, Settings, and My posts. */
 export function mobileHotbarActiveId(pathname: string, search: string): MobileHotbarId | null {
   const tab = tabFromPathname(pathname, search)
   const hubMe =
@@ -196,8 +247,9 @@ export function mobileHotbarActiveId(pathname: string, search: string): MobileHo
   ) {
     return "explore"
   }
+  if (pathname.startsWith("/teams") || pathname.startsWith("/create-team")) return "more"
   if (!isDashboardPath(pathname)) return null
-  if (hubMe || tab === "settings" || tab === "availability" || tab === "achievements") return "me"
+  if (hubMe || tab === "settings" || tab === "availability" || tab === "achievements") return "more"
   if (tab === "inbox") return "inbox"
   return "home"
 }

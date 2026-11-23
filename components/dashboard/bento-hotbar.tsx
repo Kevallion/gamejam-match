@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { usePathname, useSearchParams } from "next/navigation"
 import { CreateSheet } from "@/components/app-shell/create-sheet"
+import { MoreSheet } from "@/components/app-shell/more-sheet"
 import {
   HOTBAR_SLOTS,
   MOBILE_TABS,
@@ -47,6 +48,7 @@ export function BentoHotbar({ inboxCount = 0, availabilityCount = 0 }: BentoHotb
   const searchParams = useSearchParams()
   const router = useRouter()
   const [createOpen, setCreateOpen] = useState(false)
+  const [moreOpen, setMoreOpen] = useState(false)
   const activeId = hotbarActiveId(pathname, searchParams.toString())
   const mobileActiveId = mobileHotbarActiveId(pathname, searchParams.toString())
 
@@ -67,13 +69,14 @@ export function BentoHotbar({ inboxCount = 0, availabilityCount = 0 }: BentoHotb
 
   const leftDesktop = HOTBAR_SLOTS.filter((s) => s.key === "1" || s.key === "2" || s.key === "3")
   const rightDesktop = HOTBAR_SLOTS.filter((s) => s.key === "4" || s.key === "5" || s.key === "6")
-  const mobileSlots = MOBILE_TABS.filter((item) => !item.create)
+  const mobileSlots = MOBILE_TABS.filter((item) => !item.create && !item.more)
+  const moreActive = mobileActiveId === "more"
 
   return (
     <>
       {/* Desktop / tablet dock */}
       <nav
-        className="pointer-events-none fixed inset-x-0 bottom-0 z-40 hidden justify-center pb-[max(1.25rem,env(safe-area-inset-bottom,0px))] md:flex"
+        className="pointer-events-none fixed inset-x-0 bottom-0 z-40 hidden justify-center pb-[max(var(--app-hotbar-inset),env(safe-area-inset-bottom,0px))] md:flex"
         aria-label="Main"
       >
         <div
@@ -134,7 +137,7 @@ export function BentoHotbar({ inboxCount = 0, availabilityCount = 0 }: BentoHotb
           "h-[68px] px-2",
         )}
         style={{
-          bottom: "max(0.875rem, env(safe-area-inset-bottom, 0px))",
+          bottom: "max(var(--app-hotbar-inset), env(safe-area-inset-bottom, 0px))",
         }}
         aria-label="Main"
       >
@@ -169,6 +172,30 @@ export function BentoHotbar({ inboxCount = 0, availabilityCount = 0 }: BentoHotb
             inboxCount={inboxCount}
           />
         ))}
+
+        <button
+          type="button"
+          onClick={() => setMoreOpen(true)}
+          aria-label="More"
+          aria-haspopup="dialog"
+          aria-expanded={moreOpen}
+          aria-controls="app-more-sheet"
+          className={cn(
+            "relative flex min-h-11 min-w-11 w-[52px] shrink-0 flex-col items-center gap-0.5 text-[10px] font-black transition-colors",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+            moreActive ? "text-primary" : "text-muted-foreground",
+          )}
+        >
+          <span className="relative">
+            <AppIcon icon={ICON.more} size="lg" tone={moreActive ? "primary" : "muted"} />
+          </span>
+          <span className="max-w-full truncate">More</span>
+          {moreActive ? (
+            <span className="mt-0.5 h-1 w-[18px] rounded-full bg-primary" aria-hidden />
+          ) : (
+            <span className="mt-0.5 h-1 w-[18px]" aria-hidden />
+          )}
+        </button>
       </nav>
 
       <CreateSheet
@@ -176,6 +203,7 @@ export function BentoHotbar({ inboxCount = 0, availabilityCount = 0 }: BentoHotb
         onOpenChange={setCreateOpen}
         availabilityCount={availabilityCount}
       />
+      <MoreSheet open={moreOpen} onOpenChange={setMoreOpen} />
     </>
   )
 }
@@ -256,7 +284,7 @@ function MobileHotbarLink({
       aria-label={item.label}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "relative flex w-[52px] shrink-0 flex-col items-center gap-0.5 text-[10px] font-black transition-colors",
+        "relative flex min-h-11 min-w-11 w-[52px] shrink-0 flex-col items-center gap-0.5 text-[10px] font-black transition-colors",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         active ? "text-primary" : "text-muted-foreground",
       )}
@@ -280,7 +308,6 @@ function MobileHotbarLink({
 }
 
 /** Bottom padding so page content clears the floating hotbar (safe-area aware). */
-export const BENTO_HOTBAR_OFFSET_CLASS =
-  "pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] md:pb-[calc(7.5rem+env(safe-area-inset-bottom,0px))]"
+export const BENTO_HOTBAR_OFFSET_CLASS = "app-shell-main"
 
 export type { HotbarSlotId }

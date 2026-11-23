@@ -51,6 +51,10 @@ export function MobileTabBar({
       >
         <div className="grid h-16 grid-cols-5">
           {MOBILE_TABS.map((item) => {
+            if (item.more) {
+              return null
+            }
+
             if (item.create) {
               return (
                 <button
