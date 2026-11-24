@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next'
-import { Nunito } from 'next/font/google'
+import { Atkinson_Hyperlegible, Syne } from 'next/font/google'
 import { AuthCallbackHandler } from '@/components/auth-callback-handler'
 import { AuthProvider } from '@/components/auth-provider'
 import { ThemeProvider } from '@/components/theme-provider'
@@ -11,10 +11,17 @@ import { SigningOutCover } from '@/components/auth/signing-out-cover'
 import { BfcacheAuthGuard } from '@/components/auth/bfcache-auth-guard'
 import './globals.css'
 
-const _nunito = Nunito({
+const atkinson = Atkinson_Hyperlegible({
   subsets: ['latin'],
-  variable: '--font-nunito',
-  weight: ['400', '500', '600', '700', '800'],
+  variable: '--font-atkinson',
+  weight: ['400', '700'],
+  display: 'swap',
+})
+const syne = Syne({
+  subsets: ['latin'],
+  variable: '--font-syne',
+  weight: ['700', '800'],
+  display: 'swap',
 })
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://gamejamcrew.com'
 
@@ -56,7 +63,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${_nunito.variable} font-sans antialiased`}
+        className={`${atkinson.variable} ${syne.variable} font-sans antialiased`}
       >
         {/* S1: GA4, GTM and Vercel Analytics load from ConsentProvider only after consent,
             and only on the production deployment (VERCEL_ENV is a Vercel system variable,
