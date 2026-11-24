@@ -1,7 +1,7 @@
 "use server"
 
 import { createClient } from "@/lib/supabase/server"
-import { awardXP } from "@/lib/gamification"
+import { awardXP, type AwardXPResult } from "@/lib/gamification"
 import { loadGamificationSnapshot, type GamificationSnapshot } from "@/lib/gamification-snapshot"
 import { isTitleUnlocked, parseUnlockedTitlesJson } from "@/lib/gamification-titles-catalog"
 
@@ -70,11 +70,18 @@ export async function updateCurrentTitle(nextTitle: string): Promise<UpdateCurre
 }
 
 export type GetMyGamificationSnapshotResult =
-  | { ok: true; snapshot: GamificationSnapshot }
+  | { ok: true; snapshot: GamificationSnapshot; dailyLogin?: AwardXPResult }
   | { ok: false; error: string }
 
-/** DS-3a: level / XP / badges of the signed-in user (Dashboard + Rewards). */
-export async function getMyGamificationSnapshot(): Promise<GetMyGamificationSnapshotResult> {
+/**
+ * DS-3a: level / XP / badges of the signed-in user (Dashboard + Rewards).
+ * `claimDailyLogin`: also claims the daily login XP first (same request), so the
+ * dashboard needs one server action instead of three (claim, snapshot, refresh).
+ * Server actions from one client run one after another, each through the proxy.
+ */
+export async function getMyGamificationSnapshot(
+  options: { claimDailyLogin?: boolean } = {},
+): Promise<GetMyGamificationSnapshotResult> {
   const supabase = await createClient()
   const {
     data: { user },
@@ -86,7 +93,16 @@ export async function getMyGamificationSnapshot(): Promise<GetMyGamificationSnap
   }
 
   try {
-    return { ok: true, snapshot: await loadGamificationSnapshot(supabase, user.id) }
+    let dailyLogin: AwardXPResult | undefined
+    if (options.claimDailyLogin === true) {
+      try {
+        dailyLogin = await awardXP(user.id, "DAILY_LOGIN")
+      } catch {
+        dailyLogin = { ok: false, error: "DAILY_LOGIN_FAILED" }
+      }
+    }
+    const snapshot = await loadGamificationSnapshot(supabase, user.id)
+    return dailyLogin ? { ok: true, snapshot, dailyLogin } : { ok: true, snapshot }
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : "Could not load rewards." }
   }
