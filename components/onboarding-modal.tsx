@@ -367,8 +367,8 @@ export function OnboardingModal({ open, onOpenChange, profile }: OnboardingModal
                     }}
                     className={cn(
                       "h-auto min-h-[5rem] flex-col items-start justify-between whitespace-normal rounded-2xl border-border/60 p-4 py-4 text-left transition-all",
-                      "hover:border-lavender/60 hover:bg-lavender/5 hover:shadow-lg hover:shadow-lavender/10",
-                      isActive && "border-lavender bg-lavender/10 shadow-lg shadow-lavender/10"
+                      "hover:border-lavender/60 hover:bg-lavender/5 hover:shadow-[3px_3px_0_0_var(--neo-shadow)]",
+                      isActive && "border-lavender bg-lavender/10 shadow-[3px_3px_0_0_var(--neo-shadow)]"
                     )}
                   >
                     <div className="flex size-12 items-center justify-center rounded-2xl bg-lavender/15 text-lavender">
@@ -559,7 +559,7 @@ export function OnboardingModal({ open, onOpenChange, profile }: OnboardingModal
                 type="button"
                 onClick={step === TOTAL_STEPS ? handleFinish : handleNext}
                 disabled={isSubmitting}
-                className="gap-2 rounded-xl bg-lavender text-lavender-foreground shadow-lg shadow-lavender/20 hover:bg-lavender/90"
+                className="gap-2 rounded-lg bg-lavender text-lavender-foreground shadow-[3px_3px_0_0_var(--neo-shadow)] hover:bg-lavender/90"
               >
                 {isSubmitting ? (
                   <>
