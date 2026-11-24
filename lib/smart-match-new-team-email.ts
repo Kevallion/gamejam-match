@@ -1,5 +1,6 @@
 import { ROLE_STYLES } from "@/lib/constants"
 import { notifySmartMatch } from "@/lib/mail"
+import { areSquadMatchEmailsEnabled } from "@/lib/squad-match-emails"
 import { createAdminClient, getUserEmail } from "@/lib/supabase/admin"
 import { isMissingColumnError } from "@/lib/optional-column"
 
@@ -177,6 +178,12 @@ export function enqueueSmartMatchEmailsForNewTeam(
   teamName: string,
   lookingFor: TeamLookingForRoleEntry[],
 ): void {
+  if (!areSquadMatchEmailsEnabled()) {
+    console.info(
+      "[smart-match-email] skipped: not production (set SQUAD_MATCH_EMAILS_ENABLED=true to force)",
+    )
+    return
+  }
   void (async () => {
     try {
       await sendSmartMatchEmailsForNewTeam(ownerUserId, teamName, lookingFor)
