@@ -151,16 +151,17 @@ export function HomeShell() {
   }
 
   const inAppShell = useIsInAppShell()
+  const Main = inAppShell ? "div" : "main"
 
   return (
-    <div className={cn("flex flex-col", inAppShell ? "min-h-0" : "min-h-screen")}>
-      <main className="flex-1">
+    <div className={cn("flex flex-col", inAppShell ? "min-h-0" : "min-h-dvh")}>
+      <Main className="flex-1" {...(!inAppShell ? { id: "main-content", tabIndex: -1 } : {})}>
         {/* Marketing hero stays on the site layout only; the app header already titles this page. */}
         {!inAppShell ? <Hero /> : null}
 
         {/* Search + filters (in document flow — avoids covering team cards while scrolling) */}
         <div>
-          <div className="mx-auto flex max-w-[1280px] flex-col gap-4 px-4 py-4 sm:gap-6 sm:py-6 lg:px-6">
+          <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-4 sm:gap-6 sm:py-6 lg:px-6">
             <div className="w-full max-w-xl">
               <Search
                 value={searchQuery}
@@ -213,7 +214,7 @@ export function HomeShell() {
             onResultsCountChange={setResultsCount}
           />
         </div>
-      </main>
+      </Main>
     </div>
   )
 }

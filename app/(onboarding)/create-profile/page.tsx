@@ -61,7 +61,7 @@ export default async function AvailabilityPage() {
   return (
     <div className="flex min-h-dvh flex-col bg-background">
       <Navbar />
-      <main className="flex-1">
+      <main id="main-content" tabIndex={-1} className="flex-1">
         <section className="relative px-4 pb-8 pt-16 lg:px-8 lg:pt-24 lg:pb-8">
           <div className="relative mx-auto max-w-xl text-left">
             <div className="mb-4 inline-flex min-h-8 items-center gap-2 rounded-full border border-lavender/30 bg-lavender px-4 py-1 text-base font-medium text-lavender-foreground">

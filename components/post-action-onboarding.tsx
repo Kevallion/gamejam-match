@@ -435,7 +435,7 @@ export function PostActionOnboarding() {
                               ) : invitingUserId === p.id ? (
                                 <span className="inline-flex items-center gap-2">
                                   <LoaderCircle className="size-4 animate-spin" />
-                                  Inviting...
+                                  Inviting?
                                 </span>
                               ) : (
                                 "Invite"

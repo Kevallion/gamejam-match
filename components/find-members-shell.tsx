@@ -129,10 +129,11 @@ export function FindMembersShell({
 
   const inAppShell = useIsInAppShell()
 
+  const Main = inAppShell ? "div" : "main"
   return (
-    <div className={cn("flex flex-col", inAppShell ? "min-h-0" : "min-h-screen")}>
+    <div className={cn("flex flex-col", inAppShell ? "min-h-0" : "min-h-dvh")}>
       <Navbar />
-      <main className="flex-1">
+      <Main className="flex-1" {...(!inAppShell ? { id: "main-content", tabIndex: -1 } : {})}>
         <section
           className={cn(
             "px-4 sm:px-6",
@@ -142,7 +143,7 @@ export function FindMembersShell({
           <div
             className={cn(
               "mx-auto w-full",
-              inAppShell ? "max-w-[1280px] text-left" : "max-w-2xl text-center",
+              inAppShell ? "max-w-6xl text-left" : "max-w-xl text-left",
             )}
           >
             {!inAppShell ? (
@@ -154,7 +155,7 @@ export function FindMembersShell({
             <p
               className={cn(
                 "max-w-lg text-pretty text-lg leading-relaxed text-muted-foreground",
-                inAppShell ? "mt-0" : "mx-auto mt-4",
+                inAppShell ? "mt-0" : "mt-4",
               )}
             >
               {isDirectory
@@ -162,7 +163,7 @@ export function FindMembersShell({
                 : "Discover jammers who marked themselves available. Need a wider search? Switch to the Directory."}
             </p>
 
-            <div className={cn("mt-6 flex", inAppShell ? "justify-start" : "justify-center")}>
+            <div className="mt-6 flex justify-start">
               <Tabs
                 value={mode}
                 onValueChange={(next) =>
@@ -188,12 +189,18 @@ export function FindMembersShell({
               </Tabs>
             </div>
 
-            <div className={cn("relative mt-6 max-w-xl", inAppShell ? "" : "mx-auto")}>
-              <div className="relative flex items-center overflow-hidden rounded-lg border border-border bg-card shadow-[3px_3px_0_0_var(--neo-shadow)]">
-                <Search className="ml-4 size-5 shrink-0 text-muted-foreground" />
+            <div className="relative mt-6 max-w-xl">
+              <div className="relative flex items-center overflow-hidden rounded-lg border border-border bg-card shadow-[3px_3px_0_0_var(--neo-shadow)] focus-within:ring-2 focus-within:ring-ring">
+                <Search className="ml-4 size-5 shrink-0 text-muted-foreground" aria-hidden="true" />
+                <label htmlFor="find-members-search" className="sr-only">
+                  Search by name
+                </label>
                 <Input
-                  type="text"
-                  placeholder="Search by name..."
+                  id="find-members-search"
+                  name="q"
+                  type="search"
+                  autoComplete="off"
+                  placeholder="Search by name…"
                   value={searchQuery}
                   onChange={(e) => replaceUrlWithFilters({ q: e.target.value })}
                   className="h-12 border-0 bg-transparent px-4 text-base shadow-none ring-0 placeholder:text-muted-foreground focus-visible:ring-0"
@@ -288,7 +295,7 @@ export function FindMembersShell({
             onReset={handleResetFilters}
           />
         )}
-      </main>
+      </Main>
     </div>
   )
 }

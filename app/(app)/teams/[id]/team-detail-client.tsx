@@ -23,6 +23,7 @@ import { Badge } from "@/components/ui/badge"
 import { languageOptionLabel } from "@/lib/constants"
 import { ROLE_STYLES } from "@/lib/constants"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+import { MainRegion } from "@/components/main-region"
 
 type SquadViewData = {
   id: string
@@ -249,7 +250,7 @@ export function TeamDetailClient({ teamId }: { teamId: string }) {
         <Navbar />
         <div className="flex flex-1 flex-col items-center justify-center gap-3">
           <LoaderCircle className="size-6 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground">Loading...</p>
+          <p className="text-sm text-muted-foreground">Loading?</p>
         </div>
       </div>
     )
@@ -259,7 +260,7 @@ export function TeamDetailClient({ teamId }: { teamId: string }) {
     return (
       <div className="flex min-h-dvh flex-col bg-background">
         <Navbar />
-        <main className="flex-1 px-4 py-16 lg:px-6 lg:pt-28">
+        <MainRegion className="flex-1 px-4 py-16 lg:px-6 lg:pt-28">
           <div className="mx-auto max-w-2xl">
             <Card className="rounded-2xl border-border/60 bg-card">
               <CardContent className="flex flex-col items-center gap-4 p-8 text-center">
@@ -276,7 +277,7 @@ export function TeamDetailClient({ teamId }: { teamId: string }) {
               </CardContent>
             </Card>
           </div>
-        </main>
+        </MainRegion>
       </div>
     )
   }
@@ -295,7 +296,7 @@ export function TeamDetailClient({ teamId }: { teamId: string }) {
   return (
     <div className="flex min-h-dvh flex-col bg-background">
       <Navbar />
-      <main className="flex-1 px-4 pb-8 pt-8 lg:px-6 lg:pb-12 lg:pt-28">
+      <MainRegion className="flex-1 px-4 pb-8 pt-8 lg:px-6 lg:pb-12 lg:pt-28">
         <div className="mx-auto max-w-4xl space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <Button
@@ -419,7 +420,7 @@ export function TeamDetailClient({ teamId }: { teamId: string }) {
             </TabsContent>
           </Tabs>
         </div>
-      </main>
+      </MainRegion>
     </div>
   )
 }

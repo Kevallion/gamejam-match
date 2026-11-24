@@ -130,7 +130,7 @@ export function InviteToSquadControl({
                       {busy ? (
                         <>
                           <LoaderCircle className="size-4 shrink-0 animate-spin" />
-                          Sending...
+                          Sending?
                         </>
                       ) : (
                         <>

@@ -75,6 +75,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
+import { MainRegion } from "@/components/main-region"
 
 const DISCORD_LINK_REGEX = /^https:\/\/(discord\.gg\/|discord\.com\/invite\/)/i
 
@@ -641,7 +642,7 @@ export default function TeamManagePage() {
         <Navbar />
         <div className="flex flex-1 flex-col items-center justify-center gap-3">
           <LoaderCircle className="size-6 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground">Loading...</p>
+          <p className="text-sm text-muted-foreground">Loading?</p>
         </div>
       </div>
     )
@@ -651,7 +652,7 @@ export default function TeamManagePage() {
     return (
       <div className="flex min-h-dvh flex-col bg-background">
         <Navbar />
-        <main className="flex-1 px-4 py-16 lg:px-6">
+        <MainRegion className="flex-1 px-4 py-16 lg:px-6">
           <div className="mx-auto max-w-2xl">
             <Card className="rounded-2xl border-destructive/50 bg-destructive/10">
               <CardContent className="flex flex-col items-center gap-4 p-8 text-center">
@@ -669,7 +670,7 @@ export default function TeamManagePage() {
               </CardContent>
             </Card>
           </div>
-        </main>
+        </MainRegion>
       </div>
     )
   }
@@ -677,7 +678,7 @@ export default function TeamManagePage() {
   return (
     <div className="flex min-h-dvh flex-col">
       <Navbar />
-      <main className="flex-1">
+      <MainRegion className="flex-1">
         <section className="relative overflow-hidden px-4 pb-8 pt-16 lg:px-6 lg:pt-24 lg:pb-12">
 <div className="relative mx-auto max-w-4xl">
             <Button
@@ -800,7 +801,7 @@ export default function TeamManagePage() {
                         onChange={(e) =>
                           setEditForm((prev) => ({ ...prev, description: e.target.value }))
                         }
-                        placeholder="Tell people about your project..."
+                        placeholder="Tell people about your project?"
                         rows={4}
                         className="rounded-xl"
                         required
@@ -914,10 +915,11 @@ export default function TeamManagePage() {
                                 type="button"
                                 variant="ghost"
                                 size="icon"
-                                className="self-end rounded-xl text-muted-foreground hover:bg-destructive/10 hover:text-destructive sm:self-auto"
+                                className="size-11 self-end rounded-xl text-muted-foreground hover:bg-destructive/10 hover:text-destructive sm:self-auto"
                                 onClick={() => removeEditableRole(entry.id)}
+                                aria-label="Remove this role"
                               >
-                                <X className="size-4" />
+                                <X className="size-4" aria-hidden="true" />
                               </Button>
                             )}
                           </div>
@@ -953,7 +955,7 @@ export default function TeamManagePage() {
                         {editSaving ? (
                           <>
                             <LoaderCircle className="size-4 animate-spin" />
-                            Saving...
+                            Saving?
                           </>
                         ) : (
                           "Save"
@@ -1131,7 +1133,7 @@ export default function TeamManagePage() {
                     <Input
                       id="discord-link-manage"
                       type="url"
-                      placeholder="https://discord.gg/..."
+                      placeholder="https://discord.gg/?"
                       value={discordInput}
                       onChange={(e) => setDiscordInput(e.target.value)}
                       aria-invalid={!!discordError}
@@ -1153,7 +1155,7 @@ export default function TeamManagePage() {
                       {discordSaving ? (
                         <>
                           <LoaderCircle className="size-4 animate-spin" />
-                          Saving...
+                          Saving?
                         </>
                       ) : (
                         "Save Discord link"
@@ -1165,7 +1167,7 @@ export default function TeamManagePage() {
             </Card>
           </div>
         </section>
-      </main>
+      </MainRegion>
 
       <AlertDialog open={deleteTeamDialogOpen} onOpenChange={setDeleteTeamDialogOpen}>
         <AlertDialogContent className="glass-card rounded-2xl border-border/40">

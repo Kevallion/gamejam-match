@@ -237,12 +237,12 @@ function TabPanelLoading({ label }: { label: string }) {
 
 const ProfileSettings = dynamic(
   () => import("@/components/profile-settings").then((mod) => mod.ProfileSettings),
-  { loading: () => <TabPanelLoading label="Loading settings..." />, ssr: false },
+  { loading: () => <TabPanelLoading label="Loading settings?" />, ssr: false },
 )
 
 const DashboardAchievementsTab = dynamic(
   () => import("@/components/gamification-dashboard").then((mod) => mod.DashboardAchievementsTab),
-  { loading: () => <TabPanelLoading label="Loading achievements..." />, ssr: false },
+  { loading: () => <TabPanelLoading label="Loading achievements?" />, ssr: false },
 )
 
 function DashboardLoadingSkeleton() {
@@ -255,7 +255,7 @@ function DashboardLoadingSkeleton() {
           <Skeleton className="size-10 rounded-xl" />
         </div>
       </div>
-      <main className="flex-1">
+      <div className="flex-1">
         <section className="px-4 py-6 pb-24 md:py-10 md:pb-10 lg:px-6 lg:py-12">
           <div className="mx-auto max-w-5xl space-y-6">
             <div className="grid grid-cols-3 gap-2 md:gap-4">
@@ -266,7 +266,7 @@ function DashboardLoadingSkeleton() {
             <Skeleton className="h-48 w-full rounded-xl" />
           </div>
         </section>
-      </main>
+      </div>
     </div>
   )
 }
@@ -1699,7 +1699,7 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null, bo
         }
         title="Leave this squad?"
         description="You will be removed from the squad. The owner is notified, and this cannot be undone from here."
-        confirmLabel={leavingTeam ? "Leaving..." : "Leave squad"}
+        confirmLabel={leavingTeam ? "Leaving?" : "Leave squad"}
         cancelLabel="Stay"
         onConfirm={() => void confirmLeaveTeam()}
         onCancel={() => {

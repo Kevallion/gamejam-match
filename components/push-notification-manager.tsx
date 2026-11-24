@@ -19,7 +19,7 @@ export function PushNotificationManager() {
       >
         <AppIcon icon={ICON.notifications} size="md" />
         {isActivating
-          ? 'Activating...'
+          ? 'Activating…'
           : permission === 'granted'
             ? 'Notifications enabled'
             : 'Enable notifications'}

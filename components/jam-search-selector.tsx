@@ -195,11 +195,11 @@ export function JamSearchSelector({
             type="button"
             variant="ghost"
             size="icon"
-            className="size-8 shrink-0 rounded-lg text-muted-foreground hover:text-foreground"
+            className="size-11 shrink-0 rounded-lg text-muted-foreground hover:text-foreground"
             onClick={() => onValueChange(null)}
             aria-label="Clear jam selection"
           >
-            <X className="size-4" />
+            <X className="size-4" aria-hidden="true" />
           </Button>
         </div>
       ) : (

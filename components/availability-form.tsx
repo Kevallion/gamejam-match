@@ -778,7 +778,7 @@ export function AvailabilityForm({
                               ? (
                                 <>
                                   <LoaderCircle className="size-4 animate-spin" />
-                                  Sending...
+                                  Sending?
                                 </>
                               )
                               : isEditing

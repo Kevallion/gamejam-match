@@ -531,7 +531,7 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
                         id="jamName"
                         name="jamName"
                         required
-                        placeholder="e.g. Ludum Dare 57, GMTK 2026..."
+                        placeholder="e.g. Ludum Dare 57, GMTK 2026?"
                         value={jamName}
                         onChange={(e) => setJamName(e.target.value)}
                         className="h-12 rounded-xl border-border/60 bg-secondary/50 text-foreground"
@@ -723,9 +723,10 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
                                 variant="ghost"
                                 size="icon"
                                 onClick={() => removeRole(entry.id)}
-                                className="size-9 shrink-0 self-end rounded-xl text-muted-foreground hover:bg-destructive/10 hover:text-destructive sm:self-auto"
+                                aria-label="Remove this role"
+                                className="size-11 shrink-0 self-end rounded-xl text-muted-foreground hover:bg-destructive/10 hover:text-destructive sm:self-auto"
                               >
-                                <X className="size-4" />
+                                <X className="size-4" aria-hidden="true" />
                               </Button>
                             )}
                                 </>
@@ -794,7 +795,7 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
                             name="description"
                             required
                             ref={step3Ref}
-                            placeholder="Tell people about your project idea..."
+                            placeholder="Tell people about your project idea?"
                             rows={5}
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
@@ -857,7 +858,7 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
                           id="inviteMessage"
                           name="inviteMessage"
                           required
-                          placeholder="Write a short message to invite this jammer..."
+                          placeholder="Write a short message to invite this jammer?"
                           rows={4}
                           value={inviteMessage}
                           onChange={(e) => setInviteMessage(e.target.value)}
@@ -902,7 +903,7 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
                           loading ? (
                             <>
                               <LoaderCircle className="size-4 animate-spin" />
-                              {isEmbeddedInvite ? "Creating squad & sending invite..." : "Publishing..."}
+                              {isEmbeddedInvite ? "Creating squad & sending invite?" : "Publishing?"}
                             </>
                           ) : (
                             <>

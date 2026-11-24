@@ -51,7 +51,7 @@ export function AccountDeletedNotice() {
             id="account-deleted-title"
             ref={titleRef}
             tabIndex={-1}
-            className="text-sm font-semibold text-foreground outline-none"
+            className="text-base font-semibold text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             Your account has been deleted.
           </h2>

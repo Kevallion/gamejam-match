@@ -48,7 +48,10 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: '#2a2440',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#F3ECDD' },
+    { media: '(prefers-color-scheme: dark)', color: '#2A2440' },
+  ],
 }
 
 export default function RootLayout({
@@ -61,6 +64,12 @@ export default function RootLayout({
       <body
         className={`${nunito.variable} font-sans antialiased`}
       >
+        <a
+          href="#main-content"
+          className="sr-only focus-visible:fixed focus-visible:left-4 focus-visible:top-4 focus-visible:z-[100] focus-visible:inline-flex focus-visible:h-11 focus-visible:items-center focus-visible:rounded-lg focus-visible:border focus-visible:border-border focus-visible:bg-card focus-visible:px-4 focus-visible:text-base focus-visible:font-bold focus-visible:text-foreground focus-visible:shadow-[3px_3px_0_0_var(--neo-shadow)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          Skip to main content
+        </a>
         {/* S1: GA4, GTM and Vercel Analytics load from ConsentProvider only after consent,
             and only on the production deployment (VERCEL_ENV is a Vercel system variable,
             read here on the server; unset locally, "preview" on preview deployments). */}

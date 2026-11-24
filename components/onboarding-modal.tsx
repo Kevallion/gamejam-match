@@ -571,7 +571,7 @@ export function OnboardingModal({ open, onOpenChange, profile, dismissible = fal
                 {isSubmitting ? (
                   <>
                     <LoaderCircle className="size-4 animate-spin" />
-                    Finishing...
+                    Finishing?
                   </>
                 ) : step === TOTAL_STEPS ? (
                   <>

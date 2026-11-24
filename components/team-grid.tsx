@@ -439,7 +439,7 @@ export function TeamGrid({
               {loadingMore ? (
                 <>
                   <LoaderCircle className="size-4 animate-spin" />
-                  Loading...
+                  Loading…
                 </>
               ) : (
                 "Load more squads"

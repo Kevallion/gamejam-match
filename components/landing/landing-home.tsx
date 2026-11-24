@@ -60,9 +60,9 @@ export function LandingHome({
   upcomingJams?: LandingUpcomingJam[]
 }) {
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-dvh flex-col">
       <Navbar />
-      <main className="flex-1">
+      <main id="main-content" tabIndex={-1} className="flex-1">
         <LandingHero
           featuredTeams={featuredTeams}
           socialProofStats={socialProofStats}

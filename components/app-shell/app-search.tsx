@@ -97,6 +97,8 @@ function AppSearchField({
               id="app-shell-search-mobile"
               ref={inputRef}
               type="search"
+              name="q"
+              autoComplete="off"
               value={value}
               onChange={(e) => setValue(e.target.value)}
               placeholder="Search jams, squads, members"
@@ -146,6 +148,8 @@ function AppSearchField({
         id="app-shell-search"
         ref={inputRef}
         type="search"
+        name="q"
+        autoComplete="off"
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder="Search jams, squads, members"

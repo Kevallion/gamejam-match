@@ -45,10 +45,11 @@ function SocialShareButton({
           variant="ghost"
           size="icon"
           className={cn(
-            "size-9 shrink-0 rounded-xl text-muted-foreground transition-colors",
+            "size-11 shrink-0 rounded-xl text-muted-foreground transition-colors",
             className,
           )}
           onClick={onClick}
+          aria-label={tooltip}
         >
           {children}
         </Button>

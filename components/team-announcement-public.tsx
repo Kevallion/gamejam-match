@@ -14,6 +14,7 @@ import { TagIcon } from "@/components/tag-icon"
 import { getJamListingStatus } from "@/lib/jam-calendar-status"
 import { toast } from "sonner"
 import { ArrowLeft, ArrowRight, Share2, CircleCheck } from "lucide-react"
+import { MainRegion } from "@/components/main-region"
 
 type RoleOption = { key: string; label: string; color: string; filled?: boolean }
 
@@ -115,9 +116,9 @@ export function TeamAnnouncementPublic({
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="flex min-h-dvh flex-col bg-background">
       <Navbar />
-      <main className="flex-1 px-4 pb-12 pt-8 lg:px-6 lg:pb-16 lg:pt-28">
+      <MainRegion className="flex-1 px-4 pb-12 pt-8 lg:px-6 lg:pb-16 lg:pt-28">
         <div className="mx-auto max-w-4xl">
           <div className="mb-6 flex items-center justify-between gap-3">
             <Button
@@ -281,7 +282,7 @@ export function TeamAnnouncementPublic({
             </aside>
           </div>
         </div>
-      </main>
+      </MainRegion>
       <AuthModal
         open={authModalOpen}
         onOpenChange={setAuthModalOpen}

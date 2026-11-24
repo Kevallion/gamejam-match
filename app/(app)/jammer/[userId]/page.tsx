@@ -14,6 +14,7 @@ import { parseProgrammingLanguages } from "@/lib/constants"
 import { levelFromTotalXp } from "@/lib/gamification-level"
 import { usersShareATeam } from "@/lib/kudos-collaboration"
 import { isMissingColumnError } from "@/lib/optional-column"
+import { MainRegion } from "@/components/main-region"
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
@@ -79,13 +80,13 @@ export default async function JammerPublicProfilePage({ params }: PageProps) {
     return (
       <div className="flex min-h-dvh flex-col">
         <Navbar />
-        <main className="flex-1 pt-20">
+        <MainRegion className="flex-1 pt-20">
           <SignedOutNotice
             title="Sign in to view this jammer"
             description="Jammer profiles are only visible to signed-in members."
             next={`/jammer/${userId}`}
           />
-        </main>
+        </MainRegion>
       </div>
     )
   }
@@ -223,9 +224,9 @@ export default async function JammerPublicProfilePage({ params }: PageProps) {
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-dvh flex-col">
       <Navbar />
-      <main className="flex-1">
+      <MainRegion className="flex-1">
         <section className="relative overflow-hidden border-b border-border/40 bg-card/30 px-3 pb-8 pt-8 sm:px-4 sm:pb-10 sm:pt-10 lg:px-6 lg:pb-14 lg:pt-28">
 <div className="relative mx-auto max-w-3xl">
             <Button variant="ghost" size="sm" className="-ml-2 mb-5 gap-2 text-muted-foreground sm:mb-7" asChild>
@@ -349,7 +350,7 @@ export default async function JammerPublicProfilePage({ params }: PageProps) {
             </div>
           </div>
         </section>
-      </main>
+      </MainRegion>
     </div>
   )
 }

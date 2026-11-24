@@ -25,7 +25,7 @@ function first(value: string | string[] | undefined): string {
 
 function Shell({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <main className="flex min-h-screen items-center justify-center px-4 py-16">
+    <main id="main-content" tabIndex={-1} className="flex min-h-dvh items-center justify-center px-4 py-16">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>{title}</CardTitle>

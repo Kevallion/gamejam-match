@@ -468,7 +468,7 @@ export function JoinTeamModal({
             <div className="relative">
               <Textarea
                 id="join-message"
-                placeholder="Hi! I'm a 3D artist and I'd love to help with environment design, props and lighting..."
+                placeholder="Hi! I'm a 3D artist and I'd love to help with environment design, props and lighting?"
                 value={message}
                 onChange={(e) => {
                   userEditedMessageRef.current = true

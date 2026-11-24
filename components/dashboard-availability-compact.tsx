@@ -188,7 +188,7 @@ export function DashboardAvailabilityCompact({
                         size="sm"
                         className={cn("mr-2 text-teal-foreground", renewing && "animate-spin")}
                       />
-                      {renewing ? "Renewing..." : "Renew"}
+                      {renewing ? "Renewing?" : "Renew"}
                     </Button>
                     <Button asChild type="button" variant="outline" className="h-11 rounded-xl">
                       <Link href={editAvailabilityHref(post.id)}>Edit</Link>

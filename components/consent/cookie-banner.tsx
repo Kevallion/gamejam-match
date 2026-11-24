@@ -12,7 +12,7 @@ type CookieBannerProps = {
 }
 
 /** Same look for the three choices: no option is pushed over another. */
-const CHOICE_CLASS = "h-9 w-full rounded-xl px-3 text-sm font-semibold sm:w-auto sm:min-w-28"
+const CHOICE_CLASS = "min-h-11 w-full rounded-xl px-3 text-base font-semibold sm:w-auto sm:min-w-28"
 
 /**
  * First-visit consent banner. Non-modal, the page stays usable; nothing

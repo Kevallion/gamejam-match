@@ -274,7 +274,7 @@ export async function notifyInviteeInvitation(
     const invitationPath = `/invitation/${ctx.joinRequestId}`
     const personalMessage = ctx.personalMessage?.trim() || ""
     const truncatedPersonal =
-      personalMessage.length > 160 ? `${personalMessage.slice(0, 157)}...` : personalMessage
+      personalMessage.length > 160 ? `${personalMessage.slice(0, 157)}?` : personalMessage
     const message = truncatedPersonal
       ? `You were invited to join the squad "${teamName}": ${truncatedPersonal}`
       : `You were invited to join the squad "${teamName}".`

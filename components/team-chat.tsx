@@ -269,7 +269,7 @@ export function TeamChat({ teamId, currentUserId }: TeamChatProps) {
             {loading ? (
               <div className="flex h-full items-center justify-center gap-2 text-xs text-muted-foreground">
                 <LoaderCircle className="size-4 animate-spin" />
-                Loading chat...
+                Loading chat…
               </div>
             ) : messages.length === 0 ? (
               <div className="flex h-full items-center justify-center text-center text-xs text-muted-foreground">
@@ -340,19 +340,26 @@ export function TeamChat({ teamId, currentUserId }: TeamChatProps) {
           </ScrollArea>
         </div>
         <form onSubmit={handleSend} className="flex items-center gap-2 pt-1">
+          <label htmlFor="team-chat-message" className="sr-only">
+            Write a message
+          </label>
           <Input
+            id="team-chat-message"
+            name="message"
+            autoComplete="off"
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
-            placeholder="Write a message..."
-            className="rounded-xl text-sm"
+            placeholder="Write a message?"
+            className="h-11 rounded-xl text-base"
             disabled={sending}
             maxLength={1000}
           />
           <Button
             type="submit"
             size="icon"
-            className="rounded-xl"
+            className="size-11 rounded-xl"
             disabled={sending || !newMessage.trim()}
+            aria-label={sending ? "Sending message" : "Send message"}
           >
             {sending ? (
               <LoaderCircle className="size-4 animate-spin" />

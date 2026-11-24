@@ -25,6 +25,7 @@ import { Badge } from "@/components/ui/badge"
 import { ROLE_STYLES, languageOptionLabel } from "@/lib/constants"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { TeamNotFoundView } from "./team-not-found-view"
+import { MainRegion } from "@/components/main-region"
 
 type SquadViewData = {
   id: string
@@ -306,13 +307,13 @@ export function TeamPageClient() {
     return (
       <div className="flex min-h-dvh flex-col bg-background">
         <Navbar />
-        <main className="mx-auto w-full max-w-4xl flex-1 px-4 pb-12 pt-24 lg:px-6">
+        <MainRegion className="mx-auto w-full max-w-4xl flex-1 px-4 pb-12 pt-24 lg:px-6">
           <Skeleton className="mb-6 h-9 w-32 rounded-xl" />
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
             <Skeleton className="h-80 rounded-2xl" />
             <Skeleton className="h-72 rounded-2xl" />
           </div>
-        </main>
+        </MainRegion>
       </div>
     )
   }
@@ -345,7 +346,7 @@ export function TeamPageClient() {
     return (
       <div className="flex min-h-dvh flex-col">
         <Navbar />
-        <main className="flex-1">
+        <MainRegion className="flex-1">
           <section className="relative overflow-hidden px-4 pb-8 pt-16 lg:px-6 lg:pt-24 lg:pb-12">
 <div className="relative mx-auto max-w-4xl">
               <Button
@@ -501,7 +502,7 @@ export function TeamPageClient() {
               </Tabs>
             </div>
           </section>
-        </main>
+        </MainRegion>
       </div>
     )
   }

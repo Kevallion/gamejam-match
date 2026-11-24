@@ -10,6 +10,7 @@ import {
   InvitationRespondClient,
   type InvitationPageTeam,
 } from "./invitation-respond-client"
+import { MainRegion } from "@/components/main-region"
 
 type PageProps = {
   params: Promise<{ requestId: string }>
@@ -32,9 +33,9 @@ export default async function InvitationPage({ params }: PageProps) {
 
   if (!user) {
     return (
-      <div className="flex min-h-screen flex-col bg-background">
+      <div className="flex min-h-dvh flex-col bg-background">
         <Navbar />
-        <main className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-16 lg:pt-24">
+        <MainRegion className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-16 lg:pt-24">
           <Card className="rounded-2xl border-border/50 bg-card">
             <CardContent className="space-y-4 p-8 text-center">
               <h1 className="text-xl font-extrabold text-foreground">Sign in to view this invitation</h1>
@@ -46,7 +47,7 @@ export default async function InvitationPage({ params }: PageProps) {
               </Button>
             </CardContent>
           </Card>
-        </main>
+        </MainRegion>
       </div>
     )
   }

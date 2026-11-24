@@ -198,9 +198,9 @@ function NavbarChrome() {
           {/* Actions */}
           <div className="flex shrink-0 items-center gap-1">
             {mounted ? (
-              <SupportNavbarPopover className="size-8" />
+              <SupportNavbarPopover className="size-11" />
             ) : (
-              <Button variant="ghost" size="icon" className="size-8 rounded-xl" disabled aria-label="Support the project">
+              <Button variant="ghost" size="icon" className="size-11 rounded-xl" disabled aria-label="Support the project">
                 <Heart className="size-4 opacity-30" />
               </Button>
             )}
@@ -208,7 +208,7 @@ function NavbarChrome() {
             {mounted ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="size-8 rounded-xl hover:bg-muted">
+                  <Button variant="ghost" size="icon" className="size-11 rounded-xl hover:bg-muted">
                     <span className="relative flex size-4">
                       <Sun className="size-4 rotate-0 scale-100 transition-transform motion-reduce:transition-none dark:-rotate-90 dark:scale-0" />
                       <Moon className="absolute inset-0 size-4 rotate-90 scale-0 transition-transform motion-reduce:transition-none dark:rotate-0 dark:scale-100" />
@@ -232,7 +232,7 @@ function NavbarChrome() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button variant="ghost" size="icon" className="size-8 rounded-xl" disabled>
+              <Button variant="ghost" size="icon" className="size-11 rounded-xl" disabled>
                 <Sun className="size-4" />
                 <span className="sr-only">Change theme</span>
               </Button>
@@ -245,7 +245,7 @@ function NavbarChrome() {
                 onOpenChange={(open) => open && refetchNotifications()}
               >
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="relative size-8 rounded-xl hover:bg-muted">
+                  <Button variant="ghost" size="icon" className="relative size-11 rounded-xl hover:bg-muted">
                     <Bell className="size-4" />
                     {unreadCount > 0 && (
                       <span className="absolute -right-0.5 -top-0.5 flex min-h-4 min-w-4 items-center justify-center rounded-full bg-peach text-peach-foreground px-1 text-xs font-bold">
@@ -377,8 +377,8 @@ function NavbarChrome() {
 
           {/* Mobile Actions */}
           <div className="flex shrink-0 items-center gap-1">
-            {mounted ? <SupportNavbarPopover className="size-9" /> : (
-              <Button variant="ghost" size="icon" className="size-9 rounded-xl" disabled aria-label="Support the project">
+            {mounted ? <SupportNavbarPopover className="size-11" /> : (
+              <Button variant="ghost" size="icon" className="size-11 rounded-xl" disabled aria-label="Support the project">
                 <Heart className="size-4 opacity-30" />
               </Button>
             )}
@@ -386,7 +386,7 @@ function NavbarChrome() {
             {mounted && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="size-9 rounded-xl">
+                  <Button variant="ghost" size="icon" className="size-11 rounded-xl">
                     <Sun className="size-4 rotate-0 scale-100 transition-transform motion-reduce:transition-none dark:-rotate-90 dark:scale-0" />
                     <Moon className="absolute size-4 rotate-90 scale-0 transition-transform motion-reduce:transition-none dark:rotate-0 dark:scale-100" />
                     <span className="sr-only">Change theme</span>
@@ -413,7 +413,7 @@ function NavbarChrome() {
                 onOpenChange={(open) => open && refetchNotifications()}
               >
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="relative size-9 rounded-xl" aria-label="Notifications">
+                  <Button variant="ghost" size="icon" className="relative size-11 rounded-xl" aria-label="Notifications">
                     <Bell className="size-4" />
                     {unreadCount > 0 && (
                       <span className="absolute -right-0.5 -top-0.5 flex min-h-4 min-w-4 items-center justify-center rounded-full bg-peach text-peach-foreground px-1 text-xs font-bold">
@@ -469,7 +469,7 @@ function NavbarChrome() {
             {mounted ? (
               <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
                 <SheetTrigger asChild>
-                  <Button variant="ghost" size="icon" className="size-9 rounded-xl">
+                  <Button variant="ghost" size="icon" className="size-11 rounded-xl">
                     <Menu className="size-5" />
                     <span className="sr-only">Open menu</span>
                   </Button>
@@ -555,7 +555,7 @@ function NavbarChrome() {
                 </SheetContent>
               </Sheet>
             ) : (
-              <Button variant="ghost" size="icon" className="size-9 rounded-xl" disabled aria-label="Open menu">
+              <Button variant="ghost" size="icon" className="size-11 rounded-xl" disabled aria-label="Open menu">
                 <Menu className="size-5" />
                 <span className="sr-only">Open menu</span>
               </Button>

@@ -13,6 +13,7 @@ import { MockNotifications } from "@/components/showcase/mock-notifications"
 import { MockInviteModal } from "@/components/showcase/mock-invite-modal"
 import { Gamepad2, Sparkles, UsersRound, PenLine, LayoutDashboard, Bell, Mail, UserRoundSearch, Sword } from "lucide-react"
 import Link from "next/link"
+import { MainRegion } from "@/components/main-region"
 
 const DOT_PATTERN = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Ccircle cx='2' cy='2' r='1.2' fill='%2394a3b8' fill-opacity='0.35'/%3E%3C/svg%3E")`
 
@@ -150,10 +151,10 @@ const SHOWCASE_SECTIONS: ShowcaseSection[] = [
 
 export function ShowcaseShell() {
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-dvh flex-col">
       <Navbar />
 
-      <main className="flex-1">
+      <MainRegion className="flex-1">
         {/* Page hero */}
         <section
           className="relative overflow-hidden px-4 pb-16 pt-20 lg:px-8 lg:pb-20 lg:pt-24"
@@ -318,7 +319,7 @@ export function ShowcaseShell() {
             <div className="h-0.5 w-full border-t-2 border-dashed border-slate-300" />
           </div>
         </section>
-      </main>
+      </MainRegion>
     </div>
   )
 }

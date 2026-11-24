@@ -750,7 +750,7 @@ export function JammerCard({ player, mySquads, cardClassName }: JammerCardProps)
                 <div className="relative">
                   <Textarea
                     id="invite-message"
-                    placeholder="Hey! We're building a platformer for the GMTK Jam and we'd love to have you on board as our..."
+                    placeholder="Hey! We're building a platformer for the GMTK Jam and we'd love to have you on board as our?"
                     value={message}
                     onChange={(e) => {
                       if (e.target.value.length <= maxChars) setMessage(e.target.value)

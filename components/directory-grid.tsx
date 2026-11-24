@@ -310,7 +310,7 @@ export function DirectoryGrid({
               {loadingMore ? (
                 <>
                   <LoaderCircle className="size-4 animate-spin" />
-                  Loading...
+                  Loading?
                 </>
               ) : (
                 "Load more jammers"

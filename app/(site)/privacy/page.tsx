@@ -23,9 +23,9 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-dvh flex-col">
       <Navbar />
-      <main className="flex-1">
+      <main id="main-content" tabIndex={-1} className="flex-1">
         <article className="mx-auto max-w-3xl px-4 py-16 lg:px-6 lg:py-24">
           <div className="mb-12">
             <Link

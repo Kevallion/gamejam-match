@@ -9,12 +9,18 @@ interface SearchProps {
   placeholder?: string
 }
 
-export function Search({ value, onChange, placeholder = "Search by squad, jam name, or description..." }: SearchProps) {
+export function Search({ value, onChange, placeholder = "Search by squad, jam name, or description\u2026" }: SearchProps) {
   return (
-    <div className="relative flex w-full min-w-0 flex-1 items-center overflow-hidden rounded-lg border border-border bg-transparent">
-      <SearchIcon className="ml-4 size-5 shrink-0 text-muted-foreground" />
+    <div className="relative flex w-full min-w-0 flex-1 items-center overflow-hidden rounded-lg border border-border bg-transparent focus-within:ring-2 focus-within:ring-ring">
+      <SearchIcon className="ml-4 size-5 shrink-0 text-muted-foreground" aria-hidden="true" />
+      <label htmlFor="squad-search" className="sr-only">
+        Search by squad, jam name, or description
+      </label>
       <Input
-        type="text"
+        id="squad-search"
+        name="q"
+        type="search"
+        autoComplete="off"
         placeholder={placeholder}
         value={value}
         onChange={(e) => onChange(e.target.value)}

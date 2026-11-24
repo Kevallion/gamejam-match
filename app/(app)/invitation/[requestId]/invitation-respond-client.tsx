@@ -20,6 +20,7 @@ import { Check, Gamepad2, LoaderCircle, X } from "lucide-react"
 import { toast } from "sonner"
 import { showGamificationRewards } from "@/components/gamification-reward-toasts"
 import { gamificationRewardHasToast } from "@/lib/gamification-reward-types"
+import { MainRegion } from "@/components/main-region"
 
 export type InvitationPageTeam = {
   team_name: string | null
@@ -117,9 +118,9 @@ export function InvitationRespondClient(props: {
 
   if (props.status !== "pending") {
     return (
-      <div className="flex min-h-screen flex-col bg-background">
+      <div className="flex min-h-dvh flex-col bg-background">
         <Navbar />
-        <main className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center px-4 py-16 lg:pt-24">
+        <MainRegion className="mx-auto flex w-full max-w-lg flex-1 flex-col justify-center px-4 py-16 lg:pt-24">
           <Card className="rounded-2xl border-border/50 bg-card">
             <CardContent className="space-y-4 p-8 text-center">
               <p className="text-lg font-bold text-foreground">This invitation is no longer pending.</p>
@@ -131,15 +132,15 @@ export function InvitationRespondClient(props: {
               </Button>
             </CardContent>
           </Card>
-        </main>
+        </MainRegion>
       </div>
     )
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="flex min-h-dvh flex-col bg-background">
       <Navbar />
-      <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-8 lg:py-16 lg:pt-24">
+      <MainRegion className="mx-auto w-full max-w-2xl flex-1 px-4 py-8 lg:py-16 lg:pt-24">
         <div className="mb-6 space-y-2">
           <Badge variant="outline" className="rounded-full border-lavender/30 bg-lavender/10 text-lavender">
             Squad invitation
@@ -268,7 +269,7 @@ export function InvitationRespondClient(props: {
             ) : null}
           </CardContent>
         </Card>
-      </main>
+      </MainRegion>
     </div>
   )
 }

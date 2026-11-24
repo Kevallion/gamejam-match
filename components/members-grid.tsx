@@ -233,7 +233,7 @@ export function MembersGrid({
               {loadingMore ? (
                 <>
                   <LoaderCircle className="size-4 animate-spin" />
-                  Loading...
+                  Loading?
                 </>
               ) : (
                 "Load more jammers"

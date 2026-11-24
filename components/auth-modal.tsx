@@ -157,13 +157,21 @@ export function AuthModal({ open, onOpenChange, next }: AuthModalProps) {
           </div>
 
           <form onSubmit={handleMagicLink} className="flex flex-col gap-2">
+            <label htmlFor="auth-magic-email" className="sr-only">
+              Email
+            </label>
             <Input
+              id="auth-magic-email"
+              name="email"
               type="email"
+              inputMode="email"
+              autoComplete="email"
+              spellCheck={false}
               required
               placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="h-10 rounded-xl border-border/60 bg-background text-foreground"
+              className="h-11 rounded-xl border-border/60 bg-background text-foreground"
             />
             <Button
               type="submit"

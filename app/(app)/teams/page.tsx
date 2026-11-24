@@ -24,7 +24,7 @@ export default function TeamsBrowsePage() {
   return (
     <>
       <Navbar />
-      <Suspense fallback={<div className="min-h-screen" />}>
+      <Suspense fallback={<div className="min-h-dvh" />}>
         <HomeShell />
       </Suspense>
     </>

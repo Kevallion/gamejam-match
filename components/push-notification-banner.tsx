@@ -30,7 +30,7 @@ export function PushNotificationBanner() {
           className="shrink-0 gap-2 bg-teal text-teal-foreground hover:bg-teal/90"
         >
           <Bell className="size-4" />
-          {isActivating ? 'Activating...' : 'Enable notifications'}
+          {isActivating ? 'Activating…' : 'Enable notifications'}
         </Button>
       </div>
     </div>

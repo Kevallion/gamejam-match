@@ -96,6 +96,8 @@ export function AppShell({
       />
 
       <main
+        id="main-content"
+        tabIndex={-1}
         className={cn(
           "mx-auto flex w-full min-w-0 max-w-6xl flex-1 flex-col px-4 lg:px-6 xl:px-10",
           BENTO_HOTBAR_OFFSET_CLASS,

@@ -828,7 +828,7 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
                 {saving ? (
                   <>
                     <AppIcon icon={ICON.loading} size="sm" className="animate-spin" />
-                    Saving...
+                    Saving…
                   </>
                 ) : (
                   <>
@@ -989,7 +989,7 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
               {deletingAccount ? (
                 <>
                   <AppIcon icon={ICON.loading} size="sm" className="animate-spin" />
-                  Deleting...
+                  Deleting…
                 </>
               ) : (
                 "Yes, delete my account"

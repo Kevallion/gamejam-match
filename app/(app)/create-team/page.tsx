@@ -3,6 +3,7 @@ import { Navbar } from "@/components/navbar"
 import { CreateTeamForm } from "@/components/create-team-form"
 import { PenLine } from "lucide-react"
 import type { Metadata } from "next"
+import { MainRegion } from "@/components/main-region"
 
 export const metadata: Metadata = {
   title: "Form a Squad — GameJamCrew",
@@ -25,7 +26,7 @@ export default function CreateTeamPage() {
   return (
     <div className="flex min-h-dvh flex-col">
       <Navbar />
-      <main className="flex-1">
+      <MainRegion className="flex-1">
         <section className="relative px-4 pb-4 pt-14 lg:px-6 lg:pt-20 lg:pb-6">
 <div className="relative mx-auto max-w-xl text-left">
             <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-pink/30 bg-pink px-4 py-2 text-sm font-medium text-pink-foreground">
@@ -52,7 +53,7 @@ export default function CreateTeamPage() {
             </Suspense>
           </div>
         </section>
-      </main>
+      </MainRegion>
     </div>
   )
 }

@@ -20,17 +20,17 @@ export function FeedbackButton() {
   }
 
   return (
-    <div className="feedback-fab fixed z-50 hidden min-[768px]:block">
+    <div className="feedback-fab fixed z-50">
       <Tooltip delayDuration={300}>
         <TooltipTrigger asChild>
           <a
             href={FEEDBACK_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex size-12 shrink-0 items-center justify-center rounded-full bg-secondary text-secondary-foreground shadow-lg ring-1 ring-border/40 transition-colors motion-reduce:transition-none hover:bg-secondary hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background touch-manipulation"
+            className="flex size-12 shrink-0 items-center justify-center rounded-full bg-secondary text-secondary-foreground shadow-lg ring-1 ring-border/40 transition-[transform,background-color] motion-reduce:transition-none motion-reduce:transform-none hover:bg-secondary hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             aria-label="Report a bug / Suggestion"
           >
-            <MessageSquareText className="size-5" />
+            <MessageSquareText className="size-5" aria-hidden="true" />
           </a>
         </TooltipTrigger>
         <TooltipContent side="left" sideOffset={10}>

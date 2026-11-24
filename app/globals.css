@@ -5,6 +5,31 @@
 /* Pixel width, not rem: Tailwind xl is 80rem and can fire before 1280px. */
 @custom-variant app-desktop (@media (min-width: 1280px));
 
+:root,
+html.dark {
+  color-scheme: dark;
+}
+html.light {
+  color-scheme: light;
+}
+
+html {
+  scroll-padding-top: 5rem;
+}
+
+button,
+a,
+[role="button"] {
+  touch-action: manipulation;
+}
+
+[data-slot="dialog-content"],
+[data-slot="sheet-content"],
+[data-slot="drawer-content"],
+[role="dialog"] {
+  overscroll-behavior: contain;
+}
+
 /* Warm indie dark mode - itch.io / GDQuest inspired (défaut et .dark) */
 :root,
 .dark {

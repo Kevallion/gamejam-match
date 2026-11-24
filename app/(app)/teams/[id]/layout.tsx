@@ -20,7 +20,7 @@ export async function generateMetadata({
 
   const title = `${team.team_name} is recruiting! | GameJamCrew`
   const description = team.description
-    ? team.description.substring(0, 150) + "..."
+    ? team.description.substring(0, 150) + "?"
     : `Join ${team.team_name} for the ${team.game_name ?? "game jam"} jam!`
 
   return {
