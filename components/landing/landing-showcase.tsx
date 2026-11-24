@@ -23,7 +23,7 @@ export function LandingShowcase() {
             <Gamepad2 className="size-4 text-teal" />
             Your Command Center
           </div>
-          <h2 className="text-balance text-3xl font-extrabold tracking-tight text-foreground md:text-4xl lg:text-5xl">
+          <h2 className="text-balance font-display text-3xl font-extrabold tracking-tight text-foreground md:text-4xl">
             Manage your squads{" "}
             <span className="text-teal">in one place.</span>
           </h2>

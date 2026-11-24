@@ -92,9 +92,8 @@ export function LandingHero({
             </div>
 
             {/* Headline */}
-            <h1 className="text-balance text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl md:text-6xl">
-              Find your Game Jam squad in{" "}
-              <span className="text-teal">3 clicks.</span>
+            <h1 className="text-balance font-display text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl">
+              Find your Game Jam squad in 3 clicks.
             </h1>
 
             {/* Subheadline */}
@@ -134,7 +133,7 @@ export function LandingHero({
 
             {featuredTeams.length > 0 && (
               <div className="mt-7 space-y-2.5">
-                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                <p className="text-sm font-bold text-muted-foreground">
                   Active squads right now
                 </p>
                 <div className="grid gap-2 sm:grid-cols-2">

@@ -60,7 +60,7 @@ export function LandingFeatures() {
             <span className="text-pink">⚔️</span>
             Your Quest Toolkit
           </div>
-          <h2 className="text-balance text-3xl font-extrabold tracking-tight text-foreground md:text-4xl lg:text-5xl">
+          <h2 className="text-balance font-display text-3xl font-extrabold tracking-tight text-foreground md:text-4xl">
             Three features. One{" "}
             <span className="text-teal">finished game.</span>
           </h2>

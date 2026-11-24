@@ -53,7 +53,7 @@ export function LandingHowItWorks() {
             <Sparkles className="size-4 text-lavender" />
             Simple Process
           </div>
-          <h2 className="text-balance text-3xl font-extrabold tracking-tight text-foreground md:text-4xl lg:text-5xl">
+          <h2 className="text-balance font-display text-3xl font-extrabold tracking-tight text-foreground md:text-4xl">
             From solo to squad{" "}
             <span className="text-teal">in three steps.</span>
           </h2>

@@ -164,14 +164,14 @@ function NavbarChrome() {
     <>
       {/* Floating Desktop Navbar - Hidden on mobile */}
       <header className="fixed top-4 left-1/2 z-50 hidden w-max max-w-[calc(100vw-2rem)] -translate-x-1/2 px-2 lg:block">
-        <nav className="glass-navbar flex min-w-0 w-full items-center gap-2 overflow-x-auto overflow-y-hidden rounded-2xl px-3 py-2 shadow-lg shadow-black/5 scrollbar-none">
+        <nav className="flex min-w-0 w-full items-center gap-2 overflow-x-auto overflow-y-hidden rounded-2xl border border-border bg-card px-4 py-2 shadow-[3px_3px_0_0_var(--neo-shadow)] scrollbar-none">
           {/* Logo */}
           <Link href="/" aria-label="GameJamCrew home" className="flex shrink-0 items-center gap-2 px-2 text-foreground transition-colors hover:text-primary">
             <div className="flex size-8 items-center justify-center rounded-xl bg-primary/15">
               <Gamepad2 className="size-4 text-primary" />
             </div>
             {/* Wordmark only from xl: keeps the bar within the viewport at lg (1024-1279 px) */}
-            <span className="hidden text-base font-extrabold tracking-tight xl:inline">GameJamCrew</span>
+            <span className="hidden font-display text-base font-extrabold tracking-tight xl:inline">GameJamCrew</span>
           </Link>
 
           {/* Separator */}
@@ -372,7 +372,7 @@ function NavbarChrome() {
             <div className="flex size-8 shrink-0 items-center justify-center rounded-xl bg-primary/15">
               <Gamepad2 className="size-4 text-primary" />
             </div>
-            <span className="truncate text-base font-extrabold tracking-tight">GameJamCrew</span>
+            <span className="truncate font-display text-base font-extrabold tracking-tight">GameJamCrew</span>
           </Link>
 
           {/* Mobile Actions */}
