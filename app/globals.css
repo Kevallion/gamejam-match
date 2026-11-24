@@ -212,8 +212,8 @@
 
 @theme inline {
   /* Aligne Tailwind font-sans avec next/font (variable injectée sur <body>) pour éviter FOUT / CLS */
-  --font-sans: var(--font-atkinson), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-syne), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -320,7 +320,7 @@
   }
 }
 
-/* Stats, counters, XP, team size — Atkinson + fixed-width figures. */
+/* Stats, counters, XP, team size — Nunito + fixed-width figures. */
 @utility text-stat {
   font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
   font-variant-numeric: tabular-nums;

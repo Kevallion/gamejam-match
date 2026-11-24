@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next'
-import { Atkinson_Hyperlegible, Syne } from 'next/font/google'
+import { Nunito } from 'next/font/google'
 import { AuthCallbackHandler } from '@/components/auth-callback-handler'
 import { AuthProvider } from '@/components/auth-provider'
 import { ThemeProvider } from '@/components/theme-provider'
@@ -11,21 +11,13 @@ import { SigningOutCover } from '@/components/auth/signing-out-cover'
 import { BfcacheAuthGuard } from '@/components/auth/bfcache-auth-guard'
 import './globals.css'
 
-const atkinson = Atkinson_Hyperlegible({
+const nunito = Nunito({
   subsets: ['latin'],
-  variable: '--font-atkinson',
-  weight: ['400', '700'],
+  variable: '--font-nunito',
+  weight: ['400', '500', '600', '700', '800'],
   display: 'swap',
-  // Body text, including the 390 LCP paragraph, uses Atkinson.
+  // Single DS-1 face for body and headings (LCP text included).
   preload: true,
-})
-const syne = Syne({
-  subsets: ['latin'],
-  variable: '--font-syne',
-  weight: ['700', '800'],
-  display: 'swap',
-  // Headings swap in; a second preload would compete with the LCP font.
-  preload: false,
 })
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://gamejamcrew.com'
 
@@ -67,7 +59,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${atkinson.variable} ${syne.variable} font-sans antialiased`}
+        className={`${nunito.variable} font-sans antialiased`}
       >
         {/* S1: GA4, GTM and Vercel Analytics load from ConsentProvider only after consent,
             and only on the production deployment (VERCEL_ENV is a Vercel system variable,
