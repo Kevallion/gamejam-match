@@ -92,12 +92,12 @@ export function AppShell({
         onMarkRead={onMarkRead}
         onMarkAllRead={onMarkAllRead}
         onRefetch={onRefetchNotifications}
-        className={cn(isHomeGreeting && "app-desktop:border-0 app-desktop:bg-transparent app-desktop:backdrop-blur-none")}
+        className={cn(isHomeGreeting && "app-desktop:border-0 app-desktop:bg-transparent")}
       />
 
       <main
         className={cn(
-          "mx-auto flex w-full min-w-0 max-w-[1280px] flex-1 flex-col px-4 lg:px-6 xl:px-10",
+          "mx-auto flex w-full min-w-0 max-w-6xl flex-1 flex-col px-4 lg:px-6 xl:px-10",
           BENTO_HOTBAR_OFFSET_CLASS,
         )}
       >

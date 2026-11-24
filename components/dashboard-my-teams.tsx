@@ -256,7 +256,7 @@ export function DashboardMyTeams({
           {teams.map((team) => (
             <Card
               key={team.id}
-              className="group relative flex flex-col rounded-2xl border-border/50 bg-card transition-all duration-200 hover:border-primary/30 hover:shadow-md hover:shadow-primary/5"
+              className="group relative flex flex-col rounded-2xl border-border/50 bg-card transition-colors duration-200 motion-reduce:transition-none hover:border-primary/30 hover:shadow-md hover:shadow-primary/5"
             >
               <CardHeader className="gap-2 pb-0 pt-4 px-4">
                 <div className="flex items-start justify-between gap-2">
@@ -512,7 +512,7 @@ export function DashboardMyTeams({
                   return (
                     <li
                       key={`${teamMatchesContext!.id}-${p.availabilityPostId}`}
-                      className="flex items-center justify-between gap-4 rounded-xl border border-border/50 bg-background/50 p-4 backdrop-blur-sm transition-all hover:border-teal/30 hover:bg-muted/20"
+                      className="flex items-center justify-between gap-4 rounded-xl border border-border/50 bg-background/50 p-4 transition-colors motion-reduce:transition-none hover:border-teal/30 hover:bg-muted/20"
                     >
                       <div className="flex min-w-0 flex-1 items-center gap-4">
                         <UserAvatar

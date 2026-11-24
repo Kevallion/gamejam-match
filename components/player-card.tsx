@@ -327,7 +327,7 @@ export function JammerCard({ player, mySquads, cardClassName }: JammerCardProps)
     <>
       <Dialog>
         <DialogTrigger asChild>
-          <Card className={cn("card-interactive group relative flex w-full cursor-pointer flex-col overflow-hidden py-4 transition-all hover:ring-2 hover:ring-primary/50 sm:py-6", cardClassName)}>
+          <Card className={cn("card-interactive group relative flex w-full cursor-pointer flex-col overflow-hidden py-4 transition-colors motion-reduce:transition-none hover:ring-2 hover:ring-primary/50 sm:py-6", cardClassName)}>
             <CardContent className="flex flex-1 flex-col gap-4 px-4 pt-0 sm:px-6 sm:pt-0">
               {/* Avatar + Username + Share */}
               <div className="flex min-w-0 items-start gap-4">
@@ -611,7 +611,7 @@ export function JammerCard({ player, mySquads, cardClassName }: JammerCardProps)
                   <DropdownMenuTrigger asChild>
                     <Button
                       disabled={allSent}
-                      className="w-full gap-2 rounded-xl bg-primary text-primary-foreground transition-all hover:bg-primary/85"
+                      className="w-full gap-2 rounded-xl bg-primary text-primary-foreground transition-colors motion-reduce:transition-none hover:bg-primary/85"
                     >
                       <Mail className="size-4" />
                       {allSent ? (
@@ -721,7 +721,7 @@ export function JammerCard({ player, mySquads, cardClassName }: JammerCardProps)
                           disabled={loading || statusMsg?.type === "success"}
                           onClick={() => setSelectedRoleIdx(idx)}
                           className={[
-                            "inline-flex items-center gap-2 rounded-full px-3 py-2 text-xs font-semibold transition-all cursor-pointer",
+                            "inline-flex items-center gap-2 rounded-full px-3 py-2 text-xs font-semibold transition-colors motion-reduce:transition-none cursor-pointer",
                             isSelected
                               ? `ring-2 ring-offset-2 ring-offset-card ring-primary ${role.color} scale-105`
                               : "border border-border/70 bg-secondary/40 text-foreground hover:border-primary/40",
@@ -796,7 +796,7 @@ export function JammerCard({ player, mySquads, cardClassName }: JammerCardProps)
             <Button
               onClick={handleSendInvite}
               disabled={loading || statusMsg?.type === "success" || message.length === 0 || !selectedRole}
-              className="gap-2 rounded-xl bg-primary font-bold text-primary-foreground transition-all hover:bg-primary/85 disabled:opacity-50 sm:h-11"
+              className="gap-2 rounded-xl bg-primary font-bold text-primary-foreground transition-colors motion-reduce:transition-none hover:bg-primary/85 disabled:opacity-50 sm:h-11"
             >
               {loading ? (
                 <LoaderCircle className="size-4 animate-spin" />

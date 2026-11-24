@@ -388,7 +388,7 @@ function DashboardRecentActivity({
   items: NormalizedNotificationFeedItem[]
 }) {
   return (
-    <Card className="border-border/40 bg-card/70 shadow-sm backdrop-blur-sm">
+    <Card className="border-border/40 bg-card shadow-sm">
       <CardContent className="space-y-3 p-4">
         <div className="flex items-center justify-between gap-3">
           <p className="text-sm font-bold text-foreground">Recent activity</p>

@@ -429,7 +429,7 @@ export function JoinTeamModal({
                       disabled={role.filled || loading || statusMsg?.type === "success"}
                       onClick={() => !role.filled && setSelectedRoleIdx(idx)}
                       className={[
-                        "inline-flex items-center gap-2 rounded-full px-3 py-2 text-xs font-semibold transition-all",
+                        "inline-flex items-center gap-2 rounded-full px-3 py-2 text-xs font-semibold transition-colors motion-reduce:transition-none",
                         role.filled
                           ? "cursor-not-allowed opacity-40 line-through bg-muted text-muted-foreground"
                           : isSelected
@@ -525,7 +525,7 @@ export function JoinTeamModal({
             isOwnTeam ||
             hasPendingApplication
           }
-          className="gap-2 rounded-xl bg-primary font-bold text-primary-foreground transition-all hover:bg-primary/90 disabled:opacity-50 sm:h-11"
+          className="gap-2 rounded-xl bg-primary font-bold text-primary-foreground transition-colors motion-reduce:transition-none hover:bg-primary/90 disabled:opacity-50 sm:h-11"
         >
           {loading ? (
             <LoaderCircle className="size-4 animate-spin" />

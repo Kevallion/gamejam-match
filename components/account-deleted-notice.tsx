@@ -41,7 +41,7 @@ export function AccountDeletedNotice() {
         role="status"
         aria-live="polite"
         aria-labelledby="account-deleted-title"
-        className="pointer-events-auto flex w-full max-w-md items-start gap-3 rounded-2xl border border-mint/40 bg-card/95 p-4 shadow-lg shadow-black/20 backdrop-blur-md"
+        className="pointer-events-auto flex w-full max-w-md items-start gap-3 rounded-2xl border border-mint/40 bg-card p-4 shadow-lg shadow-black/20"
       >
         <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-[color-mix(in_oklab,var(--mint)_14%,transparent)]">
           <AppIcon icon={ICON.done} tone="mint" />

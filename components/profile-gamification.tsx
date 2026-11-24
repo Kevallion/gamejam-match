@@ -295,7 +295,7 @@ function GamificationBadgeGrid({
             type={onSelectBadge ? "button" : undefined}
             onClick={onSelectBadge ? () => onSelectBadge(badgeId) : undefined}
             className={cn(
-              "relative flex min-w-0 flex-col gap-1 rounded-2xl border p-4 text-left transition-all duration-300",
+              "relative flex min-w-0 flex-col gap-1 rounded-2xl border p-4 text-left transition-colors duration-200 motion-reduce:transition-none",
               unlocked ? meta.unlocked : meta.locked,
               !unlocked && "border-dashed opacity-[0.72] saturate-[0.9]",
               onSelectBadge && "card-interactive cursor-pointer hover:ring-2 hover:ring-primary/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
@@ -383,7 +383,7 @@ function AchievementsBadgesSections({
                   key={badgeId}
                   type="button"
                   onClick={() => onSelectBadge(badgeId)}
-                  className="card-interactive relative flex min-w-0 flex-col items-center gap-2 rounded-2xl border border-border/50 bg-card/70 p-3 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                  className="card-interactive relative flex min-w-0 flex-col items-center gap-2 rounded-2xl border border-border/50 bg-card p-3 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
                 >
                   {isNew ? (
                     <span className="absolute right-2 top-2 rounded-md bg-teal px-2 py-0.5 text-base font-bold uppercase tracking-wide text-teal-foreground">
@@ -419,7 +419,7 @@ function AchievementsBadgesSections({
                   <button
                     type="button"
                     onClick={() => onSelectBadge(badgeId)}
-                    className="card-interactive flex w-full min-w-0 items-center gap-3 rounded-2xl border border-border/50 bg-card/70 p-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                    className="card-interactive flex w-full min-w-0 items-center gap-3 rounded-2xl border border-border/50 bg-card p-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
                   >
                     <BadgeProgressRing percent={percent}>
                       <BadgeMedallion badgeId={badgeId} rarity={meta.rarity} size="sm" locked />
@@ -837,7 +837,7 @@ export function ProfileGamification({
     return (
       <Card
         className={cn(
-          "overflow-hidden border-border/60 bg-card/80 shadow-lg shadow-primary/5 backdrop-blur-sm",
+          "overflow-hidden border-border/60 bg-card shadow-lg shadow-primary/5",
           className,
         )}
       >
@@ -944,14 +944,10 @@ export function ProfileGamification({
   return (
     <Card
       className={cn(
-        "relative overflow-hidden border-border/60 bg-card/90 shadow-xl shadow-teal/5 backdrop-blur-sm",
+        "relative overflow-hidden border-border/60 bg-card shadow-xl shadow-teal/5",
         className,
       )}
     >
-      <div
-        className="pointer-events-none absolute -right-20 -top-20 size-56 rounded-full bg-gradient-to-br from-teal/15 via-lavender/10 to-pink/10 blur-3xl"
-        aria-hidden
-      />
       <CardHeader className="relative space-y-0 pb-2 pt-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="flex items-center gap-3">

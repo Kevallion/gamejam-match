@@ -637,7 +637,7 @@ export default function TeamManagePage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen flex-col bg-background">
+      <div className="flex min-h-dvh flex-col bg-background">
         <Navbar />
         <div className="flex flex-1 flex-col items-center justify-center gap-3">
           <LoaderCircle className="size-6 animate-spin text-primary" />
@@ -649,7 +649,7 @@ export default function TeamManagePage() {
 
   if (!isOwner || !team) {
     return (
-      <div className="flex min-h-screen flex-col bg-background">
+      <div className="flex min-h-dvh flex-col bg-background">
         <Navbar />
         <main className="flex-1 px-4 py-16 lg:px-6">
           <div className="mx-auto max-w-2xl">
@@ -675,15 +675,11 @@ export default function TeamManagePage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-dvh flex-col">
       <Navbar />
       <main className="flex-1">
         <section className="relative overflow-hidden px-4 pb-8 pt-16 lg:px-6 lg:pt-24 lg:pb-12">
-          <div className="pointer-events-none absolute inset-0 opacity-30" aria-hidden="true">
-            <div className="absolute left-1/2 top-0 size-[600px] -translate-x-1/2 -translate-y-1/3 rounded-full bg-peach/20 blur-[120px]" />
-            <div className="absolute right-0 top-1/2 size-[400px] -translate-y-1/2 rounded-full bg-teal/15 blur-[100px]" />
-          </div>
-          <div className="relative mx-auto max-w-4xl">
+<div className="relative mx-auto max-w-4xl">
             <Button
               asChild
               variant="ghost"

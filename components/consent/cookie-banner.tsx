@@ -27,7 +27,7 @@ export function CookieBanner({ onAcceptAll, onRejectAll, onCustomize }: CookieBa
       aria-describedby="cookie-banner-desc"
       className="pointer-events-none fixed inset-x-0 bottom-0 z-[45] p-3 sm:p-4"
     >
-      <div className="pointer-events-auto mx-auto flex max-w-3xl flex-col gap-3 rounded-2xl border border-border/60 bg-card/95 p-4 shadow-lg shadow-black/20 backdrop-blur-md sm:flex-row sm:items-center sm:gap-4">
+      <div className="pointer-events-auto mx-auto flex max-w-3xl flex-col gap-3 rounded-2xl border border-border/60 bg-card p-4 shadow-lg shadow-black/20 sm:flex-row sm:items-center sm:gap-4">
         <div className="flex min-w-0 flex-1 items-start gap-3">
           <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-[color-mix(in_oklab,var(--peach)_14%,transparent)]">
             <AppIcon icon={ICON.cookies} tone="peach" />

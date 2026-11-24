@@ -489,45 +489,21 @@
   .level-badge-animated {
     position: relative;
     overflow: hidden;
-    animation: level-badge-glow 3.2s ease-in-out infinite;
   }
 
-  .level-badge-animated::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-      105deg,
-      transparent 0%,
-      oklch(0.95 0.02 280 / 0.08) 42%,
-      oklch(0.95 0.02 280 / 0.22) 50%,
-      oklch(0.95 0.02 280 / 0.08) 58%,
-      transparent 100%
-    );
-    animation: level-badge-shine 4.5s ease-in-out infinite;
-    pointer-events: none;
+  @media (prefers-reduced-motion: reduce) {
+    .level-badge-animated,
+    .level-badge-animated::after {
+      animation: none !important;
+    }
   }
 
-  /* Glassmorphism utilities */
-  .glass {
-    background: oklch(0.22 0.025 280 / 0.7);
-    backdrop-filter: blur(16px) saturate(1.2);
-    -webkit-backdrop-filter: blur(16px) saturate(1.2);
-    border: 1px solid oklch(0.40 0.03 280 / 0.3);
-  }
-
-  .glass-light {
-    background: oklch(1 0 0 / 0.7);
-    backdrop-filter: blur(16px) saturate(1.2);
-    -webkit-backdrop-filter: blur(16px) saturate(1.2);
-    border: 1px solid oklch(0.90 0.02 280 / 0.5);
-  }
-
+  /* Solid stamped surfaces — no glass / backdrop-filter (LCP + anti-slop) */
+  .glass,
+  .glass-light,
   .light .glass {
-    background: oklch(1 0 0 / 0.7);
-    backdrop-filter: blur(16px) saturate(1.2);
-    -webkit-backdrop-filter: blur(16px) saturate(1.2);
-    border: 1px solid oklch(0.90 0.02 280 / 0.5);
+    background: var(--card);
+    border: 1px solid var(--border);
   }
 
   /* Navbar: opaque surface (no backdrop blur / glass) */
@@ -536,18 +512,10 @@
     border: 1px solid var(--border);
   }
 
-  .glass-card {
-    background: oklch(0.22 0.025 280 / 0.6);
-    backdrop-filter: blur(12px) saturate(1.15);
-    -webkit-backdrop-filter: blur(12px) saturate(1.15);
-    border: 1px solid oklch(0.40 0.03 280 / 0.25);
-  }
-
+  .glass-card,
   .light .glass-card {
-    background: oklch(1 0 0 / 0.65);
-    backdrop-filter: blur(12px) saturate(1.15);
-    -webkit-backdrop-filter: blur(12px) saturate(1.15);
-    border: 1px solid oklch(0.90 0.02 280 / 0.4);
+    background: var(--card);
+    border: 1px solid var(--border);
   }
 
   /* Scrollable tabs for mobile */

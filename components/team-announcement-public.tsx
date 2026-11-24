@@ -271,7 +271,7 @@ export function TeamAnnouncementPublic({
                     ownerUserId={team.user_id}
                     autoOpen={applyIntent}
                   >
-                    <Button className="w-full gap-2 rounded-xl bg-primary text-primary-foreground transition-all hover:bg-primary/85 active:scale-[0.98]">
+                    <Button className="w-full gap-2 rounded-xl bg-primary text-primary-foreground transition-colors motion-reduce:transition-none hover:bg-primary/85 active:scale-[0.98]">
                       Apply
                       <ArrowRight className="size-4" />
                     </Button>

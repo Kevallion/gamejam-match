@@ -373,7 +373,7 @@ export function OnboardingModal({ open, onOpenChange, profile, dismissible = fal
                       setStep(2)
                     }}
                     className={cn(
-                      "h-auto min-h-[5rem] flex-col items-start justify-between whitespace-normal rounded-2xl border-border/60 p-4 py-4 text-left transition-all",
+                      "h-auto min-h-[5rem] flex-col items-start justify-between whitespace-normal rounded-2xl border-border/60 p-4 py-4 text-left transition-colors motion-reduce:transition-none",
                       "hover:border-lavender/60 hover:bg-lavender/5 hover:shadow-[3px_3px_0_0_var(--neo-shadow)]",
                       isActive && "border-lavender bg-lavender/10 shadow-[3px_3px_0_0_var(--neo-shadow)]"
                     )}

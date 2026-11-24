@@ -68,7 +68,7 @@ function HubRow({
   )
 
   const className =
-    "flex min-h-11 items-center gap-3 rounded-xl px-2 py-3 transition-colors hover:bg-white/5"
+    "flex min-h-11 items-center gap-3 rounded-xl px-2 py-3 transition-colors hover:bg-muted"
 
   if (onClick) {
     return (

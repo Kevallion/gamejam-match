@@ -110,7 +110,7 @@ export function DashboardIncomingApplications({
             <Card
               key={app.id}
               id={`inbox-request-${app.id}`}
-              className="group relative overflow-hidden rounded-2xl border-border/50 bg-card transition-all duration-300 hover:border-mint/30 hover:shadow-lg hover:shadow-mint/5 scroll-mt-24"
+              className="group relative overflow-hidden rounded-2xl border-border/50 bg-card transition-colors duration-200 motion-reduce:transition-none hover:border-mint/30 hover:shadow-lg hover:shadow-mint/5 scroll-mt-24"
             >
               {/* Subtle top accent line */}
               <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-mint/60 via-teal/40 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
@@ -123,7 +123,7 @@ export function DashboardIncomingApplications({
                       src={app.avatar_url}
                       fallbackName={app.username}
                       size="md"
-                      className="shrink-0 ring-2 ring-mint/20 transition-all duration-300 group-hover:ring-mint/40"
+                      className="shrink-0 ring-2 ring-mint/20 transition-colors duration-200 motion-reduce:transition-none group-hover:ring-mint/40"
                     />
                     {/* Online-style dot */}
                     <span className="absolute -bottom-0.5 -right-0.5 size-3.5 rounded-full border-2 border-card bg-mint" />
@@ -176,7 +176,7 @@ export function DashboardIncomingApplications({
                   <Button
                     onClick={() => onAccept(app.id)}
                     aria-label={`Accept application from ${app.username}`}
-                    className="gap-2 rounded-xl bg-green-600 px-5 text-white shadow-md shadow-green-500/20 transition-all hover:bg-green-700 hover:shadow-lg hover:shadow-green-500/30"
+                    className="gap-2 rounded-xl bg-green-600 px-5 text-white shadow-md shadow-green-500/20 transition-colors motion-reduce:transition-none hover:bg-green-700 hover:shadow-lg hover:shadow-green-500/30"
                   >
                     <Check className="size-4" />
                     Accept
@@ -185,7 +185,7 @@ export function DashboardIncomingApplications({
                     variant="outline"
                     onClick={() => onDecline(app.id)}
                     aria-label={`Decline application from ${app.username}`}
-                    className="gap-2 rounded-xl border-red-500/50 px-5 text-red-600 transition-all hover:border-red-500 hover:bg-red-500/10 hover:text-red-700"
+                    className="gap-2 rounded-xl border-red-500/50 px-5 text-red-600 transition-colors motion-reduce:transition-none hover:border-red-500 hover:bg-red-500/10 hover:text-red-700"
                   >
                     <X className="size-4" />
                     Decline

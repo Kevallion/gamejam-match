@@ -169,7 +169,7 @@ export function TeamCard({
       ownerUserId={team.user_id}
       isRecommended={isRecommended}
     >
-      <Button className="w-full gap-2 rounded-xl bg-primary text-primary-foreground transition-all hover:bg-primary/85 hover:gap-3">
+      <Button className="w-full gap-2 rounded-xl bg-primary text-primary-foreground transition-colors motion-reduce:transition-none hover:bg-primary/85">
         Apply
         <ArrowRight className="size-4" />
       </Button>
@@ -307,7 +307,7 @@ export function TeamCard({
           }
         }}
         className={cn(
-          "card-interactive group relative flex h-full cursor-pointer flex-col rounded-2xl border border-border bg-card p-6 shadow-[3px_3px_0_0_var(--neo-shadow)] outline-none transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+          "card-interactive group relative flex h-full cursor-pointer flex-col rounded-2xl border border-border bg-card p-6 shadow-[3px_3px_0_0_var(--neo-shadow)] outline-none transition-colors motion-reduce:transition-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
           isRecommended && "border-teal",
         )}
       >

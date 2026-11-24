@@ -84,7 +84,7 @@ export function LandingHero({
         <div className="flex flex-col items-center gap-12 lg:flex-row lg:items-center lg:gap-16">
 
           {/* ── Left column: copy ── */}
-          <div className="flex-1 text-center lg:text-left">
+          <div className="flex-1 text-left">
             {/* Badge */}
             <div className="mb-5 inline-flex items-center gap-2 rounded-full border-2 border-foreground bg-card px-4 py-2 text-sm font-bold text-foreground shadow-[3px_3px_0px_0px_var(--neo-shadow)]">
               <Sword className="size-4 text-teal" />
@@ -97,7 +97,7 @@ export function LandingHero({
             </h1>
 
             {/* Subheadline */}
-            <p className="mx-auto mt-5 max-w-xl text-pretty text-lg leading-relaxed text-muted-foreground lg:mx-0">
+            <p className="mt-5 max-w-xl text-pretty text-lg leading-relaxed text-muted-foreground">
               Skip the scattered Discord servers. Meet developers, artists and audio
               creators for your next jam, whether you&apos;re earning XP or building a portfolio.
             </p>

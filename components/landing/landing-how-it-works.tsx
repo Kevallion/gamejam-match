@@ -48,7 +48,7 @@ export function LandingHowItWorks() {
     >
       <div className="relative mx-auto max-w-6xl">
         {/* Section header */}
-        <div className="mb-14 flex flex-col items-center text-center">
+        <div className="mb-14 flex flex-col items-start text-left">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border-2 border-foreground bg-card px-4 py-2 text-sm font-bold text-foreground shadow-[3px_3px_0px_0px_var(--neo-shadow)]">
             <Sparkles className="size-4 text-lavender" />
             Simple Process
@@ -57,7 +57,7 @@ export function LandingHowItWorks() {
             From solo to squad{" "}
             <span className="text-teal">in three steps.</span>
           </h2>
-          <p className="mx-auto mt-4 max-w-lg text-pretty text-lg leading-relaxed text-muted-foreground">
+          <p className="mt-4 max-w-lg text-pretty text-lg leading-relaxed text-muted-foreground">
             Getting started is easy. Create a profile, find your perfect team, and start jamming.
           </p>
         </div>
@@ -112,7 +112,7 @@ export function LandingHowItWorks() {
         </div>
 
         {/* Bottom tagline */}
-        <p className="mt-14 text-center text-sm font-medium text-muted-foreground">
+        <p className="mt-14 text-left text-base font-medium text-muted-foreground">
           No endless forms.{" "}
           <span className="font-bold text-foreground">
             Start building your dream team in minutes.

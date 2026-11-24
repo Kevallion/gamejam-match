@@ -24,7 +24,7 @@ export function SectionAnchorNav({ items, activeId, className }: SectionAnchorNa
     <nav
       aria-label="Section navigation"
       className={cn(
-        "sticky top-[68px] z-20 flex gap-1 overflow-x-auto rounded-2xl border border-border/40 bg-card/85 p-1 shadow-sm backdrop-blur-md scrollbar-none md:top-[76px]",
+        "sticky top-[68px] z-20 flex gap-1 overflow-x-auto rounded-2xl border border-border/40 bg-card/85 p-1 shadow-sm scrollbar-none md:top-[76px]",
         className,
       )}
     >

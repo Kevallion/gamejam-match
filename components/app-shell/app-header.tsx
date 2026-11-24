@@ -49,7 +49,7 @@ function ThemeButton() {
           <span className="relative flex size-4">
             <svg
               viewBox="0 0 24 24"
-              className="size-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 motion-reduce:transition-none"
+              className="size-4 rotate-0 scale-100 transition-transform motion-reduce:transition-none dark:-rotate-90 dark:scale-0 motion-reduce:transition-none"
               fill="none"
               stroke="currentColor"
               strokeWidth="2"
@@ -60,7 +60,7 @@ function ThemeButton() {
             </svg>
             <svg
               viewBox="0 0 24 24"
-              className="absolute inset-0 size-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 motion-reduce:transition-none"
+              className="absolute inset-0 size-4 rotate-90 scale-0 transition-transform motion-reduce:transition-none dark:rotate-0 dark:scale-100 motion-reduce:transition-none"
               fill="none"
               stroke="currentColor"
               strokeWidth="2"
@@ -136,7 +136,7 @@ export function AppHeader({
         className,
       )}
     >
-      <div className="relative mx-auto flex h-14 w-full max-w-[1280px] items-center gap-2 px-3 app-desktop:h-16 app-desktop:gap-3 app-desktop:px-6 xl:px-10">
+      <div className="relative mx-auto flex h-14 w-full max-w-6xl items-center gap-2 px-3 app-desktop:h-16 app-desktop:gap-3 app-desktop:px-6 xl:px-10">
         <Link
           href="/dashboard"
           className="flex size-11 shrink-0 items-center justify-center rounded-xl app-desktop:w-auto app-desktop:gap-2 app-desktop:justify-start"

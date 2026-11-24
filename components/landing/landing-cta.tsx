@@ -25,9 +25,9 @@ export function LandingCTA() {
           <div className="absolute inset-0 translate-x-3 translate-y-3 rounded-2xl border-2 border-teal opacity-50" />
 
           {/* Card */}
-          <div className="relative rounded-2xl border-2 border-foreground bg-card p-8 md:p-12 lg:p-16 text-center">
+          <div className="relative rounded-2xl border-2 border-foreground bg-card p-8 text-left md:p-12 lg:p-16">
             {/* Floating badge */}
-            <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+            <div className="absolute -top-4 left-8">
               <div className="inline-flex items-center gap-2 rounded-full border-2 border-foreground bg-card px-4 py-2 text-sm font-bold text-foreground shadow-[3px_3px_0px_0px_var(--neo-shadow)]">
                 <Sword className="size-4 text-teal" />
                 Your next jam awaits
@@ -35,7 +35,7 @@ export function LandingCTA() {
             </div>
 
             {/* Icon */}
-            <div className="mx-auto mb-6 flex size-20 items-center justify-center rounded-xl border-2 border-teal/30 bg-teal/10">
+            <div className="mb-6 flex size-20 items-center justify-center rounded-xl border-2 border-teal/30 bg-teal/10">
               <Gamepad2 className="size-10 text-teal" />
             </div>
 
@@ -47,13 +47,13 @@ export function LandingCTA() {
             </h2>
 
             {/* Description */}
-            <p className="mx-auto mt-4 max-w-xl text-pretty text-lg leading-relaxed text-muted-foreground">
+            <p className="mt-4 max-w-xl text-pretty text-lg leading-relaxed text-muted-foreground">
               Join hundreds of indie developers, artists, and designers already building games together on
               GameJamCrew.
             </p>
 
             {/* CTA Buttons */}
-            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <div className="mt-8 flex flex-col items-stretch justify-start gap-3 sm:flex-row sm:items-center">
               <Button
                 asChild
                 size="lg"

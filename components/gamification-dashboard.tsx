@@ -94,7 +94,7 @@ export function GamificationDashboardCompact({
   return (
     <div
       className={cn(
-        "overflow-hidden rounded-2xl border border-border/50 bg-white/[0.05] shadow-sm backdrop-blur-xl light:bg-white/70 light:shadow-md dark:bg-slate-900/45",
+        "overflow-hidden rounded-2xl border border-border bg-card shadow-[3px_3px_0_0_var(--neo-shadow)]",
         className,
       )}
     >
@@ -138,7 +138,7 @@ export type GamificationDashboardProps = {
 
 function GamificationDashboardFullSkeleton({ className }: { className?: string }) {
   return (
-    <Card className={cn("border-border/50 bg-white/[0.05] backdrop-blur-xl light:bg-white/70 dark:bg-slate-900/45", className)}>
+    <Card className={cn("border-border bg-card shadow-[3px_3px_0_0_var(--neo-shadow)]", className)}>
       <CardContent className="p-6">
         <div className="animate-pulse space-y-4">
           <div className="h-10 w-40 rounded-lg bg-muted" />
@@ -203,7 +203,7 @@ export function GamificationDashboardFull({
 
   return (
     <div className={cn("flex min-w-0 max-w-full flex-col gap-3", className)}>
-      <Card className="relative min-h-[92px] min-w-0 max-w-full overflow-hidden border-border/50 bg-white/[0.05] shadow-sm shadow-teal/5 backdrop-blur-xl light:bg-white/70 dark:bg-slate-900/45">
+      <Card className="relative min-h-[92px] min-w-0 max-w-full overflow-hidden border-border bg-card shadow-[3px_3px_0_0_var(--neo-shadow)]">
         <div
           className="pointer-events-none absolute -right-12 -top-12 size-32 rounded-full bg-gradient-to-br from-amber-500/15 via-teal/10 to-peach/10 blur-2xl"
           aria-hidden
@@ -289,7 +289,7 @@ function AchievementsHeaderCard({
   const remaining = progress.xpToNextLevel
 
   return (
-    <Card className="h-auto !gap-0 overflow-hidden border-border/50 bg-card/80 !py-0 shadow-sm">
+    <Card className="h-auto !gap-0 overflow-hidden border-border/50 bg-card !py-0 shadow-sm">
       <CardContent className="space-y-3 p-4 pb-4">
         <div className="flex min-w-0 items-start gap-3">
           <div className="flex size-14 shrink-0 flex-col items-center justify-center rounded-xl border border-amber-500/40 bg-amber-500/10 text-amber-900 dark:text-amber-400">

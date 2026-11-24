@@ -18,7 +18,7 @@ export function LandingShowcase() {
 
       <div className="relative mx-auto max-w-6xl">
         {/* Section header */}
-        <div className="mb-14 flex flex-col items-center text-center">
+        <div className="mb-14 flex flex-col items-start text-left">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border-2 border-foreground bg-card px-4 py-2 text-sm font-bold text-foreground shadow-[3px_3px_0px_0px_var(--neo-shadow)]">
             <Gamepad2 className="size-4 text-teal" />
             Your Command Center
@@ -27,7 +27,7 @@ export function LandingShowcase() {
             Manage your squads{" "}
             <span className="text-teal">in one place.</span>
           </h2>
-          <p className="mx-auto mt-4 max-w-lg text-pretty text-lg leading-relaxed text-muted-foreground">
+          <p className="mt-4 max-w-lg text-pretty text-lg leading-relaxed text-muted-foreground">
             Track applications, communicate with teammates, and level up your jam experience.
           </p>
         </div>

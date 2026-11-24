@@ -77,7 +77,7 @@ export default async function JammerPublicProfilePage({ params }: PageProps) {
   if (!viewer) {
     // Profiles are only readable with a session (S7).
     return (
-      <div className="flex min-h-screen flex-col">
+      <div className="flex min-h-dvh flex-col">
         <Navbar />
         <main className="flex-1 pt-20">
           <SignedOutNotice
@@ -227,11 +227,7 @@ export default async function JammerPublicProfilePage({ params }: PageProps) {
       <Navbar />
       <main className="flex-1">
         <section className="relative overflow-hidden border-b border-border/40 bg-card/30 px-3 pb-8 pt-8 sm:px-4 sm:pb-10 sm:pt-10 lg:px-6 lg:pb-14 lg:pt-28">
-          <div className="pointer-events-none absolute inset-0 opacity-40" aria-hidden>
-            <div className="absolute left-1/4 top-0 size-[420px] -translate-y-1/2 rounded-full bg-teal/15 blur-[100px]" />
-            <div className="absolute bottom-0 right-1/4 size-[380px] translate-y-1/3 rounded-full bg-lavender/15 blur-[90px]" />
-          </div>
-          <div className="relative mx-auto max-w-3xl">
+<div className="relative mx-auto max-w-3xl">
             <Button variant="ghost" size="sm" className="-ml-2 mb-5 gap-2 text-muted-foreground sm:mb-7" asChild>
               <Link href="/find-members">
                 <ArrowLeft className="size-4" />
@@ -239,10 +235,10 @@ export default async function JammerPublicProfilePage({ params }: PageProps) {
               </Link>
             </Button>
             <div className="space-y-4 sm:space-y-5">
-              <p className="text-center text-xs font-semibold uppercase tracking-widest text-muted-foreground sm:text-left">
+              <p className="text-left text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                 Public profile
               </p>
-              <div className="w-full rounded-2xl border border-border/50 bg-card/70 p-4 shadow-lg shadow-primary/5 backdrop-blur-sm sm:p-6">
+              <div className="w-full">
                 <h1 className="sr-only">{displayName}</h1>
                 <ProfileCard
                   avatarUrl={profile.avatar_url ?? null}

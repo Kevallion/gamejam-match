@@ -81,7 +81,7 @@ export function DashboardSquadInvitations({
               <Card
                 key={inv.id}
                 id={`inbox-request-${inv.id}`}
-                className="group relative overflow-hidden rounded-2xl border-border/50 bg-card transition-all duration-300 hover:border-lavender/30 hover:shadow-lg hover:shadow-lavender/5 scroll-mt-24"
+                className="group relative overflow-hidden rounded-2xl border-border/50 bg-card transition-colors duration-200 motion-reduce:transition-none hover:border-lavender/30 hover:shadow-lg hover:shadow-lavender/5 scroll-mt-24"
               >
                 {/* Subtle top accent line */}
                 <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-lavender/60 via-pink/40 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
@@ -101,7 +101,7 @@ export function DashboardSquadInvitations({
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     {/* Squad info */}
                     <div className="flex items-center gap-4">
-                      <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-lavender/10 ring-2 ring-lavender/20 transition-all duration-300 group-hover:ring-lavender/40">
+                      <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-lavender/10 ring-2 ring-lavender/20 transition-colors duration-200 motion-reduce:transition-none group-hover:ring-lavender/40">
                         <Mail className="size-5 text-lavender" />
                       </div>
                       <div className="flex flex-col gap-1">
@@ -141,7 +141,7 @@ export function DashboardSquadInvitations({
                     <div className="flex shrink-0 items-center gap-3">
                       <Button
                         onClick={() => onAccept(inv)}
-                        className="gap-2 rounded-xl bg-green-600 px-5 text-white shadow-md shadow-green-500/20 transition-all hover:bg-green-700 hover:shadow-lg hover:shadow-green-500/30"
+                        className="gap-2 rounded-xl bg-green-600 px-5 text-white shadow-md shadow-green-500/20 transition-colors motion-reduce:transition-none hover:bg-green-700 hover:shadow-lg hover:shadow-green-500/30"
                       >
                         <Check className="size-4" />
                         Accept
@@ -149,7 +149,7 @@ export function DashboardSquadInvitations({
                       <Button
                         variant="outline"
                         onClick={() => onDecline(inv.id)}
-                        className="gap-2 rounded-xl border-red-500/50 px-5 text-red-600 transition-all hover:border-red-500 hover:bg-red-500/10 hover:text-red-700"
+                        className="gap-2 rounded-xl border-red-500/50 px-5 text-red-600 transition-colors motion-reduce:transition-none hover:border-red-500 hover:bg-red-500/10 hover:text-red-700"
                       >
                         <X className="size-4" />
                         Decline

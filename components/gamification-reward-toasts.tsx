@@ -70,7 +70,7 @@ async function showGamificationRewardsAsync(
       icon: <AppIcon icon={ICON.xp} size="lg" tone="lavender" />,
       classNames: {
         toast:
-          "group gamification-toast-xp border-lavender/25 bg-popover/95 backdrop-blur-sm shadow-lg shadow-lavender/10",
+          "group gamification-toast-xp border-lavender/25 bg-popover shadow-lg shadow-lavender/10",
       },
       duration: 3200,
     })
@@ -96,7 +96,7 @@ async function showGamificationRewardsAsync(
       icon: <AppIcon icon={ICON.achievement} size="lg" tone="peach" />,
       classNames: {
         toast:
-          "group gamification-toast-achievement border-peach/40 bg-peach/10 backdrop-blur-sm shadow-lg shadow-peach/15",
+          "group gamification-toast-achievement border-peach/40 bg-peach/10 shadow-lg shadow-peach/15",
       },
       duration: 4500,
     })
@@ -110,7 +110,7 @@ async function showGamificationRewardsAsync(
       classNames: {
         icon: "!h-auto !w-auto !mr-0",
         toast:
-          "group gamification-toast-achievement flex items-center gap-2 border-peach/40 bg-peach/10 backdrop-blur-sm shadow-lg shadow-peach/15",
+          "group gamification-toast-achievement flex items-center gap-2 border-peach/40 bg-peach/10 shadow-lg shadow-peach/15",
       },
       duration: 4500,
     })

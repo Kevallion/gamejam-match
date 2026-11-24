@@ -27,7 +27,7 @@ export function FeedbackButton() {
             href={FEEDBACK_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex size-12 shrink-0 items-center justify-center rounded-full bg-secondary/80 backdrop-blur-sm text-secondary-foreground shadow-lg ring-1 ring-border/40 transition-all hover:bg-secondary hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background touch-manipulation"
+            className="flex size-12 shrink-0 items-center justify-center rounded-full bg-secondary text-secondary-foreground shadow-lg ring-1 ring-border/40 transition-colors motion-reduce:transition-none hover:bg-secondary hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background touch-manipulation"
             aria-label="Report a bug / Suggestion"
           >
             <MessageSquareText className="size-5" />

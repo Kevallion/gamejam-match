@@ -143,7 +143,7 @@ export function BentoCarousel({
               tabIndex={-1}
               onClick={() => scrollToIndex(i)}
               className={cn(
-                "h-1.5 rounded-full transition-all",
+                "h-1.5 rounded-full transition-colors motion-reduce:transition-none",
                 i === index ? "w-[18px] bg-teal" : "w-1.5 bg-border",
               )}
               aria-label={`Go to slide ${i + 1}`}

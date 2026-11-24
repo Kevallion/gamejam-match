@@ -113,7 +113,7 @@ export function DashboardSentOutbox({
               return (
                 <Card
                   key={app.id}
-                  className="rounded-2xl border-border/50 bg-card transition-all duration-300 hover:border-teal/25 hover:shadow-md hover:shadow-teal/5"
+                  className="rounded-2xl border-border/50 bg-card transition-colors duration-200 motion-reduce:transition-none hover:border-teal/25 hover:shadow-md hover:shadow-teal/5"
                 >
                   <CardContent className="flex flex-col gap-4 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
                     <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
@@ -204,7 +204,7 @@ export function DashboardSentOutbox({
               return (
                 <Card
                   key={inv.id}
-                  className="rounded-2xl border-border/50 bg-card transition-all duration-300 hover:border-lavender/25 hover:shadow-md hover:shadow-lavender/5"
+                  className="rounded-2xl border-border/50 bg-card transition-colors duration-200 motion-reduce:transition-none hover:border-lavender/25 hover:shadow-md hover:shadow-lavender/5"
                 >
                   <CardContent className="flex flex-col gap-4 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
                     <div className="flex min-w-0 flex-1 items-start gap-3 sm:items-center">

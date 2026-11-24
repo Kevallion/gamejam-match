@@ -82,7 +82,7 @@ export function useNotifications(userId: string | null) {
               icon: <Trophy className="size-5 shrink-0 text-peach" aria-hidden />,
               classNames: {
                 toast:
-                  "group border-peach/40 bg-peach/10 backdrop-blur-sm shadow-lg shadow-peach/10",
+                  "group border-peach/40 bg-peach/10 shadow-lg shadow-peach/10",
               },
               duration: 5200,
             })

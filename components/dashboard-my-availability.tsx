@@ -60,7 +60,7 @@ function AnnouncementCard({ post, onDelete, onRenew, isRenewing, profileAvatarUr
   const username = post.username || "Anonymous"
 
   return (
-    <Card className="group relative flex flex-col rounded-2xl border-border/50 bg-card transition-all duration-300 hover:border-lavender/30 hover:shadow-lg hover:shadow-lavender/5">
+    <Card className="group relative flex flex-col rounded-2xl border-border/50 bg-card transition-colors duration-200 motion-reduce:transition-none hover:border-lavender/30 hover:shadow-lg hover:shadow-lavender/5">
       <CardContent className="flex flex-1 flex-col gap-4 pt-6">
         {/* Avatar + Username */}
         <div className="flex items-center gap-4">

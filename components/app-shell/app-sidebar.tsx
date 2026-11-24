@@ -86,7 +86,7 @@ export function AppSidebar({
   return (
     <>
       <aside
-        className="sticky top-0 z-30 hidden h-dvh w-[248px] shrink-0 flex-col border-r border-border/50 bg-card/90 backdrop-blur-md lg:flex"
+        className="sticky top-0 z-30 hidden h-dvh w-[248px] shrink-0 flex-col border-r border-border/50 bg-card lg:flex"
         aria-label="App sidebar"
       >
         <div className="flex items-center gap-3 px-4 pt-5">
@@ -131,7 +131,7 @@ export function AppSidebar({
                         "flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-semibold transition-colors",
                         active
                           ? "bg-teal/15 text-teal"
-                          : "text-muted-foreground hover:bg-white/5 hover:text-foreground",
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground",
                       )}
                     >
                       <AppIcon icon={item.icon} size="md" tone={active ? "teal" : undefined} />
@@ -162,8 +162,8 @@ export function AppSidebar({
                       className={cn(
                         "flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-semibold transition-colors",
                         active
-                          ? "bg-white/5 text-foreground"
-                          : "text-muted-foreground hover:bg-white/5 hover:text-foreground",
+                          ? "bg-muted text-foreground"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground",
                       )}
                     >
                       <AppIcon icon={item.icon} size="md" />
@@ -181,7 +181,7 @@ export function AppSidebar({
             href={FEEDBACK_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-muted-foreground hover:bg-white/5 hover:text-foreground"
+            className="flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground"
           >
             <AppIcon icon={ICON.note} size="md" />
             Feedback

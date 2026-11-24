@@ -55,7 +55,7 @@ export function LandingFeatures() {
       <div className="relative mx-auto max-w-6xl">
 
         {/* Section header */}
-        <div className="mb-14 flex flex-col items-center text-center">
+        <div className="mb-14 flex flex-col items-start text-left">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full border-2 border-foreground bg-card px-4 py-2 text-sm font-bold text-foreground shadow-[3px_3px_0px_0px_var(--neo-shadow)]">
             <span className="text-pink">⚔️</span>
             Your Quest Toolkit
@@ -64,7 +64,7 @@ export function LandingFeatures() {
             Three features. One{" "}
             <span className="text-teal">finished game.</span>
           </h2>
-          <p className="mx-auto mt-4 max-w-lg text-pretty text-lg leading-relaxed text-muted-foreground">
+          <p className="mt-4 max-w-lg text-pretty text-lg leading-relaxed text-muted-foreground">
             Everything your squad needs, from the party board to the victory screen.
           </p>
         </div>
@@ -77,7 +77,7 @@ export function LandingFeatures() {
         </div>
 
         {/* Bottom tagline */}
-        <p className="mt-14 text-center text-sm font-medium text-muted-foreground">
+        <p className="mt-14 text-left text-base font-medium text-muted-foreground">
           Built by jammers, for jammers.{" "}
           <span className="font-bold text-foreground">
             No endless scrolling through Discord servers.

@@ -245,7 +245,7 @@ export function TeamDetailClient({ teamId }: { teamId: string }) {
 
   if (viewMode === "loading") {
     return (
-      <div className="flex min-h-screen flex-col bg-background">
+      <div className="flex min-h-dvh flex-col bg-background">
         <Navbar />
         <div className="flex flex-1 flex-col items-center justify-center gap-3">
           <LoaderCircle className="size-6 animate-spin text-primary" />
@@ -257,7 +257,7 @@ export function TeamDetailClient({ teamId }: { teamId: string }) {
 
   if (viewMode === "not_found") {
     return (
-      <div className="flex min-h-screen flex-col bg-background">
+      <div className="flex min-h-dvh flex-col bg-background">
         <Navbar />
         <main className="flex-1 px-4 py-16 lg:px-6 lg:pt-28">
           <div className="mx-auto max-w-2xl">
@@ -293,7 +293,7 @@ export function TeamDetailClient({ teamId }: { teamId: string }) {
   const discordMissing = !squad.discord_link?.trim()
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="flex min-h-dvh flex-col bg-background">
       <Navbar />
       <main className="flex-1 px-4 pb-8 pt-8 lg:px-6 lg:pb-12 lg:pt-28">
         <div className="mx-auto max-w-4xl space-y-6">

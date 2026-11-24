@@ -72,7 +72,7 @@ export function NavRail({
                 aria-current={active ? "page" : undefined}
                 className={cn(
                   "relative flex w-full flex-col items-center gap-1 rounded-2xl px-1 py-2 text-xs font-bold transition-colors",
-                  active ? "bg-teal/15 text-teal" : "text-muted-foreground hover:bg-white/5 hover:text-foreground",
+                  active ? "bg-teal/15 text-teal" : "text-muted-foreground hover:bg-muted hover:text-foreground",
                 )}
               >
                 <span className="relative">
