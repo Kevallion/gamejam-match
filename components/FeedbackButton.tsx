@@ -20,13 +20,7 @@ export function FeedbackButton() {
   }
 
   return (
-    <div
-      className="fixed z-50 hidden md:block"
-      style={{
-        bottom: "max(1.5rem, env(safe-area-inset-bottom, 1.5rem))",
-        right: "max(1.5rem, env(safe-area-inset-right, 1.5rem))",
-      }}
-    >
+    <div className="feedback-fab fixed z-50 hidden min-[768px]:block">
       <Tooltip delayDuration={300}>
         <TooltipTrigger asChild>
           <a

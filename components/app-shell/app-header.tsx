@@ -133,16 +133,16 @@ export function AppHeader({
         className,
       )}
     >
-      <div className="flex h-14 items-center gap-3 px-4 xl:h-16 xl:px-6">
+      <div className="flex h-14 items-center gap-3 px-4 app-desktop:h-16 app-desktop:px-6">
         <div className="min-w-0 flex-1">
           {greetingName ? (
             <div
               className={cn(
                 "flex min-w-0 items-center gap-2.5",
-                hideGreetingDesktop && "xl:hidden",
+                hideGreetingDesktop && "app-desktop:hidden",
               )}
             >
-              <span className="grid size-9 shrink-0 place-items-center rounded-xl border border-border bg-primary text-primary-foreground shadow-[3px_3px_0_0_var(--neo-shadow)] xl:hidden">
+              <span className="grid size-9 shrink-0 place-items-center rounded-xl border border-border bg-primary text-primary-foreground shadow-[3px_3px_0_0_var(--neo-shadow)] app-desktop:hidden">
                 <AppIcon icon={ICON.jam} size="md" className="text-primary-foreground" />
               </span>
               <div className="min-w-0">
@@ -158,7 +158,7 @@ export function AppHeader({
 
           {!greetingName ? (
             <div className="min-w-0">
-              <h1 className="truncate text-xl font-bold tracking-tight text-foreground xl:text-[22px]">
+              <h1 className="truncate text-xl font-bold tracking-tight text-foreground app-desktop:text-[22px]">
                 {title}
               </h1>
               {subtitle ? (

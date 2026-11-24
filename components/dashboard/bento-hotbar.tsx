@@ -76,7 +76,7 @@ export function BentoHotbar({ inboxCount = 0, availabilityCount = 0 }: BentoHotb
     <>
       {/* Desktop dock (xl, 1280+) */}
       <nav
-        className="pointer-events-none fixed inset-x-0 bottom-0 z-40 hidden justify-center pb-[max(var(--app-hotbar-inset),env(safe-area-inset-bottom,0px))] xl:flex"
+        className="pointer-events-none fixed inset-x-0 bottom-0 z-40 hidden justify-center pb-[max(var(--app-hotbar-inset),env(safe-area-inset-bottom,0px))] app-desktop:flex"
         aria-label="Main"
       >
         <div
@@ -131,7 +131,7 @@ export function BentoHotbar({ inboxCount = 0, availabilityCount = 0 }: BentoHotb
       {/* Mobile floating tab bar */}
       <nav
         className={cn(
-          "fixed z-40 flex items-center justify-between xl:hidden",
+          "fixed z-40 flex items-center justify-between app-desktop:hidden",
           "left-3 right-3 rounded-3xl border border-border bg-card",
           "shadow-[3px_3px_0_0_var(--neo-shadow)]",
           "h-[68px] px-2",
