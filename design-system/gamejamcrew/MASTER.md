@@ -105,8 +105,12 @@ Recruitment / “open role” badges use the role tokens below. Action buttons u
   This is the DS-1 typography pair, used for titles and for body.
 - Loaded with `next/font`, `display: "swap"`, `subsets: ["latin"]`. Preload Nunito
   (single family, including LCP text). Do not add a second family or preload.
-- Body size ≥ 16px. Tags and small text ≥ 12px (`text-xs`). No `text-[10px]` on readable UI.
-- Line-height: body 1.5, titles 1.2–1.3.
+- Body size ≥ 16px. Every readable UI string is at least 16px, including tags, dates, chips, and helper text.
+  `text-xs` and `text-sm` resolve to 16px / 1.5 so existing role names stay valid.
+  Do not use `text-[10px]`, `text-[11px]`, or other sub-16px arbitrary sizes on readable UI.
+  The only exception is pictorial miniatures (landing showcase mocks), which are illustrations, not interface text.
+- Line-height: body 1.5, titles 1.2–1.3. Headings use `text-wrap: balance`; body uses `text-wrap: pretty`.
+- Scale: h1 2rem / 800, h2 1.5rem / 700, h3 1.25rem / 700, body 1rem / 400–500, emphasis 600–800.
 
 **Why Nunito is frozen:** ui-ux-pro-max suggested Inter for both roles; that pair is
 rejected (generic AI / SaaS). DS-4 briefly tried Syne + Atkinson Hyperlegible.
@@ -155,7 +159,26 @@ Apply `text-stat` on KPI values and badge counts so they stay on Nunito
 Do not invent 5px / 7px / 13px gaps. The 3px neo stamp and its gutter are the
 only approved off-grid exception (the stamp would collapse if rounded to 8).
 
+
 ---
+
+## Motion
+
+Sober, fast, and never in the way of reading or first paint.
+
+| Token | Value | Use |
+|-------|-------|-----|
+| `--motion-fast` | 150ms | Immediate press / focus feedback |
+| `--motion-base` | 200ms | Routine hover and state change |
+| `--motion-slow` | 250ms | Overlay open / close (maximum for chrome) |
+| `--motion-ease` | `cubic-bezier(0.16, 1, 0.3, 1)` | Arrivals; exits may use the same curve, slightly faster |
+
+- Animate **transform and opacity only**. Do not animate width, height, top, left, margin, padding, or box-shadow (the 3px neo stamp stays static).
+- Do not animate the LCP element, and do not play entrance motion on the first paint of above-the-fold content (Home greeting, landing H1, hero media).
+- Hover must not translate the hovered element itself (it slips out from under the pointer). Change a child, a border color, or opacity.
+- `prefers-reduced-motion: reduce` disables decorative animation and transform transitions. The resulting state remains visible, instantly.
+- Reuse CSS or the existing `animate-in` / tw-animate utilities. Do not add a motion library.
+- Reward unlock motion (badge pop, level-up) may last longer than 250ms, but must respect reduced motion.
 
 ## Buttons
 

@@ -287,6 +287,20 @@
   --color-engine-construct: var(--engine-construct);
   --color-engine-gdevelop: var(--engine-gdevelop);
   --color-engine-custom: var(--engine-custom);
+  /* DS-6: readable text floor is 16px. text-xs / text-sm keep their role names. */
+  --text-xs: 1rem;
+  --text-xs--line-height: 1.5;
+  --text-sm: 1rem;
+  --text-sm--line-height: 1.5;
+  --text-base: 1rem;
+  --text-base--line-height: 1.5;
+}
+
+:root {
+  --motion-fast: 150ms;
+  --motion-base: 200ms;
+  --motion-slow: 250ms;
+  --motion-ease: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @layer base {
@@ -303,6 +317,9 @@
   h1, h2, h3, h4, h5, h6, .font-display {
     font-family: var(--font-display), ui-sans-serif, system-ui, sans-serif;
   }
+  h1, h2, h3 {
+    text-wrap: balance;
+  }
   h1 {
     font-size: 2rem;
     line-height: 1.2;
@@ -318,6 +335,13 @@
     line-height: 1.3;
     font-weight: 700;
   }
+  p, li, figcaption {
+    text-wrap: pretty;
+  }
+  ::selection {
+    background: var(--primary);
+    color: var(--primary-foreground);
+  }
 }
 
 /* Stats, counters, XP, team size — Nunito + fixed-width figures. */
@@ -332,22 +356,24 @@
 @layer components {
   /* Shared interactive card hover system — apply to any card that needs hover state */
   .card-interactive {
-    transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+    /* Hover must not move the card (flicker at the pointer edge) or animate the neo stamp. */
+    transition: border-color var(--motion-base) var(--motion-ease), opacity var(--motion-base) var(--motion-ease);
   }
   .card-interactive:hover {
     border-color: var(--card-hover-border);
-    box-shadow: 3px 3px 0 0 var(--neo-shadow);
-    transform: translate(-2px, -2px);
   }
   .card-interactive:active {
-    transform: translate(0, 0);
+    opacity: 0.92;
   }
   @media (prefers-reduced-motion: reduce) {
     .card-interactive,
     .card-interactive:hover,
-    .card-interactive:active {
-      transition: none;
-      transform: none;
+    .card-interactive:active,
+    .jam-motion {
+      transition: none !important;
+      animation: none !important;
+      transform: none !important;
+      opacity: 1;
     }
   }
 
