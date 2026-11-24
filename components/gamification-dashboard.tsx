@@ -311,7 +311,7 @@ function AchievementsHeaderCard({
         </div>
 
         <div className="space-y-1.5">
-          <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+          <div className="flex flex-wrap items-center justify-between gap-2 text-base">
             <span className="font-semibold tabular-nums text-foreground">
               {progress.xpInLevel} / {progress.span} XP
             </span>

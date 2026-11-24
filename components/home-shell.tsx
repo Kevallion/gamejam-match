@@ -186,7 +186,7 @@ export function HomeShell() {
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <ActiveFilterChips chips={activeFilterChips} onRemove={removeFilterChip} />
               <Select value={sort} onValueChange={(value) => setSort(value as TeamSort)}>
-                <SelectTrigger className="h-12 w-full rounded-lg border-border bg-card sm:w-[180px]">
+                <SelectTrigger className="h-12 w-full rounded-lg border-border bg-transparent sm:w-[180px]">
                   <SelectValue placeholder="Sort" />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">

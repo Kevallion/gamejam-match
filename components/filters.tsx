@@ -95,7 +95,7 @@ export function Filters({
             <DrawerTrigger asChild>
               <Button
                 variant="outline"
-                className="card-interactive flex w-full items-center justify-between gap-2 rounded-2xl border-border/60 bg-card px-4 py-3 text-sm"
+                className="card-interactive flex w-full items-center justify-between gap-2 rounded-2xl border-border/60 bg-transparent px-4 py-3 text-sm"
               >
                 <span className="flex items-center gap-2">
                   <SlidersHorizontal className="size-4 text-muted-foreground" />
@@ -118,7 +118,7 @@ export function Filters({
               </DrawerHeader>
               <div className="px-4 pb-4 pt-1 space-y-4">
                 <Select onValueChange={onEngineChange} value={engine}>
-                  <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40">
+                  <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-transparent text-foreground transition-colors hover:border-lavender/40">
                     <SelectValue placeholder="Engine" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl">
@@ -132,7 +132,7 @@ export function Filters({
                 </Select>
 
                 <Select onValueChange={onRoleChange} value={role}>
-                  <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40">
+                  <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-transparent text-foreground transition-colors hover:border-lavender/40">
                     <SelectValue placeholder="Role Needed" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl">
@@ -146,7 +146,7 @@ export function Filters({
                 </Select>
 
                 <Select onValueChange={onLevelChange} value={level}>
-                  <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40">
+                  <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-transparent text-foreground transition-colors hover:border-lavender/40">
                     <SelectValue placeholder="Experience" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl">
@@ -160,7 +160,7 @@ export function Filters({
                 </Select>
 
                 <Select onValueChange={onLanguageChange} value={language}>
-                  <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40">
+                  <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-transparent text-foreground transition-colors hover:border-lavender/40">
                     <SelectValue placeholder="Language" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl">
@@ -175,7 +175,7 @@ export function Filters({
 
                 {onStyleChange && (
                   <Select onValueChange={onStyleChange} value={style}>
-                    <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40">
+                    <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-transparent text-foreground transition-colors hover:border-lavender/40">
                       <SelectValue placeholder="Jam Style" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl">
@@ -234,7 +234,7 @@ export function Filters({
         <div className="flex flex-wrap items-center gap-3">
           
           <Select onValueChange={onEngineChange} value={engine}>
-            <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40 sm:w-[160px]">
+            <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-transparent text-foreground transition-colors hover:border-lavender/40 sm:w-[160px]">
               <SelectValue placeholder="Engine" />
             </SelectTrigger>
             <SelectContent className="rounded-xl">
@@ -248,7 +248,7 @@ export function Filters({
           </Select>
 
           <Select onValueChange={onRoleChange} value={role}>
-            <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40 sm:w-[180px]">
+            <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-transparent text-foreground transition-colors hover:border-lavender/40 sm:w-[180px]">
               <SelectValue placeholder="Role Needed" />
             </SelectTrigger>
             <SelectContent className="rounded-xl">
@@ -262,7 +262,7 @@ export function Filters({
           </Select>
 
           <Select onValueChange={onLevelChange} value={level}>
-            <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40 sm:w-[180px]">
+            <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-transparent text-foreground transition-colors hover:border-lavender/40 sm:w-[180px]">
               <SelectValue placeholder="Experience" />
             </SelectTrigger>
             <SelectContent className="rounded-xl">
@@ -276,7 +276,7 @@ export function Filters({
           </Select>
 
           <Select onValueChange={onLanguageChange} value={language}>
-            <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40 sm:w-[160px]">
+            <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-transparent text-foreground transition-colors hover:border-lavender/40 sm:w-[160px]">
               <SelectValue placeholder="Language" />
             </SelectTrigger>
             <SelectContent className="rounded-xl">
@@ -291,7 +291,7 @@ export function Filters({
 
           {onStyleChange && (
             <Select onValueChange={onStyleChange} value={style}>
-              <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40 sm:w-[180px]">
+              <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-transparent text-foreground transition-colors hover:border-lavender/40 sm:w-[180px]">
                 <SelectValue placeholder="Jam Style" />
               </SelectTrigger>
               <SelectContent className="rounded-xl">

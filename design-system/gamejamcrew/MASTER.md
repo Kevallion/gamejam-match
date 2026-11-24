@@ -86,8 +86,8 @@ Named Bureau de jam colors. Values are the computed sRGB of the tokens in
 | Muted text | Secondary copy | `#8C8E9C` | 5.36:1 on card |
 | Ombre | Neo stamp | `#050509` | The 3px black offset the product keeps |
 
-Shared: destructive fill `#E7000B`. On-destructive text must be `#FFFFFF` (4.77:1).
-Do not use the previous `#FCF3F1` pair (4.37:1, fails AA).
+Shared: destructive fill `#D60000`. On-destructive text must be `#FFFFFF` (5.44:1).
+Do not use a 60% wash (`bg-destructive/60`) or the previous `#E7000B` / `#FCF3F1` pairs (under 5:1).
 
 ### Semantic mapping (CSS)
 

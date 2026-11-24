@@ -117,7 +117,7 @@ export function MemberFilters({
             <DrawerTrigger asChild>
               <Button
                 variant="outline"
-                className="card-interactive flex w-full items-center justify-between gap-2 rounded-2xl border-border/60 bg-card px-4 py-3 text-sm"
+                className="card-interactive flex w-full items-center justify-between gap-2 rounded-2xl border-border/60 bg-transparent px-4 py-3 text-sm"
               >
                 <span className="flex items-center gap-2">
                   <SlidersHorizontal className="size-4 text-muted-foreground" />
@@ -140,7 +140,7 @@ export function MemberFilters({
               </DrawerHeader>
               <div className="px-4 pb-4 pt-1 space-y-4">
                 <Select onValueChange={onRoleChange} value={role} disabled={isUpdating}>
-                  <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40">
+                  <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-transparent text-foreground transition-colors hover:border-lavender/40">
                     <SelectValue placeholder="Role" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl">
@@ -154,7 +154,7 @@ export function MemberFilters({
                 </Select>
 
                 <Select onValueChange={onEngineChange} value={engine} disabled={isUpdating}>
-                  <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40">
+                  <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-transparent text-foreground transition-colors hover:border-lavender/40">
                     <SelectValue placeholder="Engine" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl">
@@ -168,7 +168,7 @@ export function MemberFilters({
                 </Select>
 
                 <Select onValueChange={onLevelChange} value={level} disabled={isUpdating}>
-                  <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40">
+                  <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-transparent text-foreground transition-colors hover:border-lavender/40">
                     <SelectValue placeholder="Experience" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl">
@@ -182,7 +182,7 @@ export function MemberFilters({
                 </Select>
 
                 <Select onValueChange={onLanguageChange} value={language} disabled={isUpdating}>
-                  <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40">
+                  <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-transparent text-foreground transition-colors hover:border-lavender/40">
                     <SelectValue placeholder="Language" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl">
@@ -195,7 +195,7 @@ export function MemberFilters({
                   </SelectContent>
                 </Select>
 
-                {codeSelect("h-12 w-full rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40")}
+                {codeSelect("h-12 w-full rounded-xl border-border/60 bg-transparent text-foreground transition-colors hover:border-lavender/40")}
               </div>
 
               <DrawerFooter className="flex flex-row gap-3 px-4 pb-6 pt-0">
@@ -238,7 +238,7 @@ export function MemberFilters({
         <div className="flex flex-wrap items-center gap-3">
           
           <Select onValueChange={onRoleChange} value={role} disabled={isUpdating}>
-            <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40 sm:w-[170px]">
+            <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-transparent text-foreground transition-colors hover:border-lavender/40 sm:w-[170px]">
               <SelectValue placeholder="Role" />
             </SelectTrigger>
             <SelectContent className="rounded-xl">
@@ -252,7 +252,7 @@ export function MemberFilters({
           </Select>
 
           <Select onValueChange={onEngineChange} value={engine} disabled={isUpdating}>
-            <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40 sm:w-[170px]">
+            <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-transparent text-foreground transition-colors hover:border-lavender/40 sm:w-[170px]">
               <SelectValue placeholder="Engine" />
             </SelectTrigger>
             <SelectContent className="rounded-xl">
@@ -266,7 +266,7 @@ export function MemberFilters({
           </Select>
 
           <Select onValueChange={onLevelChange} value={level} disabled={isUpdating}>
-            <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40 sm:w-[190px]">
+            <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-transparent text-foreground transition-colors hover:border-lavender/40 sm:w-[190px]">
               <SelectValue placeholder="Experience" />
             </SelectTrigger>
             <SelectContent className="rounded-xl">
@@ -280,7 +280,7 @@ export function MemberFilters({
           </Select>
 
           <Select onValueChange={onLanguageChange} value={language} disabled={isUpdating}>
-            <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40 sm:w-[170px]">
+            <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-transparent text-foreground transition-colors hover:border-lavender/40 sm:w-[170px]">
               <SelectValue placeholder="Language" />
             </SelectTrigger>
             <SelectContent className="rounded-xl">
@@ -293,7 +293,7 @@ export function MemberFilters({
             </SelectContent>
           </Select>
 
-          {codeSelect("h-12 w-full rounded-xl border-border/60 bg-card text-card-foreground transition-colors hover:border-lavender/40 sm:w-[190px]")}
+          {codeSelect("h-12 w-full rounded-xl border-border/60 bg-transparent text-foreground transition-colors hover:border-lavender/40 sm:w-[190px]")}
 
           {hasActiveFilters && onReset && (
             <Button variant="ghost" size="sm" onClick={onReset} disabled={isUpdating} className="gap-2 rounded-xl text-muted-foreground hover:text-foreground">

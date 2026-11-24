@@ -36,7 +36,7 @@
   --accent: oklch(0.30 0.04 330);
   --accent-foreground: oklch(0.90 0.04 330);
 
-  --destructive: oklch(0.577 0.245 27.325);
+  --destructive: #D60000;
   /* Fix: foreground must contrast against the destructive background */
   --destructive-foreground: oklch(1 0 0);
 
@@ -138,7 +138,7 @@
   /* Soft Affiche surface, ink text (replaces coral that failed AA). */
   --accent: oklch(0.92 0.04 330);
   --accent-foreground: oklch(0.353 0.108 331.9);
-  --destructive: oklch(0.577 0.245 27.325);
+  --destructive: #D60000;
   --destructive-foreground: oklch(1 0 0);
 
   --success: oklch(0.52 0.15 155);

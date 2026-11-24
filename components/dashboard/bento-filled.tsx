@@ -95,7 +95,7 @@ export function LevelHero({ level, compact }: { level: BentoLevel; compact?: boo
           ) : null}
         </div>
         <div className="mt-3 flex items-baseline justify-between gap-2">
-          <p className={cn("truncate font-extrabold", compact ? "text-sm" : "text-lg")}>
+          <p className="truncate text-base font-extrabold">
             {toNext} XP to Level {level.level + 1}
           </p>
           <span className="shrink-0 text-xs font-bold text-muted-foreground">
@@ -144,7 +144,7 @@ function HeroPill({
   label: string
 }) {
   return (
-    <span className="inline-flex h-8 items-center gap-1.5 rounded-xl border border-border bg-background/60 px-3 text-xs font-extrabold">
+    <span className="inline-flex min-h-10 items-center gap-1.5 rounded-xl border border-border bg-background/60 px-3 py-1 text-base font-extrabold">
       <AppIcon icon={icon} size="sm" tone={tone} />
       {label}
     </span>

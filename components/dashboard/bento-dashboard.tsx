@@ -295,17 +295,17 @@ export function BentoDashboard({ displayName, data, onLeaveSquad, recommendedTea
       {/* Desktop greeting */}
       <div className="mb-5 hidden items-end justify-between gap-4 lg:flex">
         <div>
-          <p className="text-sm font-bold text-muted-foreground">{dateLabel}</p>
+          <p className="text-base font-bold text-muted-foreground">{dateLabel}</p>
           <h1 className="text-[30px] font-black tracking-tight">
             Hey {firstName}, ready to jam?
           </h1>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <span className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-border bg-card px-3.5 text-sm font-bold shadow-[3px_3px_0_0_var(--neo-shadow)]">
+          <span className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-border bg-card px-3.5 text-base font-bold shadow-[3px_3px_0_0_var(--neo-shadow)]">
             <AppIcon icon={ICON.xp} size="sm" tone="peach" />
             {data ? `${data.level.streakDays}-day streak` : "Streak soon"}
           </span>
-          <span className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-border bg-card px-3.5 text-sm font-bold shadow-[3px_3px_0_0_var(--neo-shadow)]">
+          <span className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-border bg-card px-3.5 text-base font-bold shadow-[3px_3px_0_0_var(--neo-shadow)]">
             <AppIcon icon={ICON.info} size="sm" tone="lavender" />
             Press 1–5 to switch
           </span>

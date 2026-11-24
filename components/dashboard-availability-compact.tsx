@@ -10,12 +10,6 @@ import { UserAvatar } from "@/components/user-avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { AppIcon } from "@/components/ui/app-icon"
 import { ICON } from "@/lib/icons"
 import { cn } from "@/lib/utils"
@@ -199,28 +193,15 @@ export function DashboardAvailabilityCompact({
                     <Button asChild type="button" variant="outline" className="h-11 rounded-xl">
                       <Link href={editAvailabilityHref(post.id)}>Edit</Link>
                     </Button>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="icon"
-                          className="size-11 rounded-xl"
-                          aria-label="More"
-                          disabled={renewing}
-                        >
-                          <AppIcon icon={ICON.more} size="md" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="rounded-xl">
-                        <DropdownMenuItem
-                          className="text-destructive focus:text-destructive"
-                          onClick={() => onDeletePost(post.id)}
-                        >
-                          Delete post
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="h-11 rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                      disabled={renewing}
+                      onClick={() => onDeletePost(post.id)}
+                    >
+                      Delete
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
