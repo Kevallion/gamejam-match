@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react"
+import dynamic from "next/dynamic"
 import { usePathname, useSearchParams } from "next/navigation"
 import { BentoDashboard } from "@/components/dashboard/bento-dashboard"
 // DS-3a: Bento home cards are built from real data only (bento-real.ts).
@@ -59,12 +60,9 @@ import {
 } from "@/app/actions/team-membership-actions"
 import { readOwnDiscordUsername } from "@/lib/profile-discord"
 import { getMyGamificationSnapshot } from "@/app/actions/gamification-actions"
-import { OnboardingModal } from "@/components/onboarding-modal"
-import { ProfileSettings, type ProfileSettingsProfile } from "@/components/profile-settings"
+import type { ProfileSettingsProfile } from "@/components/profile-settings"
 import { getEmailPreferences, type EmailPreferencesResult } from "@/app/actions/email-preferences-actions"
-import {
-  DashboardAchievementsTab,
-} from "@/components/gamification-dashboard"
+import { useNotificationsContext } from "@/hooks/use-notifications"
 import { PushNotificationBanner } from "@/components/push-notification-banner"
 import type { Session } from "@supabase/supabase-js"
 import { showGamificationRewards } from "@/components/gamification-reward-toasts"
@@ -80,12 +78,9 @@ import {
 } from "@/lib/queries"
 import { discordLinkFromEmbed, TEAMS_READABLE_COLUMNS } from "@/lib/team-discord"
 import { kudosCountsMapFromRpcRows, type KudosCounts } from "@/lib/kudos"
-import {
-  NOTIFICATION_ENRICHED_SELECT,
-  fetchNotificationsAsNormalized,
-  type EnrichedNotificationRow,
-  type NormalizedNotificationFeedItem,
-} from "@/lib/notifications-enriched"
+import type { NormalizedNotificationFeedItem } from "@/lib/notifications-enriched"
+
+const EMPTY_ACTIVITY_NOTIFICATIONS: NormalizedNotificationFeedItem[] = []
 
 const LEVEL_STYLES = EXPERIENCE_STYLES
 const FALLBACK_ROLE = ROLE_STYLES.other
@@ -220,6 +215,44 @@ function resolveDashboardTab(raw: string | null | undefined): (typeof VALID_TABS
   }
   return "squads"
 }
+
+function TabPanelLoading({ label }: { label: string }) {
+  return (
+    <div
+      className="mx-auto w-full min-w-0 max-w-6xl space-y-4 py-2"
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
+    >
+      <span className="sr-only">{label}</span>
+      <Skeleton className="h-8 w-40 rounded-lg" />
+      <Skeleton className="h-40 w-full rounded-xl" />
+      <Skeleton className="h-24 w-full rounded-xl" />
+    </div>
+  )
+}
+
+const ProfileSettings = dynamic(
+  () => import("@/components/profile-settings").then((mod) => mod.ProfileSettings),
+  { loading: () => <TabPanelLoading label="Loading settings..." />, ssr: false },
+)
+
+const DashboardAchievementsTab = dynamic(
+  () => import("@/components/gamification-dashboard").then((mod) => mod.DashboardAchievementsTab),
+  { loading: () => <TabPanelLoading label="Loading achievements..." />, ssr: false },
+)
+
+const OnboardingModal = dynamic(
+  () => import("@/components/onboarding-modal").then((mod) => mod.OnboardingModal),
+  {
+    loading: () => (
+      <div role="status" aria-live="polite" aria-busy="true" className="sr-only">
+        Loading onboarding...
+      </div>
+    ),
+    ssr: false,
+  },
+)
 
 function DashboardLoadingSkeleton() {
   return (
@@ -477,28 +510,34 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
   const [leavingTeam, setLeavingTeam] = useState(false)
   const [sentInvitationsOutbox, setSentInvitationsOutbox] = useState<SentInvitationOutboxItem[]>(fixture?.sentInvitations ?? [])
   const [cancellingSentRequestId, setCancellingSentRequestId] = useState<string | null>(null)
-  const [activityNotifications, setActivityNotifications] = useState<NormalizedNotificationFeedItem[]>(
-    (fixture?.activity ?? []).map(
-      (item) =>
-        ({
-          id: item.id,
-          type: "system",
-          message: item.message,
-          link: null,
-          is_read: true,
-          created_at: item.created_at,
-          sender_id: null,
-          team_id: null,
-          join_request_id: null,
-          sender: null,
-          team: null,
-          join_request: null,
-          senderResolved: null,
-          teamResolved: null,
-          actorUserId: null,
-        }) satisfies NormalizedNotificationFeedItem,
-    ),
+  const sharedNotifications = useNotificationsContext()
+  const fixtureNotifications = useMemo(
+    () =>
+      (fixture?.activity ?? []).map(
+        (item) =>
+          ({
+            id: item.id,
+            type: "system",
+            message: item.message,
+            link: null,
+            is_read: true,
+            created_at: item.created_at,
+            sender_id: null,
+            team_id: null,
+            join_request_id: null,
+            sender: null,
+            team: null,
+            join_request: null,
+            senderResolved: null,
+            teamResolved: null,
+            actorUserId: null,
+          }) satisfies NormalizedNotificationFeedItem,
+      ),
+    [fixture],
   )
+  const activityNotifications = fixture
+    ? fixtureNotifications
+    : (sharedNotifications?.notifications ?? EMPTY_ACTIVITY_NOTIFICATIONS)
   const [loading, setLoading] = useState(!fixture)
   const [showAvailabilityModal, setShowAvailabilityModal] = useState(false)
   const [availabilityModalContext, setAvailabilityModalContext] = useState<string | null>(null)
@@ -663,16 +702,13 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
         profileQueryResult,
         joinBundleResult,
         { data: postsData },
-        { data: notifRaw, error: notifErr },
         emailPrefsResult,
         ownDiscord,
-        postProfileResult,
-        kudosRpcResult,
       ] = await Promise.all([
         supabase.from("team_members").select("team_id").eq("user_id", uid),
         (async () => {
           const withRoles =
-            "id, has_completed_onboarding, onboarding_version, jam_id, username, avatar_url, default_role, default_engine, engine, default_language, portfolio_url, jam_style, xp, current_title, directory_visible, profile_roles(role, experience_level, is_primary)"
+            "id, has_completed_onboarding, onboarding_version, jam_id, username, avatar_url, default_role, default_engine, engine, default_language, portfolio_url, jam_style, xp, current_title, directory_visible, role, experience, experience_level, language, bio, portfolio_link, profile_roles(role, experience_level, is_primary)"
           const withLanguages = await supabase
             .from("profiles")
             .select(`${withRoles}, programming_languages`)
@@ -689,26 +725,12 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
           .select("id, user_id, availability, expires_at")
           .eq("user_id", uid)
           .order("updated_at", { ascending: false }),
-        supabase
-          .from("notifications")
-          .select(NOTIFICATION_ENRICHED_SELECT)
-          .eq("user_id", uid)
-          .order("created_at", { ascending: false })
-          .limit(40),
         // S3 email preferences are owner-only (S7): read through the server action,
         // not through the profiles select.
         // DS-3a perf: read straight from the browser (owner-only RPC, same as the
         // server action's first path); the server action is only the fallback.
         readOwnEmailPreferences(),
         readOwnDiscordUsername(supabase, uid),
-        supabase
-          .from("profiles")
-          .select(
-            "role, default_role, experience, experience_level, jam_style, engine, default_engine, language, default_language, bio, portfolio_link, portfolio_url",
-          )
-          .eq("id", uid)
-          .maybeSingle(),
-        supabase.rpc("get_kudos_counts_for_users", { p_user_ids: [uid] }),
         snapshotPromise,
       ])
       let profileData = profileQueryResult.data as
@@ -739,7 +761,7 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
         const { data: fallbackProfileData, error: fallbackProfileError } = await supabase
           .from("profiles")
           .select(
-            "id, has_completed_onboarding, onboarding_version, jam_id, username, avatar_url, default_role, default_engine, engine, default_language, portfolio_url, jam_style, xp, current_title, directory_visible",
+            "id, has_completed_onboarding, onboarding_version, jam_id, username, avatar_url, default_role, default_engine, engine, default_language, portfolio_url, jam_style, xp, current_title, directory_visible, role, experience, experience_level, language, bio, portfolio_link",
           )
           .eq("id", uid)
           .maybeSingle()
@@ -752,14 +774,16 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
       }
 
       // Started now, awaited after the squads query (they do not depend on each other).
-      const notificationsPromise =
-        !notifErr && notifRaw
-          ? fetchNotificationsAsNormalized(supabase, notifRaw as EnrichedNotificationRow[])
-          : Promise.resolve([] as NormalizedNotificationFeedItem[])
       const jamIdForPosts = (profileData as { jam_id?: string | null } | null)?.jam_id ?? null
       const jamLookupPromise = jamIdForPosts
         ? supabase.from("external_jams").select("id, title, url").eq("id", jamIdForPosts).maybeSingle()
         : Promise.resolve({ data: null })
+      // Category badges on own posts still need this RPC; skip it when there are no posts.
+      // The Rewards KPI already uses snapshot.kudosReceived (no second call on that path).
+      const kudosPromise =
+        (postsData?.length ?? 0) > 0
+          ? supabase.rpc("get_kudos_counts_for_users", { p_user_ids: [uid] })
+          : Promise.resolve({ data: [] as { receiver_id: string; category: string; cnt: number | string }[] })
 
       if (joinBundleResult.error) {
         toast.error("Could not load inbox data.", { description: joinBundleResult.error })
@@ -788,11 +812,7 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
       } else {
         teamsQuery = teamsQuery.eq("user_id", uid)
       }
-      const [{ data: allTeamsRows }, normalizedNotifications] = await Promise.all([
-        teamsQuery,
-        notificationsPromise,
-      ])
-      setActivityNotifications(normalizedNotifications)
+      const { data: allTeamsRows } = await teamsQuery
 
       const merged = new Map<string, TeamData>()
       for (const t of (allTeamsRows ?? []) as TeamRow[]) {
@@ -924,7 +944,7 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
         portfolio_url?: string | null
       }
       const postProfile: PostProfileFields | null =
-        (postsData?.length ?? 0) > 0 ? ((postProfileResult.data ?? null) as PostProfileFields | null) : null
+        (postsData?.length ?? 0) > 0 ? ((profileData ?? null) as PostProfileFields | null) : null
       const pick = (...values: (string | null | undefined)[]) =>
         values.map((v) => v?.trim()).find((v) => Boolean(v)) ?? null
 
@@ -941,7 +961,7 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
         portfolio_link: pick(postProfile?.portfolio_link, postProfile?.portfolio_url),
       })) as AvailabilityPostRow[]
 
-      const jamLookupResult = await jamLookupPromise
+      const [jamLookupResult, kudosRpcResult] = await Promise.all([jamLookupPromise, kudosPromise])
       const kudosMap = kudosCountsMapFromRpcRows(
         (kudosRpcResult.data ?? []) as { receiver_id: string; category: string; cnt: number | string }[],
       )
@@ -1016,40 +1036,6 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
     if (fixture) return
     void loadData()
   }, [loadData, fixture])
-
-  useEffect(() => {
-    const uid = session?.user?.id
-    if (!uid || fixture) return
-    let cancelled = false
-    const refreshActivity = async () => {
-      const { data, error } = await supabase
-        .from("notifications")
-        .select(NOTIFICATION_ENRICHED_SELECT)
-        .eq("user_id", uid)
-        .order("created_at", { ascending: false })
-        .limit(40)
-      if (cancelled || error || !data) return
-      const normalized = await fetchNotificationsAsNormalized(
-        supabase,
-        data as EnrichedNotificationRow[],
-      )
-      if (!cancelled) setActivityNotifications(normalized)
-    }
-    const channel = supabase
-      .channel(`dashboard-activity-${uid}`)
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "notifications", filter: `user_id=eq.${uid}` },
-        () => {
-          void refreshActivity()
-        },
-      )
-      .subscribe()
-    return () => {
-      cancelled = true
-      void supabase.removeChannel(channel)
-    }
-  }, [session?.user?.id, fixture])
 
   useEffect(() => {
     if (loading || activeTab !== "inbox" || !highlightRequestId?.trim()) return
@@ -1643,11 +1629,13 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
         </section>
       </div>
 
-      <OnboardingModal
-        open={showOnboardingModal}
-        onOpenChange={setShowOnboardingModal}
-        profile={profile}
-      />
+      {showOnboardingModal ? (
+        <OnboardingModal
+          open={showOnboardingModal}
+          onOpenChange={setShowOnboardingModal}
+          profile={profile}
+        />
+      ) : null}
 
       <ResponsiveConfirmDrawer
         open={showAvailabilityModal}

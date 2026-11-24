@@ -3,7 +3,7 @@
 import type { ReactNode } from "react"
 import { AppShell, type AppShellAccount } from "@/components/app-shell/app-shell"
 import { AppShellProvider } from "@/components/app-shell/app-shell-context"
-import { useNotifications } from "@/hooks/use-notifications"
+import { NotificationsScope, useNotifications } from "@/hooks/use-notifications"
 
 type SignedInAppShellProps = {
   account: AppShellAccount
@@ -23,18 +23,29 @@ export function SignedInAppShell({ account, children }: SignedInAppShellProps) {
 
   return (
     <AppShellProvider>
-      <AppShell
-        account={account}
-        inboxCount={unreadCount}
-        notifications={notifications}
-        unreadCount={unreadCount}
-        notifLoading={loading}
-        onMarkRead={(id) => void dismissNotification(id)}
-        onMarkAllRead={() => void markAllAsRead()}
-        onRefetchNotifications={() => void refetch()}
+      <NotificationsScope
+        value={{
+          notifications,
+          unreadCount,
+          loading,
+          refetch,
+          dismissNotification,
+          markAllAsRead,
+        }}
       >
-        {children}
-      </AppShell>
+        <AppShell
+          account={account}
+          inboxCount={unreadCount}
+          notifications={notifications}
+          unreadCount={unreadCount}
+          notifLoading={loading}
+          onMarkRead={(id) => void dismissNotification(id)}
+          onMarkAllRead={() => void markAllAsRead()}
+          onRefetchNotifications={() => void refetch()}
+        >
+          {children}
+        </AppShell>
+      </NotificationsScope>
     </AppShellProvider>
   )
 }

@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react"
 import { Trophy } from "lucide-react"
 import { toast } from "sonner"
 import { supabase } from "@/lib/supabase"
@@ -158,4 +158,23 @@ export function useNotifications(userId: string | null) {
     dismissNotification,
     markAllAsRead,
   }
+}
+
+type NotificationsApi = ReturnType<typeof useNotifications>
+
+const NotificationsContext = createContext<NotificationsApi | null>(null)
+
+/** Shares the signed-in shell's single notifications read with routes like the dashboard. */
+export function NotificationsScope({
+  value,
+  children,
+}: {
+  value: NotificationsApi
+  children: ReactNode
+}) {
+  return <NotificationsContext.Provider value={value}>{children}</NotificationsContext.Provider>
+}
+
+export function useNotificationsContext(): NotificationsApi | null {
+  return useContext(NotificationsContext)
 }
