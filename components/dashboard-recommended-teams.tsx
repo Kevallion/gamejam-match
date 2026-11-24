@@ -1,90 +1,95 @@
 "use client"
 
 import Link from "next/link"
-import { Sparkles } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { BentoCard } from "@/components/dashboard/bento-card"
+import { AppIcon } from "@/components/ui/app-icon"
 import type { SmartRecommendedTeam } from "@/lib/queries"
+import { ICON } from "@/lib/icons"
 import { cn } from "@/lib/utils"
 
 type DashboardRecommendedTeamsProps = {
   teams: SmartRecommendedTeam[]
+  /** False while the existing client fetch is still in flight. */
+  ready?: boolean
   className?: string
   compact?: boolean
+  headingId?: string
 }
 
-export function DashboardRecommendedTeams({ teams, className, compact = false }: DashboardRecommendedTeamsProps) {
-  if (teams.length === 0) return null
+export function DashboardRecommendedTeams({
+  teams,
+  ready = true,
+  className,
+  compact = false,
+  headingId = "recommended-squads-heading",
+}: DashboardRecommendedTeamsProps) {
+  const visible = teams.slice(0, compact ? 3 : 6)
+
+  if (!ready) {
+    return (
+      <BentoCard
+        tone="match"
+        title="Recommended squads"
+        icon={ICON.recommended}
+        placeholder
+        skeletonLines={compact ? 3 : 4}
+        className={cn("min-h-[200px]", className)}
+      />
+    )
+  }
 
   return (
-    <section
-      className={cn(
-        "glass-card rounded-2xl border border-border/40 p-4",
-        compact ? "md:p-4" : "md:p-6",
-        className,
-      )}
-      aria-labelledby="smart-matchmaking-heading"
+    <BentoCard
+      tone="match"
+      title="Recommended squads"
+      icon={ICON.recommended}
+      className={cn("min-h-[200px]", className)}
     >
-      <div className={cn("mb-4 flex items-center gap-3", compact ? "md:mb-4" : "md:mb-5")}>
-        <div
-          className={cn(
-            "flex items-center justify-center rounded-xl bg-teal/15 shadow-[0_0_20px_-8px_var(--color-teal)]",
-            compact ? "size-8" : "size-10",
-          )}
-        >
-          <Sparkles className="size-5 text-teal" aria-hidden />
-        </div>
-        <div>
-          <h2
-            id="smart-matchmaking-heading"
-            className={cn("font-semibold tracking-tight", compact ? "text-sm md:text-base" : "text-lg md:text-xl")}
-          >
-            Squads looking for your role
-          </h2>
-          <p className={cn("text-muted-foreground", compact ? "text-xs" : "text-sm")}>
-            Open squads that match your profile.
+      <h2 id={headingId} className="sr-only">
+        Recommended squads
+      </h2>
+      {visible.length === 0 ? (
+        <div className="flex flex-1 flex-col">
+          <p className="text-sm font-semibold text-muted-foreground">
+            No recommended squads right now
           </p>
-        </div>
-      </div>
-
-      <div className={cn("grid gap-3", compact ? "grid-cols-1" : "sm:grid-cols-2 lg:grid-cols-3")}>
-        {teams.map((t) => (
-          <article
-            key={t.id}
-            className={cn(
-              "flex flex-col justify-between rounded-xl border border-teal/35 bg-background/40",
-              compact ? "gap-2.5 p-3" : "gap-4 p-4",
-              "shadow-[0_0_24px_-10px_rgba(45,212,191,0.45)] dark:shadow-[0_0_28px_-10px_rgba(34,211,238,0.35)]",
-            )}
+          <Link
+            href="/teams"
+            className="mt-3 inline-flex min-h-11 w-fit items-center gap-1.5 rounded-xl border border-border bg-card px-3 text-sm font-extrabold shadow-[3px_3px_0_0_var(--neo-shadow)] transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
-            <div className={cn("space-y-1.5 leading-relaxed text-foreground", compact ? "text-xs" : "text-sm md:text-[15px]")}>
-              <p>
-                The squad <span className="font-semibold text-teal">{t.team_name}</span> is looking for a{" "}
-                <span className="font-medium">{t.role_label}</span>.
+            Browse squads
+            <AppIcon icon={ICON.navRight} size="sm" tone="muted" />
+          </Link>
+        </div>
+      ) : (
+        <ul className="flex flex-col gap-2.5">
+          {visible.map((team) => (
+            <li
+              key={team.id}
+              className="flex flex-col gap-2 rounded-xl border border-border bg-background/40 p-3"
+            >
+              <p className={cn("leading-relaxed", compact ? "text-xs font-semibold" : "text-sm font-semibold")}>
+                The squad <span className="font-extrabold text-foreground">{team.team_name}</span> is
+                looking for a <span className="font-extrabold">{team.role_label}</span>.
               </p>
-              <p className="text-muted-foreground">
-                Engine on their listing:{" "}
-                <span className="font-medium text-foreground">{t.team_engine_label}</span>
-                {t.matches_your_engine ? (
-                  <span className="mt-2 block w-fit rounded-full bg-teal/15 px-2.5 py-0.5 text-xs font-semibold text-teal">
+              <p className="text-xs font-semibold text-muted-foreground">
+                Engine: <span className="text-foreground">{team.team_engine_label}</span>
+                {team.matches_your_engine ? (
+                  <span className="mt-1.5 block w-fit rounded-full bg-teal/15 px-2 py-0.5 text-[11px] font-extrabold text-teal">
                     Same engine as your profile
                   </span>
                 ) : null}
               </p>
-            </div>
-            <Button
-              asChild
-              variant="outline"
-              size="sm"
-              className={cn(
-                "w-full shrink-0 cursor-pointer border-teal/30 bg-teal/5 text-teal hover:bg-teal/10 hover:text-teal",
-                compact ? "h-7 text-xs" : "",
-              )}
-            >
-              <Link href={`/teams/${t.id}`}>Quick View</Link>
-            </Button>
-          </article>
-        ))}
-      </div>
-    </section>
+              <Link
+                href={`/teams/${team.id}`}
+                className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-border bg-card px-3 text-xs font-extrabold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              >
+                View squad
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+    </BentoCard>
   )
 }

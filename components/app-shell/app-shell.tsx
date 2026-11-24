@@ -1,7 +1,6 @@
 "use client"
 
 import type { ReactNode } from "react"
-import Link from "next/link"
 import { usePathname, useSearchParams } from "next/navigation"
 import { AppHeader } from "@/components/app-shell/app-header"
 import { MeHub } from "@/components/app-shell/me-hub"
@@ -14,9 +13,7 @@ import {
   BentoHotbar,
   BENTO_HOTBAR_OFFSET_CLASS,
 } from "@/components/dashboard/bento-hotbar"
-import { AppIcon } from "@/components/ui/app-icon"
 import type { NormalizedNotificationRow } from "@/hooks/use-notifications"
-import { ICON } from "@/lib/icons"
 import { levelFromTotalXp } from "@/lib/gamification-level"
 import { cn } from "@/lib/utils"
 
@@ -80,34 +77,6 @@ export function AppShell({
         className,
       )}
     >
-      {/* Slim top chrome (logo + search). Home greeting lives in BentoDashboard on desktop. */}
-      <div className="hidden items-center gap-3 px-6 pt-5 app-desktop:flex xl:px-10">
-        <Link
-          href="/dashboard"
-          className="flex items-center gap-2.5 font-black tracking-tight"
-          aria-label="GameJamCrew home"
-        >
-          <span className="grid size-[34px] place-items-center rounded-xl border border-border bg-primary text-primary-foreground shadow-[3px_3px_0_0_var(--neo-shadow)]">
-            <AppIcon icon={ICON.jam} size="md" className="text-primary-foreground" />
-          </span>
-          <span className="text-[17px]">GameJamCrew</span>
-        </Link>
-        <div className="flex-1" />
-        <div
-          className={cn(
-            "flex h-11 max-w-[380px] flex-1 items-center gap-2.5 rounded-xl border border-border bg-card px-3.5",
-            "text-[13px] font-bold text-muted-foreground shadow-[3px_3px_0_0_var(--neo-shadow)]",
-          )}
-          aria-hidden
-        >
-          <AppIcon icon={ICON.search} size="sm" tone="muted" />
-          <span className="truncate">Search jams, squads, members</span>
-          <span className="ml-auto rounded-md border border-border px-1.5 text-[11px] font-black">
-            /
-          </span>
-        </div>
-      </div>
-
       <AppHeader
         title={title}
         greetingName={isHomeGreeting ? account.displayName : null}

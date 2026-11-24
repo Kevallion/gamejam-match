@@ -2,15 +2,14 @@
 
 import Link from "next/link"
 import { AppIcon } from "@/components/ui/app-icon"
-import { Button } from "@/components/ui/button"
 import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerDescription,
-  DrawerHeader,
-  DrawerTitle,
-} from "@/components/ui/drawer"
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { COMPOSE_AVAILABILITY_HREF, dashboardHref } from "@/components/app-shell/nav-config"
 import { ICON } from "@/lib/icons"
 import { cn } from "@/lib/utils"
@@ -31,35 +30,37 @@ export function CreateSheet({
   const postsUsed = Math.min(availabilityCount, availabilityQuota)
   const atQuota = postsUsed >= availabilityQuota
 
+  const close = () => onOpenChange(false)
+
   return (
-    <Drawer
-      open={open}
-      onOpenChange={(next) => {
-        if (!next && document.activeElement instanceof HTMLElement) {
-          document.activeElement.blur()
-        }
-        onOpenChange(next)
-      }}
-    >
-      <DrawerContent className="rounded-t-3xl border-border/50 bg-card pb-[env(safe-area-inset-bottom,0px)]">
-        <DrawerHeader className="text-left">
-          <DrawerTitle className="text-lg font-bold tracking-tight">Create</DrawerTitle>
-          <DrawerDescription className="sr-only">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent
+        showCloseButton={false}
+        aria-labelledby="create-dialog-title"
+        className={cn(
+          "top-[50%] left-[50%] z-50 w-[min(24rem,calc(100%-2rem))] max-w-[min(24rem,calc(100%-2rem))] translate-x-[-50%] translate-y-[-50%] gap-0 rounded-2xl border border-border bg-card p-5 shadow-[3px_3px_0_0_var(--neo-shadow)] sm:max-w-[min(24rem,calc(100%-2rem))]",
+          "motion-reduce:animate-none motion-reduce:transition-none motion-reduce:data-[state=open]:animate-none motion-reduce:data-[state=closed]:animate-none",
+        )}
+      >
+        <DialogHeader className="pr-12 text-left">
+          <DialogTitle id="create-dialog-title" className="text-lg font-extrabold tracking-tight">
+            Create
+          </DialogTitle>
+          <DialogDescription className="sr-only">
             Choose whether to create a squad, post availability, or find members.
-          </DrawerDescription>
-        </DrawerHeader>
-        <div className="flex flex-col gap-3 px-4 pb-4">
+          </DialogDescription>
+        </DialogHeader>
+        <DialogClose
+          className="absolute top-3 right-3 grid size-11 place-items-center rounded-xl text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          aria-label="Close"
+        >
+          <AppIcon icon={ICON.close} size="md" />
+        </DialogClose>
+        <div className="mt-4 flex flex-col gap-3">
           <Link
             href="/create-team"
-            onClick={() => {
-              if (document.activeElement instanceof HTMLElement) {
-                document.activeElement.blur()
-              }
-              onOpenChange(false)
-            }}
-            className={cn(
-              "card-interactive flex min-h-[76px] items-center gap-3 rounded-2xl border border-pink/30 bg-pink/5 px-4 py-3",
-            )}
+            onClick={close}
+            className="flex min-h-11 items-center gap-3 rounded-2xl border border-pink/30 bg-pink/5 px-4 py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-pink/15 text-pink">
               <AppIcon icon={ICON.edit} size="lg" />
@@ -73,14 +74,9 @@ export function CreateSheet({
 
           <Link
             href={atQuota ? dashboardHref("availability") : COMPOSE_AVAILABILITY_HREF}
-            onClick={() => {
-              if (document.activeElement instanceof HTMLElement) {
-                document.activeElement.blur()
-              }
-              onOpenChange(false)
-            }}
+            onClick={close}
             className={cn(
-              "card-interactive flex min-h-[76px] items-center gap-3 rounded-2xl border border-lavender/30 bg-lavender/5 px-4 py-3",
+              "flex min-h-11 items-center gap-3 rounded-2xl border border-lavender/30 bg-lavender/5 px-4 py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
               atQuota && "opacity-80",
             )}
           >
@@ -99,13 +95,8 @@ export function CreateSheet({
 
           <Link
             href="/find-members"
-            onClick={() => {
-              if (document.activeElement instanceof HTMLElement) {
-                document.activeElement.blur()
-              }
-              onOpenChange(false)
-            }}
-            className="card-interactive flex min-h-12 items-center gap-3 rounded-2xl border border-teal/30 bg-teal/5 px-4 py-3"
+            onClick={close}
+            className="flex min-h-11 items-center gap-3 rounded-2xl border border-teal/30 bg-teal/5 px-4 py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-teal/15 text-teal">
               <AppIcon icon={ICON.findJammers} size="lg" />
@@ -116,14 +107,8 @@ export function CreateSheet({
             </span>
             <AppIcon icon={ICON.navRight} size="sm" tone="muted" />
           </Link>
-
-          <DrawerClose asChild>
-            <Button type="button" variant="ghost" className="mt-1 h-12 rounded-xl">
-              Cancel
-            </Button>
-          </DrawerClose>
         </div>
-      </DrawerContent>
-    </Drawer>
+      </DialogContent>
+    </Dialog>
   )
 }

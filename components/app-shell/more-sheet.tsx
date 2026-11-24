@@ -51,7 +51,7 @@ export function MoreSheet({ open, onOpenChange }: MoreSheetProps) {
         <DrawerHeader className="shrink-0 text-left">
           <DrawerTitle className="text-lg font-bold tracking-tight">More</DrawerTitle>
           <DrawerDescription className="sr-only">
-            Open Squads, Rewards, Me, or Settings.
+            Open Home, Rewards, Me, or Settings.
           </DrawerDescription>
         </DrawerHeader>
         <nav

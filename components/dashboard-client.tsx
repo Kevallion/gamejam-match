@@ -548,6 +548,7 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null, bo
   const [availabilityPostIdToDelete, setAvailabilityPostIdToDelete] = useState<string | null>(null)
   const [renewingAvailabilityPostId, setRenewingAvailabilityPostId] = useState<string | null>(null)
   const [recommendedTeams, setRecommendedTeams] = useState<SmartRecommendedTeam[]>(fixture?.recommendedTeams ?? [])
+  const [recommendedReady, setRecommendedReady] = useState(Boolean(fixture))
   const [showOnboardingModal, setShowOnboardingModal] = useState(false)
   const [profile, setProfile] = useState<ProfileSettingsProfile | null>(fixture?.profile ?? bootstrap?.profile ?? null)
   // DS-3a: level / XP / badges, same source as Rewards (lib/gamification-snapshot.ts).
@@ -676,6 +677,7 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null, bo
       const { data: { session: authSession } } = await supabase.auth.getSession()
       if (!authSession?.user) {
         setRecommendedTeams([])
+        setRecommendedReady(true)
         setGamification(null)
         setRewardsReady(true)
         setCoreReady(false)
@@ -879,6 +881,7 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null, bo
       }
       const { teams: smartMatches } = await recommendedPromise
       setRecommendedTeams(smartMatches)
+      setRecommendedReady(true)
 
       // Show onboarding only for users that never completed it.
       if (!profileData) {
@@ -1057,6 +1060,7 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null, bo
       toast.error("Error loading the dashboard.", {
         description: err instanceof Error ? err.message : "Please refresh the page.",
       })
+      setRecommendedReady(true)
     } finally {
       setLoading(false)
     }
@@ -1605,7 +1609,7 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null, bo
         <section className="min-w-0 pb-4 md:pb-8">
           <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full min-w-0 max-w-full">
             <TabsContent value="squads" className="mt-0 min-w-0 max-w-full">
-              <BentoDashboard displayName={displayName} data={bentoData} onLeaveSquad={handleLeaveTeam} />
+              <BentoDashboard displayName={displayName} data={bentoData} onLeaveSquad={handleLeaveTeam} recommendedTeams={recommendedTeams} recommendedReady={recommendedReady} />
             </TabsContent>
 
             <TabsContent value="inbox" className="mt-0 flex min-w-0 max-w-full flex-col gap-4 md:gap-6">
@@ -1644,11 +1648,11 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null, bo
                     onPostsChanged={() => void loadData()}
                   />
                   <div className="lg:hidden">
-                    <DashboardRecommendedTeams teams={recommendedTeams} compact />
+                    <DashboardRecommendedTeams teams={recommendedTeams} ready={recommendedReady} compact headingId="availability-recommended-squads-heading" />
                   </div>
                 </div>
                 <aside className="hidden space-y-4 lg:col-span-4 lg:sticky lg:top-[88px] lg:block lg:self-start">
-                  <DashboardRecommendedTeams teams={recommendedTeams} compact />
+                  <DashboardRecommendedTeams teams={recommendedTeams} ready={recommendedReady} compact headingId="availability-recommended-squads-heading" />
                   <DashboardRecentActivity items={activityNotifications} />
                 </aside>
               </div>

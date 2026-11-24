@@ -18,14 +18,15 @@ import {
   MySquadsCard,
   QuestPill,
   QuestsCard,
-  SquadMatchCard,
   SquadSlide,
   UpNextCard,
   UpcomingJamSlide,
   XpWeekCard,
   questXpLeft,
 } from "@/components/dashboard/bento-filled"
+import { DashboardRecommendedTeams } from "@/components/dashboard-recommended-teams"
 import { BentoCell, BentoGrid } from "@/components/dashboard/bento-grid"
+import type { SmartRecommendedTeam } from "@/lib/queries"
 import { AppIcon } from "@/components/ui/app-icon"
 import {
   Collapsible,
@@ -44,6 +45,8 @@ type BentoDashboardProps = {
    */
   data?: BentoDashboardData
   onLeaveSquad?: (id: string) => void
+  recommendedTeams?: SmartRecommendedTeam[]
+  recommendedReady?: boolean
 }
 
 function greetingDateLabel(now = new Date()): string {
@@ -282,7 +285,7 @@ function MobileKpiStrip() {
  * T7 Bento home — desktop grid + mobile carousels/accordions.
  * Cards render `data` when provided (T7c mock now, real query in T9), else T7 placeholders.
  */
-export function BentoDashboard({ displayName, data, onLeaveSquad }: BentoDashboardProps) {
+export function BentoDashboard({ displayName, data, onLeaveSquad, recommendedTeams = [], recommendedReady = false }: BentoDashboardProps) {
   const firstName = displayName.trim().split(/\s+/)[0] || "Jammer"
   const dateLabel = greetingDateLabel()
 
@@ -429,19 +432,12 @@ export function BentoDashboard({ displayName, data, onLeaveSquad }: BentoDashboa
           )}
         </BentoCell>
         <BentoCell span={4}>
-          {data?.match ? (
-            <SquadMatchCard match={data.match} />
-          ) : (
-            <BentoCard
-              tone="match"
-              title="Squad match"
-              icon={ICON.recommended}
-              placeholder
-              emptyLabel="Matches appear when a seat is open"
-              skeletonLines={data ? 0 : 3}
-              className="min-h-[200px]"
-            />
-          )}
+          <DashboardRecommendedTeams
+            teams={recommendedTeams}
+            ready={recommendedReady}
+            compact
+            headingId="home-recommended-squads-heading"
+          />
         </BentoCell>
       </BentoGrid>
 
@@ -519,6 +515,15 @@ export function BentoDashboard({ displayName, data, onLeaveSquad }: BentoDashboa
             <BentoCard key="placeholder-2" neo className="min-h-[160px]" placeholder emptyLabel="Join a squad" skeletonLines={data ? 0 : 3} />,
             <BentoCard key="placeholder-3" neo className="min-h-[160px]" placeholder emptyLabel="Create a squad" skeletonLines={data ? 0 : 2} />]}
           </BentoCarousel>
+        </section>
+
+        <section>
+          <DashboardRecommendedTeams
+            teams={recommendedTeams}
+            ready={recommendedReady}
+            compact
+            headingId="home-mobile-recommended-squads-heading"
+          />
         </section>
 
         <section>

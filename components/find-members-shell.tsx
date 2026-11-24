@@ -187,18 +187,7 @@ export function FindMembersShell({
             </div>
 
             <div className="relative mx-auto mt-8 max-w-xl">
-              <div
-                className={`absolute inset-0 -m-1 rounded-[1.25rem] blur-md ${
-                  isDirectory ? "bg-teal/20" : "bg-lavender/20"
-                }`}
-              />
-              <div
-                className={`relative flex items-center overflow-hidden rounded-2xl border-2 bg-card shadow-lg ${
-                  isDirectory
-                    ? "border-teal/30 shadow-teal/5"
-                    : "border-lavender/30 shadow-lavender/5"
-                }`}
-              >
+              <div className="relative flex items-center overflow-hidden rounded-xl border border-border bg-card">
                 <Search className="ml-5 size-5 shrink-0 text-muted-foreground" />
                 <Input
                   type="text"

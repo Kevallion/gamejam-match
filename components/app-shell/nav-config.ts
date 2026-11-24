@@ -15,6 +15,7 @@ export type AppNavId =
   | "create"
   | "inbox"
   | "me"
+  | "squads"
   | "my-posts"
   | "achievements"
   | "settings"
@@ -95,7 +96,7 @@ export const MOBILE_TABS: {
   more?: boolean
   badge?: "inbox"
 }[] = [
-  { id: "home", label: "Home", href: dashboardHref("squads"), icon: ICON.dashboard },
+  { id: "squads", label: "Squad", href: "/teams", icon: ICON.squad },
   { id: "explore", label: "Explore", href: "/find-members", icon: ICON.findJammers },
   { id: "create", label: "Create", icon: ICON.create, create: true },
   { id: "inbox", label: "Inbox", href: dashboardHref("inbox"), icon: ICON.applications, badge: "inbox" },
@@ -160,7 +161,7 @@ export const HOTBAR_SLOTS: {
   desktopOnly?: boolean
 }[] = [
   { key: "1", id: "home", label: "Home", href: dashboardHref("squads"), icon: ICON.dashboard },
-  { key: "2", id: "squads", label: "Squads", href: "/teams", icon: ICON.squad },
+  { key: "2", id: "squads", label: "Squad", href: "/teams", icon: ICON.squad },
   { key: "3", id: "inbox", label: "Inbox", href: dashboardHref("inbox"), icon: ICON.applications, badge: "inbox" },
   { key: "4", id: "rewards", label: "Rewards", href: dashboardHref("achievements"), icon: ICON.achievement },
   {
@@ -181,7 +182,7 @@ export const MORE_SHEET_ITEMS: {
   href: string
   icon: LucideIcon
 }[] = [
-  { id: "squads", label: "Squads", hint: "Browse open squads", href: "/teams", icon: ICON.squad },
+  { id: "home", label: "Home", hint: "Your dashboard", href: dashboardHref("squads"), icon: ICON.dashboard },
   {
     id: "rewards",
     label: "Rewards",
@@ -205,7 +206,7 @@ export const MORE_SHEET_ITEMS: {
   },
 ]
 
-export type MoreSheetItemId = "squads" | "rewards" | "me" | "settings"
+export type MoreSheetItemId = "home" | "rewards" | "me" | "settings"
 
 /** Which More-sheet row is current. */
 export function moreSheetActiveId(pathname: string, search: string): MoreSheetItemId | null {
@@ -213,9 +214,9 @@ export function moreSheetActiveId(pathname: string, search: string): MoreSheetIt
   const hubMe =
     new URLSearchParams(search.startsWith("?") ? search.slice(1) : search).get("hub") === "me"
 
-  if (pathname.startsWith("/teams") || pathname.startsWith("/create-team")) return "squads"
   if (!isDashboardPath(pathname)) return null
   if (hubMe) return "me"
+  if (tab === "squads") return "home"
   if (tab === "achievements") return "rewards"
   if (tab === "settings") return "settings"
   return null
@@ -237,9 +238,9 @@ export function hotbarActiveId(pathname: string, search: string): HotbarSlotId |
   return "home"
 }
 
-export type MobileHotbarId = "home" | "explore" | "inbox" | "more"
+export type MobileHotbarId = "home" | "squads" | "explore" | "inbox" | "more"
 
-/** Mobile hotbar highlight: More is lit on Jams, Squads, Rewards, Me, Settings, and My posts. */
+/** Mobile hotbar highlight: More is lit on Rewards, Me, Settings, and My posts. Squad and Explore have their own slots. */
 export function mobileHotbarActiveId(pathname: string, search: string): MobileHotbarId | null {
   const tab = tabFromPathname(pathname, search)
   const hubMe =
@@ -252,7 +253,7 @@ export function mobileHotbarActiveId(pathname: string, search: string): MobileHo
   ) {
     return "explore"
   }
-  if (pathname.startsWith("/teams") || pathname.startsWith("/create-team")) return "more"
+  if (pathname.startsWith("/teams") || pathname.startsWith("/create-team")) return "squads"
   if (!isDashboardPath(pathname)) return null
   if (hubMe || tab === "settings" || tab === "availability" || tab === "achievements") return "more"
   if (tab === "inbox") return "inbox"

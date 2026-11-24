@@ -159,7 +159,7 @@ export function HomeShell() {
         <Hero />
 
         {/* Search + filters (in document flow — avoids covering team cards while scrolling) */}
-        <div className="border-b border-border/50 bg-background/95 backdrop-blur-md">
+        <div>
           <div className="mx-auto max-w-6xl flex flex-col gap-4 px-4 py-4 sm:gap-6 sm:py-6 lg:px-6 lg:py-6">
             <div className="w-full max-w-xl">
               <Search

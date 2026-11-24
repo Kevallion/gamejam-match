@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { useTheme } from "next-themes"
+import { AppSearch } from "@/components/app-shell/app-search"
 import { AppIcon } from "@/components/ui/app-icon"
 import { Button } from "@/components/ui/button"
 import {
@@ -133,7 +134,24 @@ export function AppHeader({
         className,
       )}
     >
-      <div className="flex h-14 items-center gap-3 px-4 app-desktop:h-16 app-desktop:px-6">
+      <div className="hidden app-desktop:block">
+        <div className="mx-auto flex h-14 w-full max-w-[1280px] items-center gap-3 overflow-visible px-4 app-desktop:px-6 xl:px-10">
+          <Link
+            href="/dashboard"
+            className="flex min-w-0 shrink-0 items-center gap-2.5 font-black tracking-tight"
+            aria-label="GameJamCrew home"
+          >
+            <span className="grid size-[34px] shrink-0 place-items-center rounded-xl border border-border bg-primary text-primary-foreground shadow-[3px_3px_0_0_var(--neo-shadow)]">
+              <AppIcon icon={ICON.jam} size="md" className="text-primary-foreground" />
+            </span>
+            <span className="truncate text-[17px]">GameJamCrew</span>
+          </Link>
+          <div className="ml-auto min-w-0 max-w-[380px] flex-1">
+            <AppSearch variant="desktop" />
+          </div>
+        </div>
+      </div>
+      <div className="mx-auto flex h-14 w-full max-w-[1280px] items-center gap-3 px-4 app-desktop:h-16 app-desktop:px-6 xl:px-10">
         <div className="min-w-0 flex-1">
           {greetingName ? (
             <div
@@ -157,18 +175,28 @@ export function AppHeader({
           ) : null}
 
           {!greetingName ? (
-            <div className="min-w-0">
+            <div className="flex min-w-0 items-center gap-2.5">
+              <Link
+                href="/dashboard"
+                className="grid size-9 shrink-0 place-items-center rounded-xl border border-border bg-primary text-primary-foreground shadow-[3px_3px_0_0_var(--neo-shadow)] app-desktop:hidden"
+                aria-label="GameJamCrew home"
+              >
+                <AppIcon icon={ICON.jam} size="md" className="text-primary-foreground" />
+              </Link>
+              <div className="min-w-0">
               <h1 className="truncate text-xl font-bold tracking-tight text-foreground app-desktop:text-[22px]">
                 {title}
               </h1>
               {subtitle ? (
                 <p className="truncate text-xs text-muted-foreground">{subtitle}</p>
               ) : null}
+              </div>
             </div>
           ) : null}
         </div>
 
         <div className="flex shrink-0 items-center gap-1">
+          <AppSearch variant="mobile" />
           <div className="md:hidden">
             <NotificationsPanel
               variant="mobile"
