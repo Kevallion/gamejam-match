@@ -472,7 +472,7 @@ export function JammerCard({ player, mySquads, cardClassName }: JammerCardProps)
         </DialogTrigger>
 
         {/* Profile Details Modal */}
-        <DialogContent className="max-w-lg rounded-2xl border-border/60 bg-card p-0 shadow-2xl shadow-lavender/10 overflow-hidden">
+        <DialogContent className="max-w-lg overflow-hidden rounded-2xl border-border bg-card p-0 shadow-[3px_3px_0_0_var(--neo-shadow)]">
           <DialogHeader className="px-6 pt-6 pb-4 space-y-1 text-left border-b border-border/60">
             <div className="flex items-center gap-4">
               <UserAvatar
@@ -667,11 +667,11 @@ export function JammerCard({ player, mySquads, cardClassName }: JammerCardProps)
 
       {/* Invite Dialog */}
       <Dialog open={dialogOpen} onOpenChange={handleDialogClose}>
-        <DialogContent className="w-[calc(100%-2rem)] max-w-md rounded-2xl border-border/60 bg-card p-0 shadow-2xl shadow-lavender/10">
+        <DialogContent className="w-[calc(100%-2rem)] max-w-md rounded-2xl border-border bg-card p-0 shadow-[3px_3px_0_0_var(--neo-shadow)]">
 
           {/* Header */}
           <div className="relative overflow-hidden rounded-t-2xl px-6 pt-6 pb-4">
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-lavender/60 via-pink/40 to-teal/50" />
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-lavender" />
 
             <DialogHeader className="space-y-2.5 text-left">
               <div className="flex items-center gap-2">

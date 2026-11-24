@@ -135,72 +135,73 @@ export function FindMembersShell({
       <main className="flex-1">
         <section
           className={cn(
-            "relative overflow-hidden px-4 pb-8 sm:px-6",
-            inAppShell ? "pt-4 lg:pb-8 lg:pt-6" : "pt-16 lg:pb-12 lg:pt-24",
+            "px-4 sm:px-6",
+            inAppShell ? "pt-4 pb-4 lg:pt-6" : "pt-16 pb-8 lg:pt-24 lg:pb-12",
           )}
         >
-          <div className="pointer-events-none absolute inset-0 opacity-30" aria-hidden="true">
-            <div className="absolute left-1/2 top-0 size-[600px] -translate-x-1/2 -translate-y-1/3 rounded-full bg-lavender/20 blur-[120px]" />
-            <div className="absolute right-0 top-1/2 size-[400px] -translate-y-1/2 rounded-full bg-pink/15 blur-[100px]" />
-          </div>
+          <div
+            className={cn(
+              "mx-auto w-full",
+              inAppShell ? "max-w-[1280px] text-left" : "max-w-2xl text-center",
+            )}
+          >
+            {!inAppShell ? (
+              <h1 className="text-balance font-display text-4xl font-extrabold tracking-tight text-foreground">
+                Find teammates
+              </h1>
+            ) : null}
 
-          <div className="relative mx-auto max-w-2xl text-center">
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-lavender/30 bg-lavender px-4 py-1.5 text-sm font-medium text-lavender-foreground">
-              <UserRoundSearch className="size-4" />
-              Find teammates
-            </div>
-
-            <h1 className="text-balance text-4xl font-extrabold tracking-tight text-foreground md:text-5xl lg:text-6xl">
-              Find <span className="text-lavender">Teammates</span>
-            </h1>
-
-            <p className="mx-auto mt-4 max-w-lg text-pretty text-lg leading-relaxed text-muted-foreground">
+            <p
+              className={cn(
+                "max-w-lg text-pretty text-lg leading-relaxed text-muted-foreground",
+                inAppShell ? "mt-0" : "mx-auto mt-4",
+              )}
+            >
               {isDirectory
                 ? "Browse every onboarded jammer. Filter by role, engine, and language, then invite them with a personal message."
                 : "Discover jammers who marked themselves available. Need a wider search? Switch to the Directory."}
             </p>
 
-            <div className="mx-auto mt-8 flex justify-center">
+            <div className={cn("mt-6 flex", inAppShell ? "justify-start" : "justify-center")}>
               <Tabs
                 value={mode}
                 onValueChange={(next) =>
                   replaceUrlWithFilters({ view: next === "directory" ? "directory" : null })
                 }
               >
-                <TabsList className="h-11 rounded-xl border border-border/60 bg-card/80 p-1 shadow-sm">
+                <TabsList className="h-12 rounded-lg border border-border bg-card p-1 shadow-[3px_3px_0_0_var(--neo-shadow)]">
                   <TabsTrigger
                     value="available"
-                    className="gap-1.5 rounded-lg px-4 data-[state=active]:bg-lavender data-[state=active]:text-lavender-foreground"
+                    className="gap-2 rounded-md px-4 text-base data-[state=active]:bg-lavender data-[state=active]:text-lavender-foreground"
                   >
-                    <UserRoundSearch className="size-3.5" />
+                    <UserRoundSearch className="size-4" />
                     Available
                   </TabsTrigger>
                   <TabsTrigger
                     value="directory"
-                    className="gap-1.5 rounded-lg px-4 data-[state=active]:bg-teal data-[state=active]:text-teal-foreground"
+                    className="gap-2 rounded-md px-4 text-base data-[state=active]:bg-teal data-[state=active]:text-teal-foreground"
                   >
-                    <UserRoundSearch className="size-3.5" />
+                    <UserRoundSearch className="size-4" />
                     Directory
                   </TabsTrigger>
                 </TabsList>
               </Tabs>
             </div>
 
-            <div className="relative mx-auto mt-8 max-w-xl">
-              <div className="relative flex items-center overflow-hidden rounded-xl border border-border bg-card">
-                <Search className="ml-5 size-5 shrink-0 text-muted-foreground" />
+            <div className={cn("relative mt-6 max-w-xl", inAppShell ? "" : "mx-auto")}>
+              <div className="relative flex items-center overflow-hidden rounded-lg border border-border bg-card shadow-[3px_3px_0_0_var(--neo-shadow)]">
+                <Search className="ml-4 size-5 shrink-0 text-muted-foreground" />
                 <Input
                   type="text"
                   placeholder="Search by name..."
                   value={searchQuery}
                   onChange={(e) => replaceUrlWithFilters({ q: e.target.value })}
-                  className="h-14 border-0 bg-transparent px-4 text-base shadow-none ring-0 placeholder:text-muted-foreground focus-visible:ring-0"
+                  className="h-12 border-0 bg-transparent px-4 text-base shadow-none ring-0 placeholder:text-muted-foreground focus-visible:ring-0"
                 />
               </div>
             </div>
           </div>
         </section>
-
         {isDirectory ? (
           <DirectoryFilters
             role={roleFilter}
