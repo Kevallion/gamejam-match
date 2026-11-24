@@ -107,11 +107,7 @@ export function JammerTitleBadge({
   return (
     <p
       className={cn(
-        "max-w-full truncate bg-gradient-to-r bg-clip-text text-sm font-bold tracking-wide text-transparent",
-        /* Light theme: dark amber on pale cards (readable on white / glass-light) */
-        "from-amber-900 via-amber-800 to-amber-900",
-        /* Dark theme: bright metallic + glow */
-        "dark:from-amber-300 dark:via-yellow-200 dark:to-amber-200 dark:drop-shadow-[0_0_14px_rgba(251,191,36,0.45)]",
+        "max-w-full truncate font-display text-sm font-bold tracking-wide text-amber-900 dark:text-amber-300",
         className,
       )}
     >
@@ -130,8 +126,8 @@ export function JammerLevelBadge({
   return (
     <span
       className={cn(
-        "inline-flex shrink-0 items-center rounded-lg border border-teal/40 bg-teal/15 px-2 py-0.5 text-xs font-extrabold tabular-nums text-teal",
-        "shadow-[0_0_16px_-4px_rgba(45,212,191,0.35)]",
+        "inline-flex shrink-0 items-center rounded-lg border border-teal/40 bg-teal/15 px-2 py-0.5 text-xs font-bold tabular-nums text-teal",
+        "shadow-[3px_3px_0_0_var(--neo-shadow)]",
         className,
       )}
     >
@@ -183,14 +179,14 @@ export function ProfileCard({
       src={avatarUrl}
       fallbackName={fb}
       size={avatarPropSize[size]}
-      className={cn(avatarSize[size], "shrink-0 ring-2 ring-border/50 shadow-md")}
+      className={cn(avatarSize[size], "shrink-0 ring-2 ring-border")}
     />
   )
 
   return (
     <div className={cn("flex items-start gap-3 sm:gap-5", className)}>
       {framedAvatar ? (
-        <div className="shrink-0 rounded-2xl border border-amber-500/25 bg-gradient-to-br from-amber-500/10 via-card to-teal/10 p-1 shadow-lg shadow-amber-500/10 ring-1 ring-amber-400/20">
+        <div className="shrink-0 rounded-2xl border border-border bg-card p-1 shadow-[3px_3px_0_0_var(--neo-shadow)]">
           {avatar}
         </div>
       ) : (
@@ -198,10 +194,10 @@ export function ProfileCard({
       )}
       <div className="min-w-0 flex-1 space-y-2">
         <div className="flex flex-wrap items-center gap-2 gap-y-1">
-          <p className="truncate text-base font-semibold tracking-tight text-foreground sm:text-lg">{name}</p>
+          <p className="truncate font-display text-xl font-extrabold tracking-tight text-foreground">{name}</p>
           {showLevel ? <JammerLevelBadge level={level} /> : null}
           {showVerifiedJammer ? (
-            <Badge className="rounded-full border border-teal/35 bg-teal/15 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-teal">
+            <Badge className="rounded-full border border-teal/35 bg-teal/15 px-2 py-0.5 text-xs font-bold text-teal">
               Verified Jammer
             </Badge>
           ) : null}
@@ -230,7 +226,7 @@ export function ProfileCard({
 
         {showRoleSlots ? (
           <div className="space-y-2">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Roles & experience</p>
+            <p className="text-sm font-bold text-muted-foreground">Roles and experience</p>
             <ul className="space-y-2">
               {slots.map((slot, idx) => {
                 const rKey = slot.role.trim().toLowerCase()
@@ -261,7 +257,7 @@ export function ProfileCard({
             {secondaryRole ? (
               <span className="inline-flex items-center gap-1.5">
                 <TagIcon kind="role" value={secondaryRole} size="md" showLabel />
-                <span className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">Secondary</span>
+                <span className="text-xs font-bold text-muted-foreground">Secondary</span>
               </span>
             ) : null}
           </div>
