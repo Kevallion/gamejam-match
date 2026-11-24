@@ -115,7 +115,7 @@ export function DateRangeField({
   )
 
   return (
-    <div className="flex flex-col gap-2.5">
+    <div className="flex flex-col gap-3">
       <Label
         id={labelId}
         className="text-sm font-bold text-foreground"

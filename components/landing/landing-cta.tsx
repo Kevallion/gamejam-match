@@ -28,7 +28,7 @@ export function LandingCTA() {
           <div className="relative rounded-2xl border-2 border-foreground bg-card p-8 md:p-12 lg:p-16 text-center">
             {/* Floating badge */}
             <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-              <div className="inline-flex items-center gap-2 rounded-full border-2 border-foreground bg-card px-4 py-1.5 text-sm font-bold text-foreground shadow-[3px_3px_0px_0px_var(--neo-shadow)]">
+              <div className="inline-flex items-center gap-2 rounded-full border-2 border-foreground bg-card px-4 py-2 text-sm font-bold text-foreground shadow-[3px_3px_0px_0px_var(--neo-shadow)]">
                 <Sword className="size-4 text-teal" />
                 Your next jam awaits
               </div>

@@ -255,7 +255,7 @@ export function ProfileCard({
           <div className="flex flex-wrap items-center gap-2">
             {defaultRole ? <TagIcon kind="role" value={defaultRole} size="md" showLabel /> : null}
             {secondaryRole ? (
-              <span className="inline-flex items-center gap-1.5">
+              <span className="inline-flex items-center gap-2">
                 <TagIcon kind="role" value={secondaryRole} size="md" showLabel />
                 <span className="text-xs font-bold text-muted-foreground">Secondary</span>
               </span>

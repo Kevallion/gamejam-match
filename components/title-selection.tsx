@@ -89,7 +89,7 @@ export function TitleSelection({
                   )}
                 </div>
                 {active ? (
-                  <span className="shrink-0 rounded-lg bg-teal px-2.5 py-1.5 text-xs font-bold text-teal-foreground">
+                  <span className="shrink-0 rounded-lg bg-teal px-3 py-2 text-xs font-bold text-teal-foreground">
                     Equipped
                   </span>
                 ) : (

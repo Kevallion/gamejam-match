@@ -106,7 +106,7 @@ export function EmailPreferencesRows({ initial, available: availableProp }: Emai
           const switchId = `${baseId}-${row.key}`
           const descId = `${switchId}-desc`
           return (
-            <li key={row.key} className="flex items-center justify-between gap-4 px-3 py-2.5">
+            <li key={row.key} className="flex items-center justify-between gap-4 px-3 py-3">
               <div className="min-w-0">
                 <label
                   htmlFor={switchId}
@@ -135,7 +135,7 @@ export function EmailPreferencesRows({ initial, available: availableProp }: Emai
           Sign-in links and account deletion emails are always sent.
         </p>
       ) : (
-        <p className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+        <p className="inline-flex items-center gap-2 text-xs text-muted-foreground">
           <AppIcon icon={ICON.info} size="xs" />
           Email preferences are not available yet. You stay subscribed for now.
         </p>

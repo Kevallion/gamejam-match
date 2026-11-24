@@ -61,7 +61,7 @@ export function DashboardRecommendedTeams({
           </Link>
         </div>
       ) : (
-        <ul className="flex flex-col gap-2.5">
+        <ul className="flex flex-col gap-3">
           {visible.map((team) => (
             <li
               key={team.id}

@@ -149,7 +149,7 @@ function NotificationsBody({
           <div className="space-y-4">
             {groups.map((group) => (
               <div key={group.label}>
-                <p className="mb-1.5 px-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                <p className="mb-2 px-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   {group.label}
                 </p>
                 <div className="space-y-1">

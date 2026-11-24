@@ -227,7 +227,7 @@ export function DashboardMyTeams({
         <Button
           asChild
           size="sm"
-          className="gap-1.5 rounded-xl bg-primary text-primary-foreground hover:bg-primary/85"
+          className="gap-2 rounded-xl bg-primary text-primary-foreground hover:bg-primary/85"
         >
           <Link href="/create-team">
             <Rocket className="size-3.5" />
@@ -272,10 +272,10 @@ export function DashboardMyTeams({
                         createdAtIso: team.createdAt,
                       })
                       if (!jamStatus) return null
-                      return <JamStatusBadge status={jamStatus} className="mt-1.5 max-w-full" />
+                      return <JamStatusBadge status={jamStatus} className="mt-2 max-w-full" />
                     })()}
                   </div>
-                  <div className="flex shrink-0 items-center gap-1.5">
+                  <div className="flex shrink-0 items-center gap-2">
                     <Badge
                       variant="outline"
                       className={`rounded-full text-xs font-semibold px-2 py-0.5 ${
@@ -297,7 +297,7 @@ export function DashboardMyTeams({
                 </div>
               </CardHeader>
 
-              <CardContent className="flex flex-1 flex-col gap-2.5 pt-3 px-4">
+              <CardContent className="flex flex-1 flex-col gap-3 pt-3 px-4">
                 {team.isOwner &&
                   isJamStartBackfilledWithCreatedAt(
                     team.jamStartDate,
@@ -306,7 +306,7 @@ export function DashboardMyTeams({
                   team.jamEndDate &&
                   new Date(team.jamEndDate).getTime() > Date.now() && (
                     <p
-                      className="rounded-lg border border-amber-500/30 bg-amber-500/5 px-2.5 py-1.5 text-xs leading-snug text-amber-900 dark:text-amber-100/90"
+                      className="rounded-lg border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-xs leading-snug text-amber-900 dark:text-amber-100/90"
                       role="status"
                     >
                       Please update your Jam dates to show your real progress.
@@ -359,7 +359,7 @@ export function DashboardMyTeams({
                     type="button"
                     variant="secondary"
                     size="sm"
-                    className="w-full gap-1.5 rounded-xl border border-teal-500/40 bg-secondary/90 text-xs font-semibold text-teal-600 hover:bg-teal-500/15 hover:text-teal-700 dark:text-teal-400 dark:hover:text-teal-300"
+                    className="w-full gap-2 rounded-xl border border-teal-500/40 bg-secondary/90 text-xs font-semibold text-teal-600 hover:bg-teal-500/15 hover:text-teal-700 dark:text-teal-400 dark:hover:text-teal-300"
                     onClick={() => setTeamMatchesContext(team)}
                   >
                     <Sparkles className="size-3" />
@@ -368,16 +368,16 @@ export function DashboardMyTeams({
                 ) : null}
               </CardContent>
 
-              <CardFooter className="flex flex-col gap-1.5 px-4 pb-4 pt-1">
+              <CardFooter className="flex flex-col gap-2 px-4 pb-4 pt-1">
                 {team.isOwner ? (
                   <>
                     {/* Primary actions row */}
-                    <div className="flex w-full gap-1.5">
+                    <div className="flex w-full gap-2">
                       <Button
                         asChild
                         variant="outline"
                         size="sm"
-                        className="flex-1 gap-1.5 rounded-xl border-primary/30 text-primary hover:bg-primary/10 hover:text-primary text-xs"
+                        className="flex-1 gap-2 rounded-xl border-primary/30 text-primary hover:bg-primary/10 hover:text-primary text-xs"
                       >
                         <Link href={`/teams/${team.id}`}>
                           <MessageCircle className="size-3.5" />
@@ -388,7 +388,7 @@ export function DashboardMyTeams({
                         asChild
                         variant="outline"
                         size="sm"
-                        className="flex-1 gap-1.5 rounded-xl border-border/60 text-foreground hover:bg-muted text-xs"
+                        className="flex-1 gap-2 rounded-xl border-border/60 text-foreground hover:bg-muted text-xs"
                       >
                         <Link href={`/teams/${team.id}/manage`}>
                           <Settings className="size-3.5" />
@@ -403,20 +403,20 @@ export function DashboardMyTeams({
                       asChild
                       variant="outline"
                       size="sm"
-                      className="w-full gap-1.5 rounded-xl border-primary/30 text-primary hover:bg-primary/10 hover:text-primary text-xs"
+                      className="w-full gap-2 rounded-xl border-primary/30 text-primary hover:bg-primary/10 hover:text-primary text-xs"
                     >
                       <Link href={`/teams/${team.id}`}>
                         <MessageCircle className="size-3.5" />
                         Open Squad Space
                       </Link>
                     </Button>
-                    <div className="flex w-full gap-1.5">
+                    <div className="flex w-full gap-2">
                       {team.discord_link ? (
                         <Button
                           asChild
                           variant="outline"
                           size="sm"
-                          className="flex-1 gap-1.5 rounded-xl border-primary/30 text-primary hover:bg-primary/10 hover:text-primary text-xs"
+                          className="flex-1 gap-2 rounded-xl border-primary/30 text-primary hover:bg-primary/10 hover:text-primary text-xs"
                         >
                           <a
                             href={team.discord_link}
@@ -437,7 +437,7 @@ export function DashboardMyTeams({
                           type="button"
                           variant="outline"
                           size="sm"
-                          className="flex-1 gap-1.5 rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive text-xs"
+                          className="flex-1 gap-2 rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive text-xs"
                           onClick={async () => {
                             setLeavingTeamId(team.id)
                             try {
@@ -531,7 +531,7 @@ export function DashboardMyTeams({
                               <span className="truncate">{langLine}</span>
                             </span>
                           </div>
-                          <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                          <div className="mt-2 flex flex-wrap items-center gap-2">
                             <TagIcon kind="role" value={roleValue} size="xs" showLabel withTooltip={false} />
                             <span className="inline-flex items-center rounded-full bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground">
                               {engineLabel(p.engine)}
@@ -546,8 +546,8 @@ export function DashboardMyTeams({
                         variant={inviteAlreadyPending ? "secondary" : "default"}
                         className={
                           inviteAlreadyPending
-                            ? "shrink-0 gap-1.5 rounded-lg"
-                            : "shrink-0 gap-1.5 rounded-lg bg-teal px-3 text-teal-foreground hover:bg-teal/90"
+                            ? "shrink-0 gap-2 rounded-lg"
+                            : "shrink-0 gap-2 rounded-lg bg-teal px-3 text-teal-foreground hover:bg-teal/90"
                         }
                         disabled={
                           inviteBusyUserId === p.userId ||

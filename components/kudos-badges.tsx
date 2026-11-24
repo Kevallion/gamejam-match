@@ -25,7 +25,7 @@ export function KudosBadgeRow({
   if (items.length === 0) return null
 
   const textSize = size === "xs" ? "text-xs" : "text-xs"
-  const pad = size === "xs" ? "px-1.5 py-0.5" : "px-2 py-0.5"
+  const pad = size === "xs" ? "px-2 py-0.5" : "px-2 py-0.5"
 
   return (
     <div className={cn("flex flex-wrap items-center gap-1", className)} aria-label="Kudos received">

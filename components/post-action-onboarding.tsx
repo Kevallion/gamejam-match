@@ -382,12 +382,12 @@ export function PostActionOnboarding() {
                               <div className="flex items-center justify-between gap-2">
                                 <p className="truncate text-sm font-bold text-foreground">{p.username}</p>
                               </div>
-                              <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                              <div className="mt-2 flex flex-wrap items-center gap-2">
                                 {p.role.key ? (
                                   <TagIcon kind="role" value={p.role.key} size="xs" showLabel withTooltip={false} />
                                 ) : (
                                   <Badge
-                                    className="rounded-full border-border/60 bg-muted px-2.5 py-0.5 text-[11px] font-bold text-muted-foreground"
+                                    className="rounded-full border-border/60 bg-muted px-3 py-0.5 text-base font-bold text-muted-foreground"
                                     variant="secondary"
                                   >
                                     Role unknown
@@ -488,7 +488,7 @@ export function PostActionOnboarding() {
                     <div className="mt-4">
                       <Button
                         asChild
-                        className="w-full rounded-xl bg-primary px-4 py-2.5 text-sm font-bold text-primary-foreground hover:bg-primary/90"
+                        className="w-full rounded-xl bg-primary px-4 py-3 text-sm font-bold text-primary-foreground hover:bg-primary/90"
                       >
                         <Link href="/create-team" onClick={cleanUrlAndClose}>
                           No matching squad? Create your own!
@@ -534,7 +534,7 @@ export function PostActionOnboarding() {
                                   withTooltip={false}
                                 />
                               ) : (
-                                <Badge className="rounded-full bg-secondary/50 px-3 py-1 text-[11px] font-bold text-muted-foreground" variant="secondary">
+                                <Badge className="rounded-full bg-secondary/50 px-3 py-1 text-base font-bold text-muted-foreground" variant="secondary">
                                   Role
                                 </Badge>
                               )}
@@ -544,7 +544,7 @@ export function PostActionOnboarding() {
                               ) : null}
 
                               {languageOptionLabel(team.language) ? (
-                                <Badge className="rounded-full border-border/60 bg-secondary/50 px-3 py-1 text-[11px] font-bold text-teal" variant="secondary">
+                                <Badge className="rounded-full border-border/60 bg-secondary/50 px-3 py-1 text-base font-bold text-teal" variant="secondary">
                                   {languageOptionLabel(team.language)}
                                 </Badge>
                               ) : null}

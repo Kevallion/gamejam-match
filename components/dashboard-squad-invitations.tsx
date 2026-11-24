@@ -53,7 +53,7 @@ export function DashboardSquadInvitations({
         </div>
         <Badge
           variant="secondary"
-          className="rounded-full bg-lavender/15 px-3.5 py-1.5 text-sm font-bold text-lavender"
+          className="rounded-full bg-lavender/15 px-4 py-2 text-sm font-bold text-lavender"
         >
           {invitations.length} pending
         </Badge>
@@ -89,7 +89,7 @@ export function DashboardSquadInvitations({
                 <CardContent className="flex flex-col gap-4 px-6 py-5 sm:px-8 sm:py-6">
                   {inv.captainMessage?.trim() ? (
                     <div className="rounded-xl border border-lavender/25 bg-secondary/40 px-4 py-3">
-                      <p className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-lavender">
+                      <p className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-lavender">
                         <Mail className="size-3.5" aria-hidden />
                         Message from the captain
                       </p>
@@ -115,18 +115,18 @@ export function DashboardSquadInvitations({
                             <TagIcon kind="role" value={roleValue} size="xs" showLabel withTooltip={false} />
                           ) : null}
                           {inv.gameName && (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-peach/10 px-2.5 py-0.5 text-xs font-semibold text-peach">
+                            <span className="inline-flex items-center gap-1 rounded-full bg-peach/10 px-3 py-0.5 text-xs font-semibold text-peach">
                               <Gamepad2 className="size-3" />
                               {inv.gameName}
                             </span>
                           )}
                           {inv.engineLabel && (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-teal/10 px-2.5 py-0.5 text-xs font-semibold text-teal">
+                            <span className="inline-flex items-center gap-1 rounded-full bg-teal/10 px-3 py-0.5 text-xs font-semibold text-teal">
                               {inv.engineLabel}
                             </span>
                           )}
                           {inv.jamTitle && (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-mint/15 px-2.5 py-0.5 text-xs font-semibold text-mint">
+                            <span className="inline-flex items-center gap-1 rounded-full bg-mint/15 px-3 py-0.5 text-xs font-semibold text-mint">
                               {inv.jamTitle}
                             </span>
                           )}

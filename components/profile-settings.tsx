@@ -101,7 +101,7 @@ function SectionLink({
         aria-current={active ? "location" : undefined}
         onClick={onClick}
         className={cn(
-          "flex min-w-0 flex-col items-center gap-0.5 rounded-xl px-1 py-1.5 text-xs font-bold transition-colors",
+          "flex min-w-0 flex-col items-center gap-0.5 rounded-xl px-1 py-2 text-xs font-bold transition-colors",
           active ? "bg-teal text-teal-foreground shadow-[2px_2px_0_0_var(--neo-shadow)]" : "text-muted-foreground hover:text-foreground",
           FOCUS,
         )}
@@ -117,7 +117,7 @@ function SectionLink({
       aria-current={active ? "location" : undefined}
       onClick={onClick}
       className={cn(
-        "flex items-center gap-2.5 rounded-xl border px-2 py-1.5 transition-colors",
+        "flex items-center gap-3 rounded-xl border px-2 py-2 transition-colors",
         active
           ? "border-teal/40 bg-teal/15 text-foreground"
           : "border-transparent text-muted-foreground hover:bg-secondary/60 hover:text-foreground",
@@ -139,7 +139,7 @@ function SectionLink({
 function SectionRail({ activeSection }: { activeSection: string }) {
   return (
     <nav aria-label="Settings sections" className={cn(CARD, "sticky top-24 flex flex-col gap-3 p-3")}>
-      <p className="px-1.5 pt-1 text-sm text-muted-foreground">Manage your profile and preferences</p>
+      <p className="px-2 pt-1 text-sm text-muted-foreground">Manage your profile and preferences</p>
       <ul className="flex flex-col gap-1">
         {SECTIONS.map((s) => (
           <li key={s.id}>
@@ -147,7 +147,7 @@ function SectionRail({ activeSection }: { activeSection: string }) {
           </li>
         ))}
       </ul>
-      <p className="flex items-start gap-1.5 border-t border-border/60 px-1.5 pt-2.5 pb-0.5 text-xs text-muted-foreground">
+      <p className="flex items-start gap-2 border-t border-border/60 px-2 pt-3 pb-0.5 text-xs text-muted-foreground">
         <AppIcon icon={ICON.info} size="sm" tone="muted" className="mt-px" />
         Profile and preferences apply when you save. Other settings save on their own.
       </p>
@@ -216,7 +216,7 @@ function SectionCard({
 function SubLabel({ id, icon, children, aside }: { id?: string; icon?: SectionIcon; children: ReactNode; aside?: ReactNode }) {
   return (
     <div className="flex items-center justify-between gap-2">
-      <h3 id={id} className="flex items-center gap-1.5 text-sm font-bold text-muted-foreground">
+      <h3 id={id} className="flex items-center gap-2 text-sm font-bold text-muted-foreground">
         {icon ? <AppIcon icon={icon} size="sm" tone="muted" /> : null}
         {children}
       </h3>
@@ -227,8 +227,8 @@ function SubLabel({ id, icon, children, aside }: { id?: string; icon?: SectionIc
 
 function Field({ id, label, icon, hint, children }: { id: string; label: string; icon?: SectionIcon; hint?: ReactNode; children: ReactNode }) {
   return (
-    <div className="min-w-0 space-y-1.5">
-      <Label htmlFor={id} className="flex items-center gap-1.5 text-sm font-semibold">
+    <div className="min-w-0 space-y-2">
+      <Label htmlFor={id} className="flex items-center gap-2 text-sm font-semibold">
         {icon ? <AppIcon icon={icon} size="sm" tone="muted" /> : null}
         {label}
       </Label>
@@ -578,7 +578,7 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
       <div className="lg:col-span-12">
         <Link
           href="/dashboard?hub=me"
-          className="inline-flex min-h-11 items-center gap-1.5 rounded-xl px-1 text-sm font-bold text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+          className="inline-flex min-h-11 items-center gap-2 rounded-xl px-1 text-sm font-bold text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
         >
           <AppIcon icon={ICON.navLeft} size="sm" />
           Me
@@ -803,7 +803,7 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
                         )
                       }
                       className={cn(
-                        "inline-flex min-h-9 max-w-full items-center gap-1.5 rounded-lg border px-2.5 text-xs font-bold transition-colors",
+                        "inline-flex min-h-9 max-w-full items-center gap-2 rounded-lg border px-3 text-xs font-bold transition-colors",
                         selected
                           ? "border-lavender/60 bg-lavender/20 text-foreground shadow-[2px_2px_0_0_var(--neo-shadow)]"
                           : "border-border bg-background/50 text-muted-foreground hover:text-foreground",
@@ -895,7 +895,7 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
                   <p className="text-sm font-bold text-foreground">Cookie settings</p>
                   <p className="text-xs text-muted-foreground">Allow or refuse optional analytics on this browser.</p>
                 </div>
-                <Button type="button" variant="outline" size="sm" className="shrink-0 gap-1.5 rounded-xl" aria-haspopup="dialog" onClick={openCookieSettings}>
+                <Button type="button" variant="outline" size="sm" className="shrink-0 gap-2 rounded-xl" aria-haspopup="dialog" onClick={openCookieSettings}>
                   <AppIcon icon={ICON.cookies} size="sm" />
                   Cookie settings
                 </Button>
@@ -909,7 +909,7 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
                   type="button"
                   variant="outline"
                   size="sm"
-                  className="shrink-0 gap-1.5 rounded-xl"
+                  className="shrink-0 gap-2 rounded-xl"
                   disabled={signOutPending !== null}
                   onClick={() => setShowSignOutAllDialog(true)}
                 >

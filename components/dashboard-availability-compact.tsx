@@ -100,7 +100,7 @@ export function DashboardAvailabilityCompact({
           )}
         >
           <Link href={atQuota ? listHref : COMPOSE_AVAILABILITY_HREF}>
-            <AppIcon icon={ICON.create} size="sm" className="mr-1.5 text-teal-foreground" />
+            <AppIcon icon={ICON.create} size="sm" className="mr-2 text-teal-foreground" />
             New post
           </Link>
         </Button>
@@ -139,18 +139,18 @@ export function DashboardAvailabilityCompact({
                 <CardHeader className="pb-2">
                   <div className="flex flex-wrap items-center gap-2">
                     {post.role ? (
-                      <Badge className="rounded-full border-lavender/40 bg-lavender/15 px-2.5 py-0.5 text-xs text-lavender">
+                      <Badge className="rounded-full border-lavender/40 bg-lavender/15 px-3 py-0.5 text-xs text-lavender">
                         {post.role}
                       </Badge>
                     ) : null}
                     {post.experience ? (
-                      <Badge variant="outline" className="rounded-full px-2.5 py-0.5 text-xs">
+                      <Badge variant="outline" className="rounded-full px-3 py-0.5 text-xs">
                         {post.experience}
                       </Badge>
                     ) : null}
                     <Badge
                       className={cn(
-                        "ml-auto rounded-full border px-2.5 py-0.5 text-base font-semibold",
+                        "ml-auto rounded-full border px-3 py-0.5 text-base font-semibold",
                         expiresSoon
                           ? "border-peach/40 bg-peach/10 text-peach"
                           : "border-border/50 bg-secondary/60 text-muted-foreground",
@@ -186,7 +186,7 @@ export function DashboardAvailabilityCompact({
                       <AppIcon
                         icon={ICON.refresh}
                         size="sm"
-                        className={cn("mr-1.5 text-teal-foreground", renewing && "animate-spin")}
+                        className={cn("mr-2 text-teal-foreground", renewing && "animate-spin")}
                       />
                       {renewing ? "Renewing..." : "Renew"}
                     </Button>

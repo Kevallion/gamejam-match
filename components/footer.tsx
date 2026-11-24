@@ -32,7 +32,7 @@ export function Footer({ tagline, className }: FooterProps) {
               <span>Made with</span>
               <Heart className="size-4 text-pink" aria-hidden />
               <span>by</span>
-              <span className="inline-flex items-center gap-1.5 font-bold text-foreground">
+              <span className="inline-flex items-center gap-2 font-bold text-foreground">
                 <Gamepad2 className="size-4 text-primary" aria-hidden />
                 GameJamCrew
               </span>
@@ -67,7 +67,7 @@ export function Footer({ tagline, className }: FooterProps) {
                 href="https://docs.google.com/forms/d/e/1FAIpQLSfPFN9Y_zYZSld-6EEO3ybmPpflPWvTVaF5Le7ooxlIe9a09g/viewform?usp=dialog"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-foreground"
+                className="inline-flex items-center gap-2 text-muted-foreground transition-colors hover:text-foreground"
               >
                 <MessageSquareText className="size-3.5" aria-hidden />
                 Feedback

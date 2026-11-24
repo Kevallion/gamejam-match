@@ -85,11 +85,11 @@ export function LevelHero({ level, compact }: { level: BentoLevel; compact?: boo
       </div>
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap gap-2">
-          <span className="inline-flex h-6 items-center rounded-full border border-teal/40 bg-teal/15 px-2.5 text-xs font-extrabold text-teal">
+          <span className="inline-flex h-6 items-center rounded-full border border-teal/40 bg-teal/15 px-3 text-xs font-extrabold text-teal">
             {level.title}
           </span>
           {!compact && level.seasonRank != null ? (
-            <span className="inline-flex h-6 items-center rounded-full border border-lavender/40 bg-lavender/15 px-2.5 text-xs font-extrabold text-lavender">
+            <span className="inline-flex h-6 items-center rounded-full border border-lavender/40 bg-lavender/15 px-3 text-xs font-extrabold text-lavender">
               Season rank #{level.seasonRank}
             </span>
           ) : null}
@@ -144,7 +144,7 @@ function HeroPill({
   label: string
 }) {
   return (
-    <span className="inline-flex min-h-10 items-center gap-1.5 rounded-xl border border-border bg-background/60 px-3 py-1 text-base font-extrabold">
+    <span className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-border bg-background/60 px-3 py-1 text-base font-extrabold">
       <AppIcon icon={icon} size="sm" tone={tone} />
       {label}
     </span>
@@ -195,11 +195,11 @@ export function MobileKpiStrip({ kpis, xpThisWeek }: { kpis: BentoKpis; xpThisWe
     { tone: "bg-pink text-pink-foreground", label: "XP / week", value: xpThisWeek },
   ]
   return (
-    <div className="grid grid-cols-4 gap-1.5">
+    <div className="grid grid-cols-4 gap-2">
       {items.map((item) => (
         <div
           key={item.label}
-          className={cn("flex flex-col items-center rounded-xl px-1 py-1.5", item.tone)}
+          className={cn("flex flex-col items-center rounded-xl px-1 py-2", item.tone)}
         >
           <span className="mb-0.5 text-base font-black leading-4">{item.value ?? "—"}</span>
           <span className="text-xs font-bold">{item.label}</span>
@@ -223,7 +223,7 @@ function LivePill() {
 function JamTimeBar({ jam }: { jam: BentoLiveJam }) {
   return (
     <div>
-      <div className="mb-1.5 flex items-center justify-between text-xs font-extrabold">
+      <div className="mb-2 flex items-center justify-between text-xs font-extrabold">
         <span className="inline-flex items-center gap-1">
           <AppIcon icon={ICON.time} size="xs" />
           Ends in {jam.endsIn}
@@ -244,7 +244,7 @@ export function LiveJamEmpty() {
       <p className="text-sm font-semibold text-muted-foreground">No live jam right now</p>
       <Link
         href="/teams"
-        className="mt-3 inline-flex min-h-11 w-fit items-center gap-1.5 rounded-xl border border-border bg-card px-3 text-sm font-extrabold shadow-[3px_3px_0_0_var(--neo-shadow)] jam-motion transition-opacity duration-200 motion-reduce:transition-none hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        className="mt-3 inline-flex min-h-11 w-fit items-center gap-2 rounded-xl border border-border bg-card px-3 text-sm font-extrabold shadow-[3px_3px_0_0_var(--neo-shadow)] jam-motion transition-opacity duration-200 motion-reduce:transition-none hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       >
         Browse squads
         <AppIcon icon={ICON.navRight} size="sm" tone="muted" />
@@ -268,7 +268,7 @@ export function LiveJamCard({ jam }: { jam: BentoLiveJam }) {
         <div className="mt-4">
           <JamTimeBar jam={jam} />
         </div>
-        <div className="mt-auto flex items-center gap-2.5 pt-4">
+        <div className="mt-auto flex items-center gap-3 pt-4">
           <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-background/20 text-xs font-black">
             {initialsOf(jam.squadName)}
           </span>
@@ -341,14 +341,14 @@ export function questXpLeft(quests: BentoQuest[]): number {
 export function QuestRow({ quest }: { quest: BentoQuest }) {
   const pct = percent(quest.progress, quest.total)
   return (
-    <div className="flex min-w-0 items-start gap-2.5">
+    <div className="flex min-w-0 items-start gap-3">
       <span className="mt-0.5 size-4 shrink-0 rounded-[4px] border-2 border-warning" aria-hidden />
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-2">
           <p className="truncate text-sm font-extrabold">{quest.title}</p>
           <span className="shrink-0 text-xs font-extrabold text-peach">+{quest.xp} XP</span>
         </div>
-        <div className="mt-1.5 flex items-center gap-2">
+        <div className="mt-2 flex items-center gap-2">
           <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
             <div className="h-full rounded-full bg-peach" style={{ width: `${pct}%` }} />
           </div>
@@ -384,7 +384,7 @@ export function QuestsCard({ quests }: { quests: BentoQuest[] }) {
 /** Compact row used inside the mobile quest accordion. */
 export function QuestPill({ quest }: { quest: BentoQuest }) {
   return (
-    <div className="flex h-11 min-w-0 items-center gap-2.5 rounded-xl bg-background px-3">
+    <div className="flex h-11 min-w-0 items-center gap-3 rounded-xl bg-background px-3">
       <span className="min-w-0 flex-1 truncate text-base font-extrabold">{quest.title}</span>
       <span className="shrink-0 text-base font-bold text-muted-foreground">
         {quest.progress}/{quest.total}
@@ -414,7 +414,7 @@ export function badgeShelf(badges: BentoBadge[], progress: BadgeProgressSnapshot
 
 function ShelfGrid({ items, dense }: { items: BadgeShelfItem[]; dense?: boolean }) {
   return (
-    <ul className={cn("grid grid-cols-5", dense ? "gap-x-1 gap-y-2" : "gap-x-1.5 gap-y-2")}>
+    <ul className={cn("grid grid-cols-5", dense ? "gap-x-1 gap-y-2" : "gap-x-2 gap-y-2")}>
       {items.map((item) => (
         <li
           key={item.id}
@@ -454,7 +454,7 @@ function AlmostThere({
     <div
       className={cn(
         "flex min-w-0 items-center gap-3 rounded-xl border border-dashed border-peach/60 bg-peach/10",
-        dense ? "mt-3 p-2.5" : "mt-auto p-2.5",
+        dense ? "mt-3 p-3" : "mt-auto p-3",
       )}
     >
       <BadgeMedallion badgeId={next.badgeId} rarity={next.meta.rarity} size="sm" />
@@ -467,7 +467,7 @@ function AlmostThere({
         </div>
         <p className="truncate text-base font-semibold text-muted-foreground">{next.meta.blurb}</p>
         <div
-          className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-muted"
+          className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted"
           role="progressbar"
           aria-label={`${next.meta.label}: ${next.progress.label}`}
           aria-valuemin={0}
@@ -501,7 +501,7 @@ export function BadgeShelfCard({
       }
       className="min-h-[280px]"
     >
-      <div className="flex flex-1 flex-col gap-2.5">
+      <div className="flex flex-1 flex-col gap-3">
         <ShelfGrid items={shelf.items} />
         {shelf.next ? <AlmostThere next={shelf.next} /> : null}
       </div>
@@ -518,7 +518,7 @@ export function MobileBadgeShelf({
 }) {
   const shelf = badgeShelf(badges, progress)
   return (
-    <BentoCard neo className="p-3.5">
+    <BentoCard neo className="p-4">
       <ShelfGrid items={shelf.items} dense />
       {shelf.next ? (
         <AlmostThere next={shelf.next} dense />
@@ -574,7 +574,7 @@ export function XpWeekCard({ weeks }: { weeks: BentoXpWeek[] }) {
             )
           })}
         </div>
-        <div className="mt-1.5 flex gap-2 border-t border-border pt-1.5" aria-hidden>
+        <div className="mt-2 flex gap-2 border-t border-border pt-2" aria-hidden>
           {weeks.map((week) => (
             <span key={week.label} className="min-w-0 flex-1 text-center text-xs font-bold text-muted-foreground">
               {week.label}
@@ -593,7 +593,7 @@ export function UpNextCard({ jams }: { jams: BentoUpcomingJam[] }) {
     <BentoCard title="Up next" icon={ICON.dates} iconTone="mint" className="min-h-[220px]">
       <ul className="flex flex-1 flex-col gap-3">
         {jams.map((jam) => (
-          <li key={jam.id} className="flex min-w-0 items-center gap-2.5">
+          <li key={jam.id} className="flex min-w-0 items-center gap-3">
             <DateBlock jam={jam} />
             <div className="min-w-0">
               <p className="truncate text-sm font-extrabold">{jam.name}</p>
@@ -615,7 +615,7 @@ export function CrewFeedCard({ items }: { items: BentoFeedItem[] }) {
     <BentoCard title="Crew feed" icon={ICON.note} iconTone="pink" className="min-h-[220px]">
       <ul className="flex flex-1 flex-col gap-3">
         {items.map((item) => (
-          <li key={item.id} className="flex min-w-0 items-center gap-2.5">
+          <li key={item.id} className="flex min-w-0 items-center gap-3">
             <span
               className={cn(
                 "grid size-8 shrink-0 place-items-center rounded-full text-base font-black",
@@ -657,7 +657,7 @@ function SquadBody({
 }) {
   return (
     <>
-      <div className="flex min-w-0 items-center gap-2.5">
+      <div className="flex min-w-0 items-center gap-3">
         <span
           className={cn(
             "grid size-9 shrink-0 place-items-center rounded-xl text-xs font-black",
@@ -699,7 +699,7 @@ function SquadBody({
           className="mt-3 h-11 w-full rounded-xl text-destructive hover:bg-destructive/10 hover:text-destructive"
           onClick={() => onLeave(squad.id)}
         >
-          <AppIcon icon={ICON.removeMember} size="sm" className="mr-1.5" />
+          <AppIcon icon={ICON.removeMember} size="sm" className="mr-2" />
           Leave squad
         </Button>
       ) : null}
@@ -774,7 +774,7 @@ export function SquadMatchCard({ match }: { match: BentoSquadMatch }) {
           {match.jam} · {match.reason}
         </p>
         <div className="mt-auto flex items-center gap-2 pt-3">
-          <div className="flex -space-x-1.5">
+          <div className="flex -space-x-2">
             {match.memberInitials.map((initials) => (
               <span
                 key={initials}

@@ -87,7 +87,7 @@ function QuestAccordionPlaceholder({ data }: { data?: BentoDashboardData }) {
   const firstQuests = quests.slice(0, 2)
   const moreQuests = quests.slice(2)
   return (
-    <div className="space-y-2.5">
+    <div className="space-y-3">
       <Collapsible open={open} onOpenChange={setOpen}>
         <div
           className={cn(
@@ -97,7 +97,7 @@ function QuestAccordionPlaceholder({ data }: { data?: BentoDashboardData }) {
         >
           <CollapsibleTrigger
             className={cn(
-              "flex w-full items-center gap-2.5 px-3.5 py-3.5 text-left",
+              "flex w-full items-center gap-3 px-4 py-4 text-left",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset",
             )}
           >
@@ -107,7 +107,7 @@ function QuestAccordionPlaceholder({ data }: { data?: BentoDashboardData }) {
             />
             <span className="min-w-0 flex-1">
               <span className="block text-base font-bold">Next quest</span>
-              <span className="block truncate text-[11.5px] font-semibold text-muted-foreground">
+              <span className="block truncate text-base font-semibold text-muted-foreground">
                 {firstQuests[0]
                   ? `${firstQuests[0].title} · +${firstQuests[0].xp} XP`
                   : "Quests will appear here"}
@@ -122,7 +122,7 @@ function QuestAccordionPlaceholder({ data }: { data?: BentoDashboardData }) {
             </span>
           </CollapsibleTrigger>
           <CollapsibleContent>
-            <div className="space-y-2 px-3.5 pb-3.5">
+            <div className="space-y-2 px-4 pb-4">
               {firstQuests.length > 0 ? (
                 firstQuests.map((quest) => <QuestPill key={quest.id} quest={quest} />)
               ) : (
@@ -144,14 +144,14 @@ function QuestAccordionPlaceholder({ data }: { data?: BentoDashboardData }) {
         >
           <CollapsibleTrigger
             className={cn(
-              "flex w-full items-center gap-2.5 px-3.5 py-3 text-left",
+              "flex w-full items-center gap-3 px-4 py-3 text-left",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset",
             )}
           >
             <span className="size-5 shrink-0 rounded-[4px] border-2 border-border" aria-hidden />
             <span className="min-w-0 flex-1">
               <span className="block text-base font-bold">More quests</span>
-              <span className="block truncate text-[11.5px] font-semibold text-muted-foreground">
+              <span className="block truncate text-base font-semibold text-muted-foreground">
                 {moreQuests.length > 0
                   ? `${moreQuests.length} more · +${questXpLeft(moreQuests)} XP`
                   : "Coming soon"}
@@ -162,7 +162,7 @@ function QuestAccordionPlaceholder({ data }: { data?: BentoDashboardData }) {
             </span>
           </CollapsibleTrigger>
           <CollapsibleContent>
-            <div className="space-y-2 px-3.5 pb-3.5">
+            <div className="space-y-2 px-4 pb-4">
               {moreQuests.length > 0 ? (
                 moreQuests.map((quest) => <QuestPill key={quest.id} quest={quest} />)
               ) : (
@@ -264,12 +264,12 @@ function MobileKpiStrip() {
     { tone: "bg-pink text-pink-foreground", label: "XP / week" },
   ]
   return (
-    <div className="grid grid-cols-4 gap-1.5">
+    <div className="grid grid-cols-4 gap-2">
       {items.map((item) => (
         <div
           key={item.label}
           className={cn(
-            "flex flex-col items-center rounded-xl px-1 py-1.5",
+            "flex flex-col items-center rounded-xl px-1 py-2",
             item.tone,
           )}
         >
@@ -301,11 +301,11 @@ export function BentoDashboard({ displayName, data, onLeaveSquad, recommendedTea
           </h1>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <span className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-border bg-card px-3.5 text-base font-bold shadow-[3px_3px_0_0_var(--neo-shadow)]">
+          <span className="inline-flex h-10 items-center gap-2 rounded-xl border border-border bg-card px-4 text-base font-bold shadow-[3px_3px_0_0_var(--neo-shadow)]">
             <AppIcon icon={ICON.xp} size="sm" tone="peach" />
             {data ? `${data.level.streakDays}-day streak` : "Streak soon"}
           </span>
-          <span className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-border bg-card px-3.5 text-base font-bold shadow-[3px_3px_0_0_var(--neo-shadow)]">
+          <span className="inline-flex h-10 items-center gap-2 rounded-xl border border-border bg-card px-4 text-base font-bold shadow-[3px_3px_0_0_var(--neo-shadow)]">
             <AppIcon icon={ICON.info} size="sm" tone="lavender" />
             Press 1–5 to switch
           </span>
@@ -537,7 +537,7 @@ export function BentoDashboard({ displayName, data, onLeaveSquad, recommendedTea
           {data ? (
             <MobileBadgeShelf badges={data.badges} progress={data.badgeProgress} />
           ) : (
-            <BentoCard neo className="p-3.5" placeholder emptyLabel="Earn badges by jamming" skeletonLines={data ? 0 : 2} />
+            <BentoCard neo className="p-4" placeholder emptyLabel="Earn badges by jamming" skeletonLines={data ? 0 : 2} />
           )}
         </section>
       </div>

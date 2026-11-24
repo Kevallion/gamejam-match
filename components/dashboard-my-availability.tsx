@@ -63,7 +63,7 @@ function AnnouncementCard({ post, onDelete, onRenew, isRenewing, profileAvatarUr
     <Card className="group relative flex flex-col rounded-2xl border-border/50 bg-card transition-all duration-300 hover:border-lavender/30 hover:shadow-lg hover:shadow-lavender/5">
       <CardContent className="flex flex-1 flex-col gap-4 pt-6">
         {/* Avatar + Username */}
-        <div className="flex items-center gap-3.5">
+        <div className="flex items-center gap-4">
           <UserAvatar
             src={post.avatar_url ?? profileAvatarUrl ?? null}
             fallbackName={username}
@@ -74,7 +74,7 @@ function AnnouncementCard({ post, onDelete, onRenew, isRenewing, profileAvatarUr
               {username}
             </h3>
             {languageOptionLabel(post.language) ? (
-              <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Globe className="size-3.5 text-teal" />
                 {languageOptionLabel(post.language)}
               </div>
@@ -126,7 +126,7 @@ function AnnouncementCard({ post, onDelete, onRenew, isRenewing, profileAvatarUr
             href={post.portfolio_link}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1.5 text-sm text-lavender hover:underline"
+            className="flex items-center gap-2 text-sm text-lavender hover:underline"
           >
             <ExternalLink className="size-3.5" />
             Portfolio

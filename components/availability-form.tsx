@@ -409,7 +409,7 @@ export function AvailabilityForm({
                 {step === 1 && (
                   <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-left-2 duration-200">
                     {/* Username */}
-                    <div className="flex flex-col gap-2.5">
+                    <div className="flex flex-col gap-3">
                       <Label htmlFor="username" className="text-sm font-bold text-foreground">
                         Username
                       </Label>
@@ -431,7 +431,7 @@ export function AvailabilityForm({
                         aria-invalid={!!fieldError("username")}
                       />
                       {fieldError("username") && (
-                        <div className="status-error flex items-center gap-1.5 text-xs text-destructive">
+                        <div className="status-error flex items-center gap-2 text-xs text-destructive">
                           <CircleAlert className="size-4 shrink-0" />
                           <span>{fieldError("username")}</span>
                         </div>
@@ -440,7 +440,7 @@ export function AvailabilityForm({
 
                     {/* Role & Level row */}
                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                      <div className="flex flex-col gap-2.5">
+                      <div className="flex flex-col gap-3">
                         <Label className="text-sm font-bold text-foreground">Main Role</Label>
                         <Select
                           value={role}
@@ -472,14 +472,14 @@ export function AvailabilityForm({
                           </SelectContent>
                         </Select>
                         {fieldError("role") && (
-                          <div className="status-error flex items-center gap-1.5 text-xs text-destructive">
+                          <div className="status-error flex items-center gap-2 text-xs text-destructive">
                             <CircleAlert className="size-4 shrink-0" />
                             <span>{fieldError("role")}</span>
                           </div>
                         )}
                       </div>
 
-                      <div className="flex flex-col gap-2.5">
+                      <div className="flex flex-col gap-3">
                         <Label className="text-sm font-bold text-foreground">Experience Level</Label>
                         <Select
                           value={level}
@@ -510,7 +510,7 @@ export function AvailabilityForm({
                           </SelectContent>
                         </Select>
                         {fieldError("level") && (
-                          <div className="status-error flex items-center gap-1.5 text-xs text-destructive">
+                          <div className="status-error flex items-center gap-2 text-xs text-destructive">
                             <CircleAlert className="size-4 shrink-0" />
                             <span>{fieldError("level")}</span>
                           </div>
@@ -523,7 +523,7 @@ export function AvailabilityForm({
                 {step === 2 && (
                   <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-right-2 duration-200">
                     {/* Jam Style */}
-                    <div className="flex flex-col gap-2.5">
+                    <div className="flex flex-col gap-3">
                       <Label className="text-sm font-bold text-foreground">Jam Style</Label>
                       <Select value={jamStyle} onValueChange={setJamStyle}>
                         <SelectTrigger className="h-12 rounded-xl border-border/60 bg-secondary/50">
@@ -548,7 +548,7 @@ export function AvailabilityForm({
 
                     {/* Engine & Language row */}
                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                      <div className="flex flex-col gap-2.5">
+                      <div className="flex flex-col gap-3">
                         <Label className="text-sm font-bold text-foreground">Preferred Engine</Label>
                         <Select
                           value={engine}
@@ -574,14 +574,14 @@ export function AvailabilityForm({
                           </SelectContent>
                         </Select>
                         {fieldError("engine") && (
-                          <div className="status-error flex items-center gap-1.5 text-xs text-destructive">
+                          <div className="status-error flex items-center gap-2 text-xs text-destructive">
                             <CircleAlert className="size-4 shrink-0" />
                             <span>{fieldError("engine")}</span>
                           </div>
                         )}
                       </div>
 
-                      <div className="flex flex-col gap-2.5">
+                      <div className="flex flex-col gap-3">
                         <Label className="text-sm font-bold text-foreground">Spoken Language</Label>
                         <Select
                           value={language}
@@ -607,7 +607,7 @@ export function AvailabilityForm({
                           </SelectContent>
                         </Select>
                         {fieldError("language") && (
-                          <div className="status-error flex items-center gap-1.5 text-xs text-destructive">
+                          <div className="status-error flex items-center gap-2 text-xs text-destructive">
                             <CircleAlert className="size-4 shrink-0" />
                             <span>{fieldError("language")}</span>
                           </div>
@@ -616,7 +616,7 @@ export function AvailabilityForm({
                     </div>
 
                     {/* Jam Itch.io (optional) */}
-                    <div className="flex flex-col gap-2.5">
+                    <div className="flex flex-col gap-3">
                       <Label className="text-sm font-bold text-foreground">Link to an Itch.io Jam (optional)</Label>
                       <JamSearchSelector
                         value={jamId}
@@ -644,7 +644,7 @@ export function AvailabilityForm({
                 {step === 3 && (
                   <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-left-2 duration-200">
                     {/* Portfolio / Itch.io */}
-                    <div className="flex flex-col gap-2.5">
+                    <div className="flex flex-col gap-3">
                       <Label htmlFor="portfolio_link" className="text-sm font-bold text-foreground">
                         Portfolio / Itch.io{" "}
                         <span className="text-xs font-normal text-muted-foreground">(optional)</span>
@@ -664,7 +664,7 @@ export function AvailabilityForm({
                     </div>
 
                     {/* About Me */}
-                    <div className="flex flex-col gap-2.5">
+                    <div className="flex flex-col gap-3">
                       <Label htmlFor="about" className="text-sm font-bold text-foreground">About Me</Label>
                       <Textarea
                         id="about"
@@ -684,7 +684,7 @@ export function AvailabilityForm({
                         aria-invalid={!!fieldError("bio")}
                       />
                       {fieldError("bio") && (
-                        <div className="status-error flex items-center gap-1.5 text-xs text-destructive">
+                        <div className="status-error flex items-center gap-2 text-xs text-destructive">
                           <CircleAlert className="size-4 shrink-0" />
                           <span>{fieldError("bio")}</span>
                         </div>
@@ -694,7 +694,7 @@ export function AvailabilityForm({
                     {/* Review */}
                     <div className="rounded-2xl border border-border/60 bg-secondary/40 p-4 text-sm text-muted-foreground">
                       <p className="mb-2 font-semibold text-foreground">Quick review of your profile</p>
-                      <ul className="space-y-1.5">
+                      <ul className="space-y-2">
                         <li>
                           <span className="font-medium text-foreground">Username:</span>{" "}
                           {username || <span className="italic text-muted-foreground">Not set</span>}

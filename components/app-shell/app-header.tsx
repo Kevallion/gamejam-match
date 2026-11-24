@@ -49,7 +49,7 @@ function ThemeButton() {
           <span className="relative flex size-4">
             <svg
               viewBox="0 0 24 24"
-              className="size-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0"
+              className="size-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0 motion-reduce:transition-none"
               fill="none"
               stroke="currentColor"
               strokeWidth="2"
@@ -60,7 +60,7 @@ function ThemeButton() {
             </svg>
             <svg
               viewBox="0 0 24 24"
-              className="absolute inset-0 size-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100"
+              className="absolute inset-0 size-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100 motion-reduce:transition-none"
               fill="none"
               stroke="currentColor"
               strokeWidth="2"
@@ -85,7 +85,6 @@ export function AppHeader({
   subtitle,
   greetingName,
   hideGreetingDesktop = false,
-  levelLabel,
   avatarUrl,
   displayName,
   userId,
@@ -100,6 +99,9 @@ export function AppHeader({
 }: AppHeaderProps) {
   const avatarHref = meHubHref ?? (userId ? `/jammer/${userId}` : null)
   const avatarFallback = displayName?.trim() || greetingName?.trim() || "Jammer"
+  const titleText = greetingName
+    ? `Hey ${greetingName.split(/\s+/)[0] || greetingName}`
+    : title
 
   const bell = (
     <Button
@@ -110,7 +112,7 @@ export function AppHeader({
     >
       <AppIcon icon={ICON.notifications} size="md" />
       {unreadCount > 0 ? (
-        <span className="absolute -right-0.5 -top-0.5 flex min-h-4 min-w-4 items-center justify-center rounded-full bg-peach px-1 text-xs font-bold text-peach-foreground">
+        <span className="absolute -right-0.5 -top-0.5 flex min-h-4 min-w-4 items-center justify-center rounded-full bg-peach px-1 text-xs font-bold tabular-nums text-peach-foreground">
           {unreadCount > 9 ? "9+" : unreadCount}
         </span>
       ) : null}
@@ -134,68 +136,40 @@ export function AppHeader({
         className,
       )}
     >
-      <div className="hidden app-desktop:block">
-        <div className="mx-auto flex h-14 w-full max-w-[1280px] items-center gap-3 overflow-visible px-4 app-desktop:px-6 xl:px-10">
-          <Link
-            href="/dashboard"
-            className="flex min-w-0 shrink-0 items-center gap-2 font-display text-base font-extrabold tracking-tight"
-            aria-label="GameJamCrew home"
+      <div className="relative mx-auto flex h-14 w-full max-w-[1280px] items-center gap-2 px-3 app-desktop:h-16 app-desktop:gap-3 app-desktop:px-6 xl:px-10">
+        <Link
+          href="/dashboard"
+          className="flex size-11 shrink-0 items-center justify-center rounded-xl app-desktop:w-auto app-desktop:gap-2 app-desktop:justify-start"
+          aria-label="GameJamCrew home"
+        >
+          <span className="grid size-11 shrink-0 place-items-center rounded-xl border border-border bg-primary text-primary-foreground shadow-[3px_3px_0_0_var(--neo-shadow)]">
+            <AppIcon icon={ICON.jam} size="md" className="text-primary-foreground" />
+          </span>
+          <span className="hidden truncate font-display text-base font-extrabold tracking-tight app-desktop:inline">
+            GameJamCrew
+          </span>
+        </Link>
+
+        <div
+          className={cn(
+            "min-w-0 flex-1",
+            "app-desktop:max-w-[240px] app-desktop:flex-none",
+            greetingName && hideGreetingDesktop && "app-desktop:hidden",
+          )}
+        >
+          <h1
+            className="truncate font-display text-xl font-extrabold tracking-tight text-foreground app-desktop:text-2xl"
+            title={subtitle ? `${titleText} — ${subtitle}` : titleText}
           >
-            <span className="grid size-[34px] shrink-0 place-items-center rounded-xl border border-border bg-primary text-primary-foreground shadow-[3px_3px_0_0_var(--neo-shadow)]">
-              <AppIcon icon={ICON.jam} size="md" className="text-primary-foreground" />
-            </span>
-            <span className="truncate">GameJamCrew</span>
-          </Link>
-          <div className="ml-auto min-w-0 max-w-[380px] flex-1">
-            <AppSearch variant="desktop" />
-          </div>
-        </div>
-      </div>
-      <div className="mx-auto flex h-14 w-full max-w-[1280px] items-center gap-3 px-4 app-desktop:h-16 app-desktop:px-6 xl:px-10">
-        <div className="min-w-0 flex-1">
-          {greetingName ? (
-            <div
-              className={cn(
-                "flex min-w-0 items-center gap-2.5",
-                hideGreetingDesktop && "app-desktop:hidden",
-              )}
-            >
-              <span className="grid size-9 shrink-0 place-items-center rounded-xl border border-border bg-primary text-primary-foreground shadow-[3px_3px_0_0_var(--neo-shadow)] app-desktop:hidden">
-                <AppIcon icon={ICON.jam} size="md" className="text-primary-foreground" />
-              </span>
-              <div className="min-w-0">
-                <p className="truncate text-sm font-bold leading-tight text-muted-foreground">
-                  {levelLabel ?? "GameJamCrew"}
-                </p>
-                <p className="truncate font-display text-2xl font-extrabold tracking-tight text-foreground">
-                  Hey {greetingName.split(/\s+/)[0] || greetingName}
-                </p>
-              </div>
-            </div>
-          ) : null}
-
-          {!greetingName ? (
-            <div className="flex min-w-0 items-center gap-2.5">
-              <Link
-                href="/dashboard"
-                className="grid size-9 shrink-0 place-items-center rounded-xl border border-border bg-primary text-primary-foreground shadow-[3px_3px_0_0_var(--neo-shadow)] app-desktop:hidden"
-                aria-label="GameJamCrew home"
-              >
-                <AppIcon icon={ICON.jam} size="md" className="text-primary-foreground" />
-              </Link>
-              <div className="min-w-0">
-              <h1 className="truncate font-display text-2xl font-extrabold tracking-tight text-foreground">
-                {title}
-              </h1>
-              {subtitle ? (
-                <p className="truncate text-xs text-muted-foreground">{subtitle}</p>
-              ) : null}
-              </div>
-            </div>
-          ) : null}
+            {titleText}
+          </h1>
         </div>
 
-        <div className="flex shrink-0 items-center gap-1">
+        <div className="hidden min-w-0 flex-1 app-desktop:block">
+          <AppSearch variant="desktop" />
+        </div>
+
+        <div className="ml-auto flex shrink-0 items-center gap-1">
           <AppSearch variant="mobile" />
           <div className="md:hidden">
             <NotificationsPanel
@@ -239,20 +213,18 @@ export function AppHeader({
             </NotificationsPanel>
           </div>
 
-          <div className="hidden lg:block">
-            <ThemeButton />
-          </div>
+          <ThemeButton />
 
           {avatarHref ? (
             <Link
               href={avatarHref}
-              className="ml-0.5 flex size-11 items-center justify-center"
+              className="flex size-11 items-center justify-center"
               aria-label={meHubHref ? "Me" : "Public profile"}
             >
               {avatar}
             </Link>
           ) : (
-            <span className="ml-0.5 flex size-11 items-center justify-center">{avatar}</span>
+            <span className="flex size-11 items-center justify-center">{avatar}</span>
           )}
         </div>
       </div>

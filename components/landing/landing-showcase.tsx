@@ -19,7 +19,7 @@ export function LandingShowcase() {
       <div className="relative mx-auto max-w-6xl">
         {/* Section header */}
         <div className="mb-14 flex flex-col items-center text-center">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border-2 border-foreground bg-card px-4 py-1.5 text-sm font-bold text-foreground shadow-[3px_3px_0px_0px_var(--neo-shadow)]">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border-2 border-foreground bg-card px-4 py-2 text-sm font-bold text-foreground shadow-[3px_3px_0px_0px_var(--neo-shadow)]">
             <Gamepad2 className="size-4 text-teal" />
             Your Command Center
           </div>
@@ -41,13 +41,13 @@ export function LandingShowcase() {
           <div className="relative rounded-xl border-2 border-foreground bg-card overflow-hidden">
             {/* Browser header */}
             <div className="flex items-center gap-2 border-b-2 border-foreground bg-muted px-4 py-3">
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-2">
                 <div className="size-3 rounded-full border-2 border-foreground bg-pink/30" />
                 <div className="size-3 rounded-full border-2 border-foreground bg-peach/30" />
                 <div className="size-3 rounded-full border-2 border-foreground bg-teal/30" />
               </div>
               <div className="mx-4 flex-1">
-                <div className="mx-auto max-w-sm rounded-lg border border-slate-300 bg-background px-4 py-1.5 text-center text-xs font-mono text-muted-foreground">
+                <div className="mx-auto max-w-sm rounded-lg border border-slate-300 bg-background px-4 py-2 text-center text-xs font-mono text-muted-foreground">
                   gamejamcrew.com/dashboard
                 </div>
               </div>
@@ -65,7 +65,7 @@ export function LandingShowcase() {
         <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2">
           {/* Notification 1 */}
           <div className="group relative">
-            <div className="absolute inset-0 translate-x-1.5 translate-y-1.5 rounded-xl border-2 border-teal opacity-40" />
+            <div className="absolute inset-0 translate-x-2 translate-y-2 rounded-xl border-2 border-teal opacity-40" />
             <div className="relative rounded-xl border-2 border-foreground bg-card p-4">
               <div className="flex items-start gap-3">
                 <div className="flex size-10 flex-shrink-0 items-center justify-center rounded-lg border-2 border-teal/30 bg-teal/10">
@@ -81,7 +81,7 @@ export function LandingShowcase() {
 
           {/* Notification 2 */}
           <div className="group relative">
-            <div className="absolute inset-0 translate-x-1.5 translate-y-1.5 rounded-xl border-2 border-pink opacity-40" />
+            <div className="absolute inset-0 translate-x-2 translate-y-2 rounded-xl border-2 border-pink opacity-40" />
             <div className="relative rounded-xl border-2 border-foreground bg-card p-4">
               <div className="flex items-start gap-3">
                 <div className="flex size-10 flex-shrink-0 items-center justify-center rounded-lg border-2 border-pink/30 bg-pink/10">

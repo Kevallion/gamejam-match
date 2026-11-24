@@ -206,7 +206,7 @@ export function TeamCard({
             {team.user_id && team.ownerProfileExists !== false && (
               <Link
                 href={`/jammer/${team.user_id}`}
-                className="inline-flex max-w-[12rem] cursor-pointer items-center gap-2 rounded-lg border border-border/60 bg-card/70 px-2.5 py-1.5 transition-colors hover:bg-muted/50"
+                className="inline-flex max-w-[12rem] cursor-pointer items-center gap-2 rounded-lg border border-border/60 bg-card/70 px-3 py-2 transition-colors hover:bg-muted/50"
               >
                 <UserAvatar
                   src={team.ownerAvatarUrl ?? null}
@@ -240,7 +240,7 @@ export function TeamCard({
             {team.teamVibe?.key ? <TagIcon kind="style" value={team.teamVibe.key} size="sm" showLabel /> : null}
             <Badge
               variant="outline"
-              className="inline-flex items-center gap-1.5 rounded-full border-border/60 text-xs text-muted-foreground"
+              className="inline-flex items-center gap-2 rounded-full border-border/60 text-xs text-muted-foreground"
             >
               <UsersRound className="size-3" />
               {team.members}/{team.maxMembers} members
@@ -248,7 +248,7 @@ export function TeamCard({
           </div>
 
           <div>
-            <h4 className="mb-1.5 text-sm font-bold text-foreground">Description</h4>
+            <h4 className="mb-2 text-sm font-bold text-foreground">Description</h4>
             <p className="whitespace-pre-wrap break-words text-sm leading-relaxed text-muted-foreground">
               {team.description}
             </p>
@@ -311,15 +311,15 @@ export function TeamCard({
           isRecommended && "border-teal",
         )}
       >
-        <div className="mb-3.5 flex min-w-0 items-start justify-between gap-2.5">
+        <div className="mb-4 flex min-w-0 items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
-            <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+            <div className="flex min-w-0 flex-wrap items-center gap-2">
               <h3 className="truncate font-display text-xl font-extrabold text-foreground">{team.name}</h3>
               {isRecommended && (
                 <Badge
                   variant="outline"
                   aria-label="Perfect match for your profile"
-                  className="shrink-0 gap-0.5 border-teal/20 bg-teal/10 px-1.5 py-0 text-xs font-semibold text-teal"
+                  className="shrink-0 gap-0.5 border-teal/20 bg-teal/10 px-2 py-0 text-xs font-semibold text-teal"
                 >
                   <Sparkles className="size-3" aria-hidden />
                   Match
@@ -349,10 +349,10 @@ export function TeamCard({
         </div>
 
         {jamStatus && (
-          <JamStatusBadge status={jamStatus} title={jamPendingTitle} className="mb-3.5" />
+          <JamStatusBadge status={jamStatus} title={jamPendingTitle} className="mb-4" />
         )}
 
-        <div className="mb-3.5 flex min-h-6 flex-wrap items-center gap-1.5">
+        <div className="mb-4 flex min-h-6 flex-wrap items-center gap-2">
           <TagIconRow
             items={openRoles.map((role, index) => ({
               kind: "role" as const,
@@ -361,14 +361,14 @@ export function TeamCard({
             }))}
           />
           {isSquadFull && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-muted/60 px-2.5 py-0.5 text-xs font-semibold text-muted-foreground">
+            <span className="inline-flex items-center gap-1 rounded-full bg-muted/60 px-3 py-0.5 text-xs font-semibold text-muted-foreground">
               <CircleCheck className="size-3" />
               Full
             </span>
           )}
         </div>
 
-        <div className="mt-auto flex flex-wrap items-center justify-between gap-x-4 gap-y-1.5 border-t border-border/40 pt-3.5">
+        <div className="mt-auto flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t border-border/40 pt-4">
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             {team.level.key ? <TagIcon kind="level" value={team.level.key} size="xs" /> : null}
             {engineLabel ? <TagIcon kind="engine" value={team.engine} size="xs" /> : null}
@@ -390,7 +390,7 @@ export function TeamCard({
         </div>
 
         <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-center rounded-b-xl py-2 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
-          <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary">
+          <span className="inline-flex items-center gap-2 text-xs font-semibold text-primary">
             <Clock className="size-3" aria-hidden />
             View details
           </span>

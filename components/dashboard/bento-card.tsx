@@ -85,7 +85,7 @@ export function BentoCard({
       ) : null}
 
       {placeholder ? (
-        <div className="flex flex-1 flex-col gap-2.5" aria-busy="true">
+        <div className="flex flex-1 flex-col gap-3" aria-busy="true">
           {Array.from({ length: skeletonLines }).map((_, i) => (
             <Skeleton
               key={i}

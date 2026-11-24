@@ -89,7 +89,7 @@ export function AppSidebar({
         className="sticky top-0 z-30 hidden h-dvh w-[248px] shrink-0 flex-col border-r border-border/50 bg-card/90 backdrop-blur-md lg:flex"
         aria-label="App sidebar"
       >
-        <div className="flex items-center gap-2.5 px-4 pt-5">
+        <div className="flex items-center gap-3 px-4 pt-5">
           <Link
             href="/dashboard"
             className="flex size-8 items-center justify-center rounded-xl bg-primary/15 text-primary"
@@ -109,7 +109,7 @@ export function AppSidebar({
             ref={createTriggerRef}
             onClick={() => setCreateOpen(true)}
           >
-            <AppIcon icon={ICON.create} size="md" className="mr-1.5 text-teal-foreground" />
+            <AppIcon icon={ICON.create} size="md" className="mr-2 text-teal-foreground" />
             Create
           </Button>
         </div>
@@ -191,7 +191,7 @@ export function AppSidebar({
             <DropdownMenuTrigger asChild>
               <button
                 type="button"
-                className="flex w-full items-center gap-2.5 rounded-2xl border border-border/50 bg-card px-2.5 py-2 text-left transition-colors hover:border-teal/30"
+                className="flex w-full items-center gap-3 rounded-2xl border border-border/50 bg-card px-3 py-2 text-left transition-colors hover:border-teal/30"
               >
                 <UserAvatar
                   src={avatarUrl ?? null}

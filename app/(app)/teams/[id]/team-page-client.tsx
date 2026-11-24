@@ -365,7 +365,7 @@ export function TeamPageClient() {
                   Back to Dashboard
                 </Link>
               </Button>
-              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary">
+              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-2 text-sm font-medium text-primary">
                 <UsersRound className="size-4" />
                 Squad space
               </div>
@@ -408,7 +408,7 @@ export function TeamPageClient() {
                         {squad.engine ? (
                           <TagIcon kind="engine" value={squad.engine} size="xs" showLabel withTooltip={false} />
                         ) : null}
-                        <span className="inline-flex items-center gap-1.5">
+                        <span className="inline-flex items-center gap-2">
                           <Globe className="size-3.5 text-teal" />
                           {languageOptionLabel(squad.language)}
                         </span>
@@ -488,7 +488,7 @@ export function TeamPageClient() {
                                   </div>
                                   <Badge
                                     variant="outline"
-                                    className={`shrink-0 rounded-full px-2.5 py-0.5 text-base font-semibold ${roleClasses}`}
+                                    className={`shrink-0 rounded-full px-3 py-0.5 text-base font-semibold ${roleClasses}`}
                                   >
                                     {member.roleLabel}
                                   </Badge>

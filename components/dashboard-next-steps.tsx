@@ -122,7 +122,7 @@ export function DashboardNextSteps({
                     >
                       {step.label}
                     </span>
-                    <span className="inline-flex shrink-0 items-center gap-1.5 text-sm font-semibold text-primary">
+                    <span className="inline-flex shrink-0 items-center gap-2 text-sm font-semibold text-primary">
                       <AppIcon icon={Icon} size="sm" tone="primary" />
                       <span className="hidden sm:inline">{step.action}</span>
                     </span>

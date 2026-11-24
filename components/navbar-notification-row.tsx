@@ -41,8 +41,8 @@ export function NavbarNotificationRow({
   return (
     <div
       className={cn(
-        "flex gap-3 rounded-xl border border-transparent px-2 py-2.5 text-left transition-colors hover:bg-accent/60",
-        compact ? "py-2" : "py-2.5",
+        "flex gap-3 rounded-xl border border-transparent px-2 py-3 text-left transition-colors hover:bg-accent/60",
+        compact ? "py-2" : "py-3",
       )}
     >
       {isSystem ? (
@@ -68,7 +68,7 @@ export function NavbarNotificationRow({
         </button>
       )}
 
-      <div className="min-w-0 flex-1 space-y-1.5">
+      <div className="min-w-0 flex-1 space-y-2">
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
           {jammerHref ? (
             <button

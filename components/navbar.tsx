@@ -182,7 +182,7 @@ function NavbarChrome() {
             {NAV_ITEMS.map((item) => {
               const Icon = item.icon
               return (
-                <Button key={item.href} variant="ghost" asChild size="sm" className="gap-1.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-white/10">
+                <Button key={item.href} variant="ghost" asChild size="sm" className="gap-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-white/10">
                   <Link href={item.href}>
                     <Icon className="hidden size-3.5 xl:block" />
                     {item.label}
@@ -256,7 +256,7 @@ function NavbarChrome() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-80 rounded-2xl p-2">
-                  <DropdownMenuLabel className="flex items-center gap-2 px-2 py-1.5 text-sm font-bold">
+                  <DropdownMenuLabel className="flex items-center gap-2 px-2 py-2 text-sm font-bold">
                     <Bell className="size-4 text-primary" />
                     Notifications
                     {unreadCount > 0 && (
@@ -291,7 +291,7 @@ function NavbarChrome() {
                   )}
 
                   <DropdownMenuSeparator />
-                  <div className="flex items-center justify-between px-2 py-1.5">
+                  <div className="flex items-center justify-between px-2 py-2">
                     <button
                       type="button"
                       onClick={() => void markAllAsRead()}
@@ -305,7 +305,7 @@ function NavbarChrome() {
                       onClick={() =>
                         router.push(unreadCount > 0 ? "/dashboard?tab=inbox" : "/dashboard")
                       }
-                      className="flex cursor-pointer items-center gap-1.5 rounded-xl px-2 py-1 text-xs font-semibold text-primary hover:text-primary/90"
+                      className="flex cursor-pointer items-center gap-2 rounded-xl px-2 py-1 text-xs font-semibold text-primary hover:text-primary/90"
                     >
                       <LayoutDashboard className="size-3.5" />
                       View all
@@ -333,7 +333,7 @@ function NavbarChrome() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56 rounded-2xl p-2">
-                  <DropdownMenuLabel className="px-2 py-1.5">
+                  <DropdownMenuLabel className="px-2 py-2">
                     <p className="text-sm font-medium text-foreground">{displayName}</p>
                     <JammerTitleBadge title={navTitle} className="mt-1 text-xs" />
                   </DropdownMenuLabel>
@@ -355,7 +355,7 @@ function NavbarChrome() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button onClick={() => setAuthModalOpen(true)} size="sm" className="gap-1.5 rounded-xl bg-teal text-teal-foreground hover:bg-teal/90">
+              <Button onClick={() => setAuthModalOpen(true)} size="sm" className="gap-2 rounded-xl bg-teal text-teal-foreground hover:bg-teal/90">
                 <LogIn className="size-3.5" />
                 Sign In
               </Button>
@@ -424,7 +424,7 @@ function NavbarChrome() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-72 rounded-2xl p-2">
-                  <DropdownMenuLabel className="flex items-center gap-2 px-2 py-1.5 text-sm font-bold">
+                  <DropdownMenuLabel className="flex items-center gap-2 px-2 py-2 text-sm font-bold">
                     <Bell className="size-4 text-primary" />
                     Notifications
                   </DropdownMenuLabel>
@@ -457,7 +457,7 @@ function NavbarChrome() {
                   <button
                     type="button"
                     onClick={() => router.push("/dashboard?tab=inbox")}
-                    className="flex w-full items-center justify-center gap-1.5 py-2 text-xs font-semibold text-primary"
+                    className="flex w-full items-center justify-center gap-2 py-2 text-xs font-semibold text-primary"
                   >
                     View all notifications
                   </button>

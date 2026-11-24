@@ -362,7 +362,7 @@ export function JoinTeamModal({
       <div className="relative overflow-hidden rounded-t-2xl px-6 pt-6 pb-4">
         <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-teal/60 via-lavender/40 to-pink/50" />
 
-        <DialogHeader className="space-y-2.5 text-left">
+        <DialogHeader className="space-y-3 text-left">
           <div className="flex items-center gap-2">
             <div className="flex size-9 items-center justify-center rounded-xl bg-teal/15">
               <Rocket className="size-4 text-teal" />
@@ -374,7 +374,7 @@ export function JoinTeamModal({
 
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">Applying to</span>
-            <Badge className="rounded-full border-0 bg-teal/15 px-2.5 py-0.5 text-xs font-bold text-teal">
+            <Badge className="rounded-full border-0 bg-teal/15 px-3 py-0.5 text-xs font-bold text-teal">
               {teamName}
             </Badge>
           </div>
@@ -392,7 +392,7 @@ export function JoinTeamModal({
           {isOwnTeam && (
             <div
               aria-live="polite"
-              className="flex items-center gap-2.5 rounded-xl border border-amber-500/30 bg-amber-500/10 px-3.5 py-2.5 text-sm font-medium text-amber-700 dark:text-amber-400"
+              className="flex items-center gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm font-medium text-amber-700 dark:text-amber-400"
             >
               <CircleAlert className="size-4 shrink-0" />
               <p className="leading-snug">You cannot join your own squad.</p>
@@ -402,7 +402,7 @@ export function JoinTeamModal({
           {hasPendingApplication && !isOwnTeam && (
             <div
               aria-live="polite"
-              className="flex items-center gap-2.5 rounded-xl border border-mint/30 bg-mint/10 px-3.5 py-2.5 text-sm font-medium text-mint"
+              className="flex items-center gap-3 rounded-xl border border-mint/30 bg-mint/10 px-4 py-3 text-sm font-medium text-mint"
             >
               <CircleCheck className="size-4 shrink-0" />
               <p className="leading-snug">Application already sent — check your dashboard (Sent) for status.</p>
@@ -429,7 +429,7 @@ export function JoinTeamModal({
                       disabled={role.filled || loading || statusMsg?.type === "success"}
                       onClick={() => !role.filled && setSelectedRoleIdx(idx)}
                       className={[
-                        "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-all",
+                        "inline-flex items-center gap-2 rounded-full px-3 py-2 text-xs font-semibold transition-all",
                         role.filled
                           ? "cursor-not-allowed opacity-40 line-through bg-muted text-muted-foreground"
                           : isSelected
@@ -477,7 +477,7 @@ export function JoinTeamModal({
                 className="min-h-[120px] resize-none rounded-xl border-border/60 bg-secondary/50 text-sm leading-relaxed text-foreground placeholder:text-muted-foreground/60 transition-colors focus-visible:border-teal/40 focus-visible:ring-2 focus-visible:ring-teal/20 focus-visible:ring-offset-0"
                 disabled={loading || statusMsg?.type === "success" || isOwnTeam || hasPendingApplication}
               />
-              <span className="absolute right-3 bottom-2.5 text-xs tabular-nums text-muted-foreground/50">
+              <span className="absolute right-3 bottom-3 text-xs tabular-nums text-muted-foreground/50">
                 {charCount}/{maxChars}
               </span>
             </div>
@@ -487,7 +487,7 @@ export function JoinTeamModal({
           {statusMsg && (
             <div
               aria-live="polite"
-              className={`flex items-center gap-2.5 rounded-xl border px-3.5 py-2.5 text-sm font-medium ${
+              className={`flex items-center gap-3 rounded-xl border px-4 py-3 text-sm font-medium ${
                 statusMsg.type === "error"
                   ? "border-destructive/30 bg-destructive/10 text-destructive"
                   : "border-teal/30 bg-teal/10 text-teal"

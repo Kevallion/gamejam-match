@@ -174,7 +174,7 @@ export function MembersGrid({
             Showing <span className="font-semibold text-foreground">{members.length}</span> available jammers
           </p>
           {isRefreshing ? (
-            <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+            <span className="inline-flex items-center gap-2 text-xs text-muted-foreground">
               <LoaderCircle className="size-3 animate-spin" />
               Refreshing
             </span>

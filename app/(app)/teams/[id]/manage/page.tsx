@@ -694,7 +694,7 @@ export default function TeamManagePage() {
                 Back to Dashboard
               </Link>
             </Button>
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary">
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-2 text-sm font-medium text-primary">
               <Settings className="size-4" />
               Squad management
             </div>
@@ -1098,7 +1098,7 @@ export default function TeamManagePage() {
                   type="button"
                   variant="outline"
                   size="sm"
-                  className="gap-1.5 rounded-xl border-primary/30 text-primary hover:bg-primary/10 hover:text-primary sm:flex-1"
+                  className="gap-2 rounded-xl border-primary/30 text-primary hover:bg-primary/10 hover:text-primary sm:flex-1"
                   disabled={renewListingBusy}
                   onClick={() => void handleRenewListing()}
                 >
@@ -1109,7 +1109,7 @@ export default function TeamManagePage() {
                   type="button"
                   variant="outline"
                   size="sm"
-                  className="gap-1.5 rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive sm:flex-1"
+                  className="gap-2 rounded-xl border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive sm:flex-1"
                   onClick={() => setDeleteTeamDialogOpen(true)}
                 >
                   <Trash2 className="size-3.5" />

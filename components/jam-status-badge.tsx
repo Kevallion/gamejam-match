@@ -16,7 +16,7 @@ export function JamStatusBadge({
       variant="outline"
       title={title}
       className={cn(
-        "w-fit gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold",
+        "w-fit gap-2 rounded-full px-3 py-0.5 text-xs font-semibold",
         status.badgeClassName,
         className,
       )}

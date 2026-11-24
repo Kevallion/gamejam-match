@@ -80,7 +80,7 @@ export function DashboardIncomingApplications({
         </div>
         <Badge
           variant="secondary"
-          className="rounded-full bg-mint px-3.5 py-1.5 text-sm font-bold text-mint-foreground"
+          className="rounded-full bg-mint px-4 py-2 text-sm font-bold text-mint-foreground"
         >
           {applications.length} pending
         </Badge>
@@ -136,8 +136,8 @@ export function DashboardIncomingApplications({
                       </h3>
                       {roleTag}
                     </div>
-                    <div className="mt-1.5 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-                      <span className="inline-flex items-center gap-1.5">
+                    <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+                      <span className="inline-flex items-center gap-2">
                         <UsersRound className="size-3.5 text-teal" />
                         Applying as {roleTag}
                         {" "}to{" "}
@@ -161,7 +161,7 @@ export function DashboardIncomingApplications({
                 <div className="relative overflow-hidden rounded-xl bg-secondary/50">
                   <div className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-mint/60 to-lavender/40" />
                   <div className="px-5 py-4">
-                    <div className="mb-2 flex items-center gap-1.5 text-base font-bold uppercase tracking-widest text-muted-foreground/80">
+                    <div className="mb-2 flex items-center gap-2 text-base font-bold uppercase tracking-widest text-muted-foreground/80">
                       <MessageSquareText className="size-3" />
                       Motivation
                     </div>

@@ -135,7 +135,7 @@ export function TagIcon({
   if (!resolved) return null
 
   const mark = (
-    <span className={cn("inline-flex min-w-0 items-center gap-1.5", className)}>
+    <span className={cn("inline-flex min-w-0 items-center gap-2", className)}>
       <span
         className={cn(
           "inline-flex shrink-0 items-center justify-center rounded-full font-bold tabular-nums tracking-wide",
@@ -303,7 +303,7 @@ export function TagIconRow({
   if (items.length === 0) return null
 
   return (
-    <div className={cn("flex flex-wrap items-center gap-1.5", className)}>
+    <div className={cn("flex flex-wrap items-center gap-2", className)}>
       {visible.map((item, index) => (
         <TagIcon key={item.key ?? `${item.kind}-${item.value}-${index}`} kind={item.kind} value={item.value} size={size} />
       ))}

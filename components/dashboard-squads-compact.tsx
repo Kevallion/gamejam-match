@@ -67,37 +67,37 @@ function SquadCardCompact({
             <p className="truncate text-base font-bold text-foreground">{team.name}</p>
             <p className="truncate text-xs font-medium text-teal">{team.jam || "Upcoming jam"}</p>
           </div>
-          <div className="flex shrink-0 flex-wrap items-center gap-1.5">
+          <div className="flex shrink-0 flex-wrap items-center gap-2">
             <Badge
               className={cn(
-                "rounded-full border px-2.5 py-0.5 text-base font-semibold",
+                "rounded-full border px-3 py-0.5 text-base font-semibold",
                 team.isOwner ? "border-pink/40 bg-pink/15 text-pink" : "border-mint/40 bg-mint/15 text-mint",
               )}
             >
               {team.isOwner ? "Captain" : "Member"}
             </Badge>
-            <Badge className={cn("rounded-full border px-2.5 py-0.5 text-base font-semibold", status.className)}>
+            <Badge className={cn("rounded-full border px-3 py-0.5 text-base font-semibold", status.className)}>
               {status.label}
             </Badge>
           </div>
         </div>
 
         <div className="flex min-w-0 flex-wrap items-center gap-2 text-xs text-muted-foreground">
-          <span className="inline-flex items-center gap-1 rounded-full bg-secondary/60 px-2.5 py-1">
+          <span className="inline-flex items-center gap-1 rounded-full bg-secondary/60 px-3 py-1">
             <AppIcon icon={ICON.squad} size="xs" tone="teal" />
             {team.members}/{team.maxMembers}
           </span>
-          <span className="inline-flex items-center gap-1 rounded-full bg-secondary/60 px-2.5 py-1">
+          <span className="inline-flex items-center gap-1 rounded-full bg-secondary/60 px-3 py-1">
             <AppIcon icon={ICON.engine} size="xs" tone="lavender" />
             {team.engine || "Any"}
           </span>
-          <span className="inline-flex items-center gap-1 rounded-full bg-secondary/60 px-2.5 py-1">
+          <span className="inline-flex items-center gap-1 rounded-full bg-secondary/60 px-3 py-1">
             <AppIcon icon={ICON.language} size="xs" tone="teal" />
             {team.language || "Any"}
           </span>
         </div>
 
-        <div className="space-y-1.5">
+        <div className="space-y-2">
           <div className="flex items-center justify-between gap-2 text-base font-semibold uppercase tracking-wide text-muted-foreground">
             <span>Jam readiness</span>
             <span className="tabular-nums">{readiness}%</span>

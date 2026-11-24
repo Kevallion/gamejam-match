@@ -135,7 +135,7 @@ export function BentoCarousel({
         <div aria-hidden className="w-[3px] shrink-0" />
       </div>
       {count > 1 ? (
-        <div className="mt-1.5 flex justify-center gap-1.5" aria-hidden>
+        <div className="mt-2 flex justify-center gap-2" aria-hidden>
           {Array.from({ length: count }).map((_, i) => (
             <button
               key={i}

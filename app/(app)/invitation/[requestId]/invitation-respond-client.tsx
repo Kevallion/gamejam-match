@@ -199,7 +199,7 @@ export function InvitationRespondClient(props: {
                 <TagIcon kind="role" value={roleValue} size="xs" showLabel withTooltip={false} />
               ) : null}
               {props.team.game_name?.trim() ? (
-                <Badge className="gap-1.5 rounded-full bg-peach/15 px-3 py-1 text-xs font-semibold text-peach">
+                <Badge className="gap-2 rounded-full bg-peach/15 px-3 py-1 text-xs font-semibold text-peach">
                   <Gamepad2 className="size-3" aria-hidden />
                   {props.team.game_name}
                 </Badge>

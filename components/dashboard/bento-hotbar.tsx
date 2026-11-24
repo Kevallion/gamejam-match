@@ -86,7 +86,7 @@ export function BentoHotbar({ inboxCount = 0, availabilityCount = 0 }: BentoHotb
       >
         <div
           className={cn(
-            "pointer-events-auto flex items-end gap-2 rounded-3xl border border-border bg-card px-3 py-2.5",
+            "pointer-events-auto flex items-end gap-2 rounded-3xl border border-border bg-card px-3 py-3",
             "shadow-[3px_3px_0_0_var(--neo-shadow)]",
           )}
         >
@@ -105,9 +105,9 @@ export function BentoHotbar({ inboxCount = 0, availabilityCount = 0 }: BentoHotb
             onClick={openCreate}
             aria-label="Create"
             className={cn(
-              "mx-1.5 mb-0.5 grid size-[74px] place-items-center rounded-[22px] border-2 border-[var(--neo-shadow)]",
+              "mx-2 mb-0.5 grid size-[74px] place-items-center rounded-[22px] border-2 border-[var(--neo-shadow)]",
               "bg-pink text-pink-foreground shadow-[3px_3px_0_0_var(--neo-shadow)]",
-              "-translate-y-3.5 -rotate-[4deg] jam-motion transition-opacity duration-200 motion-reduce:transition-none hover:opacity-90 focus-visible:outline-none",
+              "-translate-y-4 -rotate-[4deg] jam-motion transition-opacity duration-200 motion-reduce:transition-none hover:opacity-90 focus-visible:outline-none",
               "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
             )}
           >
@@ -162,7 +162,7 @@ export function BentoHotbar({ inboxCount = 0, availabilityCount = 0 }: BentoHotb
           className={cn(
             "mb-7 grid size-[60px] place-items-center rounded-[20px] border-2 border-[var(--neo-shadow)]",
             "bg-pink text-pink-foreground shadow-[3px_3px_0_0_var(--neo-shadow)]",
-            "-rotate-[4deg] transition-transform active:scale-95 focus-visible:outline-none",
+            "-rotate-[4deg] transition-transform active:scale-95 motion-reduce:transition-none motion-reduce:active:scale-100 focus-visible:outline-none",
             "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
           )}
         >
@@ -233,16 +233,16 @@ function HotbarSlot({
       title={`${item.label} (${item.key})`}
       className={cn(
         "relative flex size-[62px] flex-col items-center justify-center gap-0.5 rounded-xl border",
-        "text-xs font-bold transition-transform focus-visible:outline-none",
+        "text-xs font-bold transition-transform motion-reduce:transition-none focus-visible:outline-none",
         "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         active
-          ? "-translate-y-1.5 border-border bg-primary text-primary-foreground shadow-[3px_3px_0_0_var(--neo-shadow)]"
+          ? "-translate-y-2 border-border bg-primary text-primary-foreground shadow-[3px_3px_0_0_var(--neo-shadow)]"
           : "border-border bg-background text-muted-foreground hover:text-foreground",
       )}
     >
       <span
         className={cn(
-          "absolute left-1.5 top-1 text-xs font-bold opacity-80",
+          "absolute left-2 top-1 text-xs font-bold opacity-80",
           active ? "text-primary-foreground" : "text-muted-foreground",
         )}
         aria-hidden
@@ -253,8 +253,8 @@ function HotbarSlot({
         <span
           className={cn(
             "absolute -top-10 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-md",
-            "border border-border bg-foreground px-2.5 py-1 text-xs font-black text-background",
-            "after:absolute after:left-1/2 after:top-full after:-ml-1.5 after:border-[6px] after:border-transparent",
+            "border border-border bg-foreground px-3 py-1 text-xs font-black text-background",
+            "after:absolute after:left-1/2 after:top-full after:-ml-2 after:border-[6px] after:border-transparent",
             "after:border-t-foreground after:content-['']",
           )}
         >
@@ -298,7 +298,7 @@ function MobileHotbarLink({
       <span className="relative">
         <AppIcon icon={item.icon} size="lg" tone={active ? "primary" : "muted"} />
         {item.badge === "inbox" ? (
-          <span className="absolute -right-2.5 -top-1.5 flex min-h-[18px] min-w-[18px] items-center justify-center rounded-full border border-border bg-peach px-0.5 text-xs font-bold text-peach-foreground">
+          <span className="absolute -right-3 -top-2 flex min-h-[18px] min-w-[18px] items-center justify-center rounded-full border border-border bg-peach px-0.5 text-xs font-bold text-peach-foreground">
             {inboxCount > 9 ? "9+" : inboxCount}
           </span>
         ) : null}

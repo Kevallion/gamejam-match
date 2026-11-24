@@ -330,7 +330,7 @@ export function JammerCard({ player, mySquads, cardClassName }: JammerCardProps)
           <Card className={cn("card-interactive group relative flex w-full cursor-pointer flex-col overflow-hidden py-4 transition-all hover:ring-2 hover:ring-primary/50 sm:py-6", cardClassName)}>
             <CardContent className="flex flex-1 flex-col gap-4 px-4 pt-0 sm:px-6 sm:pt-0">
               {/* Avatar + Username + Share */}
-              <div className="flex min-w-0 items-start gap-3.5">
+              <div className="flex min-w-0 items-start gap-4">
                 <UserAvatar
                   src={player.avatar_url}
                   fallbackName={player.username}
@@ -355,7 +355,7 @@ export function JammerCard({ player, mySquads, cardClassName }: JammerCardProps)
                     <JammerTitleBadge title={player.jammerTitle.trim()} className="text-xs" />
                   ) : null}
                   {languageLabel ? (
-                    <div className="flex min-w-0 items-center gap-1.5 text-sm text-muted-foreground">
+                    <div className="flex min-w-0 items-center gap-2 text-sm text-muted-foreground">
                       <Globe className="size-3.5 shrink-0 text-teal" />
                       <span className="truncate">{languageLabel}</span>
                     </div>
@@ -390,11 +390,11 @@ export function JammerCard({ player, mySquads, cardClassName }: JammerCardProps)
                 />
               ) : null}
 
-              <KudosBadgeRow counts={player.kudosCounts} className="gap-1.5" size="xs" />
+              <KudosBadgeRow counts={player.kudosCounts} className="gap-2" size="xs" />
 
               {/* Linked game jam */}
               {player.jam?.title && (
-                <div className="inline-flex min-w-0 max-w-full items-center gap-1.5 rounded-lg border border-border/60 bg-muted/30 px-2.5 py-1 text-xs font-medium text-muted-foreground">
+                <div className="inline-flex min-w-0 max-w-full items-center gap-2 rounded-lg border border-border/60 bg-muted/30 px-3 py-1 text-xs font-medium text-muted-foreground">
                   <Target className="size-3.5 shrink-0 text-lavender" />
                   {player.jam.url ? (
                     <a
@@ -423,7 +423,7 @@ export function JammerCard({ player, mySquads, cardClassName }: JammerCardProps)
               {availabilityInfo?.isDate ? (
                 <div
                   className={cn(
-                    "inline-flex min-w-0 items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-medium",
+                    "inline-flex min-w-0 items-center gap-2 rounded-lg border px-3 py-1 text-xs font-medium",
                     availabilityInfo.isWarning
                       ? "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400"
                       : "border-border/60 bg-muted/50 text-muted-foreground",
@@ -500,7 +500,7 @@ export function JammerCard({ player, mySquads, cardClassName }: JammerCardProps)
                   <JammerTitleBadge title={player.jammerTitle.trim()} className="mt-1 text-sm" />
                 ) : null}
                 {languageLabel ? (
-                  <div className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
+                  <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
                     <Globe className="size-3.5 text-teal" />
                     {languageLabel}
                   </div>
@@ -512,7 +512,7 @@ export function JammerCard({ player, mySquads, cardClassName }: JammerCardProps)
           <ScrollArea className="max-h-[60vh] px-6 py-4">
             <div className="flex flex-col gap-4 pr-4">
               {(showRoleChip || showLevelChip || player.jamStyle || engineLabel) ? (
-              <div className="flex flex-wrap items-center gap-1.5">
+              <div className="flex flex-wrap items-center gap-2">
                 {showRoleChip ? (
                   <TagIcon
                     kind="role"
@@ -538,7 +538,7 @@ export function JammerCard({ player, mySquads, cardClassName }: JammerCardProps)
               {availabilityInfo && (
                 <div
                   className={cn(
-                    "inline-flex w-fit items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-medium",
+                    "inline-flex w-fit items-center gap-2 rounded-lg border px-3 py-1 text-xs font-medium",
                     availabilityInfo.isWarning
                       ? "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400"
                       : "border-border/60 bg-muted/50 text-muted-foreground",
@@ -558,7 +558,7 @@ export function JammerCard({ player, mySquads, cardClassName }: JammerCardProps)
                       href={player.jam.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex cursor-pointer items-center gap-1.5 font-medium text-lavender hover:underline"
+                      className="inline-flex cursor-pointer items-center gap-2 font-medium text-lavender hover:underline"
                     >
                       {player.jam.title}
                       <ExternalLink className="size-3.5 shrink-0 opacity-70" aria-hidden />
@@ -615,7 +615,7 @@ export function JammerCard({ player, mySquads, cardClassName }: JammerCardProps)
                     >
                       <Mail className="size-4" />
                       {allSent ? (
-                        <span className="inline-flex items-center gap-1.5">
+                        <span className="inline-flex items-center gap-2">
                           All invitations sent
                           <AppIcon icon={ICON.confirm} size="xs" />
                         </span>
@@ -665,7 +665,7 @@ export function JammerCard({ player, mySquads, cardClassName }: JammerCardProps)
           <div className="relative overflow-hidden rounded-t-2xl px-6 pt-6 pb-4">
             <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-lavender" />
 
-            <DialogHeader className="space-y-2.5 text-left">
+            <DialogHeader className="space-y-3 text-left">
               <div className="flex items-center gap-2">
                 <div className="flex size-9 items-center justify-center rounded-xl bg-lavender/15">
                   <Mail className="size-4 text-lavender" />
@@ -677,17 +677,17 @@ export function JammerCard({ player, mySquads, cardClassName }: JammerCardProps)
 
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-sm text-muted-foreground">Inviting</span>
-                <Badge className="rounded-full border-0 bg-lavender/15 px-2.5 py-0.5 text-xs font-bold text-lavender">
+                <Badge className="rounded-full border-0 bg-lavender/15 px-3 py-0.5 text-xs font-bold text-lavender">
                   {player.username}
                 </Badge>
                 <span className="text-sm text-muted-foreground">to</span>
-                <Badge className="rounded-full border-0 bg-teal/15 px-2.5 py-0.5 text-xs font-bold text-teal">
+                <Badge className="rounded-full border-0 bg-teal/15 px-3 py-0.5 text-xs font-bold text-teal">
                   {selectedSquad?.team_name}
                 </Badge>
                 {selectedSquad?.game_name && (
                   <>
                     <span className="text-sm text-muted-foreground">for</span>
-                    <Badge className="rounded-full border-0 bg-peach/15 px-2.5 py-0.5 text-xs font-bold text-peach">
+                    <Badge className="rounded-full border-0 bg-peach/15 px-3 py-0.5 text-xs font-bold text-peach">
                       {selectedSquad.game_name}
                     </Badge>
                   </>
@@ -721,7 +721,7 @@ export function JammerCard({ player, mySquads, cardClassName }: JammerCardProps)
                           disabled={loading || statusMsg?.type === "success"}
                           onClick={() => setSelectedRoleIdx(idx)}
                           className={[
-                            "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer",
+                            "inline-flex items-center gap-2 rounded-full px-3 py-2 text-xs font-semibold transition-all cursor-pointer",
                             isSelected
                               ? `ring-2 ring-offset-2 ring-offset-card ring-primary ${role.color} scale-105`
                               : "border border-border/70 bg-secondary/40 text-foreground hover:border-primary/40",
@@ -758,7 +758,7 @@ export function JammerCard({ player, mySquads, cardClassName }: JammerCardProps)
                     className="min-h-[120px] resize-none rounded-xl border-border/60 bg-secondary/50 text-sm leading-relaxed text-foreground placeholder:text-muted-foreground/60 transition-colors focus-visible:border-primary/40 focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:ring-offset-0"
                     disabled={loading || statusMsg?.type === "success"}
                   />
-                  <span className="absolute right-3 bottom-2.5 text-xs tabular-nums text-muted-foreground/50">
+                  <span className="absolute right-3 bottom-3 text-xs tabular-nums text-muted-foreground/50">
                     {message.length}/{maxChars}
                   </span>
                 </div>
@@ -768,7 +768,7 @@ export function JammerCard({ player, mySquads, cardClassName }: JammerCardProps)
               {statusMsg && (
                 <div
                   aria-live="polite"
-                  className={`flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-sm font-medium ${
+                  className={`flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium ${
                     statusMsg.type === "error" ? "status-error" : "status-success"
                   }`}
                 >
@@ -853,7 +853,7 @@ export function JammerCardPreview({ player, className }: { player: JammerCardDat
       )}
     >
       <CardContent className="flex flex-1 flex-col gap-4 px-4 pt-0 sm:px-5">
-        <div className="flex min-w-0 items-center gap-3.5">
+        <div className="flex min-w-0 items-center gap-4">
           <UserAvatar src={player.avatar_url} fallbackName={player.username} size="md" />
           <div className="min-w-0 flex-1">
             <div className="flex min-w-0 flex-wrap items-center gap-2 gap-y-1">
@@ -866,7 +866,7 @@ export function JammerCardPreview({ player, className }: { player: JammerCardDat
               <JammerTitleBadge title={player.jammerTitle.trim()} className="text-xs" />
             ) : null}
             {languageLabel ? (
-              <div className="flex min-w-0 items-center gap-1.5 text-sm text-muted-foreground">
+              <div className="flex min-w-0 items-center gap-2 text-sm text-muted-foreground">
                 <Globe className="size-3.5 shrink-0 text-teal" />
                 <span className="truncate">{languageLabel}</span>
               </div>

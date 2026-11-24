@@ -56,7 +56,7 @@ export function LandingFeatures() {
 
         {/* Section header */}
         <div className="mb-14 flex flex-col items-center text-center">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border-2 border-foreground bg-card px-4 py-1.5 text-sm font-bold text-foreground shadow-[3px_3px_0px_0px_var(--neo-shadow)]">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border-2 border-foreground bg-card px-4 py-2 text-sm font-bold text-foreground shadow-[3px_3px_0px_0px_var(--neo-shadow)]">
             <span className="text-pink">⚔️</span>
             Your Quest Toolkit
           </div>
@@ -96,7 +96,7 @@ function FeatureCard({ feature }: { feature: (typeof features)[number] }) {
     <div className="group relative">
       {/* Neo-brutalist offset shadow */}
       <div
-        className={`absolute inset-0 translate-x-1.5 translate-y-1.5 rounded-xl border-2 ${feature.accent} opacity-40`}
+        className={`absolute inset-0 translate-x-2 translate-y-2 rounded-xl border-2 ${feature.accent} opacity-40`}
       />
       {/* Card */}
       <div
@@ -129,7 +129,7 @@ function FeatureCard({ feature }: { feature: (typeof features)[number] }) {
           {feature.tags.map((tag) => (
             <span
               key={tag}
-              className={`rounded-md border px-2.5 py-1 text-xs font-semibold ${feature.tagStyle}`}
+              className={`rounded-md border px-3 py-1 text-xs font-semibold ${feature.tagStyle}`}
             >
               {tag}
             </span>

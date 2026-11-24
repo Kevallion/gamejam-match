@@ -86,7 +86,10 @@ function AppSearchField({
     return (
       <div className={cn("app-desktop:hidden", className)}>
         {open ? (
-          <form onSubmit={submit} className="flex items-center gap-2">
+          <form
+            onSubmit={submit}
+            className="absolute inset-y-0 left-3 right-3 z-30 flex items-center gap-2 bg-background"
+          >
             <label className="sr-only" htmlFor="app-shell-search-mobile">
               Search jams, squads, members
             </label>
@@ -96,12 +99,17 @@ function AppSearchField({
               type="search"
               value={value}
               onChange={(e) => setValue(e.target.value)}
-              onBlur={() => {
-                if (!value.trim()) setOpen(false)
-              }}
               placeholder="Search jams, squads, members"
-              className="h-12 min-w-0 flex-1 rounded-lg border border-border bg-card px-3 text-base outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="h-11 min-w-0 flex-1 rounded-lg border border-border bg-card px-3 text-base outline-none focus-visible:ring-2 focus-visible:ring-ring"
             />
+            <button
+              type="button"
+              className="grid size-11 shrink-0 place-items-center rounded-xl text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              aria-label="Close search"
+              onClick={() => setOpen(false)}
+            >
+              <AppIcon icon={ICON.close} size="md" />
+            </button>
           </form>
         ) : (
           <button
@@ -143,7 +151,7 @@ function AppSearchField({
         placeholder="Search jams, squads, members"
         className="min-w-0 flex-1 bg-transparent text-base text-foreground outline-none placeholder:text-muted-foreground"
       />
-      <kbd className="ml-auto rounded-md border border-border px-1.5 text-xs font-bold text-muted-foreground">
+      <kbd className="ml-auto rounded-md border border-border px-2 text-xs font-bold text-muted-foreground">
         /
       </kbd>
     </form>

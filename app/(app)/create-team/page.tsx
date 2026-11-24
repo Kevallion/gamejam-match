@@ -38,7 +38,7 @@ export default function CreateTeamPage() {
           </div>
 
           <div className="relative mx-auto max-w-2xl text-center">
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-pink/30 bg-pink px-4 py-1.5 text-sm font-medium text-pink-foreground">
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-pink/30 bg-pink px-4 py-2 text-sm font-medium text-pink-foreground">
               <PenLine className="size-4" />
               Create a new listing
             </div>

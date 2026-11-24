@@ -87,7 +87,7 @@ export function DashboardSentOutbox({
           </div>
           <Badge
             variant="secondary"
-            className="rounded-full bg-teal/15 px-3.5 py-1.5 text-sm font-bold text-teal"
+            className="rounded-full bg-teal/15 px-4 py-2 text-sm font-bold text-teal"
           >
             {sentApplications.length}
           </Badge>
@@ -129,7 +129,7 @@ export function DashboardSentOutbox({
                           href={app.discord_link}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1.5 rounded-xl bg-[#5865F2]/90 px-2.5 py-1.5 text-xs font-medium text-white shadow-sm transition-colors hover:bg-[#4752C4]"
+                          className="inline-flex items-center gap-2 rounded-xl bg-[#5865F2]/90 px-3 py-2 text-xs font-medium text-white shadow-sm transition-colors hover:bg-[#4752C4]"
                         >
                           <MessageCircle className="size-3.5" />
                           Discord
@@ -142,7 +142,7 @@ export function DashboardSentOutbox({
                           size="sm"
                           disabled={cancellingRequestId === app.id}
                           onClick={() => onCancelPendingRequest(app.id)}
-                          className="gap-1.5 rounded-xl border-border/60 text-muted-foreground hover:border-destructive/40 hover:text-destructive"
+                          className="gap-2 rounded-xl border-border/60 text-muted-foreground hover:border-destructive/40 hover:text-destructive"
                         >
                           <CircleX className="size-4" />
                           {cancellingRequestId === app.id ? "Cancelling…" : "Cancel"}
@@ -173,11 +173,11 @@ export function DashboardSentOutbox({
           </div>
           <Badge
             variant="secondary"
-            className="rounded-full bg-lavender/15 px-3.5 py-1.5 text-sm font-bold text-lavender"
+            className="rounded-full bg-lavender/15 px-4 py-2 text-sm font-bold text-lavender"
           >
             {sentInvitations.length}
             {pendingInvites > 0 ? (
-              <span className="ml-1.5 text-xs font-medium text-muted-foreground">
+              <span className="ml-2 text-xs font-medium text-muted-foreground">
                 ({pendingInvites} pending)
               </span>
             ) : null}
@@ -235,7 +235,7 @@ export function DashboardSentOutbox({
                         size="sm"
                         disabled={cancellingRequestId === inv.id}
                         onClick={() => onCancelPendingRequest(inv.id)}
-                        className="shrink-0 gap-1.5 rounded-xl border-border/60 text-muted-foreground hover:border-destructive/40 hover:text-destructive"
+                        className="shrink-0 gap-2 rounded-xl border-border/60 text-muted-foreground hover:border-destructive/40 hover:text-destructive"
                       >
                         <CircleX className="size-4" />
                         {cancellingRequestId === inv.id ? "Cancelling…" : "Cancel"}

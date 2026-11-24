@@ -239,7 +239,7 @@ export function DirectoryGrid({
                 key={i}
                 className="flex flex-col gap-4 rounded-xl border border-border/60 bg-card/40 p-4 sm:p-6"
               >
-                <div className="flex items-center gap-3.5">
+                <div className="flex items-center gap-4">
                   <Skeleton className="size-12 shrink-0 rounded-full" />
                   <div className="flex flex-1 flex-col gap-2">
                     <Skeleton className="h-5 w-3/5 max-w-[180px]" />

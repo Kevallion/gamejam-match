@@ -56,7 +56,7 @@ export function DashboardTodo({
     items.push(
       <div
         key={`app-${app.id}`}
-        className="flex min-w-0 items-center gap-3 rounded-xl border border-border/40 bg-background/40 p-2.5"
+        className="flex min-w-0 items-center gap-3 rounded-xl border border-border/40 bg-background/40 p-3"
       >
         <UserAvatar src={app.avatar_url} fallbackName={app.username} size="md" className="size-8 shrink-0" />
         <div className="min-w-0 flex-1">
@@ -65,7 +65,7 @@ export function DashboardTodo({
             {app.teamName} · {app.role.label}
           </p>
         </div>
-        <div className="flex shrink-0 gap-1.5">
+        <div className="flex shrink-0 gap-2">
           <Button
             type="button"
             size="icon"
@@ -96,7 +96,7 @@ export function DashboardTodo({
     items.push(
       <div
         key={`inv-${inv.id}`}
-        className="flex min-w-0 items-center gap-3 rounded-xl border border-border/40 bg-background/40 p-2.5"
+        className="flex min-w-0 items-center gap-3 rounded-xl border border-border/40 bg-background/40 p-3"
       >
         <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-mint/15">
           <AppIcon icon={ICON.invitations} size="sm" tone="mint" />
@@ -107,7 +107,7 @@ export function DashboardTodo({
             {inv.targetRole ? inv.targetRole : "Open role"}
           </p>
         </div>
-        <div className="flex shrink-0 gap-1.5">
+        <div className="flex shrink-0 gap-2">
           <Button
             type="button"
             size="icon"
@@ -139,7 +139,7 @@ export function DashboardTodo({
     items.push(
       <div
         key={`post-${post.id}`}
-        className="flex min-w-0 items-center gap-3 rounded-xl border border-border/40 bg-background/40 p-2.5"
+        className="flex min-w-0 items-center gap-3 rounded-xl border border-border/40 bg-background/40 p-3"
       >
         <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-peach/15">
           <AppIcon icon={ICON.deadline} size="sm" tone="peach" />

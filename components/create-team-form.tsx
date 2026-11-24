@@ -506,7 +506,7 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
                 {step === 1 && (
                   <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-left-2 duration-200">
                     {/* Team / Project Name */}
-                    <div className="flex flex-col gap-2.5">
+                    <div className="flex flex-col gap-3">
                       <Label htmlFor="teamName" className="text-sm font-bold text-foreground">
                         Squad name
                       </Label>
@@ -523,7 +523,7 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
                     </div>
 
                     {/* Game Jam Name */}
-                    <div className="flex flex-col gap-2.5">
+                    <div className="flex flex-col gap-3">
                       <Label htmlFor="jamName" className="text-sm font-bold text-foreground">
                         Game Jam Name
                       </Label>
@@ -539,7 +539,7 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
                     </div>
 
                     {/* Jam Itch.io (optional link) */}
-                    <div className="flex flex-col gap-2.5">
+                    <div className="flex flex-col gap-3">
                       <Label className="text-sm font-bold text-foreground">
                         Link to an Itch.io Jam (optional)
                       </Label>
@@ -570,7 +570,7 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
                   <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-right-2 duration-200">
                     {/* Engine & Language row */}
                     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                      <div className="flex flex-col gap-2.5">
+                      <div className="flex flex-col gap-3">
                         <Label className="text-sm font-bold text-foreground">Engine</Label>
                         <Select value={engine} onValueChange={setEngine} required>
                           <SelectTrigger
@@ -587,7 +587,7 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
                         </Select>
                       </div>
 
-                      <div className="flex flex-col gap-2.5">
+                      <div className="flex flex-col gap-3">
                         <Label className="text-sm font-bold text-foreground">Spoken Language</Label>
                         <Select value={language} onValueChange={setLanguage} required>
                           <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-secondary/50">
@@ -605,7 +605,7 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
                     {!isEmbeddedInvite && (
                       <>
                         {/* Jam Style — full width to avoid dropdown overlap */}
-                        <div className="flex flex-col gap-2.5">
+                        <div className="flex flex-col gap-3">
                           <Label className="text-sm font-bold text-foreground">Jam Style</Label>
                           <Select value={teamVibe} onValueChange={setTeamVibe}>
                             <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-secondary/50">
@@ -629,7 +629,7 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
                         </div>
 
                         {/* Experience Required */}
-                        <div className="flex flex-col gap-2.5">
+                        <div className="flex flex-col gap-3">
                           <Label className="text-sm font-bold text-foreground">Preferred Experience Level</Label>
                           <Select value={experienceRequired || "any"} onValueChange={setExperienceRequired}>
                             <SelectTrigger className="h-12 w-full rounded-xl border-border/60 bg-secondary/50">
@@ -759,7 +759,7 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
                     {!isEmbeddedInvite && (
                       <>
                         {/* Discord Invitation Link */}
-                        <div className="flex flex-col gap-2.5">
+                        <div className="flex flex-col gap-3">
                           <Label htmlFor="discordLink" className="text-sm font-bold text-foreground">
                             Discord Invitation Link (optional)
                           </Label>
@@ -785,7 +785,7 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
                         </div>
 
                         {/* Description */}
-                        <div className="flex flex-col gap-2.5">
+                        <div className="flex flex-col gap-3">
                           <Label htmlFor="description" className="text-sm font-bold text-foreground">
                             Project Description / Vibe
                           </Label>
@@ -807,7 +807,7 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
                     {/* Mini review */}
                     <div className="rounded-2xl border border-border/60 bg-secondary/40 p-4 text-sm text-muted-foreground">
                       <p className="mb-2 font-semibold text-foreground">Quick preview before publishing</p>
-                      <ul className="space-y-1.5">
+                      <ul className="space-y-2">
                         <li>
                           <span className="font-medium text-foreground">Squad:</span>{" "}
                           {teamName || <span className="italic text-muted-foreground">Not set</span>}
@@ -849,7 +849,7 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
                     </div>
 
                     {inviteContext && (
-                      <div className="flex flex-col gap-2.5 rounded-2xl border border-primary/30 bg-primary/5 p-4">
+                      <div className="flex flex-col gap-3 rounded-2xl border border-primary/30 bg-primary/5 p-4">
                         <Label htmlFor="inviteMessage" className="text-sm font-bold text-foreground">
                           Invitation message for {inviteContext.inviteeUsername}
                         </Label>

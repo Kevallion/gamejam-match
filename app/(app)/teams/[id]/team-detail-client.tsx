@@ -333,7 +333,7 @@ export function TeamDetailClient({ teamId }: { teamId: string }) {
                 {squad.language ? (
                   <Badge
                     variant="outline"
-                    className="inline-flex items-center gap-1.5 rounded-full border-border/60 bg-teal/10 px-3 py-1 text-xs font-semibold text-teal"
+                    className="inline-flex items-center gap-2 rounded-full border-border/60 bg-teal/10 px-3 py-1 text-xs font-semibold text-teal"
                   >
                     <Globe className="size-3.5" />
                     {languageOptionLabel(squad.language)}
@@ -341,7 +341,7 @@ export function TeamDetailClient({ teamId }: { teamId: string }) {
                 ) : null}
                 <Badge
                   variant="outline"
-                  className="inline-flex items-center gap-1.5 rounded-full border-border/60 px-3 py-1 text-xs font-semibold"
+                  className="inline-flex items-center gap-2 rounded-full border-border/60 px-3 py-1 text-xs font-semibold"
                 >
                   <UsersRound className="size-3.5" />
                   {members.length} member{members.length === 1 ? "" : "s"}

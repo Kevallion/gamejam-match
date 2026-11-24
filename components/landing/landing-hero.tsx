@@ -86,7 +86,7 @@ export function LandingHero({
           {/* ── Left column: copy ── */}
           <div className="flex-1 text-center lg:text-left">
             {/* Badge */}
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border-2 border-foreground bg-card px-4 py-1.5 text-sm font-bold text-foreground shadow-[3px_3px_0px_0px_var(--neo-shadow)]">
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border-2 border-foreground bg-card px-4 py-2 text-sm font-bold text-foreground shadow-[3px_3px_0px_0px_var(--neo-shadow)]">
               <Sword className="size-4 text-teal" />
               <span>{"It's dangerous to go alone!"} 🗡️</span>
             </div>
@@ -132,7 +132,7 @@ export function LandingHero({
             </div>
 
             {featuredTeams.length > 0 && (
-              <div className="mt-7 space-y-2.5">
+              <div className="mt-7 space-y-3">
                 <p className="text-sm font-bold text-muted-foreground">
                   Active squads right now
                 </p>
@@ -156,7 +156,7 @@ export function LandingHero({
             )}
 
             {upcomingJams.length > 0 && (
-              <div className="mt-6 space-y-2.5">
+              <div className="mt-6 space-y-3">
                 <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   Upcoming jams
                 </p>
@@ -260,7 +260,7 @@ function RoleCard({ card }: { card: (typeof roleCards)[number] }) {
             <span>&bull;</span>
             <span>{card.language}</span>
           </div>
-          <div className="mt-2 flex flex-wrap gap-1.5">
+          <div className="mt-2 flex flex-wrap gap-2">
             {card.badges.map((b) => (
               <span
                 key={b}
@@ -273,7 +273,7 @@ function RoleCard({ card }: { card: (typeof roleCards)[number] }) {
         </div>
 
         {/* Status dot */}
-        <div className="flex-shrink-0 flex items-center gap-1.5 mt-0.5">
+        <div className="flex-shrink-0 flex items-center gap-2 mt-0.5">
           <span className="relative flex size-2.5">
             <span className="relative inline-flex size-2.5 rounded-full bg-teal" />
           </span>

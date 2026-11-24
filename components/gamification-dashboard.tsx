@@ -111,12 +111,12 @@ export function GamificationDashboardCompact({
             {displayName}
           </p>
           <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex max-w-full items-center rounded-full border border-amber-800/20 bg-amber-600/10 px-2.5 py-1 dark:border-amber-300/20 dark:bg-amber-400/10">
+            <span className="inline-flex max-w-full items-center rounded-full border border-amber-800/20 bg-amber-600/10 px-3 py-1 dark:border-amber-300/20 dark:bg-amber-400/10">
               <JammerTitleBadge title={title} className="text-sm font-extrabold sm:text-base" />
             </span>
             <JammerLevelBadge
               level={level}
-              className="border-amber-800/35 bg-amber-600/12 px-2 py-0.5 text-[11px] font-extrabold text-amber-950 shadow-none dark:border-amber-500/40 dark:bg-amber-500/15 dark:text-amber-400 dark:shadow-[0_0_16px_-4px_rgba(245,158,11,0.35)] sm:text-xs"
+              className="border-amber-800/35 bg-amber-600/12 px-2 py-0.5 text-base font-extrabold text-amber-950 shadow-none dark:border-amber-500/40 dark:bg-amber-500/15 dark:text-amber-400 dark:shadow-[0_0_16px_-4px_rgba(245,158,11,0.35)]"
             />
           </div>
         </div>
@@ -208,7 +208,7 @@ export function GamificationDashboardFull({
           className="pointer-events-none absolute -right-12 -top-12 size-32 rounded-full bg-gradient-to-br from-amber-500/15 via-teal/10 to-peach/10 blur-2xl"
           aria-hidden
         />
-        <CardContent className="relative flex min-h-[72px] min-w-0 items-center gap-3 px-4 py-2.5">
+        <CardContent className="relative flex min-h-[72px] min-w-0 items-center gap-3 px-4 py-3">
           <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-peach/15 ring-1 ring-peach/25">
             <AppIcon icon={ICON.achievement} size="md" tone="peach" />
           </div>
@@ -221,16 +221,16 @@ export function GamificationDashboardFull({
                 level={level}
                 className="border-amber-800/35 bg-amber-600/12 px-2 py-0.5 text-xs text-amber-950 shadow-none dark:border-amber-500/40 dark:bg-amber-500/15 dark:text-amber-300"
               />
-              <span className="ml-auto shrink-0 text-[11px] font-semibold tabular-nums text-amber-950 dark:text-amber-400/90">
+              <span className="ml-auto shrink-0 text-base font-semibold tabular-nums text-amber-950 dark:text-amber-400/90">
                 {Math.round(progress.progressPercent)}%
               </span>
             </div>
             <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
               <JammerTitleBadge title={currentTitle} className="text-xs sm:text-sm" />
               {error ? (
-                <p className="text-[11px] text-destructive">{error}</p>
+                <p className="text-base text-destructive">{error}</p>
               ) : (
-                <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
+                <span className="inline-flex items-center gap-1 text-base text-muted-foreground">
                   <AppIcon icon={ICON.xp} size="xs" tone="lavender" />
                   {xpLabel}
                 </span>
@@ -301,7 +301,7 @@ function AchievementsHeaderCard({
             <button
               type="button"
               onClick={onTitleClick}
-              className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-teal/35 bg-teal/10 px-2.5 py-1 text-left transition-colors hover:border-teal/50 hover:bg-teal/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+              className="inline-flex max-w-full items-center gap-2 rounded-full border border-teal/35 bg-teal/10 px-3 py-1 text-left transition-colors hover:border-teal/50 hover:bg-teal/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
             >
               <AppIcon icon={ICON.title} size="xs" tone="teal" />
               <JammerTitleBadge title={currentTitle} className="text-xs sm:text-sm" />
@@ -310,7 +310,7 @@ function AchievementsHeaderCard({
           </div>
         </div>
 
-        <div className="space-y-1.5">
+        <div className="space-y-2">
           <div className="flex flex-wrap items-center justify-between gap-2 text-base">
             <span className="font-semibold tabular-nums text-foreground">
               {progress.xpInLevel} / {progress.span} XP
@@ -333,7 +333,7 @@ function AchievementsHeaderCard({
           <button
             type="button"
             onClick={onNextUnlockClick}
-            className="flex w-full min-w-0 items-center gap-3 rounded-xl border border-border/40 bg-background/40 p-2.5 text-left transition-colors hover:border-teal/30 hover:bg-teal/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+            className="flex w-full min-w-0 items-center gap-3 rounded-xl border border-border/40 bg-background/40 p-3 text-left transition-colors hover:border-teal/30 hover:bg-teal/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
           >
             <span className="relative inline-flex size-12 shrink-0 items-center justify-center">
               <svg className="absolute inset-0 size-full -rotate-90" viewBox="0 0 48 48" aria-hidden>

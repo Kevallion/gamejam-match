@@ -14,7 +14,7 @@ export function DashboardEmptyState() {
       <div className="flex w-full min-w-0 justify-center">
         <Badge
           variant="outline"
-          className="h-auto max-w-full shrink whitespace-normal border-teal/30 bg-teal/10 px-4 py-1.5 text-center text-sm font-medium leading-snug text-teal"
+          className="h-auto max-w-full shrink whitespace-normal border-teal/30 bg-teal/10 px-4 py-2 text-center text-sm font-medium leading-snug text-teal"
         >
           Step 1: Select your path to discover teams and developers
         </Badge>

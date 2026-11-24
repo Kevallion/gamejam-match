@@ -386,7 +386,7 @@ function AchievementsBadgesSections({
                   className="card-interactive relative flex min-w-0 flex-col items-center gap-2 rounded-2xl border border-border/50 bg-card/70 p-3 text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
                 >
                   {isNew ? (
-                    <span className="absolute right-1.5 top-1.5 rounded-md bg-teal px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-teal-foreground">
+                    <span className="absolute right-2 top-2 rounded-md bg-teal px-2 py-0.5 text-base font-bold uppercase tracking-wide text-teal-foreground">
                       New
                     </span>
                   ) : null}
@@ -396,7 +396,7 @@ function AchievementsBadgesSections({
                   </span>
                   <RarityPill rarity={meta.rarity} />
                   {earned?.earned_at ? (
-                    <span className="text-[11px] text-muted-foreground">
+                    <span className="text-base text-muted-foreground">
                       {formatUnlocked(earned.earned_at)}
                     </span>
                   ) : null}
@@ -431,10 +431,10 @@ function AchievementsBadgesSections({
                         </span>
                         <RarityPill rarity={meta.rarity} />
                       </div>
-                      <p className="break-words text-[13px] leading-snug text-muted-foreground sm:text-sm">
+                      <p className="break-words text-base leading-snug text-muted-foreground">
                         {meta.blurb}
                       </p>
-                      <p className="text-[13px] font-semibold text-teal sm:text-sm">
+                      <p className="text-base font-semibold text-teal">
                         {progress.label}{" "}
                         <span className="tabular-nums text-foreground/80">· {percent}%</span>
                       </p>
@@ -460,14 +460,14 @@ function AchievementsBadgesSections({
                   key={badgeId}
                   type="button"
                   onClick={() => onSelectBadge(badgeId)}
-                  className="card-interactive flex min-w-0 flex-col items-center gap-1.5 rounded-2xl border border-dashed border-border/40 bg-muted/10 p-2.5 text-center opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 sm:gap-2 sm:p-3"
+                  className="card-interactive flex min-w-0 flex-col items-center gap-2 rounded-2xl border border-dashed border-border/40 bg-muted/10 p-3 text-center opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 sm:gap-2 sm:p-3"
                 >
                   <BadgeMedallion badgeId={badgeId} rarity={meta.rarity} size="md" locked />
                   <span className="w-full text-balance break-words text-xs font-bold leading-tight text-muted-foreground sm:text-sm">
                     {meta.label}
                   </span>
                   <RarityPill rarity={meta.rarity} muted />
-                  <p className="w-full whitespace-normal break-words text-[13px] leading-snug text-muted-foreground sm:text-sm">
+                  <p className="w-full whitespace-normal break-words text-base leading-snug text-muted-foreground">
                     {meta.lockedHint ?? meta.blurb}
                   </p>
                 </button>
@@ -543,7 +543,7 @@ function BadgeDetailBody({
             {meta.lockedHint ?? "Keep collaborating on GameJamCrew to earn this badge."}
           </p>
           {progress ? (
-            <div className="space-y-1.5 pt-1">
+            <div className="space-y-2 pt-1">
               <div className="flex items-center justify-between text-xs font-semibold text-foreground">
                 <span>Progress</span>
                 <span className="tabular-nums text-muted-foreground">{progress.label}</span>
@@ -677,7 +677,7 @@ function CompactBadgeRow({ badges }: { badges: BadgeRow[] }) {
           <DialogTrigger asChild>
             <button
               type="button"
-              className="inline-flex h-9 items-center rounded-full bg-muted px-2.5 text-xs font-bold text-muted-foreground"
+              className="inline-flex h-9 items-center rounded-full bg-muted px-3 text-xs font-bold text-muted-foreground"
               aria-label={`Show ${extra} more badges`}
             >
               +{extra}
@@ -972,7 +972,7 @@ export function ProfileGamification({
               {error ? (
                 <p className="mt-1 text-xs text-destructive">{error}</p>
               ) : (
-                <p className="mt-1 flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
+                <p className="mt-1 flex items-center gap-2 text-sm font-medium text-muted-foreground">
                   <AppIcon icon={ICON.xp} size="sm" tone="lavender" />
                   {progressLabel}
                 </p>

@@ -49,7 +49,7 @@ export function LandingHowItWorks() {
       <div className="relative mx-auto max-w-6xl">
         {/* Section header */}
         <div className="mb-14 flex flex-col items-center text-center">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border-2 border-foreground bg-card px-4 py-1.5 text-sm font-bold text-foreground shadow-[3px_3px_0px_0px_var(--neo-shadow)]">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border-2 border-foreground bg-card px-4 py-2 text-sm font-bold text-foreground shadow-[3px_3px_0px_0px_var(--neo-shadow)]">
             <Sparkles className="size-4 text-lavender" />
             Simple Process
           </div>
@@ -72,7 +72,7 @@ export function LandingHowItWorks() {
               <div key={step.number} className="group relative">
                 {/* Neo-brutalist offset shadow */}
                 <div
-                  className={`absolute inset-0 translate-x-1.5 translate-y-1.5 rounded-xl border-2 ${step.accent} opacity-40`}
+                  className={`absolute inset-0 translate-x-2 translate-y-2 rounded-xl border-2 ${step.accent} opacity-40`}
                 />
 
                 {/* Card */}

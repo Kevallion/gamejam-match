@@ -93,7 +93,7 @@ export function MobileTabBar({
                 <span className="relative">
                   <AppIcon icon={item.icon} size="lg" tone={active ? "teal" : "muted"} />
                   {item.id === "inbox" && inboxCount > 0 ? (
-                    <span className="absolute -right-2.5 -top-1.5 flex min-h-4 min-w-4 items-center justify-center rounded-full bg-peach px-1 text-xs font-bold text-peach-foreground">
+                    <span className="absolute -right-3 -top-2 flex min-h-4 min-w-4 items-center justify-center rounded-full bg-peach px-1 text-xs font-bold text-peach-foreground">
                       {inboxCount > 9 ? "9+" : inboxCount}
                     </span>
                   ) : null}
