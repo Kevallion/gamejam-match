@@ -38,7 +38,7 @@
 
   --destructive: oklch(0.577 0.245 27.325);
   /* Fix: foreground must contrast against the destructive background */
-  --destructive-foreground: oklch(0.97 0.01 27);
+  --destructive-foreground: oklch(1 0 0);
 
   /* Semantic status tokens — success */
   --success: oklch(0.72 0.14 155);
@@ -103,6 +103,17 @@
   --role-design: oklch(0.82 0.12 85);
   --role-ux: oklch(0.80 0.09 160);
   --role-qa: oklch(0.78 0.09 230);
+
+  /* Engine badge colors — charter tokens, not official brand hex (AA). */
+  --engine-godot: #26BDAE;
+  --engine-unity: #8AA0C8;
+  --engine-unreal: #D4B46A;
+  --engine-gamemaker: #DCA0D6;
+  --engine-pico8: #E8A070;
+  --engine-defold: #9D94D9;
+  --engine-construct: #6FCFB0;
+  --engine-gdevelop: #E08AA8;
+  --engine-custom: #A8AAB8;
 }
 
 /* Light mode - off-white game design document aesthetic */
@@ -184,6 +195,17 @@
   --role-ux: oklch(0.40 0.08 160);
   --role-qa: oklch(0.42 0.09 230);
 
+  /* Engine badge colors — charter tokens, not official brand hex (AA). */
+  --engine-godot: #096058;
+  --engine-unity: #3B4F73;
+  --engine-unreal: #6B5420;
+  --engine-gamemaker: #7A3A74;
+  --engine-pico8: #7A3F16;
+  --engine-defold: #4A4478;
+  --engine-construct: #1F6B56;
+  --engine-gdevelop: #7A2E48;
+  --engine-custom: #4A4C5A;
+
   /* Neo-brutalist shadow color */
   --neo-shadow: oklch(0.18 0.02 220);
 }
@@ -256,6 +278,15 @@
   --color-role-design: var(--role-design);
   --color-role-ux: var(--role-ux);
   --color-role-qa: var(--role-qa);
+  --color-engine-godot: var(--engine-godot);
+  --color-engine-unity: var(--engine-unity);
+  --color-engine-unreal: var(--engine-unreal);
+  --color-engine-gamemaker: var(--engine-gamemaker);
+  --color-engine-pico8: var(--engine-pico8);
+  --color-engine-defold: var(--engine-defold);
+  --color-engine-construct: var(--engine-construct);
+  --color-engine-gdevelop: var(--engine-gdevelop);
+  --color-engine-custom: var(--engine-custom);
 }
 
 @layer base {
@@ -266,6 +297,8 @@
     @apply bg-background text-foreground font-sans antialiased;
     font-size: 1rem;
     line-height: 1.5;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
   }
   h1, h2, h3, h4, h5, h6, .font-display {
     font-family: var(--font-display), ui-sans-serif, system-ui, sans-serif;
@@ -285,6 +318,15 @@
     line-height: 1.3;
     font-weight: 700;
   }
+}
+
+/* Stats, counters, XP, team size — Atkinson + fixed-width figures. */
+@utility text-stat {
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  font-weight: 700;
+  letter-spacing: 0;
 }
 
 @layer components {
@@ -322,7 +364,7 @@
 
   /* Role badge states */
   .role-badge-open {
-    @apply cursor-pointer transition-transform hover:scale-105;
+    @apply cursor-pointer transition-colors;
   }
   .role-badge-filled {
     @apply opacity-40 line-through cursor-not-allowed bg-muted text-muted-foreground;

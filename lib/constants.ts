@@ -122,6 +122,44 @@ export const ENGINE_OPTIONS_WITH_ANY = [
   ...ENGINE_OPTIONS,
 ] as const
 
+/** Charter engine tint (text + 18% wash). Official brand hex is not used when it fails AA. */
+export const ENGINE_STYLES: Record<string, { label: string; color: string }> = {
+  godot: { label: "Godot", color: tone("--engine-godot") },
+  unity: { label: "Unity", color: tone("--engine-unity") },
+  unreal: { label: "Unreal Engine", color: tone("--engine-unreal") },
+  gamemaker: { label: "GameMaker", color: tone("--engine-gamemaker") },
+  pico8: { label: "PICO-8", color: tone("--engine-pico8") },
+  defold: { label: "Defold", color: tone("--engine-defold") },
+  construct: { label: "Construct", color: tone("--engine-construct") },
+  gdevelop: { label: "GDevelop", color: tone("--engine-gdevelop") },
+  custom: { label: "Custom / Other", color: tone("--engine-custom") },
+  any: { label: "Any / No Preference", color: "bg-muted text-muted-foreground" },
+}
+
+/** CSS custom property for a stored engine key or display label. */
+export const ENGINE_TONE_TOKEN: Record<string, string> = {
+  godot: "--engine-godot",
+  unity: "--engine-unity",
+  unreal: "--engine-unreal",
+  gamemaker: "--engine-gamemaker",
+  pico8: "--engine-pico8",
+  defold: "--engine-defold",
+  construct: "--engine-construct",
+  gdevelop: "--engine-gdevelop",
+  custom: "--engine-custom",
+}
+
+/** Canonical engine key (`Godot` / `godot` → `godot`). Unknown values stay lowercased. */
+export function engineOptionKey(value: string | null | undefined): string {
+  const raw = (value ?? "").trim()
+  if (!raw) return ""
+  const key = raw.toLowerCase()
+  const byValue = ENGINE_OPTIONS_WITH_ANY.find((option) => option.value === key)
+  if (byValue) return byValue.value
+  const byLabel = ENGINE_OPTIONS_WITH_ANY.find((option) => option.label.toLowerCase() === key)
+  return byLabel?.value ?? key
+}
+
 /** Tint + text pair. Each role has its own hue (`--role-*` in globals.css). */
 function roleTone(token: string): string {
   return tone(token)
@@ -219,7 +257,7 @@ export const JAM_STYLE_OPTIONS = [
 export function engineOptionLabel(value: string | null | undefined): string {
   const raw = (value ?? "").trim()
   if (!raw) return ""
-  const key = raw.toLowerCase()
+  const key = engineOptionKey(raw)
   return ENGINE_OPTIONS_WITH_ANY.find((option) => option.value === key)?.label ?? raw
 }
 
