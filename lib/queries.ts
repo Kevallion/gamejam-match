@@ -109,7 +109,7 @@ export async function fetchDashboardJoinRequests(
   ] = await Promise.all([
     client
       .from("join_requests")
-      .select("*, target_role, teams!inner(team_name, user_id)")
+      .select("id, sender_id, sender_name, target_role, message, created_at, teams!inner(team_name, user_id)")
       .eq("teams.user_id", userId)
       .eq("status", "pending")
       .eq("type", "application"),
@@ -228,6 +228,7 @@ export async function hasPendingApplicationToTeam(
 }
 
 const SMART_MATCH_FETCH_LIMIT = 80
+const SMART_MATCH_RPC_LIMIT = 12
 const SMART_MATCH_RESULT_CAP = 3
 
 /**
@@ -366,21 +367,34 @@ export async function getRecommendedTeams(
   const exclude = new Set((userProfile.excludeTeamIds ?? []).filter(Boolean))
   const userEngineKey = resolvedUserEngine(userProfile)
 
-  const { data, error } = await supabase
-    .from("teams")
-    .select("id, user_id, team_name, engine, looking_for, created_at, expires_at")
-    .gt("expires_at", new Date().toISOString())
-    .neq("user_id", userProfile.id)
-    .order("created_at", { ascending: false })
-    .limit(SMART_MATCH_FETCH_LIMIT)
+  // Prefer the staging RPC that filters by role in SQL (12 rows). Fall back to
+  // the previous 80-row scan if the function is not deployed yet.
+  let rows: TeamMatchRow[] | null = null
+  const rpc = await supabase.rpc("get_recommended_teams", {
+    p_role_keys: roleKeys,
+    p_exclude_ids: Array.from(exclude),
+    p_limit: SMART_MATCH_RPC_LIMIT,
+  })
+  if (!rpc.error) {
+    rows = (rpc.data ?? []) as TeamMatchRow[]
+  } else {
+    const { data, error } = await supabase
+      .from("teams")
+      .select("id, user_id, team_name, engine, looking_for, created_at, expires_at")
+      .gt("expires_at", new Date().toISOString())
+      .neq("user_id", userProfile.id)
+      .order("created_at", { ascending: false })
+      .limit(SMART_MATCH_FETCH_LIMIT)
 
-  if (error) {
-    console.error("[getRecommendedTeams]", error.message)
-    return { teams: [], error: error.message }
+    if (error) {
+      console.error("[getRecommendedTeams]", error.message)
+      return { teams: [], error: error.message }
+    }
+    rows = (data ?? []) as TeamMatchRow[]
   }
 
   const candidates: TeamMatchRow[] = []
-  for (const row of (data ?? []) as TeamMatchRow[]) {
+  for (const row of rows ?? []) {
     if (exclude.has(row.id)) continue
     if (!isRecruitingTeam(row)) continue
     const needed = requiredRolesForTeam(row)

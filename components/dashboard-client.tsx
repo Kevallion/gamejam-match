@@ -60,6 +60,7 @@ import {
 } from "@/app/actions/team-membership-actions"
 import { readOwnDiscordUsername } from "@/lib/profile-discord"
 import { getMyGamificationSnapshot } from "@/app/actions/gamification-actions"
+import type { DashboardBootstrap } from "@/lib/dashboard-bootstrap"
 import type { ProfileSettingsProfile } from "@/components/profile-settings"
 import { getEmailPreferences, type EmailPreferencesResult } from "@/app/actions/email-preferences-actions"
 import { useNotificationsContext } from "@/hooks/use-notifications"
@@ -176,6 +177,8 @@ type DashboardClientProps = {
   defaultTab?: string | null
   /** Dev-only populated preview. Production dashboard never passes this. */
   fixture?: DashboardFixture | null
+  /** Server first-paint payload (DS-3h): profile, snapshot, kudos. */
+  bootstrap?: DashboardBootstrap | null
 }
 
 const VALID_TABS = ["squads", "inbox", "availability", "achievements", "settings"] as const
@@ -435,7 +438,7 @@ async function readOwnEmailPreferences(): Promise<EmailPreferencesResult> {
   return getEmailPreferences().catch(() => ({ success: false as const, error: "UPDATE_FAILED" }))
 }
 
-export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: DashboardClientProps = {}) {
+export function DashboardClient({ defaultTab: defaultTabProp, fixture = null, bootstrap = null }: DashboardClientProps = {}) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const tabFromUrl = searchParams.get("tab")
@@ -546,13 +549,17 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
   const [renewingAvailabilityPostId, setRenewingAvailabilityPostId] = useState<string | null>(null)
   const [recommendedTeams, setRecommendedTeams] = useState<SmartRecommendedTeam[]>(fixture?.recommendedTeams ?? [])
   const [showOnboardingModal, setShowOnboardingModal] = useState(false)
-  const [profile, setProfile] = useState<ProfileSettingsProfile | null>(fixture?.profile ?? null)
+  const [profile, setProfile] = useState<ProfileSettingsProfile | null>(fixture?.profile ?? bootstrap?.profile ?? null)
   // DS-3a: level / XP / badges, same source as Rewards (lib/gamification-snapshot.ts).
-  const [gamification, setGamification] = useState<GamificationSnapshot | null>(null)
+  const [gamification, setGamification] = useState<GamificationSnapshot | null>(bootstrap?.snapshot ?? null)
   // DS-3f: Rewards can paint once this is true, without waiting for the rest of loadData.
-  const [rewardsReady, setRewardsReady] = useState(Boolean(fixture))
+  const [rewardsReady, setRewardsReady] = useState(Boolean(fixture || bootstrap?.snapshot))
+  // DS-3h: home paints as soon as profile + snapshot are ready (server bootstrap).
+  const [coreReady, setCoreReady] = useState(Boolean(fixture || bootstrap))
 
   const dailyXpClaimRef = useRef(false)
+  const didInitialHydrationRef = useRef(false)
+  const bootstrapKudosRef = useRef(bootstrap?.kudosByCategory ?? null)
   const isMobile = useIsMobile()
   const mountedRef = useRef(true)
   const pendingInboxActionsRef = useRef<Map<string, PendingInboxAction>>(new Map())
@@ -671,31 +678,30 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
         setRecommendedTeams([])
         setGamification(null)
         setRewardsReady(true)
+        setCoreReady(false)
         setLoading(false)
         return
       }
       setSession(authSession)
 
       const uid = authSession.user.id
+      const skipCoreFetch = Boolean(bootstrap) && !didInitialHydrationRef.current
+      if (skipCoreFetch) didInitialHydrationRef.current = true
 
-      // DS-3f: start the snapshot first and apply it as soon as it arrives, so
-      // Rewards can paint without waiting for the rest of this Promise.all.
-      // The same promise is reused below (no second call, no double daily claim).
-      const claimDailyLogin = !dailyXpClaimRef.current
-      dailyXpClaimRef.current = true
-      const snapshotPromise = getMyGamificationSnapshot({ claimDailyLogin })
-        .catch(() => ({ ok: false as const, error: "UNKNOWN" }))
-        .then((result) => {
-          if (mountedRef.current) {
-            setGamification(result.ok ? result.snapshot : null)
-            setRewardsReady(true)
-            const dailyLogin = result.ok ? result.dailyLogin : undefined
-            if (dailyLogin?.ok && dailyLogin.reward && gamificationRewardHasToast(dailyLogin.reward)) {
-              showGamificationRewards("DAILY_LOGIN", dailyLogin.reward)
-            }
-          }
-          return result
-        })
+      // DS-3h: first paint already has the snapshot. Refresh-only loads skip
+      // the daily-login claim (it runs in a useEffect after first paint).
+      const snapshotPromise = skipCoreFetch
+        ? Promise.resolve({ ok: true as const, snapshot: bootstrap!.snapshot })
+        : getMyGamificationSnapshot({ claimDailyLogin: false })
+            .catch(() => ({ ok: false as const, error: "UNKNOWN" }))
+            .then((result) => {
+              if (mountedRef.current) {
+                setGamification(result.ok ? result.snapshot : null)
+                setRewardsReady(true)
+                if (result.ok) setCoreReady(true)
+              }
+              return result
+            })
 
       const [
         { data: membershipRows },
@@ -706,7 +712,29 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
         ownDiscord,
       ] = await Promise.all([
         supabase.from("team_members").select("team_id").eq("user_id", uid),
-        (async () => {
+        skipCoreFetch && bootstrap
+          ? Promise.resolve({
+              data: {
+                id: bootstrap.profile.id,
+                has_completed_onboarding: bootstrap.onboardingComplete,
+                jam_id: bootstrap.jamId,
+                username: bootstrap.profile.username,
+                avatar_url: bootstrap.profile.avatar_url,
+                default_role: bootstrap.profile.default_role,
+                default_engine: bootstrap.profile.default_engine,
+                engine: bootstrap.profileEngine,
+                default_language: bootstrap.profile.default_language,
+                programming_languages: bootstrap.profile.programming_languages,
+                portfolio_url: bootstrap.profile.portfolio_url,
+                jam_style: bootstrap.profile.jam_style,
+                xp: bootstrap.profile.xp,
+                current_title: bootstrap.profile.current_title,
+                directory_visible: bootstrap.profile.directory_visible,
+                profile_roles: bootstrap.profile.profile_roles,
+              },
+              error: null,
+            })
+          : (async () => {
           const withRoles =
             "id, has_completed_onboarding, onboarding_version, jam_id, username, avatar_url, default_role, default_engine, engine, default_language, portfolio_url, jam_style, xp, current_title, directory_visible, role, experience, experience_level, language, bio, portfolio_link, profile_roles(role, experience_level, is_primary)"
           const withLanguages = await supabase
@@ -781,9 +809,9 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
       // Category badges on own posts still need this RPC; skip it when there are no posts.
       // The Rewards KPI already uses snapshot.kudosReceived (no second call on that path).
       const kudosPromise =
-        (postsData?.length ?? 0) > 0
-          ? supabase.rpc("get_kudos_counts_for_users", { p_user_ids: [uid] })
-          : Promise.resolve({ data: [] as { receiver_id: string; category: string; cnt: number | string }[] })
+        skipCoreFetch || (postsData?.length ?? 0) === 0
+          ? Promise.resolve({ data: [] as { receiver_id: string; category: string; cnt: number | string }[] })
+          : supabase.rpc("get_kudos_counts_for_users", { p_user_ids: [uid] })
 
       if (joinBundleResult.error) {
         toast.error("Could not load inbox data.", { description: joinBundleResult.error })
@@ -965,7 +993,9 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
       const kudosMap = kudosCountsMapFromRpcRows(
         (kudosRpcResult.data ?? []) as { receiver_id: string; category: string; cnt: number | string }[],
       )
-      const myKudosCounts = kudosMap.get(uid) ?? null
+      const myKudosCounts = skipCoreFetch
+        ? (bootstrapKudosRef.current ?? null)
+        : (kudosMap.get(uid) ?? null)
       postsWithJam = postsWithJam.map((p) => ({ ...p, kudosCounts: myKudosCounts }))
 
       const jamData = jamLookupResult.data as { id: string; title: string | null; url: string | null } | null
@@ -1030,12 +1060,37 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [bootstrap])
 
   useEffect(() => {
     if (fixture) return
     void loadData()
   }, [loadData, fixture])
+
+  // DS-3h: claim daily login after first paint so it is not on the critical path.
+  useEffect(() => {
+    if (fixture) return
+    if (dailyXpClaimRef.current) return
+    if (bootstrap?.snapshot.dailyLoginClaimedToday === true) {
+      dailyXpClaimRef.current = true
+      return
+    }
+    dailyXpClaimRef.current = true
+    void getMyGamificationSnapshot({ claimDailyLogin: true })
+      .then((result) => {
+        if (!mountedRef.current || !result.ok) return
+        setGamification(result.snapshot)
+        setRewardsReady(true)
+        setCoreReady(true)
+        const dailyLogin = result.dailyLogin
+        if (dailyLogin?.ok && dailyLogin.reward && gamificationRewardHasToast(dailyLogin.reward)) {
+          showGamificationRewards("DAILY_LOGIN", dailyLogin.reward)
+        }
+      })
+      .catch(() => {
+        dailyXpClaimRef.current = false
+      })
+  }, [fixture, bootstrap])
 
   useEffect(() => {
     if (loading || activeTab !== "inbox" || !highlightRequestId?.trim()) return
@@ -1532,7 +1587,7 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
     [gamification, teams, sentApplications, availabilityPosts, activityNotifications],
   )
 
-  if (shouldShowDashboardSkeleton(activeTab, loading, rewardsReady)) {
+  if (shouldShowDashboardSkeleton(activeTab, loading, rewardsReady, coreReady)) {
     return <DashboardLoadingSkeleton />
   }
 

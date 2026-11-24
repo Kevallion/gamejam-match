@@ -8,6 +8,7 @@ import {
 } from "@/lib/gamification-badge-progress"
 import { gamificationLevelProgress } from "@/lib/gamification-level"
 import { parseUnlockedTitlesJson } from "@/lib/gamification-titles-catalog"
+import { kudosCountsMapFromRpcRows, type KudosCountRow, type KudosCounts } from "@/lib/kudos"
 
 /**
  * DS-3a: single source of truth for the signed-in user's level / XP / badges.
@@ -45,6 +46,8 @@ export type GamificationSnapshot = {
   /** Null when unknown. */
   dailyLoginClaimedToday: boolean | null
   kudosReceived: number
+  /** Per-category counts from the same RPC, used by own-post badges. */
+  kudosByCategory: KudosCounts
 }
 
 type ServerSupabase = Awaited<ReturnType<typeof createClient>>
@@ -123,10 +126,9 @@ export async function loadGamificationSnapshot(
     ),
   ]
 
-  const kudosReceived = ((kudosRes.data ?? []) as { cnt?: number | string | null }[]).reduce(
-    (sum, row) => sum + (Number(row.cnt) || 0),
-    0,
-  )
+  const kudosRows = (kudosRes.data ?? []) as KudosCountRow[]
+  const kudosByCategory = kudosCountsMapFromRpcRows(kudosRows).get(userId) ?? {}
+  const kudosReceived = Object.values(kudosByCategory).reduce((sum, n) => sum + (n ?? 0), 0)
 
   const dailyStreak =
     typeof privateStats?.daily_login_streak === "number" ? privateStats.daily_login_streak : 0
@@ -163,5 +165,6 @@ export async function loadGamificationSnapshot(
       ? lastDaily != null && !Number.isNaN(lastDaily.getTime()) && utcDay(lastDaily) === utcDay(new Date())
       : null,
     kudosReceived,
+    kudosByCategory,
   }
 }
