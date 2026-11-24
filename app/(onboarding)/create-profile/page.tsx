@@ -6,19 +6,20 @@ import { CreateProfileOnboarding } from "@/components/create-profile-onboarding"
 import { COMPOSE_AVAILABILITY_HREF } from "@/components/app-shell/nav-config"
 import { getCurrentUser } from "@/lib/supabase/get-current-user"
 import { createClient } from "@/lib/supabase/server"
-import { UserRoundCheck } from "lucide-react"
+import { AppIcon } from "@/components/ui/app-icon"
+import { ICON } from "@/lib/icons"
 
 export const metadata: Metadata = {
-  title: "Join a Squad — GameJamCrew",
+  title: "Create your profile — GameJamCrew",
   description: "Set up your solo profile and let squads know you're ready to jam. Share your skills and get discovered.",
   openGraph: {
-    title: "Join a Squad — GameJamCrew",
+    title: "Create your profile — GameJamCrew",
     description: "Set up your solo profile and let squads know you're ready to jam. Share your skills and get discovered.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Join a Squad — GameJamCrew",
+    title: "Create your profile — GameJamCrew",
     description: "Set up your solo profile and let squads know you're ready to jam. Share your skills and get discovered.",
   },
 }
@@ -40,42 +41,35 @@ export default async function AvailabilityPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-dvh flex-col bg-background">
       <Navbar />
       <main className="flex-1">
         {needsOnboarding ? (
-          <section className="relative overflow-hidden px-4 pb-16 pt-14 lg:px-6 lg:pt-20">
+          <section className="relative px-4 pb-16 pt-16 lg:px-8 lg:pt-24">
             <div className="relative mx-auto max-w-2xl text-center">
-              <h1 className="text-balance text-4xl font-extrabold tracking-tight text-foreground md:text-5xl">
-                Finish your <span className="text-lavender">profile</span>
+              <h1 className="text-balance font-display text-4xl font-extrabold tracking-tight text-foreground md:text-5xl">
+                Set up your <span className="text-primary">jam profile</span>
               </h1>
               <p className="mx-auto mt-4 max-w-lg text-pretty text-lg leading-relaxed text-muted-foreground">
-                Complete onboarding to access the dashboard and start earning XP.
+                Share your role, engine, and experience so squads can find you.
               </p>
             </div>
-            <CreateProfileOnboarding />
+            <div className="relative mx-auto mt-8 max-w-2xl">
+              <CreateProfileOnboarding />
+            </div>
           </section>
         ) : (
           <>
         {/* Hero header */}
-        <section className="relative overflow-hidden px-4 pb-4 pt-14 lg:px-6 lg:pt-20 lg:pb-6">
-          {/* Decorative background glow */}
-          <div
-            className="pointer-events-none absolute inset-0 opacity-30"
-            aria-hidden="true"
-          >
-            <div className="absolute left-1/3 top-0 size-[500px] -translate-y-1/3 rounded-full bg-lavender/20 blur-[120px]" />
-            <div className="absolute right-1/4 top-1/3 size-[400px] rounded-full bg-mint/15 blur-[100px]" />
-          </div>
-
+        <section className="relative px-4 pb-8 pt-16 lg:px-8 lg:pt-24 lg:pb-8">
           <div className="relative mx-auto max-w-2xl text-center">
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-lavender/30 bg-lavender px-4 py-1.5 text-sm font-medium text-lavender-foreground">
-              <UserRoundCheck className="size-4" />
+            <div className="mb-4 inline-flex min-h-8 items-center gap-2 rounded-full border border-lavender/30 bg-lavender px-4 py-1 text-base font-medium text-lavender-foreground">
+              <AppIcon icon={ICON.accepted} size="sm" />
               Solo profile
             </div>
 
-            <h1 className="text-balance text-4xl font-extrabold tracking-tight text-foreground md:text-5xl">
-              Join a <span className="text-lavender">Squad</span>
+            <h1 className="text-balance font-display text-4xl font-extrabold tracking-tight text-foreground md:text-5xl">
+              Join a <span className="text-primary">Squad</span>
             </h1>
 
             <p className="mx-auto mt-4 max-w-lg text-pretty text-lg leading-relaxed text-muted-foreground">
@@ -86,7 +80,7 @@ export default async function AvailabilityPage() {
         </section>
 
         {/* Form */}
-        <section className="px-4 pb-16 pt-4 lg:px-6 lg:pb-24">
+        <section className="px-4 pb-16 pt-8 lg:px-8 lg:pb-24">
           <div className="mx-auto max-w-2xl">
             <CreateProfileAvailabilitySection />
           </div>
