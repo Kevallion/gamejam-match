@@ -42,15 +42,19 @@
 }
 
 .light {
-  --color-background: #F7FBFC;
+  --color-background: #F3ECDD;
   --color-foreground: #071418;
-  --color-card: #FFFFFF;
+  --color-card: #FBF7EF;
   --color-card-foreground: #071418;
+  --color-muted: #EDE4D3;
   --color-primary: #00BAAA;
   --color-on-primary: #071F20;
   --color-accent-violette: #C9C2EE;
   --color-accent-affiche: #DCA0D6;
-  --color-muted-foreground: #3F4A4C;
+  --color-muted-foreground: #5A4A34;
+  --color-border: #C4B49A;
+  --color-input: #8F7D64;
+  --color-ring: #009084;
   --color-neo-shadow: #071418;
 
   --engine-godot: #096058;
@@ -61,5 +65,5 @@
   --engine-defold: #4A4478;
   --engine-construct: #1F6B56;
   --engine-gdevelop: #7A2E48;
-  --engine-custom: #4A4C5A;
+  --engine-custom: #4A4338;
 }

@@ -46,6 +46,7 @@ the marketing site format.
 - Flat “no shadow” cards, or soft multi-layer drop shadows that replace the neo stamp.
 - Inter, Syne, Atkinson Hyperlegible, or any face other than the frozen DS-1 Nunito pair.
 - White or muted text on a Lagune / Violette / Affiche *fill* in light mode.
+- Pure white (`#FFFFFF`) or cool off-white (`#F7FBFC`) as the light page or card surface.
 
 ---
 
@@ -58,14 +59,19 @@ Named Bureau de jam colors. Values are the computed sRGB of the tokens in
 
 | Name | Role | Hex | Notes |
 |------|------|-----|--------|
-| Papier | Background | `#F7FBFC` | Solid, slightly cool paper |
-| Encre | Text / neo stamp | `#071418` | Body text, 17.96:1 on Papier |
-| Card | Raised surface | `#FFFFFF` | 18.71:1 with Encre |
-| Lagune | Primary / CTA fill | `#00BAAA` | **Not** text on white (2.44:1). Use `#071F20` on the fill (7.02:1) |
+| Papier | Background | `#F3ECDD` | Warm cream paper (was cool `#F7FBFC`; Wisllor, 24 Nov 2026) |
+| Card | Raised surface | `#FBF7EF` | Lighter cream than Papier, never pure white |
+| Muted / secondary / sidebar | Recessed surface | `#EDE4D3` | Slightly deeper cream |
+| Encre | Text / neo stamp | `#071418` | Body text, 15.91:1 on Papier, 17.51:1 on card |
+| Muted text | Secondary copy | `#5A4A34` | Warm taupe, 7.25:1 on Papier, 7.98:1 on card |
+| Border | Hairline | `#C4B49A` | Warm tan, no cold grey |
+| Input chrome | Control border | `#8F7D64` | 3.38:1 on Papier, 3.72:1 on card, 3.15:1 on muted |
+| Focus ring | Lagune, darkened | `#009084` | 3.35:1 on Papier (pastel Lagune fill is 2.07:1 as a ring) |
+| Lagune | Primary / CTA fill | `#00BAAA` | **Not** text on cream (2.07:1). Use `#071F20` on the fill (7.02:1). Text-as-Lagune: `#096058` (6.32:1) |
 | Violette fill | Lavender wash | `#C9C2EE` | Text on fill: `#3F367A` (6.16:1) |
-| Violette text | Lavender-as-text | `#3F367A` | |
+| Violette text | Lavender-as-text | `#3F367A` | 9.73:1 on card |
 | Affiche | Pink accent | `#DCA0D6` | Ink (`#071418`) on light Affiche washes, never white |
-| Ombre | Alias of Encre here | `#071418` | Neo stamp in light |
+| Ombre | Alias of Encre here | `#071418` | Neo stamp in light, unchanged |
 
 ### Dark (`:root` / `.dark`)
 
@@ -274,6 +280,7 @@ when `prefers-reduced-motion: reduce`.
   (user request, 24 Nov 2026).
 - Coral `#F87966` (dropped in DS-4).
 - White or low-contrast text on Lagune / pastel fills in light mode.
+- Pure white or cool off-white page/card surfaces in light mode (overexposed against the neo stamp). Use warm cream.
 - Semi-transparent backgrounds on `/teams` and `/find-members` filter triggers.
 - Emoji as icons; mixed icon libraries. Lucide goes through `AppIcon`.
 - Missing `cursor: pointer` on clickable elements.
