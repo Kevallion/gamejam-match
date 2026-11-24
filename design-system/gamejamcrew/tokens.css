@@ -1,0 +1,65 @@
+/* GameJamCrew — Bureau de jam tokens. Source of truth is MASTER.md.
+   The running app uses app/globals.css; keep both in sync. */
+
+:root,
+.dark {
+  --color-background: #10111A;
+  --color-foreground: #E6E7EF;
+  --color-card: #181926;
+  --color-card-foreground: #E6E7EF;
+  --color-primary: #26BDAE;
+  --color-on-primary: #10111A;
+  --color-accent-violette: #9D94D9;
+  --color-accent-affiche: #DCA0D6;
+  --color-muted-foreground: #8C8E9C;
+  --color-destructive: #E7000B;
+  --color-on-destructive: #FFFFFF;
+  --color-ring: #26BDAE;
+  --color-neo-shadow: #050509;
+
+  --engine-godot: #26BDAE;
+  --engine-unity: #8AA0C8;
+  --engine-unreal: #D4B46A;
+  --engine-gamemaker: #DCA0D6;
+  --engine-pico8: #E8A070;
+  --engine-defold: #9D94D9;
+  --engine-construct: #6FCFB0;
+  --engine-gdevelop: #E08AA8;
+  --engine-custom: #A8AAB8;
+
+  --font-heading: Syne, ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Atkinson Hyperlegible", ui-sans-serif, system-ui, sans-serif;
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+  --space-3xl: 64px;
+  --shadow-neo: 3px 3px 0 0 var(--color-neo-shadow);
+  --radius-control: 8px;
+  --radius-card: 16px;
+}
+
+.light {
+  --color-background: #F7FBFC;
+  --color-foreground: #071418;
+  --color-card: #FFFFFF;
+  --color-card-foreground: #071418;
+  --color-primary: #00BAAA;
+  --color-on-primary: #071F20;
+  --color-accent-violette: #C9C2EE;
+  --color-accent-affiche: #DCA0D6;
+  --color-muted-foreground: #3F4A4C;
+  --color-neo-shadow: #071418;
+
+  --engine-godot: #096058;
+  --engine-unity: #3B4F73;
+  --engine-unreal: #6B5420;
+  --engine-gamemaker: #7A3A74;
+  --engine-pico8: #7A3F16;
+  --engine-defold: #4A4478;
+  --engine-construct: #1F6B56;
+  --engine-gdevelop: #7A2E48;
+  --engine-custom: #4A4C5A;
+}
