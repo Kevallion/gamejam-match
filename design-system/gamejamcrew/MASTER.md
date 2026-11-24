@@ -34,7 +34,7 @@ the marketing site format.
 - 8px radius on controls, 16px (`rounded-2xl`) on cards.
 - Neo shadow exactly `3px 3px 0 0` using `--neo-shadow`. Never clip it: keep a
   3px gutter at the right and bottom of scrolling desks (`pr-[3px] pb-[3px]`).
-- Syne for headings, Atkinson Hyperlegible for body, tags, and numbers.
+- Nunito for headings, body, tags, and numbers (DS-1 pair, frozen).
 - Lucide icons through `AppIcon` (engine marks in `TagIcon` may use the official
   SVG path, tinted with charter engine tokens).
 - Visible focus rings (`--ring` = Lagune). Respect `prefers-reduced-motion`.
@@ -44,7 +44,7 @@ the marketing site format.
 - Generic indigo / purple meshes, glassmorphism, metallic gradients, or “AI”
   hero glows.
 - Flat “no shadow” cards, or soft multi-layer drop shadows that replace the neo stamp.
-- Inter, Nunito, or a single font for titles and body.
+- Inter, Syne, Atkinson Hyperlegible, or any face other than the frozen DS-1 Nunito pair.
 - White or muted text on a Lagune / Violette / Affiche *fill* in light mode.
 
 ---
@@ -95,17 +95,18 @@ Recruitment / “open role” badges use the role tokens below. Action buttons u
 
 ## Typography
 
-- **Headings:** Syne 700 / 800 (`--font-display`, `--font-syne`). Characterful indie titles.
-- **Body, tags, stats, UI:** Atkinson Hyperlegible 400 / 700 (`--font-sans`, `--font-atkinson`).
-- Loaded with `next/font`, `display: "swap"`, `subsets: ["latin"]`. Preload Atkinson only
-  (body / LCP). Do not preload Syne (avoids a second preload competing with LCP).
+- **Headings and body:** Nunito 400 / 500 / 600 / 700 / 800 (`--font-sans`, `--font-display`, `--font-nunito`).
+  This is the DS-1 typography pair, used for titles and for body.
+- Loaded with `next/font`, `display: "swap"`, `subsets: ["latin"]`. Preload Nunito
+  (single family, including LCP text). Do not add a second family or preload.
 - Body size ≥ 16px. Tags and small text ≥ 12px (`text-xs`). No `text-[10px]` on readable UI.
 - Line-height: body 1.5, titles 1.2–1.3.
 
-**Why these faces stay (the generator suggested Inter for both):** Inter is the default
-“AI / SaaS” pair, already forbidden by the frontend-design skill and by DS-4. Syne keeps
-the poster-like jam-desk voice; Atkinson is built for long-form readability. Changing
-either would need a product reason stronger than a script default.
+**Why Nunito is frozen:** ui-ux-pro-max suggested Inter for both roles; that pair is
+rejected (generic AI / SaaS). DS-4 briefly tried Syne + Atkinson Hyperlegible.
+On 24 Nov 2026 Wisllor asked to restore the pre-DS-4 DS-1 fonts and preferred
+them. This Master therefore uses Nunito for headings and Nunito for body — exactly
+the original pair. Do not adopt any typeface proposed by ui-ux-pro-max.
 
 ### Tabular numbers
 
@@ -127,8 +128,8 @@ body {
 }
 ```
 
-Apply `text-stat` on KPI values and badge counts so they also stay on Atkinson
-(never Syne for a number). Format large values with separators or a short form
+Apply `text-stat` on KPI values and badge counts so they stay on Nunito
+(the body face). Format large values with separators or a short form
 (`1,234` or `1.2K`), never a bare seven-digit string.
 
 ---
@@ -153,7 +154,7 @@ only approved off-grid exception (the stamp would collapse if rounded to 8).
 ## Buttons
 
 - **Primary (action):** Lagune fill, on-Lagune ink, 8px radius, 12×16 padding,
-  Syne optional only for large hero CTAs; default label is Atkinson 700.
+  Nunito 700 for labels, including hero CTAs.
   Hover: no layout-shifting scale. Keep the 3px neo stamp.
   `cursor: pointer`. Transition 150–200ms.
 - **Secondary:** card surface, 1px border, neo stamp, Encre label.
@@ -177,20 +178,21 @@ no motion when `prefers-reduced-motion`).
 
 ### Dev profile
 
-Portrait or initials, display name in Syne, role + engine + level as `TagIcon`,
-short bio in Atkinson 16px, one Lagune CTA (“Invite” / “View profile”). Empty
+Portrait or initials, display name in Nunito 800 (`font-display`), role + engine
++ level as `TagIcon`, short bio in Nunito 16px, one Lagune CTA (“Invite” /
+“View profile”). Empty
 bio: a short English placeholder, not a blank box.
 
 ### Squad / team announcement
 
-Squad name in Syne, engine `TagIcon`, member count as `text-stat`, open-role
+Squad name in Nunito 800 (`font-display`), engine `TagIcon`, member count as `text-stat`, open-role
 badges with role colors, jam link if any, Lagune “View squad” / “Apply”.
 Do not fill the whole card with Lagune (DS-QA4). Keep the CTA as a Lagune button
 on a card surface.
 
 ### Jam sheet
 
-Jam title in Syne, dates and team size as `text-stat`, short description,
+Jam title in Nunito 800 (`font-display`), dates and team size as `text-stat`, short description,
 theme tags, one action (“Open jam” / “Link squad”). Same stamp, no marketing halo.
 
 ---
@@ -258,15 +260,15 @@ when `prefers-reduced-motion: reduce`.
 - Keyboard: focus visible, dialogs modal, `/` focuses signed-in search (including
   390px after the field is mounted).
 - LCP target (signed-in Home, from DS-QA4): ~0.86s at 1280px, ~1.22s at 390px.
-  Keep `next/font` + `display: swap` + latin subsets. Do not add font weights or
-  a second preloaded family.
+  Keep `next/font` + `display: swap` + latin subsets, with Nunito preloaded
+  as the only family. Do not add a second family.
 - Filter bars: solid or transparent, never a 30% `dark:bg-input/30` wash.
 
 ---
 
 ## Anti-patterns (do not use)
 
-- Inter (or Inter + Inter) as the type system; Nunito as the only face.
+- Inter, Syne, Atkinson Hyperlegible, or any face other than the frozen DS-1 Nunito pair.
 - Indigo `#6366F1`, generic purple meshes, “funnel landing” chrome on the app shell.
 - Flat Design with “no shadows” — the 3px neo stamp is product identity
   (user request, 24 Nov 2026).

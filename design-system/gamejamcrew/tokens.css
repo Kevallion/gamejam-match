@@ -27,8 +27,8 @@
   --engine-gdevelop: #E08AA8;
   --engine-custom: #A8AAB8;
 
-  --font-heading: Syne, ui-sans-serif, system-ui, sans-serif;
-  --font-body: "Atkinson Hyperlegible", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: Nunito, ui-sans-serif, system-ui, sans-serif;
+  --font-body: Nunito, ui-sans-serif, system-ui, sans-serif;
   --space-xs: 4px;
   --space-sm: 8px;
   --space-md: 16px;
