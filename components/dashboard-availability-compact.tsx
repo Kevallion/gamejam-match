@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { AvailabilityForm } from "@/components/availability-form"
-import { COMPOSE_AVAILABILITY_HREF, dashboardHref } from "@/components/app-shell/nav-config"
+import { COMPOSE_AVAILABILITY_HREF, dashboardHref, editAvailabilityHref } from "@/components/app-shell/nav-config"
 import { KudosBadgeRow } from "@/components/kudos-badges"
 import type { KudosCounts } from "@/lib/kudos"
 import { UserAvatar } from "@/components/user-avatar"
@@ -47,17 +47,35 @@ export function DashboardAvailabilityCompact({
   onRenewPost,
   onDeletePost,
   profileAvatarUrl,
+  onPostsChanged,
 }: {
   posts: AvailabilityPostCompact[]
   renewingPostId: string | null
   onRenewPost: (postId: string) => void
   onDeletePost: (postId: string) => void
   profileAvatarUrl?: string | null
+  onPostsChanged?: () => void
 }) {
   const searchParams = useSearchParams()
   const composing = searchParams.get("new") === "1"
+  const editId = searchParams.get("edit")
+  const postToEdit = editId ? posts.find((post) => post.id === editId) : undefined
   const atQuota = posts.length >= QUOTA
   const listHref = dashboardHref("availability")
+
+  if (postToEdit) {
+    return (
+      <div className="min-w-0 max-w-full space-y-4">
+        <div className="flex min-w-0 flex-wrap items-center justify-between gap-3">
+          <h2 className="text-lg font-extrabold tracking-tight text-foreground">Edit post</h2>
+          <Button asChild type="button" variant="outline" className="h-11 rounded-xl">
+            <Link href={listHref}>Back to posts</Link>
+          </Button>
+        </div>
+        <AvailabilityForm initialPost={postToEdit} onUpdated={onPostsChanged} />
+      </div>
+    )
+  }
 
   if (composing && !atQuota) {
     return (
@@ -68,7 +86,7 @@ export function DashboardAvailabilityCompact({
             <Link href={listHref}>Back to posts</Link>
           </Button>
         </div>
-        <AvailabilityForm />
+        <AvailabilityForm onUpdated={onPostsChanged} />
       </div>
     )
   }
@@ -179,7 +197,7 @@ export function DashboardAvailabilityCompact({
                       {renewing ? "Renewing..." : "Renew"}
                     </Button>
                     <Button asChild type="button" variant="outline" className="h-11 rounded-xl">
-                      <Link href={COMPOSE_AVAILABILITY_HREF}>Edit</Link>
+                      <Link href={editAvailabilityHref(post.id)}>Edit</Link>
                     </Button>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>

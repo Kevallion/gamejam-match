@@ -28,6 +28,10 @@ export function dashboardHref(tab: DashboardTabValue = "squads"): string {
 /** Existing availability announcement form, opened on the My posts tab. */
 export const COMPOSE_AVAILABILITY_HREF = "/dashboard?tab=availability&new=1"
 
+export function editAvailabilityHref(postId: string): string {
+  return `/dashboard?tab=availability&edit=${encodeURIComponent(postId)}`
+}
+
 /** True for the signed-in dashboard and the populated dev preview fixture. */
 export function isDashboardPath(pathname: string): boolean {
   return pathname.startsWith("/dashboard") || pathname.startsWith("/dev/dashboard-preview")

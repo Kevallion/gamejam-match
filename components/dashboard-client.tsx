@@ -1545,15 +1545,13 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
     meta?.full_name?.trim() ||
     meta?.name?.trim() ||
     "Jammer"
-  // Leave handler kept for the squads view wiring.
-  void handleLeaveTeam
   return (
     <div className="min-w-0 overflow-x-clip">
       <div className="min-w-0">
         <section className="min-w-0 pb-4 md:pb-8">
           <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full min-w-0 max-w-full">
             <TabsContent value="squads" className="mt-0 min-w-0 max-w-full">
-              <BentoDashboard displayName={displayName} data={bentoData} />
+              <BentoDashboard displayName={displayName} data={bentoData} onLeaveSquad={handleLeaveTeam} />
             </TabsContent>
 
             <TabsContent value="inbox" className="mt-0 flex min-w-0 max-w-full flex-col gap-4 md:gap-6">
@@ -1589,6 +1587,7 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
                     onRenewPost={handleRenewAvailabilityPost}
                     renewingPostId={renewingAvailabilityPostId}
                     profileAvatarUrl={profile?.avatar_url ?? null}
+                    onPostsChanged={() => void loadData()}
                   />
                   <div className="lg:hidden">
                     <DashboardRecommendedTeams teams={recommendedTeams} compact />

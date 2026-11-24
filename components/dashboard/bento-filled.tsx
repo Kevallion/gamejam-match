@@ -21,6 +21,7 @@ import {
   type BadgeCatalogMeta,
 } from "@/components/profile-gamification"
 import { AppIcon } from "@/components/ui/app-icon"
+import { Button } from "@/components/ui/button"
 import type { BadgeProgressSnapshot } from "@/lib/gamification-badge-progress"
 import { ICON } from "@/lib/icons"
 import { cn } from "@/lib/utils"
@@ -647,7 +648,13 @@ function initialsOf(name: string): string {
     .join("")
 }
 
-function SquadBody({ squad }: { squad: BentoSquad }) {
+function SquadBody({
+  squad,
+  onLeave,
+}: {
+  squad: BentoSquad
+  onLeave?: (id: string) => void
+}) {
   return (
     <>
       <div className="flex min-w-0 items-center gap-2.5">
@@ -685,11 +692,28 @@ function SquadBody({ squad }: { squad: BentoSquad }) {
       >
         {squad.status}
       </span>
+      {!squad.isOwner && onLeave ? (
+        <Button
+          type="button"
+          variant="outline"
+          className="mt-3 h-11 w-full rounded-xl text-destructive hover:bg-destructive/10 hover:text-destructive"
+          onClick={() => onLeave(squad.id)}
+        >
+          <AppIcon icon={ICON.removeMember} size="sm" className="mr-1.5" />
+          Leave squad
+        </Button>
+      ) : null}
     </>
   )
 }
 
-export function MySquadsCard({ squads }: { squads: BentoSquad[] }) {
+export function MySquadsCard({
+  squads,
+  onLeave,
+}: {
+  squads: BentoSquad[]
+  onLeave?: (id: string) => void
+}) {
   return (
     <BentoCard
       title="My squads"
@@ -704,7 +728,7 @@ export function MySquadsCard({ squads }: { squads: BentoSquad[] }) {
             key={squad.id}
             className="flex min-w-0 flex-col gap-0 rounded-xl border border-border bg-background/40 p-3"
           >
-            <SquadBody squad={squad} />
+            <SquadBody squad={squad} onLeave={onLeave} />
           </div>
         ))}
       </div>
@@ -712,11 +736,17 @@ export function MySquadsCard({ squads }: { squads: BentoSquad[] }) {
   )
 }
 
-export function SquadSlide({ squad }: { squad: BentoSquad }) {
+export function SquadSlide({
+  squad,
+  onLeave,
+}: {
+  squad: BentoSquad
+  onLeave?: (id: string) => void
+}) {
   return (
     <BentoCard neo className="min-h-[160px]">
       <div className="flex flex-1 flex-col">
-        <SquadBody squad={squad} />
+        <SquadBody squad={squad} onLeave={onLeave} />
       </div>
     </BentoCard>
   )

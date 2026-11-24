@@ -199,6 +199,7 @@ export function buildBentoDashboardData(input: BentoRealInput): BentoDashboardDa
     maxMembers: Math.max(sq.maxMembers, sq.members),
     status: squadStatus(sq, now),
     tone: TONES[i % TONES.length],
+    isOwner: sq.isOwner,
   }))
 
   let liveJam: BentoLiveJam | null = null

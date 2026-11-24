@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useRef } from "react"
-import { format } from "date-fns"
+import { format, isValid, parse } from "date-fns"
 import type { DateRange } from "react-day-picker"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -30,6 +30,7 @@ import { claimAvailabilityPostXp } from "@/app/actions/availability-actions"
 import { showGamificationRewards } from "@/components/gamification-reward-toasts"
 import { gamificationRewardHasToast } from "@/lib/gamification-reward-types"
 import { useRouter } from "next/navigation"
+import { dashboardHref } from "@/components/app-shell/nav-config"
 
 const LANGUAGE_OPTIONS = [
   { value: "english", label: "English" },
@@ -42,7 +43,29 @@ const LANGUAGE_OPTIONS = [
   { value: "chinese", label: "Chinese" },
 ]
 
-export function AvailabilityForm() {
+export type AvailabilityFormPost = {
+  id: string
+  availability: string
+  jam?: { id: string; title: string | null; url: string | null } | null
+}
+
+function parseAvailabilityRange(value: string | null | undefined): DateRange | undefined {
+  if (!value || value === "Not specified") return undefined
+  const [fromRaw, toRaw] = value.split(" to ").map((part) => part.trim())
+  const from = parse(fromRaw, "yyyy-MM-dd", new Date())
+  if (!isValid(from)) return undefined
+  const to = toRaw ? parse(toRaw, "yyyy-MM-dd", new Date()) : undefined
+  return { from, to: to && isValid(to) ? to : undefined }
+}
+
+export function AvailabilityForm({
+  initialPost,
+  onUpdated,
+}: {
+  initialPost?: AvailabilityFormPost
+  onUpdated?: () => void
+} = {}) {
+  const isEditing = Boolean(initialPost)
   const totalSteps = 3
   const router = useRouter()
   const [step, setStep] = useState(1)
@@ -120,6 +143,12 @@ export function AvailabilityForm() {
     }
     loadProfile()
   }, [user, hasLoadedProfile])
+
+  useEffect(() => {
+    if (!initialPost) return
+    setDateRange(parseAvailabilityRange(initialPost.availability))
+    if (initialPost.jam?.id) setJamId(initialPost.jam.id)
+  }, [initialPost])
 
   useEffect(() => {
     if (step === 1) {
@@ -232,6 +261,50 @@ export function AvailabilityForm() {
     const bioValue = bio.trim()
 
     try {
+      // Fetch existing avatar to avoid overwriting gallery choice
+      const { data: existingProfile } = await supabase
+        .from("profiles")
+        .select("avatar_url")
+        .eq("id", user.id)
+        .single()
+
+      const avatarUrl = existingProfile?.avatar_url ?? user.user_metadata?.avatar_url ?? null
+
+      const upsertProfile = async () => {
+        await supabase.from("profiles").upsert([{
+          id: user.id,
+          username: usernameValue,
+          role: role,
+          experience: level,
+          experience_level: level,
+          jam_style: jamStyle || null,
+          engine: engine,
+          language: language,
+          bio: bioValue,
+          portfolio_link: portfolioLink.trim() || null,
+          avatar_url: avatarUrl,
+          jam_id: jamId || null,
+        }], { onConflict: "id" })
+      }
+
+      if (initialPost) {
+        const { error: postError } = await supabase
+          .from("availability_posts")
+          .update({ availability: dateString })
+          .eq("id", initialPost.id)
+          .eq("user_id", user.id)
+
+        if (postError) {
+          toast.error("Could not update announcement.", { description: postError.message })
+        } else {
+          await upsertProfile()
+          toast.success("Announcement updated!")
+          onUpdated?.()
+          router.push(dashboardHref("availability"))
+        }
+        return
+      }
+
       // Check current count (max 3 per user)
       const { count, error: countError } = await supabase
         .from("availability_posts")
@@ -252,15 +325,6 @@ export function AvailabilityForm() {
         return
       }
 
-      // Fetch existing avatar to avoid overwriting gallery choice
-      const { data: existingProfile } = await supabase
-        .from("profiles")
-        .select("avatar_url")
-        .eq("id", user.id)
-        .single()
-
-      const avatarUrl = existingProfile?.avatar_url ?? user.user_metadata?.avatar_url ?? null
-
       // S7: the post only stores the dates. Role, level, bio, etc. live on the
       // profile (upserted below) and are read from the published profile.
       const { data: insertedPost, error: postError } = await supabase
@@ -274,20 +338,7 @@ export function AvailabilityForm() {
         .single()
 
       if (!postError) {
-        await supabase.from("profiles").upsert([{
-          id: user.id,
-          username: usernameValue,
-          role: role,
-          experience: level,
-          experience_level: level,
-          jam_style: jamStyle || null,
-          engine: engine,
-          language: language,
-          bio: bioValue,
-          portfolio_link: portfolioLink.trim() || null,
-          avatar_url: avatarUrl,
-          jam_id: jamId || null,
-        }], { onConflict: "id" })
+        await upsertProfile()
       }
 
       if (postError) {
@@ -730,7 +781,9 @@ export function AvailabilityForm() {
                                   Sending...
                                 </>
                               )
-                              : "Post My Availability"
+                              : isEditing
+                                ? "Save changes"
+                                : "Post My Availability"
                             : "Next step"}
                         </Button>
                       )}

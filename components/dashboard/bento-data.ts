@@ -91,6 +91,7 @@ export type BentoSquad = {
   maxMembers: number
   status: string
   tone: BentoTone
+  isOwner: boolean
 }
 
 export type BentoSquadMatch = {

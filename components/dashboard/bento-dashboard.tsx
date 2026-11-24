@@ -43,6 +43,7 @@ type BentoDashboardProps = {
    * When omitted, every card shows its skeleton.
    */
   data?: BentoDashboardData
+  onLeaveSquad?: (id: string) => void
 }
 
 function greetingDateLabel(now = new Date()): string {
@@ -281,7 +282,7 @@ function MobileKpiStrip() {
  * T7 Bento home — desktop grid + mobile carousels/accordions.
  * Cards render `data` when provided (T7c mock now, real query in T9), else T7 placeholders.
  */
-export function BentoDashboard({ displayName, data }: BentoDashboardProps) {
+export function BentoDashboard({ displayName, data, onLeaveSquad }: BentoDashboardProps) {
   const firstName = displayName.trim().split(/\s+/)[0] || "Jammer"
   const dateLabel = greetingDateLabel()
 
@@ -413,7 +414,7 @@ export function BentoDashboard({ displayName, data }: BentoDashboardProps) {
 
         <BentoCell span={8}>
           {data && data.squads.length > 0 ? (
-            <MySquadsCard squads={data.squads} />
+            <MySquadsCard squads={data.squads} onLeave={onLeaveSquad} />
           ) : (
             <BentoCard
               title="My squads"
@@ -509,7 +510,9 @@ export function BentoDashboard({ displayName, data }: BentoDashboardProps) {
           <SectionHeading icon={ICON.squad} tone="teal" title="My squads" action="Manage" />
           <BentoCarousel label="My squads" itemClassName="w-[min(226px,72%)]">
             {data && data.squads.length > 0
-              ? data.squads.map((squad) => <SquadSlide key={squad.id} squad={squad} />)
+              ? data.squads.map((squad) => (
+                  <SquadSlide key={squad.id} squad={squad} onLeave={onLeaveSquad} />
+                ))
               : [
                 <BentoCard key="placeholder-1" neo className="min-h-[160px]" placeholder emptyLabel="No squad yet" skeletonLines={data ? 0 : 3} />,
             <BentoCard key="placeholder-2" neo className="min-h-[160px]" placeholder emptyLabel="Join a squad" skeletonLines={data ? 0 : 3} />,
