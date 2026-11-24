@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { redirect } from "next/navigation"
 import { Navbar } from "@/components/navbar"
 import { CreateProfileAvailabilitySection } from "@/components/create-profile-availability-section"
+import { CreateProfileOnboarding } from "@/components/create-profile-onboarding"
 import { COMPOSE_AVAILABILITY_HREF } from "@/components/app-shell/nav-config"
 import { getCurrentUser } from "@/lib/supabase/get-current-user"
 import { createClient } from "@/lib/supabase/server"
@@ -24,6 +25,7 @@ export const metadata: Metadata = {
 
 export default async function AvailabilityPage() {
   const user = await getCurrentUser()
+  let needsOnboarding = false
   if (user) {
     const supabase = await createClient()
     const { data: profile } = await supabase
@@ -34,12 +36,27 @@ export default async function AvailabilityPage() {
     if (profile?.has_completed_onboarding === true) {
       redirect(COMPOSE_AVAILABILITY_HREF)
     }
+    needsOnboarding = true
   }
 
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />
       <main className="flex-1">
+        {needsOnboarding ? (
+          <section className="relative overflow-hidden px-4 pb-16 pt-14 lg:px-6 lg:pt-20">
+            <div className="relative mx-auto max-w-2xl text-center">
+              <h1 className="text-balance text-4xl font-extrabold tracking-tight text-foreground md:text-5xl">
+                Finish your <span className="text-lavender">profile</span>
+              </h1>
+              <p className="mx-auto mt-4 max-w-lg text-pretty text-lg leading-relaxed text-muted-foreground">
+                Complete onboarding to access the dashboard and start earning XP.
+              </p>
+            </div>
+            <CreateProfileOnboarding />
+          </section>
+        ) : (
+          <>
         {/* Hero header */}
         <section className="relative overflow-hidden px-4 pb-4 pt-14 lg:px-6 lg:pt-20 lg:pb-6">
           {/* Decorative background glow */}
@@ -74,6 +91,8 @@ export default async function AvailabilityPage() {
             <CreateProfileAvailabilitySection />
           </div>
         </section>
+          </>
+        )}
       </main>
     </div>
   )

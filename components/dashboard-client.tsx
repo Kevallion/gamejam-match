@@ -1072,8 +1072,10 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null, bo
   }, [loadData, fixture])
 
   // DS-3h: claim daily login after first paint so it is not on the critical path.
+  // ONB-3: never start the claim until onboarding is finished.
   useEffect(() => {
     if (fixture) return
+    if (bootstrap?.onboardingComplete !== true) return
     if (dailyXpClaimRef.current) return
     if (bootstrap?.snapshot.dailyLoginClaimedToday === true) {
       dailyXpClaimRef.current = true

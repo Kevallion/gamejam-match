@@ -1,5 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin"
 import { levelFromTotalXp } from "@/lib/gamification-level"
+import { ONBOARDING_REQUIRED, shouldBlockXpAward } from "@/lib/onboarding-guard"
 import type { GamificationRewardSummary } from "@/lib/gamification-reward-types"
 import { teamRosterIsComplete } from "@/lib/team-utils"
 import { isKudosCategoryDb, type KudosCategoryDb } from "@/lib/kudos"
@@ -298,7 +299,7 @@ export async function awardXP(
   const { data: row, error: fetchError } = await admin
     .from("profiles")
     .select(
-      "xp, level, last_daily_xp_at, unlocked_titles, role_stats, daily_login_streak, invitations_sent_count",
+      "xp, level, last_daily_xp_at, unlocked_titles, role_stats, daily_login_streak, invitations_sent_count, has_completed_onboarding",
     )
     .eq("id", userId)
     .maybeSingle()
@@ -308,6 +309,9 @@ export async function awardXP(
   }
   if (!row) {
     return { ok: false, error: "Profile not found" }
+  }
+  if (shouldBlockXpAward((row as { has_completed_onboarding?: boolean | null }).has_completed_onboarding)) {
+    return { ok: false, error: ONBOARDING_REQUIRED }
   }
 
   const now = new Date()
