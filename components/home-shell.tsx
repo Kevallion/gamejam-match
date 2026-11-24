@@ -155,12 +155,12 @@ export function HomeShell() {
   return (
     <div className={cn("flex flex-col", inAppShell ? "min-h-0" : "min-h-screen")}>
       <main className="flex-1">
-        {/* Hero — top of page */}
-        <Hero />
+        {/* Marketing hero stays on the site layout only; the app header already titles this page. */}
+        {!inAppShell ? <Hero /> : null}
 
         {/* Search + filters (in document flow — avoids covering team cards while scrolling) */}
         <div>
-          <div className="mx-auto max-w-6xl flex flex-col gap-4 px-4 py-4 sm:gap-6 sm:py-6 lg:px-6 lg:py-6">
+          <div className="mx-auto flex max-w-[1280px] flex-col gap-4 px-4 py-4 sm:gap-6 sm:py-6 lg:px-6">
             <div className="w-full max-w-xl">
               <Search
                 value={searchQuery}
@@ -186,7 +186,7 @@ export function HomeShell() {
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <ActiveFilterChips chips={activeFilterChips} onRemove={removeFilterChip} />
               <Select value={sort} onValueChange={(value) => setSort(value as TeamSort)}>
-                <SelectTrigger className="h-10 w-full rounded-xl border-border/60 bg-card sm:w-[180px]">
+                <SelectTrigger className="h-12 w-full rounded-lg border-border bg-card sm:w-[180px]">
                   <SelectValue placeholder="Sort" />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">
@@ -200,7 +200,7 @@ export function HomeShell() {
         </div>
 
         {/* Results — team grid (includes personalized matches when logged in) */}
-        <div className="pt-12 lg:pt-16">
+        <div className="pt-8">
           <TeamGrid
             searchQuery={searchQuery}
             engineFilter={engineFilter}

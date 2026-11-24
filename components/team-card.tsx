@@ -307,15 +307,14 @@ export function TeamCard({
           }
         }}
         className={cn(
-          "card-interactive group relative flex h-full cursor-pointer flex-col rounded-xl border border-border/60 bg-card p-5 outline-none transition-all focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-          isRecommended &&
-            "border-teal/40 bg-gradient-to-br from-card to-teal/5 shadow-[0_0_18px_-4px_rgba(20,184,166,0.12)]",
+          "card-interactive group relative flex h-full cursor-pointer flex-col rounded-2xl border border-border bg-card p-6 shadow-[3px_3px_0_0_var(--neo-shadow)] outline-none transition-all focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+          isRecommended && "border-teal",
         )}
       >
         <div className="mb-3.5 flex min-w-0 items-start justify-between gap-2.5">
           <div className="min-w-0 flex-1">
             <div className="flex min-w-0 flex-wrap items-center gap-1.5">
-              <h3 className="truncate text-base font-bold text-foreground">{team.name}</h3>
+              <h3 className="truncate font-display text-xl font-extrabold text-foreground">{team.name}</h3>
               {isRecommended && (
                 <Badge
                   variant="outline"
@@ -401,7 +400,7 @@ export function TeamCard({
       <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
         <DialogContent
           className={cn(
-            "flex max-h-[min(100dvh-2rem,720px)] min-w-0 flex-col gap-0 overflow-x-hidden overflow-y-auto rounded-2xl border-border/60 bg-card p-0 shadow-2xl shadow-teal/10",
+            "flex max-h-[min(100dvh-2rem,720px)] min-w-0 flex-col gap-0 overflow-x-hidden overflow-y-auto rounded-2xl border-border bg-card p-0 shadow-[3px_3px_0_0_var(--neo-shadow)]",
             "max-sm:top-[max(1rem,env(safe-area-inset-top))] max-sm:right-3 max-sm:bottom-auto max-sm:left-3 max-sm:w-auto max-sm:max-w-none max-sm:translate-x-0 max-sm:translate-y-0",
             "sm:top-[50%] sm:left-[50%] sm:w-[calc(100%-2rem)] sm:max-w-lg sm:translate-x-[-50%] sm:translate-y-[-50%]",
           )}
