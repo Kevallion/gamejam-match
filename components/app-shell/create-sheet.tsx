@@ -38,12 +38,12 @@ export function CreateSheet({
         showCloseButton={false}
         aria-labelledby="create-dialog-title"
         className={cn(
-          "top-[50%] left-[50%] z-50 w-[min(24rem,calc(100%-2rem))] max-w-[min(24rem,calc(100%-2rem))] translate-x-[-50%] translate-y-[-50%] gap-0 rounded-2xl border border-border bg-card p-5 shadow-[3px_3px_0_0_var(--neo-shadow)] sm:max-w-[min(24rem,calc(100%-2rem))]",
+          "top-[50%] left-[50%] z-50 w-[min(24rem,calc(100%-2rem))] max-w-[min(24rem,calc(100%-2rem))] translate-x-[-50%] translate-y-[-50%] gap-0 rounded-2xl border border-border bg-card p-6 shadow-[3px_3px_0_0_var(--neo-shadow)] sm:max-w-[min(24rem,calc(100%-2rem))]",
           "motion-reduce:animate-none motion-reduce:transition-none motion-reduce:data-[state=open]:animate-none motion-reduce:data-[state=closed]:animate-none",
         )}
       >
         <DialogHeader className="pr-12 text-left">
-          <DialogTitle id="create-dialog-title" className="text-lg font-extrabold tracking-tight">
+          <DialogTitle id="create-dialog-title" className="font-display text-2xl font-extrabold tracking-tight">
             Create
           </DialogTitle>
           <DialogDescription className="sr-only">
@@ -60,14 +60,14 @@ export function CreateSheet({
           <Link
             href="/create-team"
             onClick={close}
-            className="flex min-h-11 items-center gap-3 rounded-2xl border border-pink/30 bg-pink/5 px-4 py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="flex min-h-12 items-center gap-3 rounded-xl border border-pink/30 bg-pink/10 px-4 py-3 shadow-[3px_3px_0_0_var(--neo-shadow)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-pink/15 text-pink">
               <AppIcon icon={ICON.edit} size="lg" />
             </span>
             <span className="min-w-0 flex-1 text-left">
-              <span className="block text-sm font-bold text-foreground">Create a squad</span>
-              <span className="block text-xs text-muted-foreground">Recruit jammers for your jam</span>
+              <span className="block text-base font-bold text-foreground">Create a squad</span>
+              <span className="block text-sm text-muted-foreground">Recruit jammers for your jam</span>
             </span>
             <AppIcon icon={ICON.navRight} size="sm" tone="muted" />
           </Link>
@@ -76,7 +76,7 @@ export function CreateSheet({
             href={atQuota ? dashboardHref("availability") : COMPOSE_AVAILABILITY_HREF}
             onClick={close}
             className={cn(
-              "flex min-h-11 items-center gap-3 rounded-2xl border border-lavender/30 bg-lavender/5 px-4 py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              "flex min-h-12 items-center gap-3 rounded-xl border border-lavender/30 bg-lavender/10 px-4 py-3 shadow-[3px_3px_0_0_var(--neo-shadow)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
               atQuota && "opacity-80",
             )}
           >
@@ -84,8 +84,8 @@ export function CreateSheet({
               <AppIcon icon={ICON.available} size="lg" />
             </span>
             <span className="min-w-0 flex-1 text-left">
-              <span className="block text-sm font-bold text-foreground">Post availability</span>
-              <span className="block text-xs text-muted-foreground">
+              <span className="block text-base font-bold text-foreground">Post availability</span>
+              <span className="block text-sm text-muted-foreground">
                 {postsUsed}/{availabilityQuota} posts used
                 {atQuota ? " · quota reached" : ""}
               </span>
@@ -96,14 +96,14 @@ export function CreateSheet({
           <Link
             href="/find-members"
             onClick={close}
-            className="flex min-h-11 items-center gap-3 rounded-2xl border border-teal/30 bg-teal/5 px-4 py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="flex min-h-12 items-center gap-3 rounded-xl border border-teal/30 bg-teal/10 px-4 py-3 shadow-[3px_3px_0_0_var(--neo-shadow)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-teal/15 text-teal">
               <AppIcon icon={ICON.findJammers} size="lg" />
             </span>
             <span className="min-w-0 flex-1 text-left">
-              <span className="block text-sm font-bold text-foreground">Find members</span>
-              <span className="block text-xs text-muted-foreground">Browse available jammers</span>
+              <span className="block text-base font-bold text-foreground">Find members</span>
+              <span className="block text-sm text-muted-foreground">Browse available jammers</span>
             </span>
             <AppIcon icon={ICON.navRight} size="sm" tone="muted" />
           </Link>

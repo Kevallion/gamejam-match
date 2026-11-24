@@ -110,7 +110,7 @@ export function AppHeader({
     >
       <AppIcon icon={ICON.notifications} size="md" />
       {unreadCount > 0 ? (
-        <span className="absolute -right-0.5 -top-0.5 flex min-h-4 min-w-4 items-center justify-center rounded-full bg-peach px-1 text-[10px] font-bold text-peach-foreground">
+        <span className="absolute -right-0.5 -top-0.5 flex min-h-4 min-w-4 items-center justify-center rounded-full bg-peach px-1 text-xs font-bold text-peach-foreground">
           {unreadCount > 9 ? "9+" : unreadCount}
         </span>
       ) : null}
@@ -129,7 +129,7 @@ export function AppHeader({
   return (
     <header
       className={cn(
-        "sticky top-0 z-20 border-b border-border/40 bg-background/90 backdrop-blur-md",
+        "sticky top-0 z-20 border-b border-border bg-background",
         "pt-[env(safe-area-inset-top,0px)]",
         className,
       )}
@@ -138,13 +138,13 @@ export function AppHeader({
         <div className="mx-auto flex h-14 w-full max-w-[1280px] items-center gap-3 overflow-visible px-4 app-desktop:px-6 xl:px-10">
           <Link
             href="/dashboard"
-            className="flex min-w-0 shrink-0 items-center gap-2.5 font-black tracking-tight"
+            className="flex min-w-0 shrink-0 items-center gap-2 font-display text-base font-extrabold tracking-tight"
             aria-label="GameJamCrew home"
           >
             <span className="grid size-[34px] shrink-0 place-items-center rounded-xl border border-border bg-primary text-primary-foreground shadow-[3px_3px_0_0_var(--neo-shadow)]">
               <AppIcon icon={ICON.jam} size="md" className="text-primary-foreground" />
             </span>
-            <span className="truncate text-[17px]">GameJamCrew</span>
+            <span className="truncate">GameJamCrew</span>
           </Link>
           <div className="ml-auto min-w-0 max-w-[380px] flex-1">
             <AppSearch variant="desktop" />
@@ -164,10 +164,10 @@ export function AppHeader({
                 <AppIcon icon={ICON.jam} size="md" className="text-primary-foreground" />
               </span>
               <div className="min-w-0">
-                <p className="truncate text-[11.5px] font-extrabold text-muted-foreground leading-tight">
+                <p className="truncate text-sm font-bold leading-tight text-muted-foreground">
                   {levelLabel ?? "GameJamCrew"}
                 </p>
-                <p className="truncate text-lg font-black tracking-tight text-foreground">
+                <p className="truncate font-display text-2xl font-extrabold tracking-tight text-foreground">
                   Hey {greetingName.split(/\s+/)[0] || greetingName}
                 </p>
               </div>
@@ -184,7 +184,7 @@ export function AppHeader({
                 <AppIcon icon={ICON.jam} size="md" className="text-primary-foreground" />
               </Link>
               <div className="min-w-0">
-              <h1 className="truncate text-xl font-bold tracking-tight text-foreground app-desktop:text-[22px]">
+              <h1 className="truncate font-display text-2xl font-extrabold tracking-tight text-foreground">
                 {title}
               </h1>
               {subtitle ? (

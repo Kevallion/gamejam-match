@@ -33,7 +33,7 @@ function isTypingTarget(target: EventTarget | null): boolean {
 function SlotBadge({ count }: { count: number }) {
   if (count <= 0) return null
   return (
-    <span className="absolute -right-2 -top-2 flex min-h-[22px] min-w-[22px] items-center justify-center rounded-full border border-border bg-peach px-1 text-[11px] font-bold text-peach-foreground">
+    <span className="absolute -right-2 -top-2 flex min-h-[22px] min-w-[22px] items-center justify-center rounded-full border border-border bg-peach px-1 text-xs font-bold text-peach-foreground">
       {count > 9 ? "9+" : count}
     </span>
   )
@@ -181,7 +181,7 @@ export function BentoHotbar({ inboxCount = 0, availabilityCount = 0 }: BentoHotb
           aria-expanded={moreOpen}
           aria-controls="app-more-sheet"
           className={cn(
-            "relative flex min-h-11 min-w-11 w-[52px] shrink-0 flex-col items-center gap-0.5 text-[10px] font-black transition-colors",
+            "relative flex min-h-11 min-w-11 w-[52px] shrink-0 flex-col items-center gap-0.5 text-xs font-bold transition-colors",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
             moreActive ? "text-primary" : "text-muted-foreground",
           )}
@@ -227,7 +227,7 @@ function HotbarSlot({
       title={`${item.label} (${item.key})`}
       className={cn(
         "relative flex size-[62px] flex-col items-center justify-center gap-0.5 rounded-xl border",
-        "text-[10px] font-extrabold transition-transform focus-visible:outline-none",
+        "text-xs font-bold transition-transform focus-visible:outline-none",
         "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         active
           ? "-translate-y-1.5 border-border bg-primary text-primary-foreground shadow-[3px_3px_0_0_var(--neo-shadow)]"
@@ -236,7 +236,7 @@ function HotbarSlot({
     >
       <span
         className={cn(
-          "absolute left-1.5 top-1 text-[9px] font-black opacity-80",
+          "absolute left-1.5 top-1 text-xs font-bold opacity-80",
           active ? "text-primary-foreground" : "text-muted-foreground",
         )}
         aria-hidden
@@ -284,7 +284,7 @@ function MobileHotbarLink({
       aria-label={item.label}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "relative flex min-h-11 min-w-11 w-[52px] shrink-0 flex-col items-center gap-0.5 text-[10px] font-black transition-colors",
+        "relative flex min-h-11 min-w-11 w-[52px] shrink-0 flex-col items-center gap-0.5 text-xs font-bold transition-colors",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         active ? "text-primary" : "text-muted-foreground",
       )}
@@ -292,7 +292,7 @@ function MobileHotbarLink({
       <span className="relative">
         <AppIcon icon={item.icon} size="lg" tone={active ? "primary" : "muted"} />
         {item.badge === "inbox" ? (
-          <span className="absolute -right-2.5 -top-1.5 flex min-h-[18px] min-w-[18px] items-center justify-center rounded-full border border-border bg-peach px-0.5 text-[10px] font-bold text-peach-foreground">
+          <span className="absolute -right-2.5 -top-1.5 flex min-h-[18px] min-w-[18px] items-center justify-center rounded-full border border-border bg-peach px-0.5 text-xs font-bold text-peach-foreground">
             {inboxCount > 9 ? "9+" : inboxCount}
           </span>
         ) : null}

@@ -49,7 +49,7 @@ export function MoreSheet({ open, onOpenChange }: MoreSheetProps) {
         )}
       >
         <DrawerHeader className="shrink-0 text-left">
-          <DrawerTitle className="text-lg font-bold tracking-tight">More</DrawerTitle>
+          <DrawerTitle className="font-display text-2xl font-extrabold tracking-tight">More</DrawerTitle>
           <DrawerDescription className="sr-only">
             Open Home, Rewards, Me, or Settings.
           </DrawerDescription>
@@ -87,8 +87,8 @@ export function MoreSheet({ open, onOpenChange }: MoreSheetProps) {
                   />
                 </span>
                 <span className="min-w-0 flex-1 text-left">
-                  <span className="block text-sm font-bold text-foreground">{item.label}</span>
-                  <span className="block text-xs text-muted-foreground">{item.hint}</span>
+                  <span className="block text-base font-bold text-foreground">{item.label}</span>
+                  <span className="block text-sm text-muted-foreground">{item.hint}</span>
                 </span>
                 <AppIcon icon={ICON.navRight} size="sm" tone="muted" />
               </Link>

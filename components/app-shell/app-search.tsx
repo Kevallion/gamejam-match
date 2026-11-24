@@ -90,7 +90,7 @@ function AppSearchField({
                 if (!value.trim()) setOpen(false)
               }}
               placeholder="Search jams, squads, members"
-              className="h-11 min-w-0 flex-1 rounded-xl border border-border bg-card px-3 text-sm font-bold outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="h-12 min-w-0 flex-1 rounded-lg border border-border bg-card px-3 text-base outline-none focus-visible:ring-2 focus-visible:ring-ring"
             />
           </form>
         ) : (
@@ -114,8 +114,8 @@ function AppSearchField({
     <form
       onSubmit={submit}
       className={cn(
-        "flex h-11 min-w-0 max-w-[380px] flex-1 items-center gap-2.5 rounded-xl border border-border bg-card px-3.5",
-        "text-[13px] font-bold shadow-[3px_3px_0_0_var(--neo-shadow)]",
+        "flex h-12 min-w-0 max-w-[380px] flex-1 items-center gap-2 rounded-lg border border-border bg-card px-4",
+        "text-base shadow-[3px_3px_0_0_var(--neo-shadow)]",
         className,
       )}
       role="search"
@@ -131,9 +131,9 @@ function AppSearchField({
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder="Search jams, squads, members"
-        className="min-w-0 flex-1 bg-transparent text-[13px] font-bold text-foreground outline-none placeholder:text-muted-foreground"
+        className="min-w-0 flex-1 bg-transparent text-base text-foreground outline-none placeholder:text-muted-foreground"
       />
-      <kbd className="ml-auto rounded-md border border-border px-1.5 text-[11px] font-black text-muted-foreground">
+      <kbd className="ml-auto rounded-md border border-border px-1.5 text-xs font-bold text-muted-foreground">
         /
       </kbd>
     </form>

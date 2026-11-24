@@ -42,7 +42,7 @@ export function MobileTabBar({
   return (
     <>
       <nav
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-border/50 bg-card/90 backdrop-blur-md md:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card md:hidden"
         style={{
           height: `calc(${BAR_PX}px + env(safe-area-inset-bottom, 0px))`,
           paddingBottom: "env(safe-area-inset-bottom, 0px)",
@@ -61,10 +61,10 @@ export function MobileTabBar({
                   key={item.id}
                   type="button"
                   onClick={() => setCreateOpen(true)}
-                  className="flex min-h-11 flex-col items-center justify-center gap-0.5 px-1 text-[12px] font-semibold text-muted-foreground transition-colors active:scale-95"
+                  className="flex min-h-11 flex-col items-center justify-center gap-0.5 px-1 text-xs font-bold text-muted-foreground transition-colors motion-reduce:transform-none active:scale-95"
                   aria-label="Create"
                 >
-                  <span className="flex size-9 items-center justify-center rounded-xl bg-teal text-teal-foreground shadow-sm">
+                  <span className="flex size-9 items-center justify-center rounded-lg bg-teal text-teal-foreground shadow-[3px_3px_0_0_var(--neo-shadow)]">
                     <AppIcon icon={item.icon} size="lg" className="text-teal-foreground" />
                   </span>
                   <span className="sr-only">{item.label}</span>
@@ -81,7 +81,7 @@ export function MobileTabBar({
                 aria-label={item.label}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "relative flex min-h-11 flex-col items-center justify-center gap-0.5 px-0.5 text-[12px] font-semibold transition-colors active:scale-95",
+                  "relative flex min-h-11 flex-col items-center justify-center gap-0.5 px-0.5 text-xs font-bold transition-colors motion-reduce:transform-none active:scale-95",
                   active ? "text-teal" : "text-muted-foreground",
                 )}
               >
@@ -91,7 +91,7 @@ export function MobileTabBar({
                 <span className="relative">
                   <AppIcon icon={item.icon} size="lg" tone={active ? "teal" : "muted"} />
                   {item.id === "inbox" && inboxCount > 0 ? (
-                    <span className="absolute -right-2.5 -top-1.5 flex min-h-4 min-w-4 items-center justify-center rounded-full bg-peach px-1 text-[10px] font-bold text-peach-foreground">
+                    <span className="absolute -right-2.5 -top-1.5 flex min-h-4 min-w-4 items-center justify-center rounded-full bg-peach px-1 text-xs font-bold text-peach-foreground">
                       {inboxCount > 9 ? "9+" : inboxCount}
                     </span>
                   ) : null}
