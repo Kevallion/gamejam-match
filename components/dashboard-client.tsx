@@ -6,6 +6,7 @@ import { BentoDashboard } from "@/components/dashboard/bento-dashboard"
 // DS-3a: Bento home cards are built from real data only (bento-real.ts).
 import { buildBentoDashboardData } from "@/components/dashboard/bento-real"
 import type { GamificationSnapshot } from "@/lib/gamification-snapshot"
+import { shouldShowDashboardSkeleton } from "@/lib/dashboard-tab-ready"
 import type { TeamData } from "@/components/dashboard-my-teams"
 import { DashboardRecommendedTeams } from "@/components/dashboard-recommended-teams"
 import { DashboardAvailabilityCompact } from "@/components/dashboard-availability-compact"
@@ -509,6 +510,8 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
   const [profile, setProfile] = useState<ProfileSettingsProfile | null>(fixture?.profile ?? null)
   // DS-3a: level / XP / badges, same source as Rewards (lib/gamification-snapshot.ts).
   const [gamification, setGamification] = useState<GamificationSnapshot | null>(null)
+  // DS-3f: Rewards can paint once this is true, without waiting for the rest of loadData.
+  const [rewardsReady, setRewardsReady] = useState(Boolean(fixture))
 
   const dailyXpClaimRef = useRef(false)
   const isMobile = useIsMobile()
@@ -627,12 +630,33 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
       const { data: { session: authSession } } = await supabase.auth.getSession()
       if (!authSession?.user) {
         setRecommendedTeams([])
+        setGamification(null)
+        setRewardsReady(true)
         setLoading(false)
         return
       }
       setSession(authSession)
 
       const uid = authSession.user.id
+
+      // DS-3f: start the snapshot first and apply it as soon as it arrives, so
+      // Rewards can paint without waiting for the rest of this Promise.all.
+      // The same promise is reused below (no second call, no double daily claim).
+      const claimDailyLogin = !dailyXpClaimRef.current
+      dailyXpClaimRef.current = true
+      const snapshotPromise = getMyGamificationSnapshot({ claimDailyLogin })
+        .catch(() => ({ ok: false as const, error: "UNKNOWN" }))
+        .then((result) => {
+          if (mountedRef.current) {
+            setGamification(result.ok ? result.snapshot : null)
+            setRewardsReady(true)
+            const dailyLogin = result.ok ? result.dailyLogin : undefined
+            if (dailyLogin?.ok && dailyLogin.reward && gamificationRewardHasToast(dailyLogin.reward)) {
+              showGamificationRewards("DAILY_LOGIN", dailyLogin.reward)
+            }
+          }
+          return result
+        })
 
       const [
         { data: membershipRows },
@@ -641,7 +665,6 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
         { data: postsData },
         { data: notifRaw, error: notifErr },
         emailPrefsResult,
-        gamificationResult,
         ownDiscord,
         postProfileResult,
         kudosRpcResult,
@@ -677,12 +700,6 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
         // DS-3a perf: read straight from the browser (owner-only RPC, same as the
         // server action's first path); the server action is only the fallback.
         readOwnEmailPreferences(),
-        // DS-3a skeleton: single server action (daily login claim + snapshot).
-        (() => {
-          const claimDailyLogin = !dailyXpClaimRef.current
-          dailyXpClaimRef.current = true
-          return getMyGamificationSnapshot({ claimDailyLogin }).catch(() => ({ ok: false as const, error: "UNKNOWN" }))
-        })(),
         readOwnDiscordUsername(supabase, uid),
         supabase
           .from("profiles")
@@ -692,12 +709,8 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
           .eq("id", uid)
           .maybeSingle(),
         supabase.rpc("get_kudos_counts_for_users", { p_user_ids: [uid] }),
+        snapshotPromise,
       ])
-      setGamification(gamificationResult.ok ? gamificationResult.snapshot : null)
-      const dailyLogin = gamificationResult.ok ? gamificationResult.dailyLogin : undefined
-      if (dailyLogin?.ok && dailyLogin.reward && gamificationRewardHasToast(dailyLogin.reward)) {
-        showGamificationRewards("DAILY_LOGIN", dailyLogin.reward)
-      }
       let profileData = profileQueryResult.data as
         | {
             id: string
@@ -1533,7 +1546,7 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null }: 
     [gamification, teams, sentApplications, availabilityPosts, activityNotifications],
   )
 
-  if (loading) {
+  if (shouldShowDashboardSkeleton(activeTab, loading, rewardsReady)) {
     return <DashboardLoadingSkeleton />
   }
 
