@@ -57,7 +57,7 @@ export function LandingCTA() {
               <Button
                 asChild
                 size="lg"
-                className="h-14 min-w-[220px] rounded-lg border-2 border-foreground bg-teal px-8 text-base font-extrabold text-teal-foreground shadow-[4px_4px_0px_0px_var(--neo-shadow)] transition-all hover:-translate-y-0.5 hover:shadow-[5px_5px_0px_0px_var(--neo-shadow)] active:translate-y-0 active:shadow-[2px_2px_0px_0px_var(--neo-shadow)]"
+                className="h-14 min-w-[220px] rounded-lg border-2 border-foreground bg-teal px-8 text-base font-extrabold text-teal-foreground shadow-[3px_3px_0_0_var(--neo-shadow)] jam-motion transition-opacity duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none hover:opacity-90"
               >
                 <Link
                   href="/teams"
@@ -71,7 +71,7 @@ export function LandingCTA() {
                 asChild
                 variant="outline"
                 size="lg"
-                className="h-14 min-w-[220px] rounded-lg border-2 border-foreground bg-card px-8 text-base font-extrabold text-foreground shadow-[4px_4px_0px_0px_var(--neo-shadow)] transition-all hover:-translate-y-0.5 hover:bg-card hover:shadow-[5px_5px_0px_0px_var(--neo-shadow)] active:translate-y-0 active:shadow-[2px_2px_0px_0px_var(--neo-shadow)]"
+                className="h-14 min-w-[220px] rounded-lg border-2 border-foreground bg-card px-8 text-base font-extrabold text-foreground shadow-[3px_3px_0_0_var(--neo-shadow)] jam-motion transition-opacity duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none hover:opacity-90"
               >
                 <Link
                   href="/create-team"

@@ -195,7 +195,7 @@ export function DashboardInboxCompact({
                             wants to join {app.teamName}
                           </p>
                         </div>
-                        <Badge className="shrink-0 rounded-full border-peach/40 bg-peach/15 text-[11px] text-peach">
+                        <Badge className="shrink-0 rounded-full border-peach/40 bg-peach/15 text-base text-peach">
                           Application
                         </Badge>
                       </div>
@@ -204,7 +204,7 @@ export function DashboardInboxCompact({
                           “{app.motivation}”
                         </p>
                       ) : null}
-                      <p className="text-[11px] text-muted-foreground">{shortAge(app.createdAt)} ago</p>
+                      <p className="text-base text-muted-foreground">{shortAge(app.createdAt)} ago</p>
                       <div className="flex gap-2">
                         <Button
                           type="button"
@@ -247,7 +247,7 @@ export function DashboardInboxCompact({
                             invites you{inv.targetRole ? ` as ${inv.targetRole}` : ""}
                           </p>
                         </div>
-                        <Badge className="shrink-0 rounded-full border-lavender/40 bg-lavender/15 text-[11px] text-lavender">
+                        <Badge className="shrink-0 rounded-full border-lavender/40 bg-lavender/15 text-base text-lavender">
                           Invite
                         </Badge>
                       </div>
@@ -322,7 +322,7 @@ export function DashboardInboxCompact({
                       Cancel
                     </Button>
                   ) : (
-                    <Badge className={cn("rounded-full border px-2 py-0.5 text-[11px]", status.className)}>
+                    <Badge className={cn("rounded-full border px-2 py-0.5 text-base", status.className)}>
                       {status.label}
                     </Badge>
                   )}
@@ -352,7 +352,7 @@ export function DashboardInboxCompact({
                       Cancel
                     </Button>
                   ) : (
-                    <Badge className={cn("rounded-full border px-2 py-0.5 text-[11px]", status.className)}>
+                    <Badge className={cn("rounded-full border px-2 py-0.5 text-base", status.className)}>
                       {status.label}
                     </Badge>
                   )}

@@ -150,7 +150,7 @@ export function DashboardAvailabilityCompact({
                     ) : null}
                     <Badge
                       className={cn(
-                        "ml-auto rounded-full border px-2.5 py-0.5 text-[11px] font-semibold",
+                        "ml-auto rounded-full border px-2.5 py-0.5 text-base font-semibold",
                         expiresSoon
                           ? "border-peach/40 bg-peach/10 text-peach"
                           : "border-border/50 bg-secondary/60 text-muted-foreground",

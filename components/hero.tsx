@@ -20,7 +20,7 @@ export function Hero() {
           <Button
             asChild
             size="lg"
-            className="h-12 rounded-lg border-2 border-foreground bg-primary px-8 text-base font-bold text-primary-foreground shadow-[3px_3px_0_0_var(--neo-shadow)] transition-transform hover:-translate-y-0.5 motion-reduce:transform-none"
+            className="h-12 rounded-lg border-2 border-foreground bg-primary px-8 text-base font-bold text-primary-foreground shadow-[3px_3px_0_0_var(--neo-shadow)] jam-motion transition-opacity duration-200 motion-reduce:transition-none hover:opacity-90"
           >
             <Link href="/create-team">
               <UsersRound className="size-5" />

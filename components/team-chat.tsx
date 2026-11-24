@@ -310,7 +310,7 @@ export function TeamChat({ teamId, currentUserId }: TeamChatProps) {
                         )}
                       >
                         <div className="mb-1 flex items-center justify-between gap-2">
-                          <span className="truncate text-[11px] font-semibold">
+                          <span className="truncate text-base font-semibold">
                             {isOwn ? "You" : message.sender_username}
                           </span>
                           {timeLabel && (
@@ -319,7 +319,7 @@ export function TeamChat({ teamId, currentUserId }: TeamChatProps) {
                             </span>
                           )}
                         </div>
-                        <p className="whitespace-pre-wrap break-words text-[12px] leading-snug">
+                        <p className="whitespace-pre-wrap break-words text-base leading-snug">
                           {message.content}
                         </p>
                       </div>

@@ -70,13 +70,13 @@ function SquadCardCompact({
           <div className="flex shrink-0 flex-wrap items-center gap-1.5">
             <Badge
               className={cn(
-                "rounded-full border px-2.5 py-0.5 text-[11px] font-semibold",
+                "rounded-full border px-2.5 py-0.5 text-base font-semibold",
                 team.isOwner ? "border-pink/40 bg-pink/15 text-pink" : "border-mint/40 bg-mint/15 text-mint",
               )}
             >
               {team.isOwner ? "Captain" : "Member"}
             </Badge>
-            <Badge className={cn("rounded-full border px-2.5 py-0.5 text-[11px] font-semibold", status.className)}>
+            <Badge className={cn("rounded-full border px-2.5 py-0.5 text-base font-semibold", status.className)}>
               {status.label}
             </Badge>
           </div>
@@ -98,7 +98,7 @@ function SquadCardCompact({
         </div>
 
         <div className="space-y-1.5">
-          <div className="flex items-center justify-between gap-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+          <div className="flex items-center justify-between gap-2 text-base font-semibold uppercase tracking-wide text-muted-foreground">
             <span>Jam readiness</span>
             <span className="tabular-nums">{readiness}%</span>
           </div>
@@ -117,7 +117,7 @@ function SquadCardCompact({
               />
             ))}
             {extraCount > 0 ? (
-              <span className="ml-1 inline-flex size-7 items-center justify-center rounded-full border border-border/50 bg-secondary text-[11px] font-semibold text-muted-foreground">
+              <span className="ml-1 inline-flex size-7 items-center justify-center rounded-full border border-border/50 bg-secondary text-base font-semibold text-muted-foreground">
                 +{extraCount}
               </span>
             ) : null}

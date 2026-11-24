@@ -28,9 +28,9 @@ export type TagKind = "role" | "engine" | "language" | "level" | "style" | "code
 type TagSize = "xs" | "sm" | "md"
 
 const PILL: Record<TagSize, string> = {
-  xs: "size-6 text-xs",
-  sm: "size-6 text-xs",
-  md: "size-8 text-xs",
+  xs: "size-8 text-base",
+  sm: "size-8 text-base",
+  md: "size-10 text-base",
 }
 
 const ICON: Record<TagSize, string> = {
@@ -139,7 +139,7 @@ export function TagIcon({
       <span
         className={cn(
           "inline-flex shrink-0 items-center justify-center rounded-full font-bold tabular-nums tracking-wide",
-          resolved.wide ? "h-6 min-w-6 px-1.5 text-xs leading-none" : resolved.gauge ? "h-6 px-1.5" : PILL[size],
+          resolved.wide ? "h-8 min-w-8 px-2 text-base leading-none" : resolved.gauge ? "h-8 px-2" : PILL[size],
           resolved.neutral && "bg-secondary text-foreground",
           resolved.mono && "bg-secondary text-muted-foreground",
         )}
@@ -312,7 +312,7 @@ export function TagIconRow({
           <PopoverTrigger asChild>
             <button
               type="button"
-              className="inline-flex h-6 items-center rounded-full bg-muted px-2 text-[11px] font-semibold text-muted-foreground"
+              className="inline-flex h-8 items-center rounded-full bg-muted px-2 text-base font-semibold text-muted-foreground"
               aria-label={`${hidden.length} more`}
             >
               +{hidden.length}

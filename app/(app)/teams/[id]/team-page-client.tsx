@@ -488,7 +488,7 @@ export function TeamPageClient() {
                                   </div>
                                   <Badge
                                     variant="outline"
-                                    className={`shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${roleClasses}`}
+                                    className={`shrink-0 rounded-full px-2.5 py-0.5 text-base font-semibold ${roleClasses}`}
                                   >
                                     {member.roleLabel}
                                   </Badge>

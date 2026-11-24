@@ -70,7 +70,7 @@ export function LevelHero({ level, compact }: { level: BentoLevel; compact?: boo
       >
         <div className="absolute inset-[10%] rounded-full border-[8px] border-muted md:border-[12px]" />
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-[8px] font-black tracking-[0.14em] text-muted-foreground md:text-[11px]">
+          <span className="text-base font-black tracking-[0.14em] text-muted-foreground">
             {compact ? "LVL" : "LEVEL"}
           </span>
           <span
@@ -173,13 +173,13 @@ export function KpiGrid({ kpis }: { kpis: BentoKpis }) {
             <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-background/20">
               <AppIcon icon={item.icon} size="md" />
             </span>
-            <span className="min-w-0 truncate pt-1 text-right text-[11px] font-extrabold opacity-75">
+            <span className="min-w-0 truncate pt-1 text-right text-base font-extrabold opacity-75">
               {item.hint}
             </span>
           </div>
           <div className="min-w-0">
             <p className="mb-1 text-[32px] font-black leading-none">{item.value ?? "—"}</p>
-            <p className="truncate text-[13px] font-extrabold">{item.label}</p>
+            <p className="truncate text-base font-extrabold">{item.label}</p>
           </div>
         </BentoCard>
       ))}
@@ -244,7 +244,7 @@ export function LiveJamEmpty() {
       <p className="text-sm font-semibold text-muted-foreground">No live jam right now</p>
       <Link
         href="/teams"
-        className="mt-3 inline-flex min-h-11 w-fit items-center gap-1.5 rounded-xl border border-border bg-card px-3 text-sm font-extrabold shadow-[3px_3px_0_0_var(--neo-shadow)] transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        className="mt-3 inline-flex min-h-11 w-fit items-center gap-1.5 rounded-xl border border-border bg-card px-3 text-sm font-extrabold shadow-[3px_3px_0_0_var(--neo-shadow)] jam-motion transition-opacity duration-200 motion-reduce:transition-none hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       >
         Browse squads
         <AppIcon icon={ICON.navRight} size="sm" tone="muted" />
@@ -310,7 +310,7 @@ export function UpcomingJamSlide({ jam }: { jam: BentoUpcomingJam }) {
         <DateBlock jam={jam} />
         <p className="mt-3 truncate text-base font-black">{jam.name}</p>
         <p className="truncate text-xs font-semibold text-muted-foreground">{jam.startsIn}</p>
-        <span className="mt-auto w-fit rounded-full border border-border px-2 py-0.5 text-[11px] font-extrabold text-muted-foreground">
+        <span className="mt-auto w-fit rounded-full border border-border px-2 py-0.5 text-base font-extrabold text-muted-foreground">
           {jam.duration} jam
         </span>
       </div>
@@ -326,7 +326,7 @@ function DateBlock({ jam }: { jam: BentoUpcomingJam }) {
         SOLID[jam.tone],
       )}
     >
-      <span className="text-[9px] font-black uppercase">{jam.month}</span>
+      <span className="text-base font-black uppercase">{jam.month}</span>
       <span className="text-sm font-black">{jam.day}</span>
     </span>
   )
@@ -352,7 +352,7 @@ export function QuestRow({ quest }: { quest: BentoQuest }) {
           <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
             <div className="h-full rounded-full bg-peach" style={{ width: `${pct}%` }} />
           </div>
-          <span className="shrink-0 text-[11px] font-bold text-muted-foreground">
+          <span className="shrink-0 text-base font-bold text-muted-foreground">
             {quest.progress}/{quest.total}
           </span>
         </div>
@@ -385,8 +385,8 @@ export function QuestsCard({ quests }: { quests: BentoQuest[] }) {
 export function QuestPill({ quest }: { quest: BentoQuest }) {
   return (
     <div className="flex h-11 min-w-0 items-center gap-2.5 rounded-xl bg-background px-3">
-      <span className="min-w-0 flex-1 truncate text-[13px] font-extrabold">{quest.title}</span>
-      <span className="shrink-0 text-[11px] font-bold text-muted-foreground">
+      <span className="min-w-0 flex-1 truncate text-base font-extrabold">{quest.title}</span>
+      <span className="shrink-0 text-base font-bold text-muted-foreground">
         {quest.progress}/{quest.total}
       </span>
       <span className="shrink-0 text-xs font-extrabold text-peach">+{quest.xp} XP</span>
@@ -460,12 +460,12 @@ function AlmostThere({
       <BadgeMedallion badgeId={next.badgeId} rarity={next.meta.rarity} size="sm" />
       <div className="min-w-0 flex-1">
         <div className="flex items-baseline justify-between gap-2">
-          <p className="truncate text-[13px] font-extrabold">Almost there: {next.meta.label}</p>
+          <p className="truncate text-base font-extrabold">Almost there: {next.meta.label}</p>
           <span className="shrink-0 text-xs font-extrabold tabular-nums text-peach">
             {next.progress.current}/{next.progress.target}
           </span>
         </div>
-        <p className="truncate text-[11px] font-semibold text-muted-foreground">{next.meta.blurb}</p>
+        <p className="truncate text-base font-semibold text-muted-foreground">{next.meta.blurb}</p>
         <div
           className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-muted"
           role="progressbar"
@@ -542,7 +542,7 @@ export function XpWeekCard({ weeks }: { weeks: BentoXpWeek[] }) {
       icon={ICON.xp}
       iconTone="teal"
       action={
-        <span className="rounded-full border border-teal/40 bg-teal/15 px-2 py-0.5 text-[11px] font-extrabold text-teal">
+        <span className="rounded-full border border-teal/40 bg-teal/15 px-2 py-0.5 text-base font-extrabold text-teal">
           +{current?.xp ?? 0} XP
         </span>
       }
@@ -597,7 +597,7 @@ export function UpNextCard({ jams }: { jams: BentoUpcomingJam[] }) {
             <DateBlock jam={jam} />
             <div className="min-w-0">
               <p className="truncate text-sm font-extrabold">{jam.name}</p>
-              <p className="truncate text-[11px] font-semibold text-muted-foreground">
+              <p className="truncate text-base font-semibold text-muted-foreground">
                 {jam.startsIn} · {jam.duration}
               </p>
             </div>
@@ -618,18 +618,18 @@ export function CrewFeedCard({ items }: { items: BentoFeedItem[] }) {
           <li key={item.id} className="flex min-w-0 items-center gap-2.5">
             <span
               className={cn(
-                "grid size-8 shrink-0 place-items-center rounded-full text-[11px] font-black",
+                "grid size-8 shrink-0 place-items-center rounded-full text-base font-black",
                 SOLID[item.tone],
               )}
               aria-hidden
             >
               {item.initials}
             </span>
-            <p className="min-w-0 flex-1 truncate text-[13px] font-semibold">
+            <p className="min-w-0 flex-1 truncate text-base font-semibold">
               <span className="font-extrabold">{item.actor}</span>{" "}
               <span className="text-muted-foreground">{item.text}</span>
             </p>
-            <span className="shrink-0 text-[11px] font-semibold text-muted-foreground">{item.time}</span>
+            <span className="shrink-0 text-base font-semibold text-muted-foreground">{item.time}</span>
           </li>
         ))}
       </ul>
@@ -669,7 +669,7 @@ function SquadBody({
         </span>
         <div className="min-w-0">
           <p className="truncate text-sm font-extrabold">{squad.name}</p>
-          <p className="truncate text-[11px] font-semibold text-muted-foreground">{squad.jam}</p>
+          <p className="truncate text-base font-semibold text-muted-foreground">{squad.jam}</p>
         </div>
       </div>
       <div className="mt-3 flex items-center gap-1" aria-label={`${squad.members} of ${squad.maxMembers} members`}>
@@ -680,13 +680,13 @@ function SquadBody({
             aria-hidden
           />
         ))}
-        <span className="ml-1 text-[11px] font-bold text-muted-foreground">
+        <span className="ml-1 text-base font-bold text-muted-foreground">
           {squad.members}/{squad.maxMembers}
         </span>
       </div>
       <span
         className={cn(
-          "mt-auto inline-flex w-fit max-w-full truncate rounded-full px-2 py-0.5 text-[11px] font-extrabold",
+          "mt-auto inline-flex w-fit max-w-full truncate rounded-full px-2 py-0.5 text-base font-extrabold",
           SOFT[squad.tone],
         )}
       >
@@ -761,7 +761,7 @@ export function SquadMatchCard({ match }: { match: BentoSquadMatch }) {
       title="Squad match"
       icon={ICON.recommended}
       action={
-        <span className="rounded-full bg-teal-foreground px-2 py-0.5 text-[11px] font-black text-teal">
+        <span className="rounded-full bg-teal-foreground px-2 py-0.5 text-base font-black text-teal">
           {match.fitPercent}% fit
         </span>
       }

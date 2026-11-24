@@ -191,7 +191,7 @@ function LevelHeroPlaceholder({ compact }: { compact?: boolean }) {
       >
         <div className="absolute inset-[10%] rounded-full border-[8px] border-muted md:border-[12px]" />
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-[8px] font-black tracking-[0.14em] text-muted-foreground md:text-[11px]">
+          <span className="text-base font-black tracking-[0.14em] text-muted-foreground">
             {compact ? "LVL" : "LEVEL"}
           </span>
           <Skeleton className={cn("rounded-md", compact ? "h-7 w-8" : "h-12 w-14")} />
@@ -296,7 +296,7 @@ export function BentoDashboard({ displayName, data, onLeaveSquad, recommendedTea
       <div className="mb-5 hidden items-end justify-between gap-4 lg:flex">
         <div>
           <p className="text-base font-bold text-muted-foreground">{dateLabel}</p>
-          <h1 className="text-[30px] font-black tracking-tight">
+          <h1 className="text-[32px] font-black tracking-tight">
             Hey {firstName}, ready to jam?
           </h1>
         </div>

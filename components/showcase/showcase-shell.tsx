@@ -291,14 +291,14 @@ export function ShowcaseShell() {
                 <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
                   <Link
                     href="/create-team"
-                    className="inline-flex h-14 min-w-[200px] items-center justify-center gap-2 rounded-lg border-2 border-foreground bg-teal px-8 text-base font-extrabold text-teal-foreground shadow-[4px_4px_0px_0px_var(--neo-shadow)] transition-all hover:-translate-y-0.5 hover:shadow-[5px_5px_0px_0px_var(--neo-shadow)] active:translate-y-0 active:shadow-[2px_2px_0px_0px_var(--neo-shadow)]"
+                    className="inline-flex h-14 min-w-[200px] items-center justify-center gap-2 rounded-lg border-2 border-foreground bg-teal px-8 text-base font-extrabold text-teal-foreground shadow-[3px_3px_0_0_var(--neo-shadow)] jam-motion transition-opacity duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none hover:opacity-90"
                   >
                     <UsersRound className="size-5" />
                     Create a Squad
                   </Link>
                   <Link
                     href="/teams"
-                    className="inline-flex h-14 min-w-[200px] items-center justify-center gap-2 rounded-lg border-2 border-foreground bg-card px-8 text-base font-extrabold text-foreground shadow-[4px_4px_0px_0px_var(--neo-shadow)] transition-all hover:-translate-y-0.5 hover:shadow-[5px_5px_0px_0px_var(--neo-shadow)] active:translate-y-0 active:shadow-[2px_2px_0px_0px_var(--neo-shadow)]"
+                    className="inline-flex h-14 min-w-[200px] items-center justify-center gap-2 rounded-lg border-2 border-foreground bg-card px-8 text-base font-extrabold text-foreground shadow-[3px_3px_0_0_var(--neo-shadow)] jam-motion transition-opacity duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none hover:opacity-90"
                   >
                     <UsersRound className="size-5" />
                     Browse Teams

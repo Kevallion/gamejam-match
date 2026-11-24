@@ -106,8 +106,8 @@ export function BentoHotbar({ inboxCount = 0, availabilityCount = 0 }: BentoHotb
             aria-label="Create"
             className={cn(
               "mx-1.5 mb-0.5 grid size-[74px] place-items-center rounded-[22px] border-2 border-[var(--neo-shadow)]",
-              "bg-pink text-pink-foreground shadow-[4px_4px_0_0_var(--neo-shadow)]",
-              "-translate-y-3.5 -rotate-[4deg] transition-transform hover:-translate-y-4 focus-visible:outline-none",
+              "bg-pink text-pink-foreground shadow-[3px_3px_0_0_var(--neo-shadow)]",
+              "-translate-y-3.5 -rotate-[4deg] jam-motion transition-opacity duration-200 motion-reduce:transition-none hover:opacity-90 focus-visible:outline-none",
               "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
             )}
           >

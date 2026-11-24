@@ -339,7 +339,7 @@ export function JamSearchSelector({
               {urlLooksValid && (
                 <Badge
                   variant="outline"
-                  className="rounded-full border-teal/30 bg-teal/10 text-[11px] font-medium text-teal"
+                  className="rounded-full border-teal/30 bg-teal/10 text-base font-medium text-teal"
                 >
                   Valid URL
                 </Badge>
@@ -347,7 +347,7 @@ export function JamSearchSelector({
               {urlLooksInvalid && (
                 <Badge
                   variant="outline"
-                  className="rounded-full border-destructive/40 bg-destructive/10 text-[11px] font-medium text-destructive"
+                  className="rounded-full border-destructive/40 bg-destructive/10 text-base font-medium text-destructive"
                 >
                   Must start with {ITCH_JAM_HTTPS_PREFIX}
                 </Badge>

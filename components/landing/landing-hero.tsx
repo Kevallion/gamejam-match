@@ -107,7 +107,7 @@ export function LandingHero({
               <Button
                 asChild
                 size="lg"
-                className="h-14 min-w-[220px] rounded-lg border-2 border-foreground bg-teal px-8 text-base font-extrabold text-teal-foreground shadow-[4px_4px_0px_0px_var(--neo-shadow)] transition-all hover:-translate-y-0.5 hover:shadow-[5px_5px_0px_0px_var(--neo-shadow)] active:translate-y-0 active:shadow-[2px_2px_0px_0px_var(--neo-shadow)]"
+                className="h-14 min-w-[220px] rounded-lg border-2 border-foreground bg-teal px-8 text-base font-extrabold text-teal-foreground shadow-[3px_3px_0_0_var(--neo-shadow)] jam-motion transition-opacity duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none hover:opacity-90"
               >
                 <Link
                   href="/teams"
@@ -119,7 +119,7 @@ export function LandingHero({
               </Button>
               <Button
                 asChild
-                className="h-14 min-w-[220px] rounded-lg border-2 border-foreground bg-card px-8 text-base font-extrabold text-foreground shadow-[4px_4px_0px_0px_var(--neo-shadow)] transition-all hover:-translate-y-0.5 hover:shadow-[5px_5px_0px_0px_var(--neo-shadow)] active:translate-y-0 active:shadow-[2px_2px_0px_0px_var(--neo-shadow)]"
+                className="h-14 min-w-[220px] rounded-lg border-2 border-foreground bg-card px-8 text-base font-extrabold text-foreground shadow-[3px_3px_0_0_var(--neo-shadow)] jam-motion transition-opacity duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none hover:opacity-90"
               >
                 <Link
                   href="/create-team"
@@ -242,7 +242,7 @@ export function LandingHero({
 function RoleCard({ card }: { card: (typeof roleCards)[number] }) {
   return (
     <div
-      className={`relative z-10 rounded-xl border-2 border-foreground bg-card p-4 shadow-[4px_4px_0px_0px_var(--neo-shadow)] transition-transform hover:-translate-y-0.5 ${card.rotate}`}
+      className={`relative z-10 rounded-xl border-2 border-foreground bg-card p-4 shadow-[3px_3px_0_0_var(--neo-shadow)] jam-motion transition-opacity duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] motion-reduce:transition-none hover:opacity-90 ${card.rotate}`}
     >
       <div className="flex items-start gap-3">
         {/* Avatar */}
@@ -275,7 +275,6 @@ function RoleCard({ card }: { card: (typeof roleCards)[number] }) {
         {/* Status dot */}
         <div className="flex-shrink-0 flex items-center gap-1.5 mt-0.5">
           <span className="relative flex size-2.5">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-teal opacity-60" />
             <span className="relative inline-flex size-2.5 rounded-full bg-teal" />
           </span>
           <span className="text-xs font-medium text-teal">Open</span>

@@ -43,7 +43,7 @@ export function BadgeGroup({
           <TooltipTrigger asChild>
             <button
               type="button"
-              className="inline-flex h-6 shrink-0 items-center rounded-full bg-muted px-2 text-[11px] font-semibold text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+              className="inline-flex h-8 shrink-0 items-center rounded-full bg-muted px-2 text-base font-semibold text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
               aria-label={`${hidden.length} ${overflowAriaPrefix}: ${hiddenLabels.join(", ")}`}
             >
               +{hidden.length}

@@ -100,7 +100,7 @@ function FeatureCard({ feature }: { feature: (typeof features)[number] }) {
       />
       {/* Card */}
       <div
-        className={`relative h-full rounded-xl border-2 border-foreground bg-card p-6 transition-transform duration-200 group-hover:-translate-y-0.5`}
+        className={`relative h-full rounded-xl border-2 border-foreground bg-card p-6 jam-motion transition-opacity duration-200 motion-reduce:transition-none group-hover:opacity-90`}
       >
         {/* Number + Icon row */}
         <div className="mb-5 flex items-start justify-between">

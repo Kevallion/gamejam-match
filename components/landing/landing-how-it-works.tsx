@@ -68,7 +68,7 @@ export function LandingHowItWorks() {
           <div className="pointer-events-none absolute left-0 right-0 top-[88px] hidden h-0.5 border-t-2 border-dashed border-slate-300 md:block" style={{ left: "16.67%", right: "16.67%" }} />
 
           <div className="grid gap-8 md:grid-cols-3 md:gap-6">
-            {steps.map((step, index) => (
+            {steps.map((step) => (
               <div key={step.number} className="group relative">
                 {/* Neo-brutalist offset shadow */}
                 <div
@@ -76,7 +76,7 @@ export function LandingHowItWorks() {
                 />
 
                 {/* Card */}
-                <div className="relative h-full rounded-xl border-2 border-foreground bg-card p-6 transition-transform duration-200 group-hover:-translate-y-0.5">
+                <div className="relative h-full rounded-xl border-2 border-foreground bg-card p-6 jam-motion transition-opacity duration-200 motion-reduce:transition-none group-hover:opacity-90">
                   {/* Number + Icon row */}
                   <div className="mb-5 flex items-start justify-between">
                     <div

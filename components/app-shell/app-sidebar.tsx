@@ -116,7 +116,7 @@ export function AppSidebar({
 
         <nav className="mt-6 flex-1 space-y-6 overflow-y-auto px-3 pb-4">
           <div>
-            <p className="px-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            <p className="px-3 text-base font-semibold uppercase tracking-wide text-muted-foreground">
               Dashboard
             </p>
             <ul className="mt-2 space-y-0.5">
@@ -137,7 +137,7 @@ export function AppSidebar({
                       <AppIcon icon={item.icon} size="md" tone={active ? "teal" : undefined} />
                       <span className="flex-1 truncate">{item.label}</span>
                       {item.badge === "inbox" && inboxCount > 0 ? (
-                        <span className="rounded-full bg-peach px-2 py-0.5 text-[11px] font-bold text-peach-foreground">
+                        <span className="rounded-full bg-peach px-2 py-0.5 text-base font-bold text-peach-foreground">
                           {inboxCount > 9 ? "9+" : inboxCount}
                         </span>
                       ) : null}
@@ -149,7 +149,7 @@ export function AppSidebar({
           </div>
 
           <div>
-            <p className="px-3 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+            <p className="px-3 text-base font-semibold uppercase tracking-wide text-muted-foreground">
               Explore
             </p>
             <ul className="mt-2 space-y-0.5">

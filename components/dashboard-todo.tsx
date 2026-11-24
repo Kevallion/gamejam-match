@@ -172,7 +172,7 @@ export function DashboardTodo({
       <CardContent className="space-y-3 p-4">
         <div className="flex items-center justify-between gap-2">
           <h3 className="text-base font-bold text-foreground">To do</h3>
-          <Badge className="rounded-full bg-peach px-2 py-0.5 text-[11px] font-bold text-peach-foreground">
+          <Badge className="rounded-full bg-peach px-2 py-0.5 text-base font-bold text-peach-foreground">
             {items.length}
           </Badge>
         </div>

@@ -54,7 +54,7 @@ export function DashboardRecommendedTeams({
           </p>
           <Link
             href="/teams"
-            className="mt-4 inline-flex min-h-12 w-fit items-center gap-2 rounded-lg border border-border bg-card px-4 text-base font-bold shadow-[3px_3px_0_0_var(--neo-shadow)] transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transform-none"
+            className="mt-4 inline-flex min-h-12 w-fit items-center gap-2 rounded-lg border border-border bg-card px-4 text-base font-bold shadow-[3px_3px_0_0_var(--neo-shadow)] jam-motion transition-opacity duration-200 motion-reduce:transition-none hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
             Browse squads
             <AppIcon icon={ICON.navRight} size="sm" tone="muted" />

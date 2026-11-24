@@ -161,7 +161,7 @@ export function DashboardIncomingApplications({
                 <div className="relative overflow-hidden rounded-xl bg-secondary/50">
                   <div className="absolute inset-y-0 left-0 w-1 bg-gradient-to-b from-mint/60 to-lavender/40" />
                   <div className="px-5 py-4">
-                    <div className="mb-2 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-muted-foreground/80">
+                    <div className="mb-2 flex items-center gap-1.5 text-base font-bold uppercase tracking-widest text-muted-foreground/80">
                       <MessageSquareText className="size-3" />
                       Motivation
                     </div>
