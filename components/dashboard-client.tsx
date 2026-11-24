@@ -245,18 +245,6 @@ const DashboardAchievementsTab = dynamic(
   { loading: () => <TabPanelLoading label="Loading achievements..." />, ssr: false },
 )
 
-const OnboardingModal = dynamic(
-  () => import("@/components/onboarding-modal").then((mod) => mod.OnboardingModal),
-  {
-    loading: () => (
-      <div role="status" aria-live="polite" aria-busy="true" className="sr-only">
-        Loading onboarding...
-      </div>
-    ),
-    ssr: false,
-  },
-)
-
 function DashboardLoadingSkeleton() {
   return (
     <div className="flex min-h-dvh min-w-0 flex-col overflow-x-clip bg-background">
@@ -549,7 +537,6 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null, bo
   const [renewingAvailabilityPostId, setRenewingAvailabilityPostId] = useState<string | null>(null)
   const [recommendedTeams, setRecommendedTeams] = useState<SmartRecommendedTeam[]>(fixture?.recommendedTeams ?? [])
   const [recommendedReady, setRecommendedReady] = useState(Boolean(fixture))
-  const [showOnboardingModal, setShowOnboardingModal] = useState(false)
   const [profile, setProfile] = useState<ProfileSettingsProfile | null>(fixture?.profile ?? bootstrap?.profile ?? null)
   // DS-3a: level / XP / badges, same source as Rewards (lib/gamification-snapshot.ts).
   const [gamification, setGamification] = useState<GamificationSnapshot | null>(bootstrap?.snapshot ?? null)
@@ -882,14 +869,6 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null, bo
       const { teams: smartMatches } = await recommendedPromise
       setRecommendedTeams(smartMatches)
       setRecommendedReady(true)
-
-      // Show onboarding only for users that never completed it.
-      if (!profileData) {
-        setShowOnboardingModal(true)
-      } else {
-        const hasCompletedOnboarding = profileData.has_completed_onboarding === true
-        setShowOnboardingModal(!hasCompletedOnboarding)
-      }
 
       const meta = authSession.user.user_metadata as Record<string, string> | undefined
       const sessionAvatarUrl =
@@ -1689,14 +1668,6 @@ export function DashboardClient({ defaultTab: defaultTabProp, fixture = null, bo
           </Tabs>
         </section>
       </div>
-
-      {showOnboardingModal ? (
-        <OnboardingModal
-          open={showOnboardingModal}
-          onOpenChange={setShowOnboardingModal}
-          profile={profile}
-        />
-      ) : null}
 
       <ResponsiveConfirmDrawer
         open={showAvailabilityModal}

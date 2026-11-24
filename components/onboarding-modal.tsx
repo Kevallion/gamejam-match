@@ -47,6 +47,7 @@ import {
 interface OnboardingModalProps {
   open: boolean
   onOpenChange?: (open: boolean) => void
+  dismissible?: boolean
   profile?: {
     username?: string | null
     default_role?: string | null
@@ -90,7 +91,7 @@ const CHOICE_OPTIONS = [
   },
 ] as const
 
-export function OnboardingModal({ open, onOpenChange, profile }: OnboardingModalProps) {
+export function OnboardingModal({ open, onOpenChange, profile, dismissible = false }: OnboardingModalProps) {
   const router = useRouter()
   const [step, setStep] = useState(1)
   const [selectedChoice, setSelectedChoice] = useState<(typeof CHOICE_OPTIONS)[number] | null>(null)
@@ -286,19 +287,25 @@ export function OnboardingModal({ open, onOpenChange, profile }: OnboardingModal
     <Dialog open={open} onOpenChange={handleDialogOpenChange}>
       <DialogContent
         data-onboarding-version="2"
+        aria-modal="true"
         className="flex max-h-[min(90dvh,calc(100dvh-1.5rem))] min-h-0 flex-col gap-0 overflow-hidden rounded-3xl border border-border bg-background p-0 shadow-[3px_3px_0_0_var(--neo-shadow)] sm:max-w-xl"
-        showCloseButton={false}
+        showCloseButton={dismissible}
         onPointerDownOutside={(e) => {
           const target = e.target as EventTarget | null
           if (target instanceof Element && target.closest("[data-slot='select-content']")) return
-          e.preventDefault()
+          if (!dismissible || isSubmitting) e.preventDefault()
         }}
         onFocusOutside={(e) => {
           const target = e.target as EventTarget | null
           if (target instanceof Element && target.closest("[data-slot='select-content']")) return
-          e.preventDefault()
+          if (!dismissible || isSubmitting) e.preventDefault()
         }}
-        onEscapeKeyDown={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => {
+          if (!dismissible || isSubmitting) e.preventDefault()
+        }}
+        onCloseAutoFocus={(e) => {
+          if (dismissible) e.preventDefault()
+        }}
       >
         <div className="relative flex min-h-0 flex-1 flex-col">
           <div
