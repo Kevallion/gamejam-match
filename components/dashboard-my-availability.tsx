@@ -203,7 +203,7 @@ export function DashboardMyAvailability({
           disabled={!canAddMore}
           className="gap-2 rounded-xl bg-primary text-primary-foreground hover:bg-primary/85 disabled:opacity-60"
         >
-          <Link href="/create-profile">
+          <Link href="/dashboard?tab=availability&new=1">
             <Hand className="size-4" />
             Post Availability {availabilityPosts.length > 0 && `(${availabilityPosts.length}/3)`}
           </Link>
@@ -221,7 +221,7 @@ export function DashboardMyAvailability({
             variant="outline"
             className="mt-2 gap-2 rounded-xl border-lavender/30 text-lavender hover:bg-lavender/10 hover:text-lavender"
           >
-            <Link href="/create-profile">Let squads find you</Link>
+            <Link href="/dashboard?tab=availability&new=1">Let squads find you</Link>
           </Button>
         </Card>
       ) : (

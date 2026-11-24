@@ -35,6 +35,7 @@ interface MembersGridProps {
   isRefreshing?: boolean
   onSwitchToDirectory?: () => void
   onReset?: () => void
+  signedIn?: boolean
 }
 
 export function MembersGrid({
@@ -51,6 +52,7 @@ export function MembersGrid({
   isRefreshing = false,
   onSwitchToDirectory,
   onReset,
+  signedIn = false,
 }: MembersGridProps) {
   const [members, setMembers] = useState<AvailablePlayerListItem[]>(initialMembers)
   const [mySquads, setMySquads] = useState<SquadOption[]>([])
@@ -203,7 +205,7 @@ export function MembersGrid({
                   </Button>
                 ) : null}
                 <Button asChild className="rounded-xl">
-                  <Link href="/create-profile">Post availability</Link>
+                  <Link href={signedIn ? "/dashboard?tab=availability&new=1" : "/create-profile"}>Post availability</Link>
                 </Button>
               </div>
             </EmptyContent>

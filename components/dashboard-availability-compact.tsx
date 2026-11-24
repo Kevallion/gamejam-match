@@ -1,6 +1,9 @@
 "use client"
 
 import Link from "next/link"
+import { useSearchParams } from "next/navigation"
+import { AvailabilityForm } from "@/components/availability-form"
+import { COMPOSE_AVAILABILITY_HREF, dashboardHref } from "@/components/app-shell/nav-config"
 import { KudosBadgeRow } from "@/components/kudos-badges"
 import type { KudosCounts } from "@/lib/kudos"
 import { UserAvatar } from "@/components/user-avatar"
@@ -51,7 +54,24 @@ export function DashboardAvailabilityCompact({
   onDeletePost: (postId: string) => void
   profileAvatarUrl?: string | null
 }) {
+  const searchParams = useSearchParams()
+  const composing = searchParams.get("new") === "1"
   const atQuota = posts.length >= QUOTA
+  const listHref = dashboardHref("availability")
+
+  if (composing && !atQuota) {
+    return (
+      <div className="min-w-0 max-w-full space-y-4">
+        <div className="flex min-w-0 flex-wrap items-center justify-between gap-3">
+          <h2 className="text-lg font-extrabold tracking-tight text-foreground">New post</h2>
+          <Button asChild type="button" variant="outline" className="h-11 rounded-xl">
+            <Link href={listHref}>Back to posts</Link>
+          </Button>
+        </div>
+        <AvailabilityForm />
+      </div>
+    )
+  }
 
   return (
     <div className="min-w-0 max-w-full space-y-4">
@@ -67,7 +87,7 @@ export function DashboardAvailabilityCompact({
             atQuota && "pointer-events-none opacity-50",
           )}
         >
-          <Link href={atQuota ? "/dashboard?tab=availability" : "/create-profile"}>
+          <Link href={atQuota ? listHref : COMPOSE_AVAILABILITY_HREF}>
             <AppIcon icon={ICON.create} size="sm" className="mr-1.5 text-teal-foreground" />
             New post
           </Link>
@@ -92,7 +112,7 @@ export function DashboardAvailabilityCompact({
               </p>
             </div>
             <Button asChild className="h-11 rounded-xl bg-teal text-teal-foreground hover:bg-teal/90">
-              <Link href="/create-profile">Post availability</Link>
+              <Link href={COMPOSE_AVAILABILITY_HREF}>Post availability</Link>
             </Button>
           </CardContent>
         </Card>
@@ -159,7 +179,7 @@ export function DashboardAvailabilityCompact({
                       {renewing ? "Renewing..." : "Renew"}
                     </Button>
                     <Button asChild type="button" variant="outline" className="h-11 rounded-xl">
-                      <Link href="/create-profile">Edit</Link>
+                      <Link href={COMPOSE_AVAILABILITY_HREF}>Edit</Link>
                     </Button>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -190,7 +210,7 @@ export function DashboardAvailabilityCompact({
           })}
           {!atQuota ? (
             <Link
-              href="/create-profile"
+              href={COMPOSE_AVAILABILITY_HREF}
               className="card-interactive flex min-h-[176px] flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border/60 bg-transparent p-4 text-center"
             >
               <AppIcon icon={ICON.create} size="lg" tone="muted" />

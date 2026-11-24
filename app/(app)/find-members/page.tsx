@@ -5,6 +5,7 @@ import {
   getDirectoryJammers,
   type GamejamSupabaseClient,
 } from "@/lib/queries"
+import { getCurrentUser } from "@/lib/supabase/get-current-user"
 import { createClient } from "@/lib/supabase/server"
 
 export const metadata: Metadata = {
@@ -42,9 +43,7 @@ export default async function MembersPage({ searchParams }: MembersPageProps) {
   const params = await searchParams
   const supabase = (await createClient()) as unknown as GamejamSupabaseClient
   const initialMode = params.view === "directory" ? "directory" : "available"
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const user = await getCurrentUser()
   const availableFilters = {
     searchQuery: params.q,
     role: params.role,

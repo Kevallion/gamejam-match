@@ -1,7 +1,11 @@
+import type { Metadata } from "next"
+import { redirect } from "next/navigation"
 import { Navbar } from "@/components/navbar"
 import { CreateProfileAvailabilitySection } from "@/components/create-profile-availability-section"
+import { COMPOSE_AVAILABILITY_HREF } from "@/components/app-shell/nav-config"
+import { getCurrentUser } from "@/lib/supabase/get-current-user"
+import { createClient } from "@/lib/supabase/server"
 import { UserRoundCheck } from "lucide-react"
-import type { Metadata } from "next"
 
 export const metadata: Metadata = {
   title: "Join a Squad — GameJamCrew",
@@ -18,7 +22,20 @@ export const metadata: Metadata = {
   },
 }
 
-export default function AvailabilityPage() {
+export default async function AvailabilityPage() {
+  const user = await getCurrentUser()
+  if (user) {
+    const supabase = await createClient()
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("has_completed_onboarding")
+      .eq("id", user.id)
+      .maybeSingle()
+    if (profile?.has_completed_onboarding === true) {
+      redirect(COMPOSE_AVAILABILITY_HREF)
+    }
+  }
+
   return (
     <div className="flex min-h-screen flex-col">
       <Navbar />

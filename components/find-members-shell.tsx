@@ -291,6 +291,7 @@ export function FindMembersShell({
             langFilter={langFilter}
             programmingLanguageFilter={codeFilter}
             jamIdFilter={jamIdFilter}
+            signedIn={signedIn}
             onResultsCountChange={setResultsCount}
             isRefreshing={isPending}
             onSwitchToDirectory={() => replaceUrlWithFilters({ view: "directory" })}

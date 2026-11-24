@@ -2,7 +2,7 @@ import type { ReactNode } from "react"
 import { Footer } from "@/components/footer"
 import { SignedInAppShell } from "@/components/app-shell/signed-in-app-shell"
 import { loadAppShellAccount } from "@/lib/app-shell-account"
-import { createClient } from "@/lib/supabase/server"
+import { getCurrentUser } from "@/lib/supabase/get-current-user"
 
 /**
  * Web-app routes: dashboard, Find Members, teams, jammer, Settings, etc.
@@ -11,10 +11,7 @@ import { createClient } from "@/lib/supabase/server"
  * The session is read on the server so the wrong chrome is not painted first.
  */
 export default async function AppRoutesLayout({ children }: { children: ReactNode }) {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const user = await getCurrentUser()
 
   if (!user) {
     return (

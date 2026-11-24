@@ -1,8 +1,8 @@
 import { Suspense } from "react"
 import type { Metadata } from "next"
 import { redirect } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
 import { DashboardClient } from "@/components/dashboard-client"
+import { getCurrentUser } from "@/lib/supabase/get-current-user"
 import { PostActionOnboarding } from "@/components/post-action-onboarding"
 
 export const metadata: Metadata = {
@@ -27,8 +27,7 @@ type DashboardPageProps = {
 }
 
 export default async function DashboardPage({ searchParams }: DashboardPageProps) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getCurrentUser()
   if (!user) {
     redirect("/")
   }

@@ -11,6 +11,7 @@ import {
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer"
+import { COMPOSE_AVAILABILITY_HREF, dashboardHref } from "@/components/app-shell/nav-config"
 import { ICON } from "@/lib/icons"
 import { cn } from "@/lib/utils"
 
@@ -71,7 +72,7 @@ export function CreateSheet({
           </Link>
 
           <Link
-            href={atQuota ? "/dashboard?tab=availability" : "/create-profile"}
+            href={atQuota ? dashboardHref("availability") : COMPOSE_AVAILABILITY_HREF}
             onClick={() => {
               if (document.activeElement instanceof HTMLElement) {
                 document.activeElement.blur()
