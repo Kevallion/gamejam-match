@@ -4,6 +4,7 @@ import { getPublicDashboardUrl, getPublicSiteUrl } from "@/lib/site-url"
 import { isEmailCategoryEnabled } from "@/lib/email-preferences-server"
 import { buildUnsubscribeUrls } from "@/lib/email-unsubscribe"
 import type { EmailCategory } from "@/lib/email-unsubscribe-token"
+import { areSquadMatchEmailsEnabled } from "@/lib/squad-match-emails"
 
 export type { EmailCategory } from "@/lib/email-unsubscribe-token"
 
@@ -79,6 +80,12 @@ export async function notifySmartMatch(
   matchingRole: string,
   recipientUserId: string,
 ): Promise<boolean> {
+  if (!areSquadMatchEmailsEnabled()) {
+    console.info(
+      "[smart-match-email] notifySmartMatch skipped: not production (set SQUAD_MATCH_EMAILS_ENABLED=true to force)",
+    )
+    return false
+  }
   const safeUser = escapeHtml(userName)
   const safeTeam = escapeHtml(teamName)
   const safeRole = escapeHtml(
