@@ -17,7 +17,7 @@ export type BentoCardTone =
 
 const TONE_CLASS: Record<BentoCardTone, string> = {
   default: "bg-card text-card-foreground",
-  hero: "bg-gradient-to-br from-lavender/30 via-card to-teal/20 text-card-foreground",
+  hero: "bg-lavender text-lavender-foreground",
   live: "bg-pink text-pink-foreground",
   mint: "bg-mint text-mint-foreground",
   peach: "bg-peach text-peach-foreground",
@@ -62,7 +62,7 @@ export function BentoCard({
   return (
     <article
       className={cn(
-        "relative flex min-w-0 flex-col overflow-hidden rounded-2xl p-4 md:p-5",
+        "relative flex min-w-0 flex-col overflow-hidden rounded-2xl p-4 md:p-6",
         neo && "border border-border shadow-[3px_3px_0_0_var(--neo-shadow)]",
         TONE_CLASS[tone],
         className,
@@ -70,7 +70,7 @@ export function BentoCard({
     >
       {title ? (
         <header className="mb-3 flex items-center justify-between gap-2">
-          <h2 className="flex items-center gap-2 text-base font-extrabold tracking-tight">
+          <h2 className="flex items-center gap-2 font-display text-xl font-extrabold tracking-tight">
             {icon ? (
               <AppIcon
                 icon={icon}
@@ -96,7 +96,7 @@ export function BentoCard({
               )}
             />
           ))}
-          <p className="mt-auto pt-2 text-xs font-semibold opacity-70">{emptyLabel}</p>
+          <p className="mt-auto pt-2 text-sm font-bold opacity-70">{emptyLabel}</p>
         </div>
       ) : (
         children

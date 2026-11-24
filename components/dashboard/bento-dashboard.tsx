@@ -70,12 +70,12 @@ function SectionHeading({
 }) {
   return (
     <div className="mb-3 flex items-center justify-between gap-2 px-0.5">
-      <h2 className="flex items-center gap-2 text-[17px] font-extrabold tracking-tight">
+      <h2 className="flex items-center gap-2 font-display text-xl font-extrabold tracking-tight">
         <AppIcon icon={icon} size="md" tone={tone} />
         {title}
       </h2>
       {action ? (
-        <span className="text-[12.5px] font-extrabold text-teal">{action}</span>
+        <span className="text-sm font-bold text-teal">{action}</span>
       ) : null}
     </div>
   )
@@ -106,7 +106,7 @@ function QuestAccordionPlaceholder({ data }: { data?: BentoDashboardData }) {
               aria-hidden
             />
             <span className="min-w-0 flex-1">
-              <span className="block text-sm font-extrabold">Next quest</span>
+              <span className="block text-base font-bold">Next quest</span>
               <span className="block truncate text-[11.5px] font-semibold text-muted-foreground">
                 {firstQuests[0]
                   ? `${firstQuests[0].title} · +${firstQuests[0].xp} XP`
@@ -150,7 +150,7 @@ function QuestAccordionPlaceholder({ data }: { data?: BentoDashboardData }) {
           >
             <span className="size-5 shrink-0 rounded-[4px] border-2 border-border" aria-hidden />
             <span className="min-w-0 flex-1">
-              <span className="block text-sm font-extrabold">More quests</span>
+              <span className="block text-base font-bold">More quests</span>
               <span className="block truncate text-[11.5px] font-semibold text-muted-foreground">
                 {moreQuests.length > 0
                   ? `${moreQuests.length} more · +${questXpLeft(moreQuests)} XP`
@@ -248,7 +248,7 @@ function KpiPlaceholderGrid() {
           </div>
           <div>
             <Skeleton className="mb-1 h-9 w-12 rounded-md opacity-50" />
-            <p className="text-[13px] font-extrabold">{item.label}</p>
+            <p className="text-sm font-bold">{item.label}</p>
           </div>
         </BentoCard>
       ))}
@@ -274,7 +274,7 @@ function MobileKpiStrip() {
           )}
         >
           <Skeleton className="mb-0.5 h-4 w-6 rounded opacity-40" />
-          <span className="text-[10px] font-extrabold">{item.label}</span>
+          <span className="text-xs font-bold">{item.label}</span>
         </div>
       ))}
     </div>
@@ -295,17 +295,17 @@ export function BentoDashboard({ displayName, data, onLeaveSquad, recommendedTea
       {/* Desktop greeting */}
       <div className="mb-5 hidden items-end justify-between gap-4 lg:flex">
         <div>
-          <p className="text-[13px] font-extrabold text-muted-foreground">{dateLabel}</p>
+          <p className="text-sm font-bold text-muted-foreground">{dateLabel}</p>
           <h1 className="text-[30px] font-black tracking-tight">
             Hey {firstName}, ready to jam?
           </h1>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <span className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-border bg-card px-3.5 text-[13px] font-extrabold shadow-[3px_3px_0_0_var(--neo-shadow)]">
+          <span className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-border bg-card px-3.5 text-sm font-bold shadow-[3px_3px_0_0_var(--neo-shadow)]">
             <AppIcon icon={ICON.xp} size="sm" tone="peach" />
             {data ? `${data.level.streakDays}-day streak` : "Streak soon"}
           </span>
-          <span className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-border bg-card px-3.5 text-[13px] font-extrabold shadow-[3px_3px_0_0_var(--neo-shadow)]">
+          <span className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-border bg-card px-3.5 text-sm font-bold shadow-[3px_3px_0_0_var(--neo-shadow)]">
             <AppIcon icon={ICON.info} size="sm" tone="lavender" />
             Press 1–5 to switch
           </span>

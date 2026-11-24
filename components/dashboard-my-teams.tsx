@@ -220,7 +220,7 @@ export function DashboardMyTeams({
     <section>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-extrabold text-foreground">My Squads</h2>
+          <h2 className="font-display text-2xl font-extrabold text-foreground">My Squads</h2>
           <p className="mt-0.5 text-sm text-muted-foreground">
             Squads you{"'"}ve created or joined
           </p>

@@ -202,7 +202,7 @@ export function MobileKpiStrip({ kpis, xpThisWeek }: { kpis: BentoKpis; xpThisWe
           className={cn("flex flex-col items-center rounded-xl px-1 py-1.5", item.tone)}
         >
           <span className="mb-0.5 text-base font-black leading-4">{item.value ?? "—"}</span>
-          <span className="text-[10px] font-extrabold">{item.label}</span>
+          <span className="text-xs font-bold">{item.label}</span>
         </div>
       ))}
     </div>
@@ -213,7 +213,7 @@ export function MobileKpiStrip({ kpis, xpThisWeek }: { kpis: BentoKpis; xpThisWe
 
 function LivePill() {
   return (
-    <span className="inline-flex h-5 w-fit items-center gap-1 rounded-full bg-pink-foreground px-2 text-[10px] font-black tracking-wide text-pink">
+    <span className="inline-flex h-6 w-fit items-center gap-1 rounded-full bg-pink px-2 text-xs font-bold tracking-wide text-pink-foreground">
       <span className="size-1.5 rounded-full bg-pink" aria-hidden />
       LIVE
     </span>
@@ -430,7 +430,7 @@ function ShelfGrid({ items, dense }: { items: BadgeShelfItem[]; dense?: boolean 
           <span
             className={cn(
               "w-full font-extrabold",
-              dense ? "text-balance break-words text-[10px] leading-tight" : "truncate text-[11px]",
+              dense ? "text-balance break-words text-xs leading-tight" : "truncate text-xs",
               !item.earned && "text-muted-foreground",
             )}
           >
@@ -560,7 +560,7 @@ export function XpWeekCard({ weeks }: { weeks: BentoXpWeek[] }) {
               <div key={week.label} className="flex h-full min-w-0 flex-1 flex-col items-center justify-end gap-1">
                 <span
                   className={cn(
-                    "text-[10px] font-extrabold",
+                    "text-xs font-bold",
                     isCurrent ? "text-teal" : "text-muted-foreground",
                   )}
                 >
@@ -576,7 +576,7 @@ export function XpWeekCard({ weeks }: { weeks: BentoXpWeek[] }) {
         </div>
         <div className="mt-1.5 flex gap-2 border-t border-border pt-1.5" aria-hidden>
           {weeks.map((week) => (
-            <span key={week.label} className="min-w-0 flex-1 text-center text-[10px] font-bold text-muted-foreground">
+            <span key={week.label} className="min-w-0 flex-1 text-center text-xs font-bold text-muted-foreground">
               {week.label}
             </span>
           ))}
@@ -778,7 +778,7 @@ export function SquadMatchCard({ match }: { match: BentoSquadMatch }) {
             {match.memberInitials.map((initials) => (
               <span
                 key={initials}
-                className="grid size-8 place-items-center rounded-full border-2 border-teal bg-teal-foreground text-[10px] font-black text-teal"
+                className="grid size-8 place-items-center rounded-full border-2 border-teal bg-teal-foreground text-xs font-bold text-teal"
                 aria-hidden
               >
                 {initials}
