@@ -212,7 +212,7 @@ function RarityPill({ rarity, muted = false }: { rarity: BadgeRarity; muted?: bo
   return (
     <span
       className={cn(
-        "inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
+        "inline-flex rounded-full border px-2 py-0.5 text-xs font-semibold uppercase tracking-wide",
         muted
           ? "border-border/40 bg-muted/30 text-muted-foreground"
           : "border-border/50 bg-secondary/60 text-muted-foreground",

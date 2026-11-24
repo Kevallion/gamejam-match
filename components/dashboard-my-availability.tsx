@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import {
   CalendarDays,
-  Cpu,
   ExternalLink,
   Globe,
   Hand,
@@ -118,10 +117,7 @@ function AnnouncementCard({ post, onDelete, onRenew, isRenewing, profileAvatarUr
 
         {/* Game engine */}
         {engineOptionLabel(post.engine) ? (
-          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-            <Cpu className="size-3.5 text-lavender" />
-            {engineOptionLabel(post.engine)}
-          </div>
+          <TagIcon kind="engine" value={post.engine} size="xs" showLabel withTooltip={false} />
         ) : null}
 
         {/* Portfolio */}

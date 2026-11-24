@@ -219,7 +219,7 @@ export function GamificationDashboardFull({
               </span>
               <JammerLevelBadge
                 level={level}
-                className="border-amber-800/35 bg-amber-600/12 px-2 py-0.5 text-[10px] text-amber-950 shadow-none dark:border-amber-500/40 dark:bg-amber-500/15 dark:text-amber-300"
+                className="border-amber-800/35 bg-amber-600/12 px-2 py-0.5 text-xs text-amber-950 shadow-none dark:border-amber-500/40 dark:bg-amber-500/15 dark:text-amber-300"
               />
               <span className="ml-auto shrink-0 text-[11px] font-semibold tabular-nums text-amber-950 dark:text-amber-400/90">
                 {Math.round(progress.progressPercent)}%
@@ -293,7 +293,7 @@ function AchievementsHeaderCard({
       <CardContent className="space-y-3 p-4 pb-4">
         <div className="flex min-w-0 items-start gap-3">
           <div className="flex size-14 shrink-0 flex-col items-center justify-center rounded-xl border border-amber-500/40 bg-amber-500/10 text-amber-900 dark:text-amber-400">
-            <span className="text-[10px] font-bold uppercase tracking-wide">Level</span>
+            <span className="text-xs font-bold uppercase tracking-wide">Level</span>
             <span className="text-xl font-extrabold tabular-nums leading-none">{level}</span>
           </div>
           <div className="min-w-0 flex-1 space-y-2">
@@ -305,7 +305,7 @@ function AchievementsHeaderCard({
             >
               <AppIcon icon={ICON.title} size="xs" tone="teal" />
               <JammerTitleBadge title={currentTitle} className="text-xs sm:text-sm" />
-              <span className="text-[10px] font-semibold uppercase tracking-wide text-teal">Equipped</span>
+              <span className="text-xs font-semibold uppercase tracking-wide text-teal">Equipped</span>
             </button>
           </div>
         </div>
@@ -367,7 +367,7 @@ function AchievementsHeaderCard({
               />
             </span>
             <div className="min-w-0 flex-1">
-              <p className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
+              <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
                 Next unlock
               </p>
               <p className="break-words text-sm font-semibold text-foreground">

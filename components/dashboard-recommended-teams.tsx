@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { TagIcon } from "@/components/tag-icon"
 import { BentoCard } from "@/components/dashboard/bento-card"
 import { AppIcon } from "@/components/ui/app-icon"
 import type { SmartRecommendedTeam } from "@/lib/queries"
@@ -70,14 +71,23 @@ export function DashboardRecommendedTeams({
                 The squad <span className="font-extrabold text-foreground">{team.team_name}</span> is
                 looking for a <span className="font-extrabold">{team.role_label}</span>.
               </p>
-              <p className="text-sm font-bold text-muted-foreground">
-                Engine: <span className="text-foreground">{team.team_engine_label}</span>
+              <div className="flex flex-col gap-2 text-sm font-bold text-muted-foreground">
+                <span className="inline-flex flex-wrap items-center gap-2">
+                  Engine:
+                  <TagIcon
+                    kind="engine"
+                    value={team.team_engine_label}
+                    size="xs"
+                    showLabel
+                    withTooltip={false}
+                  />
+                </span>
                 {team.matches_your_engine ? (
-                  <span className="mt-2 block w-fit rounded-full bg-teal/15 px-2 py-0.5 text-xs font-bold text-teal">
+                  <span className="w-fit rounded-full bg-teal/15 px-2 py-0.5 text-xs font-bold tabular-nums text-teal">
                     Same engine as your profile
                   </span>
                 ) : null}
-              </p>
+              </div>
               <Link
                 href={`/teams/${team.id}`}
                 className="inline-flex min-h-12 w-full items-center justify-center rounded-lg bg-teal px-4 text-sm font-bold text-teal-foreground shadow-[3px_3px_0_0_var(--neo-shadow)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"

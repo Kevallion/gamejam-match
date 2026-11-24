@@ -14,12 +14,13 @@ import { fetchTeamDiscordLink } from "@/lib/team-discord"
 import { TEAMS_PUBLIC_WITH_MEMBERS, sanitizeJamDisplayName } from "@/lib/teams-public"
 import { formatTeamToCardData, type TeamRowDb } from "@/lib/team-utils"
 import type { TeamCardData } from "@/components/team-card"
-import { LoaderCircle, ArrowLeft, TriangleAlert, UsersRound, Cpu, Globe, Info } from "lucide-react"
+import { LoaderCircle, ArrowLeft, TriangleAlert, UsersRound, Globe, Info } from "lucide-react"
+import { TagIcon } from "@/components/tag-icon"
 import { IconTile } from "@/components/ui/app-icon"
 import { toast } from "sonner"
 import { UserAvatar } from "@/components/user-avatar"
 import { Badge } from "@/components/ui/badge"
-import { engineOptionLabel, languageOptionLabel } from "@/lib/constants"
+import { languageOptionLabel } from "@/lib/constants"
 import { ROLE_STYLES } from "@/lib/constants"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 
@@ -327,13 +328,7 @@ export function TeamDetailClient({ teamId }: { teamId: string }) {
 
               <div className="flex flex-wrap gap-2">
                 {squad.engine ? (
-                  <Badge
-                    variant="outline"
-                    className="inline-flex items-center gap-1.5 rounded-full border-border/60 bg-lavender px-3 py-1 text-xs font-semibold text-lavender-foreground"
-                  >
-                    <Cpu className="size-3.5" />
-                    {engineOptionLabel(squad.engine)}
-                  </Badge>
+                  <TagIcon kind="engine" value={squad.engine} size="xs" showLabel withTooltip={false} />
                 ) : null}
                 {squad.language ? (
                   <Badge

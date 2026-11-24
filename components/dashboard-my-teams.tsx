@@ -29,7 +29,6 @@ import {
 import { getSuggestedPlayers, type SuggestedPlayer } from "@/lib/matchmaking"
 import { supabase } from "@/lib/supabase"
 import {
-  Cpu,
   Globe,
   Link2,
   LoaderCircle,
@@ -314,11 +313,10 @@ export function DashboardMyTeams({
                     </p>
                   )}
                 {/* Engine + language row */}
-                <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                  <span className="inline-flex items-center gap-1">
-                    <Cpu className="size-3 text-lavender" />
-                    {engineLabel(team.engine)}
-                  </span>
+                <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                  {team.engine ? (
+                    <TagIcon kind="engine" value={team.engine} size="xs" showLabel withTooltip={false} />
+                  ) : null}
                   <span className="inline-flex items-center gap-1">
                     <Globe className="size-3 text-teal" />
                     {spokenLanguageLabel(team.language)}

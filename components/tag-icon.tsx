@@ -5,6 +5,7 @@ import { CircleDashed, Coffee } from "lucide-react"
 import { siConstruct3, siGamemaker, siGodotengine, siUnity, siUnrealengine } from "simple-icons"
 import { DEFOLD_MARK_PATH, GDEVELOP_MARK_PATH } from "@/lib/official-engine-marks"
 import {
+  ENGINE_TONE_TOKEN,
   EXPERIENCE_RANK,
   EXPERIENCE_STYLES,
   JAM_STYLE_STYLES,
@@ -13,6 +14,7 @@ import {
   ROLE_OPTIONS,
   ROLE_STYLES,
   programmingLanguageOption,
+  engineOptionKey,
   engineOptionLabel,
   languageOptionLabel,
 } from "@/lib/constants"
@@ -26,8 +28,8 @@ export type TagKind = "role" | "engine" | "language" | "level" | "style" | "code
 type TagSize = "xs" | "sm" | "md"
 
 const PILL: Record<TagSize, string> = {
-  xs: "size-5 text-[10px]",
-  sm: "size-6 text-[11px]",
+  xs: "size-6 text-xs",
+  sm: "size-6 text-xs",
   md: "size-8 text-xs",
 }
 
@@ -136,22 +138,20 @@ export function TagIcon({
     <span className={cn("inline-flex min-w-0 items-center gap-1.5", className)}>
       <span
         className={cn(
-          "inline-flex shrink-0 items-center justify-center rounded-full font-bold tracking-wide",
-          resolved.wide ? "h-6 min-w-6 px-1.5 text-[10px] leading-none" : resolved.gauge ? "h-6 px-1.5" : PILL[size],
+          "inline-flex shrink-0 items-center justify-center rounded-full font-bold tabular-nums tracking-wide",
+          resolved.wide ? "h-6 min-w-6 px-1.5 text-xs leading-none" : resolved.gauge ? "h-6 px-1.5" : PILL[size],
           resolved.neutral && "bg-secondary text-foreground",
           resolved.mono && "bg-secondary text-muted-foreground",
-          resolved.brandHover && "transition-colors hover:text-[var(--engine-brand)]",
         )}
         style={{
           ...(resolved.tone ? toneStyle(resolved.tone) : {}),
-          ...(resolved.brandHover ? { ["--engine-brand" as string]: resolved.brandHover } : {}),
         }}
         aria-hidden={showLabel ? true : undefined}
       >
         {resolved.node(ICON[size])}
       </span>
       {resolved.forceLabel || showLabel ? (
-        <span className="truncate text-xs font-semibold text-foreground">{resolved.label}</span>
+        <span className="truncate text-xs font-semibold tabular-nums text-foreground">{resolved.label}</span>
       ) : null}
     </span>
   )
@@ -185,7 +185,6 @@ type ResolvedTag = {
   gauge?: boolean
   /** Short text pill (programming languages) instead of a fixed square. */
   wide?: boolean
-  brandHover?: string
   /** Full name shown beside a non-official engine mark. */
   forceLabel?: boolean
 }
@@ -244,13 +243,14 @@ function resolveTag(kind: TagKind, raw: string): ResolvedTag | null {
     }
   }
 
-  const engine = ENGINE_MARK[key]
+  const engineKey = engineOptionKey(raw)
+  const engine = ENGINE_MARK[engineKey]
   const label = engineOptionLabel(raw) || raw
+  const toneToken = ENGINE_TONE_TOKEN[engineKey] ?? (engineKey ? "--engine-custom" : undefined)
   if (engine?.verified && engine.path) {
     return {
       label,
-      mono: true,
-      brandHover: engine.hex ? `#${engine.hex}` : undefined,
+      tone: toneToken,
       node: (iconClass) => (
         <svg viewBox="0 0 24 24" className={iconClass} aria-hidden>
           <path d={engine.path} fill="currentColor" fillRule={engine.evenOdd ? "evenodd" : "nonzero"} />
@@ -261,7 +261,7 @@ function resolveTag(kind: TagKind, raw: string): ResolvedTag | null {
 
   return {
     label,
-    mono: true,
+    tone: toneToken ?? "--engine-custom",
     forceLabel: true,
     node: (iconClass) => <CircleDashed className={iconClass} strokeWidth={2} aria-hidden />,
   }

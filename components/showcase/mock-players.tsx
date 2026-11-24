@@ -1,6 +1,6 @@
 "use client"
 
-import { Globe, Cpu, ArrowRight, UserRoundSearch } from "lucide-react"
+import { Globe, ArrowRight, UserRoundSearch } from "lucide-react"
 import { TagIcon } from "@/components/tag-icon"
 
 const MOCK_PLAYERS = [
@@ -97,10 +97,11 @@ export function MockPlayers() {
               </div>
 
               {/* Engine */}
-              <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1.5">
-                <Cpu className="size-3 text-lavender" />
-                {player.engine}
-              </div>
+              {player.engine ? (
+                <div className="mb-1.5">
+                  <TagIcon kind="engine" value={player.engine} size="xs" showLabel withTooltip={false} />
+                </div>
+              ) : null}
 
               {/* Bio */}
               <p className="flex-1 text-xs leading-relaxed text-muted-foreground line-clamp-2 mb-2">

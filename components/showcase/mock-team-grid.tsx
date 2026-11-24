@@ -1,6 +1,6 @@
 "use client"
 
-import { UsersRound, Cpu, Globe, ArrowRight } from "lucide-react"
+import { UsersRound, Globe, ArrowRight } from "lucide-react"
 import { TagIcon } from "@/components/tag-icon"
 
 const MOCK_TEAMS = [
@@ -73,17 +73,16 @@ export function MockTeamGrid() {
                   <h3 className="truncate text-xs font-bold text-foreground">{team.name}</h3>
                   <p className="text-xs font-medium text-primary">{team.jam}</p>
                 </div>
-                <span className="shrink-0 inline-flex items-center gap-0.5 rounded-full border border-border/60 px-1.5 py-0.5 text-xs text-muted-foreground">
+                <span className="text-stat inline-flex shrink-0 items-center gap-0.5 rounded-full border border-border/60 px-1.5 py-0.5 text-xs text-muted-foreground">
                   <UsersRound className="size-3" />
                   {team.members}/{team.maxMembers}
                 </span>
               </div>
 
               <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1.5">
-                <span className="inline-flex items-center gap-1">
-                  <Cpu className="size-3 text-lavender" />
-                  {team.engine}
-                </span>
+                {team.engine ? (
+                  <TagIcon kind="engine" value={team.engine} size="xs" showLabel withTooltip={false} />
+                ) : null}
                 <span className="inline-flex items-center gap-1">
                   <Globe className="size-3 text-teal" />
                   {team.language}

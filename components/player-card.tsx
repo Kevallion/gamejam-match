@@ -29,7 +29,6 @@ import { supabase } from "@/lib/supabase"
 import { cn } from "@/lib/utils"
 import {
   CalendarDays,
-  Cpu,
   Mail,
   Globe,
   ExternalLink,
@@ -530,14 +529,7 @@ export function JammerCard({ player, mySquads, cardClassName }: JammerCardProps)
                   <TagIcon kind="style" value={player.jamStyle.key} size="xs" showLabel withTooltip={false} />
                 ) : null}
                 {engineLabel ? (
-                  <Badge
-                    variant="outline"
-                    className="inline-flex min-w-0 max-w-full shrink items-center gap-1.5 truncate rounded-full border-border/60 bg-lavender px-3 py-1 text-xs font-semibold text-lavender-foreground"
-                    title={engineLabel}
-                  >
-                    <Cpu className="size-3.5 shrink-0" />
-                    <span className="min-w-0 truncate">{engineLabel}</span>
-                  </Badge>
+                  <TagIcon kind="engine" value={player.engine} size="xs" showLabel withTooltip={false} />
                 ) : null}
               </div>
               ) : null}

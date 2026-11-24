@@ -17,11 +17,12 @@ import { fetchTeamDiscordLink, TEAMS_READABLE_COLUMNS } from "@/lib/team-discord
 import { anonymousMemberRows, fetchTeamMemberCounts } from "@/lib/team-member-counts"
 import { formatTeamToCardData, type TeamRowDb } from "@/lib/team-utils"
 import type { TeamCardData } from "@/components/team-card"
-import { ArrowLeft, UsersRound, Cpu, Globe, Info } from "lucide-react"
+import { ArrowLeft, UsersRound, Globe, Info } from "lucide-react"
+import { TagIcon } from "@/components/tag-icon"
 import { toast } from "sonner"
 import { UserAvatar } from "@/components/user-avatar"
 import { Badge } from "@/components/ui/badge"
-import { ROLE_STYLES, engineOptionLabel, languageOptionLabel } from "@/lib/constants"
+import { ROLE_STYLES, languageOptionLabel } from "@/lib/constants"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { TeamNotFoundView } from "./team-not-found-view"
 
@@ -404,10 +405,9 @@ export function TeamPageClient() {
                         Squad overview
                       </h2>
                       <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                        <span className="inline-flex items-center gap-1.5">
-                          <Cpu className="size-3.5 text-lavender" />
-                          {engineOptionLabel(squad.engine)}
-                        </span>
+                        {squad.engine ? (
+                          <TagIcon kind="engine" value={squad.engine} size="xs" showLabel withTooltip={false} />
+                        ) : null}
                         <span className="inline-flex items-center gap-1.5">
                           <Globe className="size-3.5 text-teal" />
                           {languageOptionLabel(squad.language)}
