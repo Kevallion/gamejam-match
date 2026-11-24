@@ -13,12 +13,14 @@ import {
 import { COMPOSE_AVAILABILITY_HREF, dashboardHref } from "@/components/app-shell/nav-config"
 import { ICON } from "@/lib/icons"
 import { cn } from "@/lib/utils"
+import type { RefObject } from "react"
 
 type CreateSheetProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   availabilityCount?: number
   availabilityQuota?: number
+  triggerRef?: RefObject<HTMLButtonElement | null>
 }
 
 export function CreateSheet({
@@ -26,6 +28,7 @@ export function CreateSheet({
   onOpenChange,
   availabilityCount = 0,
   availabilityQuota = 3,
+  triggerRef,
 }: CreateSheetProps) {
   const postsUsed = Math.min(availabilityCount, availabilityQuota)
   const atQuota = postsUsed >= availabilityQuota
@@ -36,7 +39,13 @@ export function CreateSheet({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
+        role="dialog"
+        aria-modal="true"
         aria-labelledby="create-dialog-title"
+        onCloseAutoFocus={(event) => {
+          event.preventDefault()
+          triggerRef?.current?.focus()
+        }}
         className={cn(
           "top-[50%] left-[50%] z-50 w-[min(24rem,calc(100%-2rem))] max-w-[min(24rem,calc(100%-2rem))] translate-x-[-50%] translate-y-[-50%] gap-0 rounded-2xl border border-border bg-card p-6 shadow-[3px_3px_0_0_var(--neo-shadow)] sm:max-w-[min(24rem,calc(100%-2rem))]",
           "motion-reduce:animate-none motion-reduce:transition-none motion-reduce:data-[state=open]:animate-none motion-reduce:data-[state=closed]:animate-none",

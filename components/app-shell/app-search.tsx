@@ -59,11 +59,21 @@ function AppSearchField({
       if (variant === "mobile" && isDesktop) return
       event.preventDefault()
       setOpen(true)
-      inputRef.current?.focus()
+      if (variant === "desktop") {
+        inputRef.current?.focus()
+      }
     }
     window.addEventListener("keydown", onKey)
     return () => window.removeEventListener("keydown", onKey)
   }, [variant])
+
+  useEffect(() => {
+    if (variant !== "mobile" || !open) return
+    const frame = requestAnimationFrame(() => {
+      inputRef.current?.focus()
+    })
+    return () => cancelAnimationFrame(frame)
+  }, [variant, open])
 
   const submit = (event?: FormEvent) => {
     event?.preventDefault()
@@ -115,7 +125,7 @@ function AppSearchField({
       onSubmit={submit}
       className={cn(
         "flex h-12 min-w-0 max-w-[380px] flex-1 items-center gap-2 rounded-lg border border-border bg-card px-4",
-        "text-base shadow-[3px_3px_0_0_var(--neo-shadow)]",
+        "text-base shadow-[3px_3px_0_0_var(--neo-shadow)] focus-within:ring-2 focus-within:ring-ring",
         className,
       )}
       role="search"

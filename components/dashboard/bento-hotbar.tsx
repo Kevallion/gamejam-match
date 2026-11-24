@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { usePathname, useSearchParams } from "next/navigation"
 import { CreateSheet } from "@/components/app-shell/create-sheet"
 import { MoreSheet } from "@/components/app-shell/more-sheet"
@@ -48,7 +48,12 @@ export function BentoHotbar({ inboxCount = 0, availabilityCount = 0 }: BentoHotb
   const searchParams = useSearchParams()
   const router = useRouter()
   const [createOpen, setCreateOpen] = useState(false)
+  const createTriggerRef = useRef<HTMLButtonElement>(null)
   const [moreOpen, setMoreOpen] = useState(false)
+  const openCreate = (event: { currentTarget: HTMLButtonElement }) => {
+    createTriggerRef.current = event.currentTarget
+    setCreateOpen(true)
+  }
   const activeId = hotbarActiveId(pathname, searchParams.toString())
   const mobileActiveId = mobileHotbarActiveId(pathname, searchParams.toString())
 
@@ -97,7 +102,7 @@ export function BentoHotbar({ inboxCount = 0, availabilityCount = 0 }: BentoHotb
 
           <button
             type="button"
-            onClick={() => setCreateOpen(true)}
+            onClick={openCreate}
             aria-label="Create"
             className={cn(
               "mx-1.5 mb-0.5 grid size-[74px] place-items-center rounded-[22px] border-2 border-[var(--neo-shadow)]",
@@ -152,7 +157,7 @@ export function BentoHotbar({ inboxCount = 0, availabilityCount = 0 }: BentoHotb
 
         <button
           type="button"
-          onClick={() => setCreateOpen(true)}
+          onClick={openCreate}
           aria-label="Create"
           className={cn(
             "mb-7 grid size-[60px] place-items-center rounded-[20px] border-2 border-[var(--neo-shadow)]",
@@ -202,6 +207,7 @@ export function BentoHotbar({ inboxCount = 0, availabilityCount = 0 }: BentoHotb
         open={createOpen}
         onOpenChange={setCreateOpen}
         availabilityCount={availabilityCount}
+        triggerRef={createTriggerRef}
       />
       <MoreSheet open={moreOpen} onOpenChange={setMoreOpen} />
     </>

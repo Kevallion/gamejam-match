@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname, useSearchParams } from "next/navigation"
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { AppIcon } from "@/components/ui/app-icon"
 import { CreateSheet } from "@/components/app-shell/create-sheet"
 import { MOBILE_TABS, tabFromPathname } from "@/components/app-shell/nav-config"
@@ -21,6 +21,7 @@ export function MobileTabBar({
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const [createOpen, setCreateOpen] = useState(false)
+  const createTriggerRef = useRef<HTMLButtonElement>(null)
   const tab = tabFromPathname(pathname, searchParams.toString())
   const hubMe = searchParams.get("hub") === "me"
 
@@ -60,7 +61,8 @@ export function MobileTabBar({
                 <button
                   key={item.id}
                   type="button"
-                  onClick={() => setCreateOpen(true)}
+                  ref={createTriggerRef}
+            onClick={() => setCreateOpen(true)}
                   className="flex min-h-11 flex-col items-center justify-center gap-0.5 px-1 text-xs font-bold text-muted-foreground transition-colors motion-reduce:transform-none active:scale-95"
                   aria-label="Create"
                 >
@@ -107,6 +109,7 @@ export function MobileTabBar({
         open={createOpen}
         onOpenChange={setCreateOpen}
         availabilityCount={availabilityCount}
+        triggerRef={createTriggerRef}
       />
     </>
   )

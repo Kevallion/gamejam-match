@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { useTheme } from "next-themes"
-import { useState } from "react"
+import { useState, useRef } from "react"
 import {
   SIDEBAR_DASHBOARD,
   SIDEBAR_EXPLORE,
@@ -61,6 +61,7 @@ export function AppSidebar({
   const router = useRouter()
   const { theme, setTheme, resolvedTheme } = useTheme()
   const [createOpen, setCreateOpen] = useState(false)
+  const createTriggerRef = useRef<HTMLButtonElement>(null)
   const [logoutOpen, setLogoutOpen] = useState(false)
   const tab = tabFromPathname(pathname, searchParams.toString())
   const level = levelFromTotalXp(xp)
@@ -105,6 +106,7 @@ export function AppSidebar({
           <Button
             type="button"
             className="h-11 w-full rounded-xl bg-teal text-teal-foreground hover:bg-teal/90"
+            ref={createTriggerRef}
             onClick={() => setCreateOpen(true)}
           >
             <AppIcon icon={ICON.create} size="md" className="mr-1.5 text-teal-foreground" />
@@ -235,6 +237,7 @@ export function AppSidebar({
         open={createOpen}
         onOpenChange={setCreateOpen}
         availabilityCount={availabilityCount}
+        triggerRef={createTriggerRef}
       />
 
       <AlertDialog open={logoutOpen} onOpenChange={setLogoutOpen}>

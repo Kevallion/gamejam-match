@@ -16,12 +16,16 @@ const atkinson = Atkinson_Hyperlegible({
   variable: '--font-atkinson',
   weight: ['400', '700'],
   display: 'swap',
+  // Body text, including the 390 LCP paragraph, uses Atkinson.
+  preload: true,
 })
 const syne = Syne({
   subsets: ['latin'],
   variable: '--font-syne',
   weight: ['700', '800'],
   display: 'swap',
+  // Headings swap in; a second preload would compete with the LCP font.
+  preload: false,
 })
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://gamejamcrew.com'
 

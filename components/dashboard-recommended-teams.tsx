@@ -28,22 +28,20 @@ export function DashboardRecommendedTeams({
   if (!ready) {
     return (
       <BentoCard
-        tone="match"
         title="Recommended squads"
         icon={ICON.recommended}
         placeholder
         skeletonLines={compact ? 3 : 4}
-        className={cn("min-h-[200px]", className)}
+        className={cn("min-h-[200px] border-teal", className)}
       />
     )
   }
 
   return (
     <BentoCard
-      tone="match"
       title="Recommended squads"
       icon={ICON.recommended}
-      className={cn("min-h-[200px]", className)}
+      className={cn("min-h-[200px] border-teal", className)}
     >
       <h2 id={headingId} className="sr-only">
         Recommended squads
@@ -82,7 +80,7 @@ export function DashboardRecommendedTeams({
               </p>
               <Link
                 href={`/teams/${team.id}`}
-                className="inline-flex min-h-12 w-full items-center justify-center rounded-lg border border-border bg-card px-4 text-sm font-bold shadow-[3px_3px_0_0_var(--neo-shadow)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                className="inline-flex min-h-12 w-full items-center justify-center rounded-lg bg-teal px-4 text-sm font-bold text-teal-foreground shadow-[3px_3px_0_0_var(--neo-shadow)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 View squad
               </Link>

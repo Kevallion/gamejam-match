@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname, useSearchParams } from "next/navigation"
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { CreateSheet } from "@/components/app-shell/create-sheet"
 import { RAIL_ITEMS, tabFromPathname } from "@/components/app-shell/nav-config"
 import { FEEDBACK_URL } from "@/components/FeedbackButton"
@@ -21,6 +21,7 @@ export function NavRail({
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const [createOpen, setCreateOpen] = useState(false)
+  const createTriggerRef = useRef<HTMLButtonElement>(null)
   const tab = tabFromPathname(pathname, searchParams.toString())
 
   const activeId = (() => {
@@ -50,6 +51,7 @@ export function NavRail({
 
           <button
             type="button"
+            ref={createTriggerRef}
             onClick={() => setCreateOpen(true)}
             className="mt-3 flex size-14 flex-col items-center justify-center rounded-2xl bg-teal text-teal-foreground shadow-[3px_3px_0_0_var(--neo-shadow)] transition-transform motion-reduce:transform-none active:scale-95"
             aria-label="Create"
@@ -103,6 +105,7 @@ export function NavRail({
         open={createOpen}
         onOpenChange={setCreateOpen}
         availabilityCount={availabilityCount}
+        triggerRef={createTriggerRef}
       />
     </>
   )
