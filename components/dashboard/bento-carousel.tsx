@@ -131,6 +131,8 @@ export function BentoCarousel({
                 {children}
               </div>
             )}
+        {/* 3px at the end so the last card's neo shadow is not clipped. */}
+        <div aria-hidden className="w-[3px] shrink-0" />
       </div>
       {count > 1 ? (
         <div className="mt-1.5 flex justify-center gap-1.5" aria-hidden>

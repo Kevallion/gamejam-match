@@ -286,8 +286,9 @@ export function BentoDashboard({ displayName, data, onLeaveSquad }: BentoDashboa
   const firstName = displayName.trim().split(/\s+/)[0] || "Jammer"
   const dateLabel = greetingDateLabel()
 
+  // Keep 3px at the right and bottom so the neo shadow is not clipped by overflow-x-clip.
   return (
-    <div className="min-w-0">
+    <div className="min-w-0 pr-[3px] pb-[3px]">
       {/* Desktop greeting */}
       <div className="mb-5 hidden items-end justify-between gap-4 lg:flex">
         <div>
