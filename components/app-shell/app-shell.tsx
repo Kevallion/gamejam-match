@@ -81,7 +81,7 @@ export function AppShell({
       )}
     >
       {/* Slim top chrome (logo + search). Home greeting lives in BentoDashboard on desktop. */}
-      <div className="hidden items-center gap-3 px-6 pt-5 lg:flex xl:px-10">
+      <div className="hidden items-center gap-3 px-6 pt-5 xl:flex xl:px-10">
         <Link
           href="/dashboard"
           className="flex items-center gap-2.5 font-black tracking-tight"
@@ -123,7 +123,7 @@ export function AppShell({
         onMarkRead={onMarkRead}
         onMarkAllRead={onMarkAllRead}
         onRefetch={onRefetchNotifications}
-        className={cn(isHomeGreeting && "lg:border-0 lg:bg-transparent lg:backdrop-blur-none")}
+        className={cn(isHomeGreeting && "xl:border-0 xl:bg-transparent xl:backdrop-blur-none")}
       />
 
       <main

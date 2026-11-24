@@ -21,7 +21,7 @@ type AppHeaderProps = {
   subtitle?: string | null
   /** Greeting mode for Home on mobile */
   greetingName?: string | null
-  /** When true, greeting is mobile-only (desktop Bento owns the greeting). */
+  /** When true, greeting is hidden from xl up (desktop Bento owns the greeting). */
   hideGreetingDesktop?: boolean
   levelLabel?: string | null
   avatarUrl?: string | null
@@ -133,16 +133,16 @@ export function AppHeader({
         className,
       )}
     >
-      <div className="flex h-14 items-center gap-3 px-4 md:h-16 md:px-6">
+      <div className="flex h-14 items-center gap-3 px-4 xl:h-16 xl:px-6">
         <div className="min-w-0 flex-1">
           {greetingName ? (
             <div
               className={cn(
                 "flex min-w-0 items-center gap-2.5",
-                hideGreetingDesktop && "lg:hidden",
+                hideGreetingDesktop && "xl:hidden",
               )}
             >
-              <span className="grid size-9 shrink-0 place-items-center rounded-xl border border-border bg-primary text-primary-foreground shadow-[3px_3px_0_0_var(--neo-shadow)] lg:hidden">
+              <span className="grid size-9 shrink-0 place-items-center rounded-xl border border-border bg-primary text-primary-foreground shadow-[3px_3px_0_0_var(--neo-shadow)] xl:hidden">
                 <AppIcon icon={ICON.jam} size="md" className="text-primary-foreground" />
               </span>
               <div className="min-w-0">
@@ -158,7 +158,7 @@ export function AppHeader({
 
           {!greetingName ? (
             <div className="min-w-0">
-              <h1 className="truncate text-xl font-bold tracking-tight text-foreground md:text-[22px]">
+              <h1 className="truncate text-xl font-bold tracking-tight text-foreground xl:text-[22px]">
                 {title}
               </h1>
               {subtitle ? (

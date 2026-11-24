@@ -503,15 +503,15 @@
 /* Signed-in floating hotbar clearance.
  * --app-hotbar-h: bar + create-button overhang + content gap, excluding the bottom inset.
  * --app-hotbar-inset: default gap under the bar (safe-area replaces it when larger).
- * Mobile: 68px bar + ~24px create overhang + 16px gap = 6.75rem.
- * Desktop (md+): dock + create overhang + gap = 7.75rem; inset 1.25rem.
+ * Mobile and tablet (<1280): 68px bar + ~24px create overhang + 16px gap = 6.75rem.
+ * Desktop (xl, 1280+): dock + create overhang + gap = 7.75rem; inset 1.25rem.
  */
 :root {
   --app-hotbar-h: 6.75rem;
   --app-hotbar-inset: 0.875rem;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 1280px) {
   :root {
     --app-hotbar-h: 7.75rem;
     --app-hotbar-inset: 1.25rem;
