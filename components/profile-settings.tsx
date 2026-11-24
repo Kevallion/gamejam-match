@@ -101,7 +101,7 @@ function SectionLink({
         aria-current={active ? "location" : undefined}
         onClick={onClick}
         className={cn(
-          "flex min-w-0 flex-col items-center gap-0.5 rounded-xl px-1 py-1.5 text-[11px] font-bold transition-colors",
+          "flex min-w-0 flex-col items-center gap-0.5 rounded-xl px-1 py-1.5 text-xs font-bold transition-colors",
           active ? "bg-teal text-teal-foreground shadow-[2px_2px_0_0_var(--neo-shadow)]" : "text-muted-foreground hover:text-foreground",
           FOCUS,
         )}
@@ -129,7 +129,7 @@ function SectionLink({
       </span>
       <span className="min-w-0">
         <span className="block text-sm font-bold">{section.label}</span>
-        <span className="block truncate text-[11px] text-muted-foreground">{section.hint}</span>
+        <span className="block truncate text-xs text-muted-foreground">{section.hint}</span>
       </span>
     </a>
   )
@@ -160,7 +160,7 @@ function SectionBar({ activeSection }: { activeSection: string }) {
   return (
     <nav
       aria-label="Settings sections"
-      className={cn(CARD, "sticky top-[60px] z-20 grid grid-cols-4 gap-1 bg-card/90 p-1 backdrop-blur-md lg:hidden")}
+      className={cn(CARD, "sticky top-[60px] z-20 grid grid-cols-4 gap-1 bg-card p-1 lg:hidden")}
     >
       {SECTIONS.map((s) => (
         <SectionLink key={s.id} section={s} active={activeSection === s.id} variant="bar" />
@@ -202,7 +202,7 @@ function SectionCard({
       <header className="flex items-start gap-3">
         <IconTile icon={icon} tone={tone} />
         <div className="min-w-0 flex-1">
-          <h2 id={id ? `${id}-title` : undefined} className={cn("text-base font-extrabold tracking-tight", danger ? "text-destructive" : "text-foreground")}>
+          <h2 id={id ? `${id}-title` : undefined} className={cn("font-display text-xl font-extrabold tracking-tight", danger ? "text-destructive" : "text-foreground")}>
             {title}
           </h2>
           <p className="text-sm text-muted-foreground">{description}</p>
@@ -216,7 +216,7 @@ function SectionCard({
 function SubLabel({ id, icon, children, aside }: { id?: string; icon?: SectionIcon; children: ReactNode; aside?: ReactNode }) {
   return (
     <div className="flex items-center justify-between gap-2">
-      <h3 id={id} className="flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-[0.08em] text-muted-foreground">
+      <h3 id={id} className="flex items-center gap-1.5 text-sm font-bold text-muted-foreground">
         {icon ? <AppIcon icon={icon} size="sm" tone="muted" /> : null}
         {children}
       </h3>
@@ -658,9 +658,9 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
 
             <aside
               aria-label="Your profile card"
-              className={cn(CARD, "flex min-w-0 flex-col gap-3 bg-gradient-to-br from-lavender/20 via-card to-teal/15 p-4")}
+              className={cn(CARD, "flex min-w-0 flex-col gap-4 border border-border bg-card p-4 shadow-[3px_3px_0_0_var(--neo-shadow)]")}
             >
-              <h2 className="text-xs font-extrabold uppercase tracking-[0.08em] text-muted-foreground">Your profile card</h2>
+              <h2 className="font-display text-xl font-extrabold text-foreground">Your profile card</h2>
               <ProfileCard
                 avatarUrl={profile?.avatar_url ?? null}
                 displayName={displayName}
@@ -810,7 +810,7 @@ export function ProfileSettings({ profile, onProfileUpdated, displayNameFallback
                         FOCUS,
                       )}
                     >
-                      <span aria-hidden className="grid min-w-5 place-items-center rounded bg-secondary/80 px-1 text-[10px] font-black">
+                      <span aria-hidden className="grid min-w-5 place-items-center rounded bg-secondary/80 px-1 text-xs font-bold">
                         {option.short}
                       </span>
                       {option.label}
