@@ -155,12 +155,12 @@ function SectionRail({ activeSection }: { activeSection: string }) {
   )
 }
 
-/** Mobile / tablet: sticky 4-up section bar under the header. */
+/** Mobile / tablet: sticky scrollable section bar under the header. */
 function SectionBar({ activeSection }: { activeSection: string }) {
   return (
     <nav
       aria-label="Settings sections"
-      className={cn(CARD, "sticky top-[60px] z-20 grid grid-cols-4 gap-1 bg-card p-1 lg:hidden")}
+      className={cn(CARD, "sticky top-[60px] z-20 flex gap-1 overflow-x-auto bg-card p-1 lg:hidden")}
     >
       {SECTIONS.map((s) => (
         <SectionLink key={s.id} section={s} active={activeSection === s.id} variant="bar" />
