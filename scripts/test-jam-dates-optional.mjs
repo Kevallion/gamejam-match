@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url"
 /** Must stay in sync with lib/jam-listing-dates.ts */
 const JAM_DATES_PAIR_REQUIRED_MSG =
   "Provide both a jam start and a jam end, or leave both empty."
-const JAM_START_BEFORE_END_MSG = "Jam start must be before jam end."
+const JAM_START_BEFORE_END_MSG = "Jam start must be on or before jam end."
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000
 
 function isBlank(value) {
@@ -35,11 +35,17 @@ function normalizeJamListingDates(input) {
   if (Number.isNaN(endMs)) {
     return { ok: false, error: "Invalid date.", path: "jamEndDate" }
   }
-  if (startMs >= endMs) {
+  const startYmd = new Date(startMs).toISOString().slice(0, 10)
+  const endYmd = new Date(endMs).toISOString().slice(0, 10)
+  if (startYmd > endYmd) {
     return { ok: false, error: JAM_START_BEFORE_END_MSG, path: "jamEndDate" }
   }
 
-  return { ok: true, start: new Date(startMs).toISOString(), end: new Date(endMs).toISOString() }
+  return {
+    ok: true,
+    start: new Date(`${startYmd}T12:00:00.000Z`).toISOString(),
+    end: new Date(`${endYmd}T12:00:00.000Z`).toISOString(),
+  }
 }
 
 function defaultTeamExpiresAtIso(jamEndIso, now = new Date()) {
@@ -65,7 +71,7 @@ const laterMigrations = readdirSync(join(root, "supabase/migrations"))
 const requiredSnippets = [
   [helperSource, "lib/jam-listing-dates.ts", "export function normalizeJamListingDates"],
   [helperSource, "lib/jam-listing-dates.ts", "JAM_DATES_PAIR_REQUIRED_MSG"],
-  [helperSource, "lib/jam-listing-dates.ts", "startMs >= endMs"],
+  [helperSource, "lib/jam-listing-dates.ts", "startYmd > endYmd"],
   [schemaSource, "lib/team-listing-schema.ts", "optionalIsoTimestamp"],
   [schemaSource, "lib/team-listing-schema.ts", "superRefine(refineJamListingDates)"],
   [actionSource, "app/actions/create-team-actions.ts", "jam_start_date: jamDates.jamStartIso"],
@@ -111,10 +117,14 @@ const cases = [
     },
   },
   {
-    name: "valid dates keep start before end as ISO",
+    name: "valid dates are stored at UTC noon of each calendar day",
     fn: () => {
       const result = normalizeJamListingDates({ jamStartDate: start, jamEndDate: end })
-      return result.ok === true && result.start === start && result.end === end
+      return (
+        result.ok === true &&
+        result.start === "2026-12-01T12:00:00.000Z" &&
+        result.end === "2026-12-07T12:00:00.000Z"
+      )
     },
   },
   {
@@ -125,10 +135,10 @@ const cases = [
     },
   },
   {
-    name: "start equal to end is refused",
+    name: "start equal to end is accepted as a one-day jam",
     fn: () => {
       const result = normalizeJamListingDates({ jamStartDate: start, jamEndDate: start })
-      return result.ok === false && result.error === JAM_START_BEFORE_END_MSG
+      return result.ok === true && result.start === "2026-12-01T12:00:00.000Z" && result.end === "2026-12-01T12:00:00.000Z"
     },
   },
   {

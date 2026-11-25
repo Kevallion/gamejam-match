@@ -1,6 +1,6 @@
-import { format, isValid, parseISO } from "date-fns"
 import type { DateRange } from "react-day-picker"
-import { dateInputToUtcEnd, dateInputToUtcStart } from "@/lib/jam-date-utc"
+import { format } from "date-fns"
+import { dateInputToUtcEnd, dateInputToUtcStart, formatJamCalendarDate } from "@/lib/jam-date-utc"
 import { isJamStartBackfilledWithCreatedAt } from "@/lib/jam-calendar-status"
 
 /** Exception FR decided by Wisllor on 25 Nov 2026: this label is French, unlike the rest of the UI. */
@@ -48,26 +48,34 @@ export function formatListingDatesLabel(
   if (!listingHasRealJamDates(jamStartIso, jamEndIso, createdAtIso)) {
     return FLEXIBLE_DATES_LABEL
   }
-  const start = parseISO(jamStartIso as string)
-  const end = parseISO(jamEndIso as string)
-  if (!isValid(start) || !isValid(end)) return FLEXIBLE_DATES_LABEL
-  if (start.getTime() === end.getTime()) return format(start, "MMM d, yyyy")
-  if (start.getFullYear() === end.getFullYear()) {
-    return `${format(start, "MMM d")} – ${format(end, "MMM d, yyyy")}`
+  const startLabel = formatJamCalendarDate(jamStartIso)
+  const endLabel = formatJamCalendarDate(jamEndIso)
+  if (!startLabel || !endLabel) return FLEXIBLE_DATES_LABEL
+  if (startLabel === endLabel) return startLabel
+  const startYmd = (jamStartIso as string).slice(0, 10)
+  const endYmd = (jamEndIso as string).slice(0, 10)
+  const sameYear = startYmd.slice(0, 4) === endYmd.slice(0, 4)
+  if (sameYear) {
+    const startNoYear = new Intl.DateTimeFormat("en-US", {
+      month: "short",
+      day: "numeric",
+      timeZone: "UTC",
+    }).format(new Date(jamStartIso as string))
+    return `${startNoYear} – ${endLabel}`
   }
-  return `${format(start, "MMM d, yyyy")} – ${format(end, "MMM d, yyyy")}`
+  return `${startLabel} – ${endLabel}`
 }
 
 export const JAM_DATES_INCOMPLETE_MESSAGE =
   "Add both a start and end date, or leave both empty."
-export const JAM_DATES_ORDER_MESSAGE = "The jam start date must be before the end date."
+export const JAM_DATES_ORDER_MESSAGE = "The jam start date must be on or before the end date."
 
 export type JamDateYmd = { start: string; end: string }
 export type JamDatesValidation =
   | { ok: true; ymd: JamDateYmd | null }
   | { ok: false; message: string }
 
-/** Optional jam window: both empty, or a complete start-before-end range. */
+/** Optional jam window: both empty, or a complete start-on-or-before-end range. */
 export function validateOptionalJamYmd(
   start: string | null | undefined,
   end: string | null | undefined,
@@ -76,9 +84,15 @@ export function validateOptionalJamYmd(
   const endYmd = end?.trim() ?? ""
   if (!startYmd && !endYmd) return { ok: true, ymd: null }
   if (!startYmd || !endYmd) return { ok: false, message: JAM_DATES_INCOMPLETE_MESSAGE }
-  const startMs = new Date(dateInputToUtcStart(startYmd)).getTime()
-  const endMs = new Date(dateInputToUtcEnd(endYmd)).getTime()
-  if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || startMs >= endMs) {
+  let startMs: number
+  let endMs: number
+  try {
+    startMs = new Date(dateInputToUtcStart(startYmd)).getTime()
+    endMs = new Date(dateInputToUtcEnd(endYmd)).getTime()
+  } catch {
+    return { ok: false, message: JAM_DATES_ORDER_MESSAGE }
+  }
+  if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || startYmd > endYmd) {
     return { ok: false, message: JAM_DATES_ORDER_MESSAGE }
   }
   return { ok: true, ymd: { start: startYmd, end: endYmd } }

@@ -1,3 +1,5 @@
+import { utcCalendarDayEndMs, utcCalendarDayStartMs } from "@/lib/jam-date-utc"
+
 export type JamListingPhase = "upcoming" | "live" | "ended" | "dates_pending"
 
 export type JamListingStatus = {
@@ -36,6 +38,8 @@ export function isJamStartBackfilledWithCreatedAt(
 /**
  * UI copy for team cards: jam window relative to now.
  * Pass `createdAtIso` so legacy backfilled `jam_start_date === created_at` does not show "Live Now".
+ * Upcoming / live / ended use the UTC calendar day of each stored instant, so a
+ * one-day jam stored at 12:00 UTC stays live for that whole calendar day.
  */
 export function getJamListingStatus(
   jamStartIso: string | null | undefined,
@@ -46,8 +50,8 @@ export function getJamListingStatus(
   const createdAtIso = options?.createdAtIso
 
   if (!jamStartIso || !jamEndIso) return null
-  const start = new Date(jamStartIso).getTime()
-  const end = new Date(jamEndIso).getTime()
+  const start = utcCalendarDayStartMs(jamStartIso)
+  const end = utcCalendarDayEndMs(jamEndIso)
   if (!Number.isFinite(start) || !Number.isFinite(end)) return null
 
   const backfilledStart = isJamStartBackfilledWithCreatedAt(jamStartIso, createdAtIso)

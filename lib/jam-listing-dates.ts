@@ -1,7 +1,9 @@
+import { dateInputToUtcEnd, dateInputToUtcStart, utcYmdFromIso } from "@/lib/jam-date-utc"
+
 export const JAM_DATES_PAIR_REQUIRED_MSG =
   "Provide both a jam start and a jam end, or leave both empty."
 
-export const JAM_START_BEFORE_END_MSG = "Jam start must be before jam end."
+export const JAM_START_BEFORE_END_MSG = "Jam start must be on or before jam end."
 
 const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000
 
@@ -20,7 +22,9 @@ function isBlank(value: string | null | undefined): boolean {
 
 /**
  * Shared create/update rule: both dates absent (stored as NULL), or both
- * present with start strictly before end. A single date is refused.
+ * present with start on or before end (calendar dates, stored at 12:00 UTC).
+ * A single date is refused. Incoming timestamps are normalized to UTC noon
+ * of their UTC calendar day so a same-day start/end stays valid.
  */
 export function normalizeJamListingDates(input: JamListingDatesInput): JamListingDatesResult {
   const hasStart = !isBlank(input.jamStartDate)
@@ -45,11 +49,20 @@ export function normalizeJamListingDates(input: JamListingDatesInput): JamListin
   if (Number.isNaN(endMs)) {
     return { ok: false, error: "Invalid date.", path: "jamEndDate" }
   }
-  if (startMs >= endMs) {
+
+  const startYmd = utcYmdFromIso(new Date(startMs).toISOString())
+  const endYmd = utcYmdFromIso(new Date(endMs).toISOString())
+  if (!startYmd) {
+    return { ok: false, error: "Invalid date.", path: "jamStartDate" }
+  }
+  if (!endYmd) {
+    return { ok: false, error: "Invalid date.", path: "jamEndDate" }
+  }
+  if (startYmd > endYmd) {
     return { ok: false, error: JAM_START_BEFORE_END_MSG, path: "jamEndDate" }
   }
 
-  return { ok: true, start: new Date(startMs).toISOString(), end: new Date(endMs).toISOString() }
+  return { ok: true, start: dateInputToUtcStart(startYmd), end: dateInputToUtcEnd(endYmd) }
 }
 
 /** When there is no jam end, listings keep the existing 30-day default window. */
