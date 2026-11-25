@@ -330,7 +330,7 @@ export function JammerCard({ player, mySquads, cardClassName }: JammerCardProps)
     <>
       <Dialog>
         <DialogTrigger asChild>
-          <Card className={cn("card-interactive group relative flex w-full cursor-pointer flex-col overflow-hidden py-4 transition-colors motion-reduce:transition-none hover:ring-2 hover:ring-primary/50 sm:py-6", cardClassName)}>
+          <Card className={cn("card-interactive group relative flex h-full w-full cursor-pointer flex-col overflow-hidden py-4 transition-colors motion-reduce:transition-none hover:ring-2 hover:ring-primary/50 sm:py-6", cardClassName)}>
             <CardContent className="flex flex-1 flex-col gap-4 px-4 pt-0 sm:px-6 sm:pt-0">
               {/* Avatar + Username + Share */}
               <div className="flex min-w-0 items-start gap-4">
@@ -422,7 +422,7 @@ export function JammerCard({ player, mySquads, cardClassName }: JammerCardProps)
               ) : null}
             </CardContent>
 
-            <CardFooter className="flex flex-row items-center justify-between gap-2 px-4 sm:px-6">
+            <CardFooter className="mt-auto flex flex-row items-center justify-between gap-2 px-4 sm:px-6">
               <div
                 className={cn(
                   "inline-flex min-w-0 items-center gap-2 rounded-lg border px-3 py-1 text-xs font-medium",
