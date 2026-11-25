@@ -536,9 +536,12 @@ export default function TeamManagePage() {
 
   const handleRenewListing = async () => {
     if (!team) return
-    const currentEndMs = team.jam_end_date ? new Date(team.jam_end_date).getTime() : NaN
-    const baseMs = Number.isFinite(currentEndMs) ? Math.max(Date.now(), currentEndMs) : Date.now()
-    const newEnd = new Date(baseMs + 30 * 24 * 60 * 60 * 1000).toISOString()
+    const todayYmd = new Date().toISOString().slice(0, 10)
+    const currentEndYmd = isoTimestampToDateInput(team.jam_end_date)
+    const baseYmd = currentEndYmd && currentEndYmd > todayYmd ? currentEndYmd : todayYmd
+    const baseNoon = new Date(`${baseYmd}T12:00:00.000Z`)
+    baseNoon.setUTCDate(baseNoon.getUTCDate() + 30)
+    const newEnd = dateInputToUtcEnd(baseNoon.toISOString().slice(0, 10))
     setRenewListingBusy(true)
     try {
       const { error } = await supabase.from("teams").update({ jam_end_date: newEnd }).eq("id", teamId)

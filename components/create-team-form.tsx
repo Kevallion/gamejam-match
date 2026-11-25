@@ -32,7 +32,7 @@ import { createTeam } from "@/app/actions/create-team-actions"
 import { sendTeamInvitation } from "@/app/actions/invite-actions"
 import { showGamificationRewards } from "@/components/gamification-reward-toasts"
 import { gamificationRewardHasToast } from "@/lib/gamification-reward-types"
-import { dateInputToUtcEnd, dateInputToUtcStart } from "@/lib/jam-date-utc"
+import { dateInputToUtcEnd, dateInputToUtcStart, formatJamCalendarDate } from "@/lib/jam-date-utc"
 import { dateRangeFromExternalJam } from "@/lib/jam-dates-from-external"
 import type { ExternalJam } from "@/app/actions/jam-actions"
 import { FLEXIBLE_DATES_LABEL, validateOptionalJamRange } from "@/lib/listing-dates"
@@ -827,8 +827,11 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
                             Jam dates:{" "}
                             <span className="font-medium text-foreground">
                               {jamDateRange.to
-                                ? [format(jamDateRange.from, "MMM d, yyyy"), format(jamDateRange.to, "MMM d, yyyy")].join(" – ")
-                                : format(jamDateRange.from, "MMM d, yyyy")}
+                                ? [
+                                    formatJamCalendarDate(dateInputToUtcStart(format(jamDateRange.from, "yyyy-MM-dd"))),
+                                    formatJamCalendarDate(dateInputToUtcEnd(format(jamDateRange.to, "yyyy-MM-dd"))),
+                                  ].filter(Boolean).join(" – ")
+                                : formatJamCalendarDate(dateInputToUtcStart(format(jamDateRange.from, "yyyy-MM-dd")))}
                             </span>
                             {jamDateRange.to ? (
                               <>

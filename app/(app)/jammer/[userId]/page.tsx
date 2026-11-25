@@ -15,6 +15,7 @@ import { levelFromTotalXp } from "@/lib/gamification-level"
 import { usersShareATeam } from "@/lib/kudos-collaboration"
 import { isMissingColumnError } from "@/lib/optional-column"
 import { MainRegion } from "@/components/main-region"
+import { formatJamCalendarDate } from "@/lib/jam-date-utc"
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
@@ -336,11 +337,7 @@ export default async function JammerPublicProfilePage({ params }: PageProps) {
                       </div>
                       <span className="shrink-0 text-xs font-medium text-primary">
                         {team.jam_end_date
-                          ? new Date(team.jam_end_date).toLocaleDateString("en-US", {
-                              month: "short",
-                              day: "numeric",
-                              year: "numeric",
-                            })
+                          ? (formatJamCalendarDate(team.jam_end_date) ?? "Completed")
                           : "Completed"}
                       </span>
                     </Link>

@@ -13,6 +13,7 @@ import { engineOptionLabel, languageOptionLabel } from "@/lib/constants"
 import { TagIcon } from "@/components/tag-icon"
 import { getJamListingStatus } from "@/lib/jam-calendar-status"
 import { formatListingDatesLabel, listingHasRealJamDates } from "@/lib/listing-dates"
+import { formatJamCalendarDate } from "@/lib/jam-date-utc"
 import { toast } from "sonner"
 import { ArrowLeft, ArrowRight, Share2, CircleCheck } from "lucide-react"
 import { MainRegion } from "@/components/main-region"
@@ -45,17 +46,6 @@ function computeAvailableRoles(team: TeamCardData): RoleOption[] {
       color: role.color,
       filled,
     }
-  })
-}
-
-function formatJamDate(iso?: string | null): string | null {
-  if (!iso) return null
-  const date = new Date(iso)
-  if (!Number.isFinite(date.getTime())) return null
-  return date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
   })
 }
 
@@ -92,8 +82,8 @@ export function TeamAnnouncementPublic({
     createdAtIso: team.createdAt,
   })
   const hasRealDates = listingHasRealJamDates(team.jamStartDate, team.jamEndDate, team.createdAt)
-  const startLabel = hasRealDates ? formatJamDate(team.jamStartDate) : null
-  const endLabel = hasRealDates ? formatJamDate(team.jamEndDate) : null
+  const startLabel = hasRealDates ? formatJamCalendarDate(team.jamStartDate) : null
+  const endLabel = hasRealDates ? formatJamCalendarDate(team.jamEndDate) : null
   const datesLabel = formatListingDatesLabel(team.jamStartDate, team.jamEndDate, team.createdAt)
   const showStatusBadge = jamStatus && jamStatus.phase !== "dates_pending"
 
