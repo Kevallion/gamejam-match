@@ -4,37 +4,6 @@ import { useEffect } from "react"
 
 const STORAGE_PREFIX = "gjc:list-scroll:"
 
-type NavKind = "pop" | "push" | ""
-
-let navKind: NavKind = ""
-let navBound = false
-
-function bindNavKind() {
-  if (navBound || typeof window === "undefined") return
-  navBound = true
-  window.addEventListener("popstate", () => {
-    navKind = "pop"
-  })
-  document.addEventListener(
-    "click",
-    (event) => {
-      const target = event.target
-      if (!(target instanceof Element)) return
-      if (target.closest("a[href]")) navKind = "push"
-    },
-    true,
-  )
-}
-
-function shouldRestoreScroll() {
-  if (navKind === "pop") return true
-  if (navKind === "push") return false
-  if (typeof performance === "undefined") return false
-  const entries = performance.getEntriesByType("navigation")
-  const entry = entries[0] as PerformanceNavigationTiming | undefined
-  return entry?.type === "back_forward"
-}
-
 function readY(key: string): number | null {
   try {
     const raw = sessionStorage.getItem(STORAGE_PREFIX + key)
@@ -55,13 +24,13 @@ function writeY(key: string, y: number) {
 }
 
 /**
- * Restore window scroll after a back/forward return to a long card list.
+ * Restore window scroll after returning to a long card list.
  * Native restoration runs too early: the grid remounts as a short skeleton,
  * and off-screen `content-visibility` items only have an estimated height.
+ * Re-applying on resize (and for a short window after render) covers both.
  */
 export function useListScrollRestoration(listId: string, ready: boolean) {
   useEffect(() => {
-    bindNavKind()
     const previous = window.history.scrollRestoration
     window.history.scrollRestoration = "manual"
     let ticking = false
@@ -85,9 +54,9 @@ export function useListScrollRestoration(listId: string, ready: boolean) {
   }, [listId])
 
   useEffect(() => {
-    if (!ready || !shouldRestoreScroll()) return
+    if (!ready) return
     const y = readY(listId)
-    if (y == null) return
+    if (y == null || y === 0) return
     let cancelled = false
     const apply = () => {
       if (cancelled) return
@@ -100,13 +69,14 @@ export function useListScrollRestoration(listId: string, ready: boolean) {
       apply()
       requestAnimationFrame(apply)
     })
-    const later = window.setTimeout(apply, 50)
-    const last = window.setTimeout(apply, 200)
+    const observer = new ResizeObserver(() => apply())
+    observer.observe(document.documentElement)
+    const timers = [50, 100, 200, 400, 800].map((ms) => window.setTimeout(apply, ms))
     return () => {
       cancelled = true
       cancelAnimationFrame(frame)
-      window.clearTimeout(later)
-      window.clearTimeout(last)
+      observer.disconnect()
+      for (const id of timers) window.clearTimeout(id)
     }
   }, [listId, ready])
 }
