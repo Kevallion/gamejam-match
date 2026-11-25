@@ -58,6 +58,7 @@ function AlertDialogContent({
           className,
         )}
         {...props}
+        aria-modal="true"
       />
     </AlertDialogPortal>
   )

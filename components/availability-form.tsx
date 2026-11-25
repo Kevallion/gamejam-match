@@ -731,7 +731,7 @@ export function AvailabilityForm({
                 )}
 
                 {/* Sticky bottom actions */}
-                <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border/60 bg-background px-4 py-3 md:static md:mt-4 md:border-none md:bg-transparent md:px-0 md:py-0 md:sticky md:bottom-0">
+                <div className="app-wizard-actions fixed inset-x-0 z-40 border-t border-border/60 bg-background px-4 py-3 md:static md:mt-4 md:border-none md:bg-transparent md:px-0 md:py-0 md:sticky">
                   <div className="mx-auto flex w-full max-w-3xl items-center justify-between gap-3">
                     <div className="hidden text-xs text-muted-foreground md:block">
                       {step === 1 && "Who you are — username & role."}

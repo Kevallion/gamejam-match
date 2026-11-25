@@ -633,12 +633,27 @@ html:has(.app-shell) .feedback-fab {
   bottom: calc(var(--app-hotbar-h) + max(var(--app-hotbar-inset), env(safe-area-inset-bottom, 0px)) + 0.5rem);
 }
 
-/* Keep app-shell dialogs (onboarding, sheets) clear of the floating hotbar. */
-html:has(.app-shell) [data-slot="dialog-content"] {
-  top: auto;
-  bottom: calc(var(--app-hotbar-h) + max(var(--app-hotbar-inset), env(safe-area-inset-bottom, 0px)) + 0.75rem);
-  max-height: calc(100dvh - 5.5rem - var(--app-hotbar-h) - max(var(--app-hotbar-inset), env(safe-area-inset-bottom, 0px)));
-  transform: translate(-50%, 0);
+/* Center app-shell dialogs in the band between the header and the dock.
+ * Do not set `transform` here: Tailwind already uses the `translate` property
+ * for -50%/-50% centering, and a second transform composes with it (DS-QA7).
+ */
+html:has(.app-shell) [data-slot="dialog-content"],
+html:has(.app-shell) [data-slot="alert-dialog-content"] {
+  --dialog-top-clearance: calc(4.5rem + env(safe-area-inset-top, 0px));
+  --dialog-bottom-clearance: calc(var(--app-hotbar-h) + max(var(--app-hotbar-inset), env(safe-area-inset-bottom, 0px)) + 0.75rem);
+  top: calc((var(--dialog-top-clearance) + 100dvh - var(--dialog-bottom-clearance)) / 2);
+  bottom: auto;
+  max-height: calc(100dvh - var(--dialog-top-clearance) - var(--dialog-bottom-clearance));
+}
+
+/* Sticky/fixed wizard actions sit above the dock instead of covering it. */
+html:has(.app-shell) .app-wizard-actions {
+  bottom: calc(var(--app-hotbar-h) + max(var(--app-hotbar-inset), env(safe-area-inset-bottom, 0px)));
+}
+
+/* Cookie banner must not cover the signed-in dock. */
+html:has(.app-shell) #cookie-banner {
+  bottom: calc(var(--app-hotbar-h) + max(var(--app-hotbar-inset), env(safe-area-inset-bottom, 0px)));
 }
 
 /* The feedback FAB sits on the Accept button while the cookie banner is open. */
