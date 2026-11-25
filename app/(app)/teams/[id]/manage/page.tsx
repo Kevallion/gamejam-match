@@ -66,6 +66,7 @@ import { EXPERIENCE_OPTIONS, JAM_STYLE_OPTIONS, ROLE_OPTIONS, ROLE_STYLES } from
 import { TagIcon } from "@/components/tag-icon"
 import { DateRangeField } from "@/components/date-range-field"
 import { FLEXIBLE_DATES_LABEL, validateOptionalJamYmd } from "@/lib/listing-dates"
+import { JamDatesChip } from "@/components/jam-dates-chip"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -107,6 +108,7 @@ type TeamManageData = {
   discord_link: string | null
   jam_start_date: string | null
   jam_end_date: string | null
+  created_at: string | null
   jam_completion_xp_claimed?: boolean | null
   looking_for: { role: string; level: string }[]
   members: MemberRow[]
@@ -178,7 +180,7 @@ export default function TeamManagePage() {
       const { data: teamData, error: teamError } = await supabase
         .from("teams")
         .select(
-          "id, user_id, team_name, game_name, description, team_vibe, experience_required, engine, language, jam_id, jam_completion_xp_claimed, jam_start_date, jam_end_date, looking_for",
+          "id, user_id, team_name, game_name, description, team_vibe, experience_required, engine, language, jam_id, jam_completion_xp_claimed, jam_start_date, jam_end_date, created_at, looking_for",
         )
         .eq("id", teamId)
         .single()
@@ -697,6 +699,12 @@ export default function TeamManagePage() {
               {team.team_name}
             </h1>
             <p className="mt-2 text-muted-foreground">{team.game_name}</p>
+            <JamDatesChip
+              className="mt-3"
+              jamStartDate={team.jam_start_date}
+              jamEndDate={team.jam_end_date}
+              createdAt={team.created_at}
+            />
           </div>
         </section>
 

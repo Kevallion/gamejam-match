@@ -15,7 +15,7 @@ import { levelFromTotalXp } from "@/lib/gamification-level"
 import { usersShareATeam } from "@/lib/kudos-collaboration"
 import { isMissingColumnError } from "@/lib/optional-column"
 import { MainRegion } from "@/components/main-region"
-import { formatJamCalendarDate } from "@/lib/jam-date-utc"
+import { JamDatesChip } from "@/components/jam-dates-chip"
 
 const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
@@ -28,7 +28,9 @@ type CompletedJamTeam = {
   id: string
   team_name: string | null
   game_name: string | null
+  jam_start_date: string | null
   jam_end_date: string | null
+  created_at: string | null
 }
 
 function normalizePortfolioUrl(url: string | null | undefined): string | null {
@@ -149,7 +151,7 @@ export default async function JammerPublicProfilePage({ params }: PageProps) {
   const nowIso = new Date().toISOString()
   const { data: ownedCompletedTeams } = await supabase
     .from("teams")
-    .select("id, team_name, game_name, jam_end_date")
+    .select("id, team_name, game_name, jam_start_date, jam_end_date, created_at")
     .eq("user_id", userId)
     .not("jam_end_date", "is", null)
     .lt("jam_end_date", nowIso)
@@ -166,7 +168,7 @@ export default async function JammerPublicProfilePage({ params }: PageProps) {
     memberTeamIds.length > 0
       ? await supabase
           .from("teams")
-          .select("id, team_name, game_name, jam_end_date")
+          .select("id, team_name, game_name, jam_start_date, jam_end_date, created_at")
           .in("id", memberTeamIds)
           .not("jam_end_date", "is", null)
           .lt("jam_end_date", nowIso)
@@ -335,11 +337,13 @@ export default async function JammerPublicProfilePage({ params }: PageProps) {
                           {team.game_name?.trim() || "Game jam project"}
                         </p>
                       </div>
-                      <span className="shrink-0 text-xs font-medium text-primary">
-                        {team.jam_end_date
-                          ? (formatJamCalendarDate(team.jam_end_date) ?? "Completed")
-                          : "Completed"}
-                      </span>
+                      <JamDatesChip
+                        className="shrink-0"
+                        empty="end"
+                        jamStartDate={team.jam_start_date}
+                        jamEndDate={team.jam_end_date}
+                        createdAt={team.created_at}
+                      />
                     </Link>
                   ))}
                 </div>

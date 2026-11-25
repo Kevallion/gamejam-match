@@ -10,7 +10,6 @@ import {
   Sparkles,
   Flame,
   Clock,
-  CalendarDays,
 } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
@@ -19,7 +18,7 @@ import { engineOptionLabel, languageOptionLabel } from "@/lib/constants"
 import { TagIcon, TagIconRow } from "@/components/tag-icon"
 import { getJamListingStatus } from "@/lib/jam-calendar-status"
 import { JamStatusBadge } from "@/components/jam-status-badge"
-import { formatListingDatesLabel } from "@/lib/listing-dates"
+import { JamDatesChip } from "@/components/jam-dates-chip"
 
 type RoleBadge = {
   label: string
@@ -101,11 +100,6 @@ export function TeamCard({
   const jamStatus = getJamListingStatus(team.jamStartDate, team.jamEndDate, {
     createdAtIso: team.createdAt,
   })
-  const datesLabel = formatListingDatesLabel(
-    team.jamStartDate,
-    team.jamEndDate,
-    team.createdAt,
-  )
   const showStatusBadge = jamStatus && jamStatus.phase !== "dates_pending"
 
   const filledCountByKey: Record<string, number> = {}
@@ -208,10 +202,12 @@ export function TeamCard({
         <JamStatusBadge status={jamStatus} className="relative z-10 mb-2" />
       ) : null}
 
-      <p className="relative z-[1] mb-4 flex min-w-0 items-center gap-2 text-sm text-muted-foreground">
-        <CalendarDays className="size-3.5 shrink-0" aria-hidden />
-        <span className="min-w-0 truncate">{datesLabel}</span>
-      </p>
+      <JamDatesChip
+        className="relative z-[1] mb-4"
+        jamStartDate={team.jamStartDate}
+        jamEndDate={team.jamEndDate}
+        createdAt={team.createdAt}
+      />
 
       <div className="mb-4 flex min-h-6 flex-wrap items-center gap-2">
         <TagIconRow

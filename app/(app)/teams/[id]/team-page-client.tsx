@@ -26,6 +26,7 @@ import { ROLE_STYLES, languageOptionLabel } from "@/lib/constants"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { TeamNotFoundView } from "./team-not-found-view"
 import { MainRegion } from "@/components/main-region"
+import { JamDatesChip } from "@/components/jam-dates-chip"
 
 type SquadViewData = {
   id: string
@@ -36,7 +37,9 @@ type SquadViewData = {
   engine: string
   language: string
   discord_link: string | null
+  jam_start_date: string | null
   jam_end_date: string | null
+  created_at: string | null
 }
 
 type SquadMember = {
@@ -186,7 +189,7 @@ export function TeamPageClient() {
 
       const { data: teamData, error: teamDataError } = await supabase
         .from("teams")
-        .select("id, user_id, team_name, game_name, description, engine, language, jam_end_date")
+        .select("id, user_id, team_name, game_name, description, engine, language, jam_start_date, jam_end_date, created_at")
         .eq("id", teamId)
         .single()
 
@@ -367,6 +370,12 @@ export function TeamPageClient() {
                 {squad.team_name}
               </h1>
               <p className="mt-2 text-muted-foreground">{squad.game_name}</p>
+              <JamDatesChip
+                className="mt-3"
+                jamStartDate={squad.jam_start_date}
+                jamEndDate={squad.jam_end_date}
+                createdAt={squad.created_at}
+              />
             </div>
           </section>
 
