@@ -33,6 +33,7 @@ import { sendTeamInvitation } from "@/app/actions/invite-actions"
 import { showGamificationRewards } from "@/components/gamification-reward-toasts"
 import { gamificationRewardHasToast } from "@/lib/gamification-reward-types"
 import { dateInputToUtcEnd, dateInputToUtcStart } from "@/lib/jam-date-utc"
+import { navigateAfterServerAction } from "@/lib/navigate-after-server-action"
 import { dateRangeFromExternalJam } from "@/lib/jam-dates-from-external"
 import type { ExternalJam } from "@/app/actions/jam-actions"
 
@@ -454,7 +455,7 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
         if (onCompleted) {
           onCompleted(result.teamId ?? null)
         } else {
-          router.push(
+          navigateAfterServerAction(
             result.teamId ? `/dashboard?flow=new-team&id=${result.teamId}` : "/dashboard",
           )
         }

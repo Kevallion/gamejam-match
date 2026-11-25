@@ -72,14 +72,23 @@ export function AuthModal({ open, onOpenChange, next }: AuthModalProps) {
       const { error } = await supabase.auth.signInWithOtp({
         email: email.trim(),
         options: {
+          // Sign-in only: do not create a new Auth user (PROD-QA1).
+          shouldCreateUser: false,
           // En production : https://gamejamcrew.com/auth/callback?next=<returnTo>
           emailRedirectTo: redirectTo,
         },
       })
 
       if (error) {
+        const raw = (error.message ?? "").toLowerCase()
+        const isUnknownUser =
+          raw.includes("signups not allowed") ||
+          raw.includes("user not found") ||
+          (error.status === 422 && raw.includes("otp"))
         toast.error("Unable to send magic link", {
-          description: error.message,
+          description: isUnknownUser
+            ? "No account found for this email. Create one with Discord or Google, then you can use a magic link to sign in."
+            : error.message,
         })
         setIsMagicLoading(false)
         return
