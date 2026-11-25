@@ -35,7 +35,7 @@ import { gamificationRewardHasToast } from "@/lib/gamification-reward-types"
 import { dateInputToUtcEnd, dateInputToUtcStart } from "@/lib/jam-date-utc"
 import { dateRangeFromExternalJam } from "@/lib/jam-dates-from-external"
 import type { ExternalJam } from "@/app/actions/jam-actions"
-import { FLEXIBLE_DATES_LABEL } from "@/lib/listing-dates"
+import { FLEXIBLE_DATES_LABEL, validateOptionalJamRange } from "@/lib/listing-dates"
 
 type RoleEntry = {
   id: number
@@ -65,15 +65,6 @@ const LANGUAGE_OPTIONS = [
 
 const TEAM_FORM_ENGINE_VALUES = new Set<string>(ENGINE_OPTIONS.map((o) => o.value))
 const TEAM_FORM_LANGUAGE_VALUES = new Set<string>(LANGUAGE_OPTIONS.map((o) => o.value))
-
-/** Retourne les bornes YYYY-MM-DD si début et fin sont choisis. */
-function jamRangeToYmd(range: DateRange | undefined): { start: string; end: string } | null {
-  if (!range?.from || !range?.to) return null
-  return {
-    start: format(range.from, "yyyy-MM-dd"),
-    end: format(range.to, "yyyy-MM-dd"),
-  }
-}
 
 let roleIdCounter = 1
 
@@ -245,19 +236,9 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
         })
         return false
       }
-      const ymd = jamRangeToYmd(jamDateRange)
-      if (!ymd) {
-        toast.error("Jam dates required.", {
-          description: "Choose when your jam starts and ends so your listing stays accurate.",
-        })
-        return false
-      }
-      const startMs = new Date(dateInputToUtcStart(ymd.start)).getTime()
-      const endMs = new Date(dateInputToUtcEnd(ymd.end)).getTime()
-      if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || startMs >= endMs) {
-        toast.error("Invalid jam dates.", {
-          description: "Jam end must be after jam start.",
-        })
+      const jamDates = validateOptionalJamRange(jamDateRange)
+      if (!jamDates.ok) {
+        toast.error(jamDates.message)
         return false
       }
     }
@@ -380,14 +361,13 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
     const effectiveTeamVibe = isEmbeddedInvite ? "chill" : teamVibe || null
     const effectiveExperienceRequired = isEmbeddedInvite ? "any" : experienceRequired || null
 
-    const jamYmd = jamRangeToYmd(jamDateRange)
-    if (!jamYmd) {
+    const jamDates = validateOptionalJamRange(jamDateRange)
+    if (!jamDates.ok) {
       setLoading(false)
-      toast.error("Jam dates required.", {
-        description: "Select a full date range (start and end) for your jam.",
-      })
+      toast.error(jamDates.message)
       return
     }
+    const jamYmd = jamDates.ymd
 
     try {
       const result = await createTeam({
@@ -401,9 +381,11 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
         teamVibe: effectiveTeamVibe,
         experienceRequired: effectiveExperienceRequired,
         jamId: jamId || null,
-        jamStartDate: dateInputToUtcStart(jamYmd.start),
-        jamEndDate: dateInputToUtcEnd(jamYmd.end),
-      })
+        // undefined (not "") when dates are omitted. Current schema still requires
+        // the fields until Pixel pushes f96451e; the assertion is dropped after that.
+        jamStartDate: jamYmd ? dateInputToUtcStart(jamYmd.start) : undefined,
+        jamEndDate: jamYmd ? dateInputToUtcEnd(jamYmd.end) : undefined,
+      } as Parameters<typeof createTeam>[0])
       if (!result.success) {
         toast.error("Could not create the squad.", { description: result.error, duration: 12000 })
       } else {
@@ -562,7 +544,7 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
                       drawerTitle="When does your jam run?"
                       dateFormat="long"
                       numberOfMonthsDesktop={2}
-                      helperText="Your listing stays public until the jam end date (shown on your squad card). You can extend it later from the dashboard."
+                      helperText="Jam dates are optional. Leave them empty to show Flexible dates on your listing. If you set a range, the listing stays public until the jam end."
                     />
                   </div>
                 )}

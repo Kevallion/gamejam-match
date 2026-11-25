@@ -1,4 +1,6 @@
 import { format, isValid, parseISO } from "date-fns"
+import type { DateRange } from "react-day-picker"
+import { dateInputToUtcEnd, dateInputToUtcStart } from "@/lib/jam-date-utc"
 import { isJamStartBackfilledWithCreatedAt } from "@/lib/jam-calendar-status"
 
 /** English UI label when a listing has no dates. Capitaine wrote « Dates flexibles »; Wisllor can decide. */
@@ -54,4 +56,41 @@ export function formatListingDatesLabel(
     return `${format(start, "MMM d")} – ${format(end, "MMM d, yyyy")}`
   }
   return `${format(start, "MMM d, yyyy")} – ${format(end, "MMM d, yyyy")}`
+}
+
+export const JAM_DATES_INCOMPLETE_MESSAGE =
+  "Add both a start and end date, or leave both empty."
+export const JAM_DATES_ORDER_MESSAGE = "The jam start date must be before the end date."
+
+export type JamDateYmd = { start: string; end: string }
+export type JamDatesValidation =
+  | { ok: true; ymd: JamDateYmd | null }
+  | { ok: false; message: string }
+
+/** Optional jam window: both empty, or a complete start-before-end range. */
+export function validateOptionalJamYmd(
+  start: string | null | undefined,
+  end: string | null | undefined,
+): JamDatesValidation {
+  const startYmd = start?.trim() ?? ""
+  const endYmd = end?.trim() ?? ""
+  if (!startYmd && !endYmd) return { ok: true, ymd: null }
+  if (!startYmd || !endYmd) return { ok: false, message: JAM_DATES_INCOMPLETE_MESSAGE }
+  const startMs = new Date(dateInputToUtcStart(startYmd)).getTime()
+  const endMs = new Date(dateInputToUtcEnd(endYmd)).getTime()
+  if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || startMs >= endMs) {
+    return { ok: false, message: JAM_DATES_ORDER_MESSAGE }
+  }
+  return { ok: true, ymd: { start: startYmd, end: endYmd } }
+}
+
+export function validateOptionalJamRange(
+  range: DateRange | undefined,
+): JamDatesValidation {
+  const from = range?.from
+  const to = range?.to
+  return validateOptionalJamYmd(
+    from ? format(from, "yyyy-MM-dd") : "",
+    to ? format(to, "yyyy-MM-dd") : "",
+  )
 }

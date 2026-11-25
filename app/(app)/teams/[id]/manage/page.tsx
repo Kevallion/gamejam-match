@@ -65,6 +65,7 @@ import { gamificationRewardHasToast } from "@/lib/gamification-reward-types"
 import { EXPERIENCE_OPTIONS, JAM_STYLE_OPTIONS, ROLE_OPTIONS, ROLE_STYLES } from "@/lib/constants"
 import { TagIcon } from "@/components/tag-icon"
 import { DateRangeField } from "@/components/date-range-field"
+import { validateOptionalJamYmd } from "@/lib/listing-dates"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -473,18 +474,12 @@ export default function TeamManagePage() {
         return
       }
 
-      if (!editForm.jam_start_date || !editForm.jam_end_date) {
-        toast.error("Jam dates required.", {
-          description: "Please specify the Jam dates to keep your squad visible.",
-        })
+      const jamDates = validateOptionalJamYmd(editForm.jam_start_date, editForm.jam_end_date)
+      if (!jamDates.ok) {
+        toast.error(jamDates.message)
         return
       }
-      const startMs = new Date(dateInputToUtcStart(editForm.jam_start_date)).getTime()
-      const endMs = new Date(dateInputToUtcEnd(editForm.jam_end_date)).getTime()
-      if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || startMs >= endMs) {
-        toast.error("Invalid jam dates.", { description: "Jam end must be after jam start." })
-        return
-      }
+      const jamYmd = jamDates.ymd
 
       const result = await updateTeamJamListing({
         teamId,
@@ -498,17 +493,17 @@ export default function TeamManagePage() {
             : null,
         lookingFor: cleanLookingFor,
         jamId: editForm.jam_id || null,
-        jamStartDate: dateInputToUtcStart(editForm.jam_start_date),
-        jamEndDate: dateInputToUtcEnd(editForm.jam_end_date),
-      })
+        jamStartDate: jamYmd ? dateInputToUtcStart(jamYmd.start) : undefined,
+        jamEndDate: jamYmd ? dateInputToUtcEnd(jamYmd.end) : undefined,
+      } as Parameters<typeof updateTeamJamListing>[0])
 
       if (!result.success) {
         toast.error("Could not update the squad.", { description: result.error })
         return
       }
 
-      const jamStartIso = dateInputToUtcStart(editForm.jam_start_date)
-      const jamEndIso = dateInputToUtcEnd(editForm.jam_end_date)
+      const jamStartIso = jamYmd ? dateInputToUtcStart(jamYmd.start) : null
+      const jamEndIso = jamYmd ? dateInputToUtcEnd(jamYmd.end) : null
       setTeam((prev) =>
         prev
           ? {
@@ -780,18 +775,14 @@ export default function TeamManagePage() {
                         setEditForm((p) => ({
                           ...p,
                           jam_start_date: r?.from ? format(r.from, "yyyy-MM-dd") : "",
-                          jam_end_date: r?.to
-                            ? format(r.to, "yyyy-MM-dd")
-                            : r?.from
-                              ? p.jam_end_date
-                              : "",
+                          jam_end_date: r?.to ? format(r.to, "yyyy-MM-dd") : "",
                         }))
                       }}
                       placeholder="Choose jam start and end dates"
                       drawerTitle="When does your jam run?"
                       dateFormat="long"
                       numberOfMonthsDesktop={1}
-                      helperText="Required for your listing to stay visible. End date controls when the squad is archived."
+                      helperText="Jam dates are optional. Leave them empty to show Flexible dates on your listing. If you set a range, the end date controls when the squad is archived."
                     />
                     <div className="space-y-2">
                       <Label htmlFor="description">Description</Label>
