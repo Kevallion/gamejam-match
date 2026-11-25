@@ -27,14 +27,21 @@ function writeY(key: string, y: number) {
  * Restore window scroll after returning to a long card list.
  * Native restoration runs too early: the grid remounts as a short skeleton,
  * and off-screen `content-visibility` items only have an estimated height.
- * Re-applying on resize (and for a short window after render) covers both.
+ * The position is saved on the way out (click / pagehide) while the list
+ * route is still current — not on unmount, when the URL may already be
+ * the detail page and scrollY would be wrong. Re-applying on resize
+ * covers layout that settles after the first paint.
  */
 export function useListScrollRestoration(listId: string, ready: boolean) {
   useEffect(() => {
+    const listPath = window.location.pathname
     const previous = window.history.scrollRestoration
     window.history.scrollRestoration = "manual"
     let ticking = false
-    const save = () => writeY(listId, window.scrollY)
+    const save = () => {
+      if (window.location.pathname !== listPath) return
+      writeY(listId, window.scrollY)
+    }
     const onScroll = () => {
       if (ticking) return
       ticking = true
@@ -43,11 +50,20 @@ export function useListScrollRestoration(listId: string, ready: boolean) {
         save()
       })
     }
+    const onLeave = (event: Event) => {
+      if (event.type === "click") {
+        const target = event.target
+        if (!(target instanceof Element) || !target.closest("a[href]")) return
+      }
+      save()
+    }
     window.addEventListener("scroll", onScroll, { passive: true })
     window.addEventListener("pagehide", save)
+    document.addEventListener("click", onLeave, true)
     return () => {
       window.removeEventListener("scroll", onScroll)
       window.removeEventListener("pagehide", save)
+      document.removeEventListener("click", onLeave, true)
       save()
       window.history.scrollRestoration = previous
     }
