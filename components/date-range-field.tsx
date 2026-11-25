@@ -1,8 +1,8 @@
 "use client"
 
 import { useRef, type ReactNode } from "react"
-import { format } from "date-fns"
 import type { DateRange, Matcher } from "react-day-picker"
+import { formatDateSafe } from "@/lib/safe-date-format"
 import { selectDateRangeDay } from "@/lib/date-range-selection"
 import { CalendarDays } from "lucide-react"
 import { useIsMobile } from "@/hooks/use-mobile"
@@ -59,12 +59,14 @@ function formatRangeLabel(
   placeholder: string,
 ): string {
   if (!range?.from) return placeholder
-  const fmt =
-    dateFormat === "short"
-      ? (d: Date) => format(d, "MMM d")
-      : (d: Date) => format(d, "MMM d, yyyy")
-  if (range.to) return `${fmt(range.from)}${separator}${fmt(range.to)}`
-  return fmt(range.from)
+  const pattern = dateFormat === "short" ? "MMM d" : "MMM d, yyyy"
+  const fromLabel = formatDateSafe(range.from, pattern)
+  if (!fromLabel) return placeholder
+  if (range.to) {
+    const toLabel = formatDateSafe(range.to, pattern)
+    return toLabel ? `${fromLabel}${separator}${toLabel}` : fromLabel
+  }
+  return fromLabel
 }
 
 /**

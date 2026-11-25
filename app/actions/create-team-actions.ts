@@ -43,6 +43,11 @@ export type CreateTeamResult =
 
 export type { CreateTeamInput, CreateTeamLookingForEntry } from "@/lib/team-listing-schema"
 
+function isoTimestampOrNull(value: string): string | null {
+  const date = new Date(value)
+  return Number.isFinite(date.getTime()) ? date.toISOString() : null
+}
+
 export async function createTeam(input: CreateTeamInput): Promise<CreateTeamResult> {
   const parsed = createTeamFormSchema.safeParse(input)
   if (!parsed.success) {
@@ -114,8 +119,11 @@ export async function createTeam(input: CreateTeamInput): Promise<CreateTeamResu
 
   const jamId = (rawJamId == null ? "" : String(rawJamId)).trim() || null
 
-  const jamEndIso = new Date(jamEndDate).toISOString()
-  const jamStartIso = new Date(jamStartDate).toISOString()
+  const jamEndIso = isoTimestampOrNull(jamEndDate)
+  const jamStartIso = isoTimestampOrNull(jamStartDate)
+  if (!jamEndIso || !jamStartIso) {
+    return { success: false, error: "Invalid date." }
+  }
   const { sanitizeJamDisplayName } = await import("@/lib/teams-public")
   const safeJamName = sanitizeJamDisplayName(jamName) || jamName.trim()
 
@@ -268,8 +276,11 @@ export async function updateTeamJamListing(
     }
   }
 
-  const jamEndIso = new Date(jamEndDate).toISOString()
-  const jamStartIso = new Date(jamStartDate).toISOString()
+  const jamEndIso = isoTimestampOrNull(jamEndDate)
+  const jamStartIso = isoTimestampOrNull(jamStartDate)
+  if (!jamEndIso || !jamStartIso) {
+    return { success: false, error: "Invalid date." }
+  }
 
   const { error: updateError } = await supabase
     .from("teams")

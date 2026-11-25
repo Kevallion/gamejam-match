@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { useSearchParams } from "next/navigation"
-import { format } from "date-fns"
 import type { DateRange } from "react-day-picker"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -33,6 +32,8 @@ import { sendTeamInvitation } from "@/app/actions/invite-actions"
 import { showGamificationRewards } from "@/components/gamification-reward-toasts"
 import { gamificationRewardHasToast } from "@/lib/gamification-reward-types"
 import { dateInputToUtcEnd, dateInputToUtcStart } from "@/lib/jam-date-utc"
+import { formatDateSafe } from "@/lib/safe-date-format"
+import { hrefAfterSuccessfulTeamCreate } from "@/lib/create-team-success-navigation"
 import { navigateAfterServerAction } from "@/lib/navigate-after-server-action"
 import { dateRangeFromExternalJam } from "@/lib/jam-dates-from-external"
 import type { ExternalJam } from "@/app/actions/jam-actions"
@@ -69,10 +70,10 @@ const TEAM_FORM_LANGUAGE_VALUES = new Set<string>(LANGUAGE_OPTIONS.map((o) => o.
 /** Retourne les bornes YYYY-MM-DD si début et fin sont choisis. */
 function jamRangeToYmd(range: DateRange | undefined): { start: string; end: string } | null {
   if (!range?.from || !range?.to) return null
-  return {
-    start: format(range.from, "yyyy-MM-dd"),
-    end: format(range.to, "yyyy-MM-dd"),
-  }
+  const start = formatDateSafe(range.from, "yyyy-MM-dd")
+  const end = formatDateSafe(range.to, "yyyy-MM-dd")
+  if (!start || !end) return null
+  return { start, end }
 }
 
 let roleIdCounter = 1
@@ -440,24 +441,25 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
         if (!(result.teamId && inviteContext?.inviteeId && inviteContext?.inviteeUsername)) {
           toast.success("Squad created successfully!", { description: "Your listing is now live." })
         }
-        setTeamName("")
-        setJamName("")
-        setEngine("")
-        setLanguage("")
-        setTeamVibe("")
-        setExperienceRequired("")
-        setDiscordLink("")
-        setJamId(null)
-        setJamDateRange(undefined)
-        setDiscordLinkError("")
-        setDescription("")
-        setRoles([{ id: nextRoleId(), role: "", level: "" }])
+        // Navigate before resetting fields. A dated review re-render can throw
+        // if format() sees a bad Date after the Server Action, which cancelled
+        // router.push (flex has no dates in the review, so it still redirected).
         if (onCompleted) {
+          setTeamName("")
+          setJamName("")
+          setEngine("")
+          setLanguage("")
+          setTeamVibe("")
+          setExperienceRequired("")
+          setDiscordLink("")
+          setJamId(null)
+          setJamDateRange(undefined)
+          setDiscordLinkError("")
+          setDescription("")
+          setRoles([{ id: nextRoleId(), role: "", level: "" }])
           onCompleted(result.teamId ?? null)
         } else {
-          navigateAfterServerAction(
-            result.teamId ? `/dashboard?flow=new-team&id=${result.teamId}` : "/dashboard",
-          )
+          navigateAfterServerAction(hrefAfterSuccessfulTeamCreate(result.teamId))
         }
       }
     } catch (err) {
@@ -841,9 +843,7 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
                       <p className="mt-3 text-xs text-muted-foreground">
                         Listing visible until{" "}
                         <span className="font-medium text-foreground">
-                          {jamDateRange?.to
-                            ? format(jamDateRange.to, "MMM d, yyyy")
-                            : "—"}
+                          {formatDateSafe(jamDateRange?.to, "MMM d, yyyy", "—")}
                         </span>{" "}
                         (jam end).
                       </p>

@@ -11,8 +11,9 @@ const requiredSnippets = [
   [actionSource, "app/actions/create-team-actions.ts", "const teamId = crypto.randomUUID()"],
   [actionSource, "app/actions/create-team-actions.ts", "id: teamId"],
   [actionSource, "app/actions/create-team-actions.ts", 'supabase.from("teams").insert([teamData])'],
-  [actionSource, "app/actions/create-team-actions.ts", "const jamStartIso = new Date(jamStartDate).toISOString()"],
-  [actionSource, "app/actions/create-team-actions.ts", "const jamEndIso = new Date(jamEndDate).toISOString()"],
+  [actionSource, "app/actions/create-team-actions.ts", "const jamStartIso = isoTimestampOrNull(jamStartDate)"],
+  [actionSource, "app/actions/create-team-actions.ts", "const jamEndIso = isoTimestampOrNull(jamEndDate)"],
+  [actionSource, "app/actions/create-team-actions.ts", "function isoTimestampOrNull"],
   [s7Source, "20261120140000_profiles_rls_lockdown.sql", "REVOKE SELECT ON TABLE public.teams FROM anon, authenticated"],
   [s7Source, "20261120140000_profiles_rls_lockdown.sql", "IF col.attname = 'discord_link' THEN"],
 ]
@@ -42,8 +43,10 @@ const cases = [
   {
     name: "createTeam still requires jam start and end dates",
     fn: () =>
-      actionSource.includes("const jamStartIso = new Date(jamStartDate).toISOString()") &&
-      actionSource.includes("const jamEndIso = new Date(jamEndDate).toISOString()") &&
+      actionSource.includes("const jamStartIso = isoTimestampOrNull(jamStartDate)") &&
+      actionSource.includes("const jamEndIso = isoTimestampOrNull(jamEndDate)") &&
+      actionSource.includes("function isoTimestampOrNull") &&
+      actionSource.includes('return { success: false, error: "Invalid date." }') &&
       actionSource.includes("jam_start_date: jamStartIso") &&
       actionSource.includes("jam_end_date: jamEndIso") &&
       !actionSource.includes("normalizeJamListingDates") &&
