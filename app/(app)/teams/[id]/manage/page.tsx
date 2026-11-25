@@ -65,7 +65,7 @@ import { gamificationRewardHasToast } from "@/lib/gamification-reward-types"
 import { EXPERIENCE_OPTIONS, JAM_STYLE_OPTIONS, ROLE_OPTIONS, ROLE_STYLES } from "@/lib/constants"
 import { TagIcon } from "@/components/tag-icon"
 import { DateRangeField } from "@/components/date-range-field"
-import { validateOptionalJamYmd } from "@/lib/listing-dates"
+import { FLEXIBLE_DATES_LABEL, validateOptionalJamYmd } from "@/lib/listing-dates"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -782,7 +782,7 @@ export default function TeamManagePage() {
                       drawerTitle="When does your jam run?"
                       dateFormat="long"
                       numberOfMonthsDesktop={1}
-                      helperText="Jam dates are optional. Leave them empty to show Flexible dates on your listing. If you set a range, the end date controls when the squad is archived."
+                      helperText={`Jam dates are optional. Leave them empty to show ${FLEXIBLE_DATES_LABEL} on your listing. If you set a range, the end date controls when the squad is archived.`}
                     />
                     <div className="space-y-2">
                       <Label htmlFor="description">Description</Label>

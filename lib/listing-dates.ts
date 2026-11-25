@@ -3,8 +3,8 @@ import type { DateRange } from "react-day-picker"
 import { dateInputToUtcEnd, dateInputToUtcStart } from "@/lib/jam-date-utc"
 import { isJamStartBackfilledWithCreatedAt } from "@/lib/jam-calendar-status"
 
-/** English UI label when a listing has no dates. Capitaine wrote « Dates flexibles »; Wisllor can decide. */
-export const FLEXIBLE_DATES_LABEL = "Flexible dates"
+/** Exception FR decided by Wisllor on 25 Nov 2026: this label is French, unlike the rest of the UI. */
+export const FLEXIBLE_DATES_LABEL = "Dates flexibles"
 
 const UNSPECIFIED_AVAILABILITY = new Set([
   "",

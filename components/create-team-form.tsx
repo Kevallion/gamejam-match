@@ -544,7 +544,7 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
                       drawerTitle="When does your jam run?"
                       dateFormat="long"
                       numberOfMonthsDesktop={2}
-                      helperText="Jam dates are optional. Leave them empty to show Flexible dates on your listing. If you set a range, the listing stays public until the jam end."
+                      helperText={`Jam dates are optional. Leave them empty to show ${FLEXIBLE_DATES_LABEL} on your listing. If you set a range, the listing stays public until the jam end.`}
                     />
                   </div>
                 )}
