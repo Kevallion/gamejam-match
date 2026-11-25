@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next'
-import { Nunito } from 'next/font/google'
+import localFont from 'next/font/local'
 import { AuthCallbackHandler } from '@/components/auth-callback-handler'
 import { AuthProvider } from '@/components/auth-provider'
 import { ThemeProvider } from '@/components/theme-provider'
@@ -11,10 +11,10 @@ import { SigningOutCover } from '@/components/auth/signing-out-cover'
 import { BfcacheAuthGuard } from '@/components/auth/bfcache-auth-guard'
 import './globals.css'
 
-const nunito = Nunito({
-  subsets: ['latin'],
+const nunito = localFont({
+  src: './fonts/nunito/Nunito-Variable-latin.woff2',
   variable: '--font-nunito',
-  weight: ['400', '500', '600', '700', '800'],
+  weight: '400 800',
   display: 'swap',
   // Single DS-1 face for body and headings (LCP text included).
   preload: true,
