@@ -78,7 +78,7 @@ export function sectionTitleForTab(tab: DashboardTabValue | null, meHub = false)
     case "availability":
       return "My posts"
     case "achievements":
-      return "Achievements"
+      return "Rewards"
     case "settings":
       return "Settings"
     case "squads":

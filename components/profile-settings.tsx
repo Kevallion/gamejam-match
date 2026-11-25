@@ -101,13 +101,13 @@ function SectionLink({
         aria-current={active ? "location" : undefined}
         onClick={onClick}
         className={cn(
-          "flex min-w-0 flex-col items-center gap-0.5 rounded-xl px-1 py-2 text-xs font-bold transition-colors",
+          "flex min-w-0 shrink-0 flex-col items-center gap-0.5 rounded-xl px-3 py-2 text-xs font-bold transition-colors",
           active ? "bg-teal text-teal-foreground shadow-[2px_2px_0_0_var(--neo-shadow)]" : "text-muted-foreground hover:text-foreground",
           FOCUS,
         )}
       >
         <AppIcon icon={section.icon} size="md" />
-        <span className="max-w-full truncate">{section.label}</span>
+        <span className="leading-none tracking-tight">{section.label}</span>
       </a>
     )
   }

@@ -22,6 +22,7 @@ const CHOICE_CLASS = "min-h-11 w-full rounded-xl px-3 text-base font-semibold sm
 export function CookieBanner({ onAcceptAll, onRejectAll, onCustomize }: CookieBannerProps) {
   return (
     <section
+      id="cookie-banner"
       role="region"
       aria-labelledby="cookie-banner-title"
       aria-describedby="cookie-banner-desc"
@@ -46,7 +47,7 @@ export function CookieBanner({ onAcceptAll, onRejectAll, onCustomize }: CookieBa
             </p>
           </div>
         </div>
-        <div className="grid grid-cols-3 gap-2 sm:flex sm:shrink-0">
+        <div className="flex flex-col gap-2 sm:flex-row sm:shrink-0">
           <Button type="button" variant="outline" className={CHOICE_CLASS} onClick={onRejectAll}>
             Reject all
           </Button>

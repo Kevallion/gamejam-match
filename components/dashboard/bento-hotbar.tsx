@@ -186,7 +186,7 @@ export function BentoHotbar({ inboxCount = 0, availabilityCount = 0 }: BentoHotb
           aria-expanded={moreOpen}
           aria-controls="app-more-sheet"
           className={cn(
-            "relative flex min-h-11 min-w-11 w-[52px] shrink-0 flex-col items-center gap-0.5 text-xs font-bold transition-colors",
+            "relative flex min-h-11 min-w-0 flex-1 flex-col items-center gap-0.5 px-0.5 text-center text-xs font-bold leading-none tracking-tight transition-colors",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
             moreActive ? "text-primary" : "text-muted-foreground",
           )}
@@ -194,7 +194,7 @@ export function BentoHotbar({ inboxCount = 0, availabilityCount = 0 }: BentoHotb
           <span className="relative">
             <AppIcon icon={ICON.more} size="lg" tone={moreActive ? "primary" : "muted"} />
           </span>
-          <span className="max-w-full truncate">More</span>
+          <span className="max-w-full text-center leading-none tracking-tight">More</span>
           {moreActive ? (
             <span className="mt-0.5 h-1 w-[18px] rounded-full bg-primary" aria-hidden />
           ) : (
@@ -290,7 +290,7 @@ function MobileHotbarLink({
       aria-label={item.label}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "relative flex min-h-11 min-w-11 w-[52px] shrink-0 flex-col items-center gap-0.5 text-xs font-bold transition-colors",
+        "relative flex min-h-11 min-w-0 flex-1 flex-col items-center gap-0.5 px-0.5 text-center text-xs font-bold leading-none tracking-tight transition-colors",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
         active ? "text-primary" : "text-muted-foreground",
       )}
@@ -303,7 +303,7 @@ function MobileHotbarLink({
           </span>
         ) : null}
       </span>
-      <span className="max-w-full truncate">{item.label}</span>
+      <span className="max-w-full text-center leading-none tracking-tight">{item.label}</span>
       {active ? (
         <span className="mt-0.5 h-1 w-[18px] rounded-full bg-primary" aria-hidden />
       ) : (

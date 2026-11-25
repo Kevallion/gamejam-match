@@ -161,7 +161,8 @@ export function AppHeader({
             className="truncate font-display text-xl font-extrabold tracking-tight text-foreground app-desktop:text-2xl"
             title={subtitle ? `${titleText} — ${subtitle}` : titleText}
           >
-            {titleText}
+            <span className="app-desktop:hidden">{title}</span>
+            <span className="hidden app-desktop:inline">{titleText}</span>
           </h1>
         </div>
 

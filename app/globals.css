@@ -569,6 +569,7 @@ a,
 
   .app-shell-main {
     scroll-padding-bottom: calc(var(--app-hotbar-h) + max(var(--app-hotbar-inset), env(safe-area-inset-bottom, 0px)));
+    padding-bottom: calc(var(--app-hotbar-h) + max(var(--app-hotbar-inset), env(safe-area-inset-bottom, 0px)) + 0.5rem);
   }
 
   .app-shell-hotbar-spacer {
@@ -631,6 +632,20 @@ html:has(.app-shell) .feedback-fab {
   display: block;
   bottom: calc(var(--app-hotbar-h) + max(var(--app-hotbar-inset), env(safe-area-inset-bottom, 0px)) + 0.5rem);
 }
+
+/* Keep app-shell dialogs (onboarding, sheets) clear of the floating hotbar. */
+html:has(.app-shell) [data-slot="dialog-content"] {
+  top: auto;
+  bottom: calc(var(--app-hotbar-h) + max(var(--app-hotbar-inset), env(safe-area-inset-bottom, 0px)) + 0.75rem);
+  max-height: calc(100dvh - 5.5rem - var(--app-hotbar-h) - max(var(--app-hotbar-inset), env(safe-area-inset-bottom, 0px)));
+  transform: translate(-50%, 0);
+}
+
+/* The feedback FAB sits on the Accept button while the cookie banner is open. */
+html:has(#cookie-banner) .feedback-fab {
+  display: none;
+}
+
 
 
 
