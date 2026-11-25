@@ -627,10 +627,10 @@ html:has(.app-shell) {
   right: max(1.5rem, env(safe-area-inset-right, 1.5rem));
 }
 
-/* Sit above the signed-in hotbar and sticky form actions (wizard Back/Next). */
+/* Sit above the signed-in hotbar so the More tab stays clickable. */
 html:has(.app-shell) .feedback-fab {
   display: block;
-  bottom: calc(var(--app-hotbar-h) + max(var(--app-hotbar-inset), env(safe-area-inset-bottom, 0px)) + 4.25rem);
+  bottom: calc(var(--app-hotbar-h) + max(var(--app-hotbar-inset), env(safe-area-inset-bottom, 0px)) + 0.5rem);
 }
 
 /* Keep app-shell dialogs (onboarding, sheets) clear of the floating hotbar. */
@@ -643,6 +643,11 @@ html:has(.app-shell) [data-slot="dialog-content"] {
 
 /* The feedback FAB sits on the Accept button while the cookie banner is open. */
 html:has(#cookie-banner) .feedback-fab {
+  display: none;
+}
+
+/* Hide it on the announcement wizard so it cannot cover Back / Next. */
+html:has(.app-wizard-actions) .feedback-fab {
   display: none;
 }
 

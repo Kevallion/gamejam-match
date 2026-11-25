@@ -873,7 +873,7 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
                 )}
 
                 {/* Sticky bottom actions */}
-                <div className="sticky bottom-[calc(var(--app-hotbar-h)+max(var(--app-hotbar-inset),env(safe-area-inset-bottom,0px)))] z-40 -mx-6 border-t border-border/60 bg-background px-4 py-3 md:mx-0 md:mt-4 md:border-none md:bg-transparent md:px-0 md:py-0">
+                <div className="app-wizard-actions sticky bottom-[calc(var(--app-hotbar-h)+max(var(--app-hotbar-inset),env(safe-area-inset-bottom,0px)))] z-40 -mx-6 border-t border-border/60 bg-background px-4 py-3 md:mx-0 md:mt-4 md:border-none md:bg-transparent md:px-0 md:py-0">
                   <div className="mx-auto flex w-full max-w-3xl items-center justify-between gap-3 md:px-0">
                     <div className="hidden text-xs text-muted-foreground md:block">
                       {step === 1 && "Basics — squad name & jam."}
