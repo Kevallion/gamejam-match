@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { useSearchParams } from "next/navigation"
-import { format } from "date-fns"
 import type { DateRange } from "react-day-picker"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -32,11 +31,12 @@ import { createTeam } from "@/app/actions/create-team-actions"
 import { sendTeamInvitation } from "@/app/actions/invite-actions"
 import { showGamificationRewards } from "@/components/gamification-reward-toasts"
 import { gamificationRewardHasToast } from "@/lib/gamification-reward-types"
-import { dateInputToUtcEnd, dateInputToUtcStart, formatJamCalendarDate } from "@/lib/jam-date-utc"
+import { dateInputToUtcEnd, dateInputToUtcStart } from "@/lib/jam-date-utc"
+import { hrefAfterSuccessfulTeamCreate } from "@/lib/create-team-success-navigation"
 import { navigateAfterServerAction } from "@/lib/navigate-after-server-action"
 import { dateRangeFromExternalJam } from "@/lib/jam-dates-from-external"
 import type { ExternalJam } from "@/app/actions/jam-actions"
-import { FLEXIBLE_DATES_LABEL, validateOptionalJamRange } from "@/lib/listing-dates"
+import { FLEXIBLE_DATES_LABEL, formatJamDateRangeReview, validateOptionalJamRange } from "@/lib/listing-dates"
 
 type RoleEntry = {
   id: number
@@ -423,24 +423,25 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
         if (!(result.teamId && inviteContext?.inviteeId && inviteContext?.inviteeUsername)) {
           toast.success("Squad created successfully!", { description: "Your listing is now live." })
         }
-        setTeamName("")
-        setJamName("")
-        setEngine("")
-        setLanguage("")
-        setTeamVibe("")
-        setExperienceRequired("")
-        setDiscordLink("")
-        setJamId(null)
-        setJamDateRange(undefined)
-        setDiscordLinkError("")
-        setDescription("")
-        setRoles([{ id: nextRoleId(), role: "", level: "" }])
+        // Navigate before resetting fields. A dated review re-render can throw
+        // if format() sees a bad Date after the Server Action, which cancelled
+        // router.push (flex has no dates in the review, so it still redirected).
         if (onCompleted) {
+          setTeamName("")
+          setJamName("")
+          setEngine("")
+          setLanguage("")
+          setTeamVibe("")
+          setExperienceRequired("")
+          setDiscordLink("")
+          setJamId(null)
+          setJamDateRange(undefined)
+          setDiscordLinkError("")
+          setDescription("")
+          setRoles([{ id: nextRoleId(), role: "", level: "" }])
           onCompleted(result.teamId ?? null)
         } else {
-          navigateAfterServerAction(
-            result.teamId ? `/dashboard?flow=new-team&id=${result.teamId}` : "/dashboard",
-          )
+          navigateAfterServerAction(hrefAfterSuccessfulTeamCreate(result.teamId))
         }
       }
     } catch (err) {
@@ -823,30 +824,16 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
                         )}
                       </ul>
                       <p className="mt-3 text-xs text-muted-foreground">
-                        {jamDateRange?.from ? (
+                        {(() => {
+                          const review = formatJamDateRangeReview(jamDateRange, FLEXIBLE_DATES_LABEL)
+                          return (
                           <>
                             Jam dates:{" "}
-                            <span className="font-medium text-foreground">
-                              {jamDateRange.to
-                                ? [
-                                    formatJamCalendarDate(dateInputToUtcStart(format(jamDateRange.from, "yyyy-MM-dd"))),
-                                    formatJamCalendarDate(dateInputToUtcEnd(format(jamDateRange.to, "yyyy-MM-dd"))),
-                                  ].filter(Boolean).join(" – ")
-                                : formatJamCalendarDate(dateInputToUtcStart(format(jamDateRange.from, "yyyy-MM-dd")))}
-                            </span>
-                            {jamDateRange.to ? (
-                              <>
-                                {" "}
-                                (listing visible until the jam end).
-                              </>
-                            ) : null}
+                            <span className="font-medium text-foreground">{review.text}</span>
+                            {review.hasEnd ? <> (listing visible until the jam end).</> : null}
                           </>
-                        ) : (
-                          <>
-                            Jam dates:{" "}
-                            <span className="font-medium text-foreground">{FLEXIBLE_DATES_LABEL}</span>
-                          </>
-                        )}
+                          )
+                        })()}
                       </p>
                     </div>
 

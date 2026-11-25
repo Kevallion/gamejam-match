@@ -1,7 +1,9 @@
 import type { DateRange } from "react-day-picker"
-import { format } from "date-fns"
 import { dateInputToUtcEnd, dateInputToUtcStart, formatJamCalendarDate } from "@/lib/jam-date-utc"
 import { isJamStartBackfilledWithCreatedAt } from "@/lib/jam-calendar-status"
+import { formatDateSafe } from "./safe-date-format"
+
+export { formatJamDateRangeReview } from "./format-jam-date-range-review"
 
 /** Exception FR decided by Wisllor on 25 Nov 2026: this label is French, unlike the rest of the UI. */
 export const FLEXIBLE_DATES_LABEL = "Dates flexibles"
@@ -104,7 +106,7 @@ export function validateOptionalJamRange(
   const from = range?.from
   const to = range?.to
   return validateOptionalJamYmd(
-    from ? format(from, "yyyy-MM-dd") : "",
-    to ? format(to, "yyyy-MM-dd") : "",
+    from ? formatDateSafe(from, "yyyy-MM-dd") : "",
+    to ? formatDateSafe(to, "yyyy-MM-dd") : "",
   )
 }
