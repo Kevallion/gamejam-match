@@ -3,6 +3,7 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useListScrollRestoration } from "@/hooks/use-list-scroll-restoration"
 import Link from "next/link"
 import { TeamCard, type TeamCardData } from "@/components/team-card"
 import { Button } from "@/components/ui/button"
@@ -370,6 +371,8 @@ export function TeamGrid({
   useEffect(() => {
     onResultsCountChange?.(displayedTeams.length)
   }, [displayedTeams.length, onResultsCountChange])
+
+  useListScrollRestoration("teams", displayedTeams.length > 0)
 
   if (!teams.length && hasMore) {
     return (

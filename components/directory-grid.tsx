@@ -1,6 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
+import { useListScrollRestoration } from "@/hooks/use-list-scroll-restoration"
 import { type JammerCardData, type SquadOption } from "@/components/player-card"
 import { DirectoryCard } from "@/components/directory-card"
 import { Button } from "@/components/ui/button"
@@ -221,6 +222,8 @@ export function DirectoryGrid({
     await fetchPage(offsetRef.current, true)
     setLoadingMore(false)
   }
+
+  useListScrollRestoration("directory", !loading && jammers.length > 0)
 
   if (loading) {
     return (

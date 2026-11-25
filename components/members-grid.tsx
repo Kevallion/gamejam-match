@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import { useListScrollRestoration } from "@/hooks/use-list-scroll-restoration"
 import Link from "next/link"
 import { JammerCard, type SquadOption } from "@/components/player-card"
 import { Button } from "@/components/ui/button"
@@ -165,6 +166,8 @@ export function MembersGrid({
   useEffect(() => {
     onResultsCountChange?.(members.length)
   }, [members.length, onResultsCountChange])
+
+  useListScrollRestoration("members", members.length > 0)
 
   return (
     <section className="px-4 pb-16 pt-4 sm:px-6 lg:pb-24">
