@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs"
+import { readdirSync, readFileSync } from "node:fs"
 import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
 
@@ -51,6 +51,16 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..")
 const helperSource = readFileSync(join(root, "lib/jam-listing-dates.ts"), "utf8")
 const schemaSource = readFileSync(join(root, "lib/team-listing-schema.ts"), "utf8")
 const actionSource = readFileSync(join(root, "app/actions/create-team-actions.ts"), "utf8")
+const s7Source = readFileSync(
+  join(root, "supabase/migrations/20261120140000_profiles_rls_lockdown.sql"),
+  "utf8",
+)
+const laterMigrations = readdirSync(join(root, "supabase/migrations"))
+  .filter((name) => name.endsWith(".sql") && name > "20261120140000_profiles_rls_lockdown.sql")
+  .map((name) => ({
+    name,
+    source: readFileSync(join(root, "supabase/migrations", name), "utf8"),
+  }))
 
 const requiredSnippets = [
   [helperSource, "lib/jam-listing-dates.ts", "export function normalizeJamListingDates"],
@@ -61,6 +71,10 @@ const requiredSnippets = [
   [actionSource, "app/actions/create-team-actions.ts", "jam_start_date: jamDates.jamStartIso"],
   [actionSource, "app/actions/create-team-actions.ts", "jam_end_date: jamDates.jamEndIso"],
   [actionSource, "app/actions/create-team-actions.ts", "expires_at: jamDates.expiresAt"],
+  [actionSource, "app/actions/create-team-actions.ts", "const teamId = crypto.randomUUID()"],
+  [actionSource, "app/actions/create-team-actions.ts", "id: teamId"],
+  [actionSource, "app/actions/create-team-actions.ts", 'supabase.from("teams").insert([teamData])'],
+  [s7Source, "20261120140000_profiles_rls_lockdown.sql", "REVOKE SELECT ON TABLE public.teams FROM anon, authenticated"],
 ]
 
 for (const [source, file, snippet] of requiredSnippets) {
@@ -149,6 +163,35 @@ const cases = [
   {
     name: "update path no longer blocks listings without dates",
     fn: () => !actionSource.includes("MISSING_JAM_DATES_MSG"),
+  },
+  {
+    name: "createTeam returns a server-generated id",
+    fn: () =>
+      actionSource.includes("const teamId = crypto.randomUUID()") &&
+      actionSource.includes("id: teamId") &&
+      actionSource.includes("teamId: teamId"),
+  },
+  {
+    name: "createTeam inserts without PostgREST return=representation",
+    fn: () =>
+      actionSource.includes('supabase.from("teams").insert([teamData])') &&
+      !actionSource.includes('.select("id")') &&
+      !actionSource.includes(".select('id')"),
+  },
+  {
+    name: "S7 still hides teams.discord_link from other roles",
+    fn: () =>
+      s7Source.includes("REVOKE SELECT ON TABLE public.teams FROM anon, authenticated") &&
+      s7Source.includes("IF col.attname = 'discord_link' THEN"),
+  },
+  {
+    name: "later migrations do not grant other users more team columns",
+    fn: () =>
+      laterMigrations.every(
+        (file) =>
+          !/GRANT\s+SELECT\s+ON\s+TABLE\s+public\.teams/i.test(file.source) &&
+          !/GRANT\s+SELECT\s*\(\s*discord_link\s*\)/i.test(file.source),
+      ),
   },
 ]
 
