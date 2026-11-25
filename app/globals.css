@@ -627,10 +627,10 @@ html:has(.app-shell) {
   right: max(1.5rem, env(safe-area-inset-right, 1.5rem));
 }
 
-/* Sit above the signed-in hotbar so the More tab stays clickable. */
+/* Sit above the signed-in hotbar and sticky form actions (wizard Back/Next). */
 html:has(.app-shell) .feedback-fab {
   display: block;
-  bottom: calc(var(--app-hotbar-h) + max(var(--app-hotbar-inset), env(safe-area-inset-bottom, 0px)) + 0.5rem);
+  bottom: calc(var(--app-hotbar-h) + max(var(--app-hotbar-inset), env(safe-area-inset-bottom, 0px)) + 4.25rem);
 }
 
 /* Keep app-shell dialogs (onboarding, sheets) clear of the floating hotbar. */
