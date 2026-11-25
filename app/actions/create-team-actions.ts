@@ -119,7 +119,13 @@ export async function createTeam(input: CreateTeamInput): Promise<CreateTeamResu
   const { sanitizeJamDisplayName } = await import("@/lib/teams-public")
   const safeJamName = sanitizeJamDisplayName(jamName) || jamName.trim()
 
+  // Generate the id here and insert without .select().
+  // S7 revoked table-level SELECT and SELECT(discord_link). PostgREST
+  // insert().select() uses Prefer: return=representation (RETURNING *),
+  // which fails with 42501 and rolls back the new row.
+  const teamId = crypto.randomUUID()
   const teamData = {
+    id: teamId,
     user_id: user.id,
     team_name: teamName,
     game_name: safeJamName,
@@ -135,17 +141,17 @@ export async function createTeam(input: CreateTeamInput): Promise<CreateTeamResu
     expires_at: jamEndIso,
   }
 
-  const { data, error } = await supabase.from("teams").insert([teamData]).select("id").single()
+  const { error } = await supabase.from("teams").insert([teamData])
 
-  if (error || !data?.id) {
-    return { success: false, error: error?.message ?? "Could not create the squad." }
+  if (error) {
+    return { success: false, error: error.message ?? "Could not create the squad." }
   }
 
   if (discordLinkValue) {
     const { upsertTeamDiscordLink } = await import("@/lib/team-discord")
     const { error: discordError } = await upsertTeamDiscordLink(
       supabase,
-      data.id as string,
+      teamId,
       discordLinkValue,
     )
     if (discordError) {
@@ -156,7 +162,7 @@ export async function createTeam(input: CreateTeamInput): Promise<CreateTeamResu
   // Best-effort transactional follow-up (doesn't block team creation).
   if (user.email) {
     try {
-      await sendTeamCreationFollowUp(user.email, teamName, data.id as string, user.id)
+      await sendTeamCreationFollowUp(user.email, teamName, teamId, user.id)
     } catch {
       // Silent: email issues shouldn't block the primary flow.
     }
@@ -171,7 +177,7 @@ export async function createTeam(input: CreateTeamInput): Promise<CreateTeamResu
 
   return {
     success: true,
-    teamId: data.id as string,
+    teamId: teamId,
     gamification: gamification.ok ? gamification.reward : undefined,
   }
 }
