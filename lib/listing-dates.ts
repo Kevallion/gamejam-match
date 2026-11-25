@@ -16,10 +16,14 @@ export function isUnspecifiedAvailability(value: string | null | undefined): boo
   return UNSPECIFIED_AVAILABILITY.has(value.trim().toLowerCase())
 }
 
-/** Display helper. Stored empty / "Not specified" values stay unchanged in the database. */
+const AVAILABILITY_DATE = /^\d{4}-\d{2}-\d{2}(?:\s+to\s+\d{4}-\d{2}-\d{2})?$/i
+
+/** Display helper. Stored empty / "Not specified" / non-date values stay unchanged in the database. */
 export function formatAvailabilityLabel(value: string | null | undefined): string {
   if (isUnspecifiedAvailability(value)) return FLEXIBLE_DATES_LABEL
-  return value!.trim()
+  const trimmed = value!.trim()
+  if (!AVAILABILITY_DATE.test(trimmed)) return FLEXIBLE_DATES_LABEL
+  return trimmed
 }
 
 export function listingHasRealJamDates(

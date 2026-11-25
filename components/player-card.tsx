@@ -135,7 +135,7 @@ function parseAvailability(availability: string | undefined): { label: string; i
   try {
     const fromDate = parseISO(fromStr)
     if (!Number.isFinite(fromDate.getTime())) {
-      return { label: trimmed, isWarning: false, isDate: false }
+      return { label: FLEXIBLE_DATES_LABEL, isWarning: false, isDate: false }
     }
     const fromLabel = format(fromDate, "MMM d")
     const endDate = toStr ? parseISO(toStr) : fromDate
@@ -150,7 +150,7 @@ function parseAvailability(availability: string | undefined): { label: string; i
       isDate: true,
     }
   } catch {
-    return { label: trimmed, isWarning: false, isDate: false }
+    return { label: FLEXIBLE_DATES_LABEL, isWarning: false, isDate: false }
   }
 }
 
