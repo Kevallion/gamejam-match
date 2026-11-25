@@ -87,11 +87,14 @@ export function useListScrollRestoration(listId: string, ready: boolean) {
     })
     const observer = new ResizeObserver(() => apply())
     observer.observe(document.documentElement)
-    const timers = [50, 100, 200, 400, 800].map((ms) => window.setTimeout(apply, ms))
+    // Focus restoration on the opened card can scroll it into view after our first apply.
+    window.addEventListener("focusin", apply)
+    const timers = [50, 100, 200, 400, 800, 1200].map((ms) => window.setTimeout(apply, ms))
     return () => {
       cancelled = true
       cancelAnimationFrame(frame)
       observer.disconnect()
+      window.removeEventListener("focusin", apply)
       for (const id of timers) window.clearTimeout(id)
     }
   }, [listId, ready])
