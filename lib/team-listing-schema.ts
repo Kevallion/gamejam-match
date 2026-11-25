@@ -1,4 +1,5 @@
 import { z } from "zod"
+import { normalizeJamListingDates } from "@/lib/jam-listing-dates"
 
 const isoTimestamp = z
   .string()
@@ -6,12 +7,32 @@ const isoTimestamp = z
   .min(1)
   .refine((s) => !Number.isNaN(Date.parse(s)), "Invalid date.")
 
+/** Empty, null, or omitted dates become undefined so a squad can be published without a jam window. */
+const optionalIsoTimestamp = z.preprocess(
+  (v) => (v == null || (typeof v === "string" && v.trim() === "") ? undefined : v),
+  isoTimestamp.optional(),
+)
+
 const createTeamLookingForSchema = z.object({
   role: z.string(),
   level: z.string(),
 })
 
-/** Zod schema for team creation (jam dates required). Not in a "use server" file — Next.js forbids exporting objects from those. */
+function refineJamListingDates(
+  data: { jamStartDate?: string; jamEndDate?: string },
+  ctx: z.RefinementCtx,
+) {
+  const result = normalizeJamListingDates(data)
+  if (!result.ok) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: result.error,
+      path: [result.path],
+    })
+  }
+}
+
+/** Zod schema for team creation (jam dates optional). Not in a "use server" file — Next.js forbids exporting objects from those. */
 export const createTeamFormSchema = z
   .object({
     teamName: z.string().trim().min(1, "Team name is required."),
@@ -29,13 +50,10 @@ export const createTeamFormSchema = z
         z.union([z.string().uuid(), z.null()]),
       )
       .optional(),
-    jamStartDate: isoTimestamp,
-    jamEndDate: isoTimestamp,
+    jamStartDate: optionalIsoTimestamp,
+    jamEndDate: optionalIsoTimestamp,
   })
-  .refine(
-    (data) => new Date(data.jamStartDate).getTime() < new Date(data.jamEndDate).getTime(),
-    { message: "Jam start must be before jam end.", path: ["jamEndDate"] },
-  )
+  .superRefine(refineJamListingDates)
 
 export type CreateTeamLookingForEntry = { role: string; level: string }
 
@@ -56,12 +74,9 @@ export const updateTeamJamListingSchema = z
         z.string().uuid().nullable(),
       )
       .optional(),
-    jamStartDate: isoTimestamp,
-    jamEndDate: isoTimestamp,
+    jamStartDate: optionalIsoTimestamp,
+    jamEndDate: optionalIsoTimestamp,
   })
-  .refine(
-    (data) => new Date(data.jamStartDate).getTime() < new Date(data.jamEndDate).getTime(),
-    { message: "Jam start must be before jam end.", path: ["jamEndDate"] },
-  )
+  .superRefine(refineJamListingDates)
 
 export type UpdateTeamJamListingInput = z.infer<typeof updateTeamJamListingSchema>

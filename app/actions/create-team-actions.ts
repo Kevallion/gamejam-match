@@ -3,6 +3,7 @@
 import { createClient } from "@/lib/supabase/server"
 import { awardXP } from "@/lib/gamification"
 import type { GamificationRewardSummary } from "@/lib/gamification-reward-types"
+import { defaultTeamExpiresAtIso, normalizeJamListingDates } from "@/lib/jam-listing-dates"
 import {
   createTeamFormSchema,
   updateTeamJamListingSchema,
@@ -35,6 +36,19 @@ function lookingForRequirementError(raw: { role?: string; level?: string }[]): s
     return "Select at least one role you are looking for."
   }
   return null
+}
+
+function resolvedJamDates(input: { jamStartDate?: string | null; jamEndDate?: string | null }) {
+  const result = normalizeJamListingDates(input)
+  if (!result.ok) {
+    return { ok: false as const, error: result.error }
+  }
+  return {
+    ok: true as const,
+    jamStartIso: result.start,
+    jamEndIso: result.end,
+    expiresAt: defaultTeamExpiresAtIso(result.end),
+  }
 }
 
 export type CreateTeamResult =
@@ -114,8 +128,11 @@ export async function createTeam(input: CreateTeamInput): Promise<CreateTeamResu
 
   const jamId = (rawJamId == null ? "" : String(rawJamId)).trim() || null
 
-  const jamEndIso = new Date(jamEndDate).toISOString()
-  const jamStartIso = new Date(jamStartDate).toISOString()
+  const jamDates = resolvedJamDates({ jamStartDate, jamEndDate })
+  if (!jamDates.ok) {
+    return { success: false, error: jamDates.error }
+  }
+
   const { sanitizeJamDisplayName } = await import("@/lib/teams-public")
   const safeJamName = sanitizeJamDisplayName(jamName) || jamName.trim()
 
@@ -130,9 +147,9 @@ export async function createTeam(input: CreateTeamInput): Promise<CreateTeamResu
     team_vibe: vibeTrim,
     experience_required: experienceRequired,
     jam_id: jamId,
-    jam_start_date: jamStartIso,
-    jam_end_date: jamEndIso,
-    expires_at: jamEndIso,
+    jam_start_date: jamDates.jamStartIso,
+    jam_end_date: jamDates.jamEndIso,
+    expires_at: jamDates.expiresAt,
   }
 
   const { data, error } = await supabase.from("teams").insert([teamData]).select("id").single()
@@ -180,11 +197,8 @@ export type UpdateTeamJamListingResult =
   | { success: true }
   | { success: false; error: string }
 
-const MISSING_JAM_DATES_MSG =
-  "Please specify the Jam dates to keep your squad visible."
-
 /**
- * Owner-only update for manage page; requires jam window (legacy rows without dates must set them).
+ * Owner-only update for manage page. Jam dates stay optional (both or neither).
  */
 export async function updateTeamJamListing(
   input: UpdateTeamJamListingInput,
@@ -234,15 +248,6 @@ export async function updateTeamJamListing(
     return { success: false, error: "Only the squad owner can update this listing." }
   }
 
-  const row = existing as {
-    jam_start_date?: string | null
-    jam_end_date?: string | null
-  }
-
-  if (row.jam_start_date == null || row.jam_end_date == null) {
-    return { success: false, error: MISSING_JAM_DATES_MSG }
-  }
-
   const vibeTrim = rawVibe?.trim() || null
   if (vibeTrim && !JAM_STYLE_VALUES.has(vibeTrim)) {
     return { success: false, error: "Invalid team vibe." }
@@ -262,8 +267,10 @@ export async function updateTeamJamListing(
     }
   }
 
-  const jamEndIso = new Date(jamEndDate).toISOString()
-  const jamStartIso = new Date(jamStartDate).toISOString()
+  const jamDates = resolvedJamDates({ jamStartDate, jamEndDate })
+  if (!jamDates.ok) {
+    return { success: false, error: jamDates.error }
+  }
 
   const { error: updateError } = await supabase
     .from("teams")
@@ -275,9 +282,9 @@ export async function updateTeamJamListing(
       experience_required: experienceRequired,
       looking_for: lookingFor,
       jam_id: rawJamId?.trim() || null,
-      jam_start_date: jamStartIso,
-      jam_end_date: jamEndIso,
-      expires_at: jamEndIso,
+      jam_start_date: jamDates.jamStartIso,
+      jam_end_date: jamDates.jamEndIso,
+      expires_at: jamDates.expiresAt,
     })
     .eq("id", teamId)
     .eq("user_id", user.id)

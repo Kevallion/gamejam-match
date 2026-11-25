@@ -1,0 +1,171 @@
+import { readFileSync } from "node:fs"
+import { dirname, join } from "node:path"
+import { fileURLToPath } from "node:url"
+
+/** Must stay in sync with lib/jam-listing-dates.ts */
+const JAM_DATES_PAIR_REQUIRED_MSG =
+  "Provide both a jam start and a jam end, or leave both empty."
+const JAM_START_BEFORE_END_MSG = "Jam start must be before jam end."
+const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000
+
+function isBlank(value) {
+  return value == null || String(value).trim() === ""
+}
+
+function normalizeJamListingDates(input) {
+  const hasStart = !isBlank(input.jamStartDate)
+  const hasEnd = !isBlank(input.jamEndDate)
+
+  if (!hasStart && !hasEnd) {
+    return { ok: true, start: null, end: null }
+  }
+
+  if (!hasStart) {
+    return { ok: false, error: JAM_DATES_PAIR_REQUIRED_MSG, path: "jamStartDate" }
+  }
+  if (!hasEnd) {
+    return { ok: false, error: JAM_DATES_PAIR_REQUIRED_MSG, path: "jamEndDate" }
+  }
+
+  const startMs = Date.parse(String(input.jamStartDate).trim())
+  const endMs = Date.parse(String(input.jamEndDate).trim())
+  if (Number.isNaN(startMs)) {
+    return { ok: false, error: "Invalid date.", path: "jamStartDate" }
+  }
+  if (Number.isNaN(endMs)) {
+    return { ok: false, error: "Invalid date.", path: "jamEndDate" }
+  }
+  if (startMs >= endMs) {
+    return { ok: false, error: JAM_START_BEFORE_END_MSG, path: "jamEndDate" }
+  }
+
+  return { ok: true, start: new Date(startMs).toISOString(), end: new Date(endMs).toISOString() }
+}
+
+function defaultTeamExpiresAtIso(jamEndIso, now = new Date()) {
+  if (jamEndIso) return jamEndIso
+  return new Date(now.getTime() + THIRTY_DAYS_MS).toISOString()
+}
+
+const root = join(dirname(fileURLToPath(import.meta.url)), "..")
+const helperSource = readFileSync(join(root, "lib/jam-listing-dates.ts"), "utf8")
+const schemaSource = readFileSync(join(root, "lib/team-listing-schema.ts"), "utf8")
+const actionSource = readFileSync(join(root, "app/actions/create-team-actions.ts"), "utf8")
+
+const requiredSnippets = [
+  [helperSource, "lib/jam-listing-dates.ts", "export function normalizeJamListingDates"],
+  [helperSource, "lib/jam-listing-dates.ts", "JAM_DATES_PAIR_REQUIRED_MSG"],
+  [helperSource, "lib/jam-listing-dates.ts", "startMs >= endMs"],
+  [schemaSource, "lib/team-listing-schema.ts", "optionalIsoTimestamp"],
+  [schemaSource, "lib/team-listing-schema.ts", "superRefine(refineJamListingDates)"],
+  [actionSource, "app/actions/create-team-actions.ts", "jam_start_date: jamDates.jamStartIso"],
+  [actionSource, "app/actions/create-team-actions.ts", "jam_end_date: jamDates.jamEndIso"],
+  [actionSource, "app/actions/create-team-actions.ts", "expires_at: jamDates.expiresAt"],
+]
+
+for (const [source, file, snippet] of requiredSnippets) {
+  if (!source.includes(snippet)) {
+    console.error(`FAIL source drift: ${file} is missing ${JSON.stringify(snippet)}`)
+    process.exit(1)
+  }
+}
+
+const start = "2026-12-01T00:00:00.000Z"
+const end = "2026-12-07T23:59:59.999Z"
+const now = new Date("2026-11-25T12:00:00.000Z")
+
+const cases = [
+  {
+    name: "no dates: omitted fields store NULL",
+    fn: () => {
+      const result = normalizeJamListingDates({})
+      return result.ok === true && result.start === null && result.end === null
+    },
+  },
+  {
+    name: "no dates: empty strings store NULL",
+    fn: () => {
+      const result = normalizeJamListingDates({ jamStartDate: "  ", jamEndDate: "" })
+      return result.ok === true && result.start === null && result.end === null
+    },
+  },
+  {
+    name: "no dates: null fields store NULL",
+    fn: () => {
+      const result = normalizeJamListingDates({ jamStartDate: null, jamEndDate: null })
+      return result.ok === true && result.start === null && result.end === null
+    },
+  },
+  {
+    name: "valid dates keep start before end as ISO",
+    fn: () => {
+      const result = normalizeJamListingDates({ jamStartDate: start, jamEndDate: end })
+      return result.ok === true && result.start === start && result.end === end
+    },
+  },
+  {
+    name: "start after end is refused",
+    fn: () => {
+      const result = normalizeJamListingDates({ jamStartDate: end, jamEndDate: start })
+      return result.ok === false && result.error === JAM_START_BEFORE_END_MSG && result.path === "jamEndDate"
+    },
+  },
+  {
+    name: "start equal to end is refused",
+    fn: () => {
+      const result = normalizeJamListingDates({ jamStartDate: start, jamEndDate: start })
+      return result.ok === false && result.error === JAM_START_BEFORE_END_MSG
+    },
+  },
+  {
+    name: "only a start date is refused",
+    fn: () => {
+      const result = normalizeJamListingDates({ jamStartDate: start })
+      return result.ok === false && result.error === JAM_DATES_PAIR_REQUIRED_MSG && result.path === "jamEndDate"
+    },
+  },
+  {
+    name: "only an end date is refused",
+    fn: () => {
+      const result = normalizeJamListingDates({ jamEndDate: end, jamStartDate: "" })
+      return result.ok === false && result.error === JAM_DATES_PAIR_REQUIRED_MSG && result.path === "jamStartDate"
+    },
+  },
+  {
+    name: "without dates, expires_at falls back to 30 days",
+    fn: () => defaultTeamExpiresAtIso(null, now) === "2026-12-25T12:00:00.000Z",
+  },
+  {
+    name: "with dates, expires_at stays the jam end",
+    fn: () => defaultTeamExpiresAtIso(end, now) === end,
+  },
+  {
+    name: "createTeam insert uses NULL dates from the helper",
+    fn: () =>
+      actionSource.includes("resolvedJamDates({ jamStartDate, jamEndDate })") &&
+      actionSource.includes("jam_start_date: jamDates.jamStartIso") &&
+      !actionSource.includes("const jamStartIso = new Date(jamStartDate).toISOString()"),
+  },
+  {
+    name: "update path no longer blocks listings without dates",
+    fn: () => !actionSource.includes("MISSING_JAM_DATES_MSG"),
+  },
+]
+
+let failed = 0
+for (const c of cases) {
+  if (!c.fn()) {
+    console.error(`FAIL ${c.name}`)
+    failed += 1
+  } else {
+    console.log(`PASS ${c.name}`)
+  }
+}
+
+if (failed > 0) {
+  console.error(`${failed} test(s) failed`)
+  process.exit(1)
+}
+
+console.log("PASS source matches jam-date helpers and createTeam insert")
+console.log(`${cases.length} tests passed`)
