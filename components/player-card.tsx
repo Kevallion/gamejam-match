@@ -45,6 +45,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { format, parseISO, isPast, addDays, isBefore } from "date-fns"
+import { FLEXIBLE_DATES_LABEL, isUnspecifiedAvailability } from "@/lib/listing-dates"
 import { TagIcon, TagIconRow } from "@/components/tag-icon"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { toast } from "sonner"
@@ -123,8 +124,10 @@ export type SquadOption = {
 }
 
 /** Parse availability string ("yyyy-MM-dd to yyyy-MM-dd" or "yyyy-MM-dd") into readable display + whether to show warning (past/near expiry) */
-function parseAvailability(availability: string | undefined): { label: string; isWarning: boolean; isDate: boolean } | null {
-  if (!availability || availability === "Not specified" || !availability.trim()) return null
+function parseAvailability(availability: string | undefined): { label: string; isWarning: boolean; isDate: boolean } {
+  if (isUnspecifiedAvailability(availability) || availability == null) {
+    return { label: FLEXIBLE_DATES_LABEL, isWarning: false, isDate: false }
+  }
   const trimmed = availability.trim()
   const parts = trimmed.split(/\s+to\s+/i).map((s) => s.trim())
   const fromStr = parts[0]
@@ -420,21 +423,17 @@ export function JammerCard({ player, mySquads, cardClassName }: JammerCardProps)
             </CardContent>
 
             <CardFooter className="flex flex-row items-center justify-between gap-2 px-4 sm:px-6">
-              {availabilityInfo?.isDate ? (
-                <div
-                  className={cn(
-                    "inline-flex min-w-0 items-center gap-2 rounded-lg border px-3 py-1 text-xs font-medium",
-                    availabilityInfo.isWarning
-                      ? "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400"
-                      : "border-border/60 bg-muted/50 text-muted-foreground",
-                  )}
-                >
-                  <CalendarDays className="size-3.5 shrink-0" />
-                  <span className="min-w-0 truncate">{availabilityInfo.label}</span>
-                </div>
-              ) : (
-                <span />
-              )}
+              <div
+                className={cn(
+                  "inline-flex min-w-0 items-center gap-2 rounded-lg border px-3 py-1 text-xs font-medium",
+                  availabilityInfo.isWarning
+                    ? "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400"
+                    : "border-border/60 bg-muted/50 text-muted-foreground",
+                )}
+              >
+                <CalendarDays className="size-3.5 shrink-0" />
+                <span className="min-w-0 truncate">{availabilityInfo.label}</span>
+              </div>
               {mySquads.length === 0 ? (
                 <Tooltip>
                   <TooltipTrigger asChild>

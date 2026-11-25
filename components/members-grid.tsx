@@ -211,15 +211,16 @@ export function MembersGrid({
             </EmptyContent>
           </Empty>
         ) : (
-          <div className="grid w-full grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="app-card-grid grid w-full list-none grid-cols-1 gap-4 p-0 sm:grid-cols-2 lg:grid-cols-3">
             {members.map((jammer) => (
-              <JammerCard
-                key={jammer.availabilityPostId ?? jammer.id}
-                player={jammer}
-                mySquads={mySquads}
-              />
+              <li key={jammer.availabilityPostId ?? jammer.id}>
+                <JammerCard
+                  player={jammer}
+                  mySquads={mySquads}
+                />
+              </li>
             ))}
-          </div>
+          </ul>
         )}
 
         {hasMore && (

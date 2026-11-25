@@ -35,6 +35,7 @@ import { gamificationRewardHasToast } from "@/lib/gamification-reward-types"
 import { dateInputToUtcEnd, dateInputToUtcStart } from "@/lib/jam-date-utc"
 import { dateRangeFromExternalJam } from "@/lib/jam-dates-from-external"
 import type { ExternalJam } from "@/app/actions/jam-actions"
+import { FLEXIBLE_DATES_LABEL } from "@/lib/listing-dates"
 
 type RoleEntry = {
   id: number
@@ -839,13 +840,27 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
                         )}
                       </ul>
                       <p className="mt-3 text-xs text-muted-foreground">
-                        Listing visible until{" "}
-                        <span className="font-medium text-foreground">
-                          {jamDateRange?.to
-                            ? format(jamDateRange.to, "MMM d, yyyy")
-                            : "—"}
-                        </span>{" "}
-                        (jam end).
+                        {jamDateRange?.from ? (
+                          <>
+                            Jam dates:{" "}
+                            <span className="font-medium text-foreground">
+                              {jamDateRange.to
+                                ? [format(jamDateRange.from, "MMM d, yyyy"), format(jamDateRange.to, "MMM d, yyyy")].join(" – ")
+                                : format(jamDateRange.from, "MMM d, yyyy")}
+                            </span>
+                            {jamDateRange.to ? (
+                              <>
+                                {" "}
+                                (listing visible until the jam end).
+                              </>
+                            ) : null}
+                          </>
+                        ) : (
+                          <>
+                            Jam dates:{" "}
+                            <span className="font-medium text-foreground">{FLEXIBLE_DATES_LABEL}</span>
+                          </>
+                        )}
                       </p>
                     </div>
 

@@ -419,13 +419,13 @@ export function TeamGrid({
             </EmptyContent>
           </Empty>
         ) : (
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="app-card-grid grid list-none gap-5 p-0 sm:grid-cols-2 lg:grid-cols-3">
             {displayedTeams.map((team) => (
-              <div key={team.id} className="min-h-0 h-full">
+              <li key={team.id} className="min-h-0 h-full">
                 <TeamCard team={team} isRecommended={!!team.isRecommended} />
-              </div>
+              </li>
             ))}
-          </div>
+          </ul>
         )}
 
         {hasMore && (

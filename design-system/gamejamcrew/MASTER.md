@@ -44,7 +44,7 @@ the marketing site format.
 - Generic indigo / purple meshes, glassmorphism, metallic gradients, or “AI”
   hero glows.
 - Flat “no shadow” cards, or soft multi-layer drop shadows that replace the neo stamp.
-- Inter, Syne, Atkinson Hyperlegible, or any face other than the frozen DS-1 Nunito pair.
+- Any typeface other than the frozen DS-1 Nunito pair, including Inter.
 - White or muted text on a Lagune / Violette / Affiche *fill* in light mode.
 - Pure white (`#FFFFFF`) or cool off-white (`#F7FBFC`) as the light page or card surface.
 
@@ -113,10 +113,10 @@ Recruitment / “open role” badges use the role tokens below. Action buttons u
 - Scale: h1 2rem / 800, h2 1.5rem / 700, h3 1.25rem / 700, body 1rem / 400–500, emphasis 600–800.
 
 **Why Nunito is frozen:** ui-ux-pro-max suggested Inter for both roles; that pair is
-rejected (generic AI / SaaS). DS-4 briefly tried Syne + Atkinson Hyperlegible.
-On 24 Nov 2026 Wisllor asked to restore the pre-DS-4 DS-1 fonts and preferred
-them. This Master therefore uses Nunito for headings and Nunito for body — exactly
-the original pair. Do not adopt any typeface proposed by ui-ux-pro-max.
+rejected (generic AI / SaaS). DS-4 briefly tried a different heading and body pairing;
+that experiment was reverted. On 24 Nov 2026 Wisllor asked to restore the pre-DS-4
+DS-1 fonts and preferred them. This Master therefore uses Nunito for headings and
+Nunito for body — exactly the original pair. Do not adopt any typeface proposed by ui-ux-pro-max.
 
 ### Tabular numbers
 
@@ -297,7 +297,7 @@ when `prefers-reduced-motion: reduce`.
 
 ## Anti-patterns (do not use)
 
-- Inter, Syne, Atkinson Hyperlegible, or any face other than the frozen DS-1 Nunito pair.
+- Any typeface other than the frozen DS-1 Nunito pair, including Inter.
 - Indigo `#6366F1`, generic purple meshes, “funnel landing” chrome on the app shell.
 - Flat Design with “no shadows” — the 3px neo stamp is product identity
   (user request, 24 Nov 2026).

@@ -18,6 +18,7 @@ import { EXPERIENCE_STYLES, ROLE_STYLES, engineOptionLabel, languageOptionLabel 
 import { KudosBadgeRow } from "@/components/kudos-badges"
 import { TagIcon } from "@/components/tag-icon"
 import { IconTile } from "@/components/ui/app-icon"
+import { formatAvailabilityLabel } from "@/lib/listing-dates"
 import type { KudosCounts } from "@/lib/kudos"
 
 // ---------------------------------------------------------------------------
@@ -93,7 +94,7 @@ function AnnouncementCard({ post, onDelete, onRenew, isRenewing, profileAvatarUr
         {/* Availability dates */}
         <div className="flex items-center gap-2 rounded-xl border border-border/50 bg-secondary/20 px-3 py-2">
           <CalendarDays className="size-4 shrink-0 text-lavender" />
-          <span className="text-sm font-medium text-foreground">{post.availability}</span>
+          <span className="text-sm font-medium text-foreground">{formatAvailabilityLabel(post.availability)}</span>
         </div>
 
         {/* Linked game jam */}

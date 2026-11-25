@@ -1,34 +1,25 @@
 "use client"
 
-import { useState } from "react"
 import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog"
-import {
   UsersRound,
-  ArrowRight,
   CircleCheck,
   Share2,
   Sparkles,
   Flame,
   Clock,
+  CalendarDays,
 } from "lucide-react"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
-import { UserAvatar } from "@/components/user-avatar"
 
-import { JoinTeamModal } from "@/components/join-team-modal"
 import { engineOptionLabel, languageOptionLabel } from "@/lib/constants"
 import { TagIcon, TagIconRow } from "@/components/tag-icon"
 import { getJamListingStatus } from "@/lib/jam-calendar-status"
 import { JamStatusBadge } from "@/components/jam-status-badge"
+import { formatListingDatesLabel } from "@/lib/listing-dates"
 
 type RoleBadge = {
   label: string
@@ -85,8 +76,11 @@ export function JamTitleBlock({
         href={url}
         target="_blank"
         rel="noopener noreferrer"
-        className={cn(baseClassName, className, "cursor-pointer text-primary hover:underline")}
-        onClick={(e) => e.stopPropagation()}
+        className={cn(
+          baseClassName,
+          className,
+          "relative z-10 cursor-pointer text-primary hover:underline",
+        )}
       >
         {label}
       </a>
@@ -103,11 +97,16 @@ export function TeamCard({
   /** Mise en avant « Perfect Match » (liste recommandée). */
   isRecommended?: boolean
 }) {
-  const [detailsOpen, setDetailsOpen] = useState(false)
   const filledKeys = team.filledRoleKeys ?? []
   const jamStatus = getJamListingStatus(team.jamStartDate, team.jamEndDate, {
     createdAtIso: team.createdAt,
   })
+  const datesLabel = formatListingDatesLabel(
+    team.jamStartDate,
+    team.jamEndDate,
+    team.createdAt,
+  )
+  const showStatusBadge = jamStatus && jamStatus.phase !== "dates_pending"
 
   const filledCountByKey: Record<string, number> = {}
   for (const key of filledKeys) {
@@ -131,11 +130,6 @@ export function TeamCard({
   const engineLabel = engineOptionLabel(team.engine)
   const languageLabel = languageOptionLabel(team.language)
   const openRoles = availableRoles.filter((r) => !r.filled)
-
-  const jamPendingTitle =
-    jamStatus?.phase === "dates_pending"
-      ? "Jam dates match listing creation — update them in Manage squad for an accurate status."
-      : undefined
 
   async function handleShare(e: React.MouseEvent) {
     e.preventDefault()
@@ -161,253 +155,107 @@ export function TeamCard({
     }
   }
 
-  const applyButton = (
-    <JoinTeamModal
-      teamId={team.id}
-      teamName={team.name}
-      availableRoles={availableRoles}
-      ownerUserId={team.user_id}
-      isRecommended={isRecommended}
+  return (
+    <article
+      className={cn(
+        "card-interactive group relative flex h-full flex-col rounded-2xl border border-border bg-card p-6 shadow-[3px_3px_0_0_var(--neo-shadow)] transition-colors motion-reduce:transition-none",
+        "has-[h3_a:focus-visible]:ring-2 has-[h3_a:focus-visible]:ring-ring has-[h3_a:focus-visible]:ring-offset-2 has-[h3_a:focus-visible]:ring-offset-background",
+        isRecommended && "border-teal",
+      )}
     >
-      <Button className="w-full gap-2 rounded-xl bg-primary text-primary-foreground transition-colors motion-reduce:transition-none hover:bg-primary/85">
-        Apply
-        <ArrowRight className="size-4" />
-      </Button>
-    </JoinTeamModal>
-  )
-
-  const dialogBody = (
-    <div className="flex min-w-0 flex-col">
-      <DialogHeader className="shrink-0 space-y-0 border-b border-border/60 px-4 pb-4 pt-6 text-left sm:px-6">
-        <div className="flex flex-col gap-3 pr-10 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
-          <div className="min-w-0 flex-1">
-            <DialogTitle className="break-words text-xl font-extrabold text-foreground sm:truncate">
-              {team.name}
-            </DialogTitle>
-            <DialogDescription className="sr-only">
-              Squad details, roles, and how to apply.
-            </DialogDescription>
-            <JamTitleBlock
-              team={team}
-              className="mt-0.5 block min-w-0 break-words text-sm font-semibold text-primary sm:truncate"
-            />
-          </div>
-          <div className="flex w-full flex-col gap-2 sm:w-auto sm:shrink-0 sm:items-end">
+      <div className="mb-4 flex min-w-0 items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
+            <h3 className="truncate font-display text-xl font-extrabold text-foreground">
+              <Link
+                href={`/teams/${team.id}`}
+                className="rounded-sm outline-none after:absolute after:inset-0 after:z-0 after:rounded-2xl focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              >
+                <span className="relative z-[1]">{team.name}</span>
+              </Link>
+            </h3>
             {isRecommended && (
               <Badge
                 variant="outline"
                 aria-label="Perfect match for your profile"
-                className="shrink-0 gap-1 border-teal/20 bg-teal/10 text-xs font-semibold text-teal"
+                className="relative z-10 shrink-0 gap-0.5 border-teal/20 bg-teal/10 px-2 py-0 text-xs font-semibold text-teal"
               >
                 <Sparkles className="size-3" aria-hidden />
-                Perfect Match
+                Match
               </Badge>
             )}
-            {team.user_id && team.ownerProfileExists !== false && (
-              <Link
-                href={`/jammer/${team.user_id}`}
-                className="inline-flex max-w-[12rem] cursor-pointer items-center gap-2 rounded-lg border border-border/60 bg-card/70 px-3 py-2 transition-colors hover:bg-muted/50"
-              >
-                <UserAvatar
-                  src={team.ownerAvatarUrl ?? null}
-                  fallbackName={team.ownerUsername || "Squad owner"}
-                  size="sm"
-                />
-                <div className="min-w-0 text-left">
-                  <p className="truncate text-xs font-semibold text-foreground">
-                    {team.ownerUsername || "Squad owner"}
-                  </p>
-                  <p className="truncate text-xs text-muted-foreground">
-                    View profile
-                  </p>
-                </div>
-              </Link>
-            )}
           </div>
-        </div>
-
-        {jamStatus && (
-          <JamStatusBadge status={jamStatus} title={jamPendingTitle} className="mt-2" />
-        )}
-      </DialogHeader>
-
-      <div className="min-w-0 px-4 py-4 sm:px-6">
-        <div className="flex flex-col gap-5">
-          <div className="flex flex-wrap gap-2">
-            {engineLabel ? <TagIcon kind="engine" value={team.engine} size="sm" showLabel /> : null}
-            {languageLabel ? <TagIcon kind="language" value={team.language} size="sm" showLabel /> : null}
-            {team.level.key ? <TagIcon kind="level" value={team.level.key} size="sm" showLabel /> : null}
-            {team.teamVibe?.key ? <TagIcon kind="style" value={team.teamVibe.key} size="sm" showLabel /> : null}
-            <Badge
-              variant="outline"
-              className="inline-flex items-center gap-2 rounded-full border-border/60 text-xs text-muted-foreground"
-            >
-              <UsersRound className="size-3" />
-              {team.members}/{team.maxMembers} members
-            </Badge>
-          </div>
-
-          <div>
-            <h4 className="mb-2 text-sm font-bold text-foreground">Description</h4>
-            <p className="whitespace-pre-wrap break-words text-sm leading-relaxed text-muted-foreground">
-              {team.description}
-            </p>
-          </div>
-
-          <div>
-            <h4 className="mb-2 text-sm font-bold text-foreground">Roles sought</h4>
-            <ul className="flex flex-col gap-2">
-              {availableRoles.map((role, index) => (
-                <li
-                  key={`${role.key}-${index}`}
-                  className={cn(
-                    "flex min-w-0 items-center gap-2 rounded-xl border border-border/40 px-3 py-2 text-sm transition-colors",
-                    role.filled ? "bg-muted/50 opacity-60" : "bg-secondary/30",
-                  )}
-                >
-                  <TagIcon kind="role" value={role.key ?? role.label} size="sm" showLabel className={role.filled ? "opacity-40" : undefined} />
-                  {role.filled && (
-                    <span className="ml-auto text-xs text-muted-foreground">Filled</span>
-                  )}
-                </li>
-              ))}
-              {availableRoles.length === 0 && (
-                <p className="text-sm italic text-muted-foreground">No role specified</p>
-              )}
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      <div className="shrink-0 border-t border-border/60 bg-muted/20 px-4 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:px-6 sm:pb-4">
-        {isSquadFull ? (
-          <div className="flex w-full items-center justify-center gap-2 rounded-xl border border-border/60 bg-muted/50 px-4 py-3 text-sm font-bold text-muted-foreground">
-            <CircleCheck className="size-4 text-primary" />
-            Squad full
-          </div>
-        ) : (
-          applyButton
-        )}
-      </div>
-    </div>
-  )
-
-  return (
-    <>
-      <article
-        role="button"
-        tabIndex={0}
-        aria-label={`View details for ${team.name}`}
-        aria-expanded={detailsOpen}
-        onClick={() => setDetailsOpen(true)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault()
-            setDetailsOpen(true)
-          }
-        }}
-        className={cn(
-          "card-interactive group relative flex h-full cursor-pointer flex-col rounded-2xl border border-border bg-card p-6 shadow-[3px_3px_0_0_var(--neo-shadow)] outline-none transition-colors motion-reduce:transition-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-          isRecommended && "border-teal",
-        )}
-      >
-        <div className="mb-4 flex min-w-0 items-start justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            <div className="flex min-w-0 flex-wrap items-center gap-2">
-              <h3 className="truncate font-display text-xl font-extrabold text-foreground">{team.name}</h3>
-              {isRecommended && (
-                <Badge
-                  variant="outline"
-                  aria-label="Perfect match for your profile"
-                  className="shrink-0 gap-0.5 border-teal/20 bg-teal/10 px-2 py-0 text-xs font-semibold text-teal"
-                >
-                  <Sparkles className="size-3" aria-hidden />
-                  Match
-                </Badge>
-              )}
-            </div>
-            <JamTitleBlock
-              team={team}
-              className="mt-0.5 truncate text-sm font-medium text-primary"
-            />
-          </div>
-
-          <div
-            className="flex shrink-0 items-center gap-1"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-8 rounded-full text-muted-foreground hover:text-foreground"
-              onClick={handleShare}
-              aria-label="Share squad"
-            >
-              <Share2 className="size-3.5" />
-            </Button>
-          </div>
-        </div>
-
-        {jamStatus && (
-          <JamStatusBadge status={jamStatus} title={jamPendingTitle} className="mb-4" />
-        )}
-
-        <div className="mb-4 flex min-h-6 flex-wrap items-center gap-2">
-          <TagIconRow
-            items={openRoles.map((role, index) => ({
-              kind: "role" as const,
-              value: role.key ?? role.label,
-              key: `${role.key}-${index}`,
-            }))}
+          <JamTitleBlock
+            team={team}
+            className="mt-0.5 truncate text-sm font-medium text-primary"
           />
-          {isSquadFull && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-muted/60 px-3 py-0.5 text-xs font-semibold text-muted-foreground">
-              <CircleCheck className="size-3" />
-              Full
+        </div>
+
+        <div className="relative z-10 flex shrink-0 items-center gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="size-8 rounded-full text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            onClick={handleShare}
+            aria-label="Share squad"
+          >
+            <Share2 className="size-3.5" />
+          </Button>
+        </div>
+      </div>
+
+      {showStatusBadge ? (
+        <JamStatusBadge status={jamStatus} className="relative z-10 mb-2" />
+      ) : null}
+
+      <p className="relative z-[1] mb-4 flex min-w-0 items-center gap-2 text-sm text-muted-foreground">
+        <CalendarDays className="size-3.5 shrink-0" aria-hidden />
+        <span className="min-w-0 truncate">{datesLabel}</span>
+      </p>
+
+      <div className="mb-4 flex min-h-6 flex-wrap items-center gap-2">
+        <TagIconRow
+          items={openRoles.map((role, index) => ({
+            kind: "role" as const,
+            value: role.key ?? role.label,
+            key: `${role.key}-${index}`,
+          }))}
+        />
+        {isSquadFull && (
+          <span className="inline-flex items-center gap-1 rounded-full bg-muted/60 px-3 py-0.5 text-xs font-semibold text-muted-foreground">
+            <CircleCheck className="size-3" />
+            Full
+          </span>
+        )}
+      </div>
+
+      <div className="mt-auto flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t border-border/40 pt-4">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          {team.level.key ? <TagIcon kind="level" value={team.level.key} size="xs" /> : null}
+          {engineLabel ? <TagIcon kind="engine" value={team.engine} size="xs" /> : null}
+          {languageLabel ? <TagIcon kind="language" value={team.language} size="xs" /> : null}
+        </div>
+
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          {!isSquadFull && remainingSpots === 1 && (
+            <span className="inline-flex items-center gap-0.5 text-orange-500">
+              <Flame className="size-3.5" aria-hidden />
+              1 spot left
             </span>
           )}
-        </div>
-
-        <div className="mt-auto flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t border-border/40 pt-4">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            {team.level.key ? <TagIcon kind="level" value={team.level.key} size="xs" /> : null}
-            {engineLabel ? <TagIcon kind="engine" value={team.engine} size="xs" /> : null}
-            {languageLabel ? <TagIcon kind="language" value={team.language} size="xs" /> : null}
-          </div>
-
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            {!isSquadFull && remainingSpots === 1 && (
-              <span className="inline-flex items-center gap-0.5 text-orange-500">
-                <Flame className="size-3.5" aria-hidden />
-                1 spot left
-              </span>
-            )}
-            <span className="inline-flex items-center gap-1">
-              <UsersRound className="size-3.5" aria-hidden />
-              {team.members}/{team.maxMembers}
-            </span>
-          </div>
-        </div>
-
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-center rounded-b-xl py-2 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
-          <span className="inline-flex items-center gap-2 text-xs font-semibold text-primary">
-            <Clock className="size-3" aria-hidden />
-            View details
+          <span className="inline-flex items-center gap-1">
+            <UsersRound className="size-3.5" aria-hidden />
+            {team.members}/{team.maxMembers}
           </span>
         </div>
-      </article>
+      </div>
 
-      <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
-        <DialogContent
-          className={cn(
-            "flex max-h-[min(100dvh-2rem,720px)] min-w-0 flex-col gap-0 overflow-x-hidden overflow-y-auto rounded-2xl border-border bg-card p-0 shadow-[3px_3px_0_0_var(--neo-shadow)]",
-            "max-sm:top-[max(1rem,env(safe-area-inset-top))] max-sm:right-3 max-sm:bottom-auto max-sm:left-3 max-sm:w-auto max-sm:max-w-none max-sm:translate-x-0 max-sm:translate-y-0",
-            "sm:top-[50%] sm:left-[50%] sm:w-[calc(100%-2rem)] sm:max-w-lg sm:translate-x-[-50%] sm:translate-y-[-50%]",
-          )}
-        >
-          {dialogBody}
-        </DialogContent>
-      </Dialog>
-    </>
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-center justify-center rounded-b-xl py-2 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
+        <span className="inline-flex items-center gap-2 text-xs font-semibold text-primary">
+          <Clock className="size-3" aria-hidden />
+          View details
+        </span>
+      </div>
+    </article>
   )
 }

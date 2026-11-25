@@ -1,0 +1,53 @@
+import { format, isValid, parseISO } from "date-fns"
+import { isJamStartBackfilledWithCreatedAt } from "@/lib/jam-calendar-status"
+
+/** English UI label when a listing has no dates. Capitaine wrote « Dates flexibles »; Wisllor can decide. */
+export const FLEXIBLE_DATES_LABEL = "Flexible dates"
+
+const UNSPECIFIED_AVAILABILITY = new Set([
+  "",
+  "not specified",
+  "dates flexibles",
+  "flexible dates",
+])
+
+export function isUnspecifiedAvailability(value: string | null | undefined): boolean {
+  if (value == null) return true
+  return UNSPECIFIED_AVAILABILITY.has(value.trim().toLowerCase())
+}
+
+/** Display helper. Stored empty / "Not specified" values stay unchanged in the database. */
+export function formatAvailabilityLabel(value: string | null | undefined): string {
+  if (isUnspecifiedAvailability(value)) return FLEXIBLE_DATES_LABEL
+  return value!.trim()
+}
+
+export function listingHasRealJamDates(
+  jamStartIso?: string | null,
+  jamEndIso?: string | null,
+  createdAtIso?: string | null,
+): boolean {
+  if (!jamStartIso?.trim() || !jamEndIso?.trim()) return false
+  if (isJamStartBackfilledWithCreatedAt(jamStartIso, createdAtIso)) return false
+  const start = new Date(jamStartIso).getTime()
+  const end = new Date(jamEndIso).getTime()
+  return Number.isFinite(start) && Number.isFinite(end)
+}
+
+export function formatListingDatesLabel(
+  jamStartIso?: string | null,
+  jamEndIso?: string | null,
+  createdAtIso?: string | null,
+): string {
+  if (!listingHasRealJamDates(jamStartIso, jamEndIso, createdAtIso)) {
+    return FLEXIBLE_DATES_LABEL
+  }
+  const start = parseISO(jamStartIso as string)
+  const end = parseISO(jamEndIso as string)
+  if (!isValid(start) || !isValid(end)) return FLEXIBLE_DATES_LABEL
+  if (start.getTime() === end.getTime()) return format(start, "MMM d, yyyy")
+  if (start.getFullYear() === end.getFullYear()) {
+    return `${format(start, "MMM d")} – ${format(end, "MMM d, yyyy")}`
+  }
+  return `${format(start, "MMM d, yyyy")} – ${format(end, "MMM d, yyyy")}`
+}

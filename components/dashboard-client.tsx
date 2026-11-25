@@ -298,7 +298,7 @@ function ResponsiveConfirmDrawer({
   if (isMobile) {
     return (
       <Drawer open={open} onOpenChange={(o) => !o && onCancel()}>
-        <DrawerContent className="rounded-t-3xl border-border/40 bg-card">
+        <DrawerContent aria-modal="true" className="app-drawer-above-dock rounded-t-3xl border-border/40 bg-card">
           <DrawerHeader className="text-left">
             <div className="flex items-center gap-3">
               {icon}

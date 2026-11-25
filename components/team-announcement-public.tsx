@@ -12,6 +12,7 @@ import { UserAvatar } from "@/components/user-avatar"
 import { engineOptionLabel, languageOptionLabel } from "@/lib/constants"
 import { TagIcon } from "@/components/tag-icon"
 import { getJamListingStatus } from "@/lib/jam-calendar-status"
+import { formatListingDatesLabel, listingHasRealJamDates } from "@/lib/listing-dates"
 import { toast } from "sonner"
 import { ArrowLeft, ArrowRight, Share2, CircleCheck } from "lucide-react"
 import { MainRegion } from "@/components/main-region"
@@ -90,8 +91,11 @@ export function TeamAnnouncementPublic({
   const jamStatus = getJamListingStatus(team.jamStartDate, team.jamEndDate, {
     createdAtIso: team.createdAt,
   })
-  const startLabel = jamStatus?.phase === "dates_pending" ? null : formatJamDate(team.jamStartDate)
-  const endLabel = formatJamDate(team.jamEndDate)
+  const hasRealDates = listingHasRealJamDates(team.jamStartDate, team.jamEndDate, team.createdAt)
+  const startLabel = hasRealDates ? formatJamDate(team.jamStartDate) : null
+  const endLabel = hasRealDates ? formatJamDate(team.jamEndDate) : null
+  const datesLabel = formatListingDatesLabel(team.jamStartDate, team.jamEndDate, team.createdAt)
+  const showStatusBadge = jamStatus && jamStatus.phase !== "dates_pending"
 
   async function handleShare() {
     const openRoleLabels =
@@ -148,7 +152,7 @@ export function TeamAnnouncementPublic({
               <div className="space-y-2 border-b border-border/60 px-6 pb-4 pt-6">
                 <h1 className="text-xl font-bold text-foreground sm:text-2xl">{team.name}</h1>
                 <JamTitleBlock team={team} className="text-sm font-medium text-primary" />
-                {jamStatus ? <JamStatusBadge status={jamStatus} /> : null}
+                {showStatusBadge ? <JamStatusBadge status={jamStatus} /> : null}
               </div>
 
               <div className="flex flex-col gap-5 px-6 py-5">
@@ -205,12 +209,16 @@ export function TeamAnnouncementPublic({
                   </div>
                 </div>
 
-                {(startLabel || endLabel) && (
-                  <div className="space-y-1 text-sm text-muted-foreground">
-                    {startLabel ? <p>Starts {startLabel}</p> : null}
-                    {endLabel ? <p>Ends {endLabel}</p> : null}
-                  </div>
-                )}
+                <div className="space-y-1 text-sm text-muted-foreground">
+                  {hasRealDates ? (
+                    <>
+                      {startLabel ? <p>Starts {startLabel}</p> : null}
+                      {endLabel ? <p>Ends {endLabel}</p> : null}
+                    </>
+                  ) : (
+                    <p>{datesLabel}</p>
+                  )}
+                </div>
 
                 <div className="flex flex-wrap items-center gap-2">
                   {engineLabel ? <TagIcon kind="engine" value={team.engine} size="md" showLabel /> : null}

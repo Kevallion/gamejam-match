@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { AppIcon } from "@/components/ui/app-icon"
 import { ICON } from "@/lib/icons"
 import { cn } from "@/lib/utils"
+import { formatAvailabilityLabel } from "@/lib/listing-dates"
 
 type AvailabilityPostCompact = {
   id: string
@@ -169,7 +170,7 @@ export function DashboardAvailabilityCompact({
                       className="size-7"
                     />
                     <p className="truncate text-sm text-foreground">
-                      {post.availability}
+                      {formatAvailabilityLabel(post.availability)}
                       {post.jam?.title ? ` · ${post.jam.title}` : ""}
                     </p>
                   </div>

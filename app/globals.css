@@ -666,6 +666,19 @@ html:has(.app-wizard-actions) .feedback-fab {
   display: none;
 }
 
+/* Long card lists: skip painting offscreen items without a virtualizer (DS-11).
+ * The first 6 children stay eager so LCP is not delayed. */
+.app-card-grid > :nth-child(n + 7) {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 24rem;
+}
+
+/* Remove / confirm drawers in the app shell sit above the dock (DS-11). */
+html:has(.app-shell) [data-slot="drawer-content"].app-drawer-above-dock {
+  bottom: calc(var(--app-hotbar-h) + max(var(--app-hotbar-inset), env(safe-area-inset-bottom, 0px)));
+  max-height: calc(100dvh - var(--app-hotbar-h) - max(var(--app-hotbar-inset), env(safe-area-inset-bottom, 0px)) - 1rem);
+}
+
 
 
 

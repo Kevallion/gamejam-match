@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { format, isValid, parse } from "date-fns"
 import type { DateRange } from "react-day-picker"
 import { Card, CardContent } from "@/components/ui/card"
@@ -26,6 +26,9 @@ import { toast } from "sonner"
 import { ENGINE_OPTIONS_WITH_ANY, EXPERIENCE_OPTIONS, JAM_STYLE_OPTIONS, ROLE_OPTIONS } from "@/lib/constants"
 import { TagIcon } from "@/components/tag-icon"
 import { JamSearchSelector } from "@/components/jam-search-selector"
+import type { ExternalJam } from "@/app/actions/jam-actions"
+import { dateRangeFromExternalJam } from "@/lib/jam-dates-from-external"
+import { FLEXIBLE_DATES_LABEL, isUnspecifiedAvailability } from "@/lib/listing-dates"
 import { claimAvailabilityPostXp } from "@/app/actions/availability-actions"
 import { showGamificationRewards } from "@/components/gamification-reward-toasts"
 import { gamificationRewardHasToast } from "@/lib/gamification-reward-types"
@@ -50,7 +53,7 @@ export type AvailabilityFormPost = {
 }
 
 function parseAvailabilityRange(value: string | null | undefined): DateRange | undefined {
-  if (!value || value === "Not specified") return undefined
+  if (isUnspecifiedAvailability(value) || value == null) return undefined
   const [fromRaw, toRaw] = value.split(" to ").map((part) => part.trim())
   const from = parse(fromRaw, "yyyy-MM-dd", new Date())
   if (!isValid(from)) return undefined
@@ -82,6 +85,11 @@ export function AvailabilityForm({
   const [username, setUsername] = useState("")
   const [bio, setBio] = useState("")
   const [jamId, setJamId] = useState<string | null>(null)
+  const handleJamMetaChange = useCallback((jam: ExternalJam | null) => {
+    if (!jam) return
+    const range = dateRangeFromExternalJam(jam)
+    if (range) setDateRange(range)
+  }, [])
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   // Check if user is signed in
@@ -250,6 +258,7 @@ export function AvailabilityForm({
 
     setLoading(true)
 
+    // Stored sentinel kept as "Not specified" (existing column contract). Display uses FLEXIBLE_DATES_LABEL.
     let dateString = "Not specified"
     if (dateRange?.from) {
       dateString = dateRange.to
@@ -621,6 +630,7 @@ export function AvailabilityForm({
                       <JamSearchSelector
                         value={jamId}
                         onValueChange={setJamId}
+                        onJamMetaChange={handleJamMetaChange}
                         placeholder="Choose an Itch.io jam…"
                         syncOnOpen={true}
                         activeOnly={true}
@@ -723,7 +733,7 @@ export function AvailabilityForm({
                             ? dateRange.to
                               ? `${format(dateRange.from, "yyyy-MM-dd")} → ${format(dateRange.to, "yyyy-MM-dd")}`
                               : format(dateRange.from, "yyyy-MM-dd")
-                            : <span className="italic text-muted-foreground">Not specified</span>}
+                            : <span className="italic text-muted-foreground">{FLEXIBLE_DATES_LABEL}</span>}
                         </li>
                       </ul>
                     </div>
