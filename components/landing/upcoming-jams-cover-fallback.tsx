@@ -39,7 +39,7 @@ function hashId(id: string): number {
 /** Two-letter initials from the jam title, skipping generic words like “game” and “jam”. */
 export function jamCoverInitials(title: string): string {
   const words = title.split(/[^\p{L}\p{N}]+/u).filter(Boolean)
-  const meaningful = words.filter((word) => !SKIP.has(word.toLowerCase()))
+  const meaningful = words.filter((word) => !SKIP.has(word.toLowerCase()) && !/^\d+(\.\d+)?$/.test(word))
   const source = meaningful.length > 0 ? meaningful : words
   if (source.length === 0) return "?"
   if (source.length === 1) return source[0].slice(0, 2).toUpperCase()
