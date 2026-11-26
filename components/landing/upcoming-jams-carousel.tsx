@@ -106,9 +106,9 @@ function SectionChrome({
 
 function JamCard({ jam, active }: { jam: UpcomingJam; active: boolean }) {
   const unoptimized =
-    jam.imageUrl.startsWith("http") &&
-    externalImageNeedsUnoptimized(jam.imageUrl)
-  const [imageFailed, setImageFailed] = useState(false)
+    Boolean(jam.imageUrl?.startsWith("http")) &&
+    externalImageNeedsUnoptimized(jam.imageUrl ?? "")
+  const [imageFailed, setImageFailed] = useState(!jam.imageUrl)
 
   return (
     <a
@@ -144,7 +144,9 @@ function JamCard({ jam, active }: { jam: UpcomingJam; active: boolean }) {
         <h3 className="text-balance font-display text-xl font-extrabold leading-tight text-foreground">
           {jam.title}
         </h3>
-        <p className="text-base text-muted-foreground">Hosted by {jam.host}</p>
+        {jam.host ? (
+          <p className="text-base text-muted-foreground">Hosted by {jam.host}</p>
+        ) : null}
         <JamDatesChip jamStartDate={jam.startAt} jamEndDate={jam.endAt} />
         <p className="flex items-center gap-2 text-base font-semibold text-foreground">
           <AppIcon icon={ICON.jammer} size="md" tone="teal" />
