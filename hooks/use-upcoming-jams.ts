@@ -11,13 +11,28 @@ import {
 export type UpcomingJamsStatus = "loading" | "ready" | "empty" | "error"
 export type UpcomingJamsSource = "api" | "mock" | null
 
-function previewOverride(
-  allowMockFallback: boolean,
-): "empty" | "skeleton" | "error" | null {
+type PreviewOverride = "empty" | "skeleton" | "error" | "fallback"
+
+function previewOverride(allowMockFallback: boolean): PreviewOverride | null {
   if (!allowMockFallback || typeof window === "undefined") return null
   const value = new URLSearchParams(window.location.search).get("car2")
-  if (value === "empty" || value === "skeleton" || value === "error") return value
+  if (
+    value === "empty" ||
+    value === "skeleton" ||
+    value === "error" ||
+    value === "fallback"
+  ) {
+    return value
+  }
   return null
+}
+
+function fallbackJams(): UpcomingJam[] {
+  return MOCK_UPCOMING_JAMS.map((jam) => ({
+    ...jam,
+    imageUrl: null,
+    host: null,
+  }))
 }
 
 export function useUpcomingJams(allowMockFallback: boolean): {
@@ -35,8 +50,14 @@ export function useUpcomingJams(allowMockFallback: boolean): {
       return
     }
 
-    if (override === "empty" || override === "error") {
+    if (override === "empty" || override === "error" || override === "fallback") {
       const timer = window.setTimeout(() => {
+        if (override === "fallback") {
+          setJams(fallbackJams())
+          setSource("mock")
+          setStatus("ready")
+          return
+        }
         setJams([])
         setSource(null)
         setStatus(override)

@@ -17,6 +17,7 @@ import { externalImageNeedsUnoptimized } from "@/lib/external-image"
 import { useUpcomingJams } from "@/hooks/use-upcoming-jams"
 import type { UpcomingJam } from "@/lib/upcoming-jams"
 import { UpcomingJamsErrorBoundary } from "@/components/landing/upcoming-jams-error-boundary"
+import { JamCoverFallback } from "@/components/landing/upcoming-jams-cover-fallback"
 
 const SLIDE_SELECTOR = "[data-jam-slide]"
 
@@ -124,9 +125,7 @@ function JamCard({ jam, active }: { jam: UpcomingJam; active: boolean }) {
     >
       <div className="relative aspect-[16/9] w-full shrink-0 overflow-hidden bg-muted">
         {imageFailed || !jam.imageUrl ? (
-          <div className="flex h-full items-center justify-center" aria-hidden>
-            <AppIcon icon={ICON.jam} size="xl" tone="muted" />
-          </div>
+          <JamCoverFallback id={jam.id} title={jam.title} />
         ) : (
           <Image
             src={jam.imageUrl}
