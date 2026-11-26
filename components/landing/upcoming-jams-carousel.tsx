@@ -123,7 +123,7 @@ function JamCard({ jam, active }: { jam: UpcomingJam; active: boolean }) {
       )}
     >
       <div className="relative aspect-[16/9] w-full shrink-0 overflow-hidden bg-muted">
-        {imageFailed ? (
+        {imageFailed || !jam.imageUrl ? (
           <div className="flex h-full items-center justify-center" aria-hidden>
             <AppIcon icon={ICON.jam} size="xl" tone="muted" />
           </div>
