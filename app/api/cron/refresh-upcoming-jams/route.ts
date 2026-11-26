@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic"
 export const maxDuration = 60
 
 /**
- * Hourly job: refresh public.upcoming_jams from a single itch.io/jams request.
+ * Daily job on Vercel Hobby (hourly requires Pro): refresh public.upcoming_jams from a single itch.io/jams request.
  * Auth header required: Authorization: Bearer <CRON_SECRET>
  *
  * Vercel Cron runs on production only. On Preview, call this route once

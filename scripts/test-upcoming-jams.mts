@@ -249,7 +249,7 @@ await test("cron and public routes keep the expected wiring", () => {
   const vercelJson = JSON.parse(vercel) as { crons: { path: string; schedule: string }[] }
   assert.ok(
     vercelJson.crons.some(
-      (job) => job.path === "/api/cron/refresh-upcoming-jams" && job.schedule === "0 * * * *",
+      (job) => job.path === "/api/cron/refresh-upcoming-jams" && job.schedule === "0 8 * * *",
     ),
   )
 
