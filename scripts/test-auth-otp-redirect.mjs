@@ -4,9 +4,18 @@ import { fileURLToPath } from "node:url"
 import { navigateAfterServerAction } from "../lib/navigate-after-server-action.ts"
 import { hrefAfterSuccessfulTeamCreate } from "../lib/create-team-success-navigation.ts"
 import { formatDateSafe, toValidDate } from "../lib/safe-date-format.ts"
+import {
+  SIGN_IN_OTP_SUCCESS_MESSAGE,
+  normalizeAuthEmail,
+  resolveAuthOtpError,
+  successfulAuthOtpResult,
+} from "../lib/auth-otp.ts"
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..")
 const authModal = readFileSync(join(root, "components/auth-modal.tsx"), "utf8")
+const authForm = readFileSync(join(root, "components/auth-form.tsx"), "utf8")
+const authOtpAction = readFileSync(join(root, "app/actions/auth-otp-actions.ts"), "utf8")
+const signupPage = readFileSync(join(root, "app/signup/page.tsx"), "utf8")
 const form = readFileSync(join(root, "components/create-team-form.tsx"), "utf8")
 const helper = readFileSync(join(root, "lib/navigate-after-server-action.ts"), "utf8")
 const nav = readFileSync(join(root, "lib/create-team-success-navigation.ts"), "utf8")
@@ -45,24 +54,88 @@ function withAssignMock(fn) {
   }
 }
 
+const sameJson = (a, b) => JSON.stringify(a) === JSON.stringify(b)
+
 const cases = [
   {
-    name: "magic-link sign-in is the only signInWithOtp call site",
+    name: "signInWithOtp lives only in the auth OTP server action",
     fn: () =>
       otpCallSites.length === 1 &&
-      otpCallSites[0].replaceAll("\\", "/") === "components/auth-modal.tsx",
+      otpCallSites[0].replaceAll("\\", "/") === "app/actions/auth-otp-actions.ts" &&
+      !authModal.includes("signInWithOtp") &&
+      !authForm.includes("signInWithOtp"),
   },
   {
-    name: "signInWithOtp sets shouldCreateUser false",
+    name: "sign-in magic link sets shouldCreateUser false",
     fn: () =>
-      authModal.includes("shouldCreateUser: false") &&
-      authModal.includes("signInWithOtp({"),
+      authOtpAction.includes('requestMagicLink(email, "signin", next)') &&
+      authOtpAction.includes("shouldCreateUser: purpose === \"signup\"") &&
+      authForm.includes("requestSignInMagicLink") &&
+      !authForm.includes("shouldCreateUser: true"),
   },
   {
-    name: "unknown-email magic link points users to Discord or Google signup",
+    name: "sign-up magic link sets shouldCreateUser true only on the signup path",
     fn: () =>
-      authModal.includes("No account found for this email") &&
-      authModal.includes("Create one with Discord or Google"),
+      authOtpAction.includes('requestMagicLink(email, "signup", next)') &&
+      authOtpAction.includes("shouldCreateUser: purpose === \"signup\"") &&
+      authForm.includes("requestSignUpMagicLink") &&
+      signupPage.includes('initialMode="signup"') &&
+      authForm.includes("Sign up") &&
+      authForm.includes('href="/signup"'),
+  },
+  {
+    name: "sign-in returns the same success for an existing or unknown email",
+    fn: () => {
+      const existing = successfulAuthOtpResult()
+      const unknown = resolveAuthOtpError(
+        { message: "Signups not allowed for otp", status: 422 },
+        "signin",
+      )
+      const notFound = resolveAuthOtpError({ message: "User not found", status: 400 }, "signin")
+      return (
+        sameJson(existing, { success: true }) &&
+        sameJson(unknown, existing) &&
+        sameJson(notFound, existing) &&
+        !("kind" in unknown) &&
+        !authForm.includes("No account found") &&
+        !authModal.includes("No account found") &&
+        authForm.includes(SIGN_IN_OTP_SUCCESS_MESSAGE) === false &&
+        authForm.includes("If an account exists for this email") &&
+        authForm.includes("Create an account")
+      )
+    },
+  },
+  {
+    name: "sign-up returns the same success if the email is already registered",
+    fn: () => {
+      const created = successfulAuthOtpResult()
+      const already = resolveAuthOtpError(
+        { message: "User already registered", status: 422 },
+        "signup",
+      )
+      return (
+        sameJson(already, created) &&
+        sameJson(already, { success: true }) &&
+        authForm.includes("SIGN_UP_OTP_SUCCESS_MESSAGE")
+      )
+    },
+  },
+  {
+    name: "rate-limit and invalid email stay visible errors",
+    fn: () => {
+      const rate = resolveAuthOtpError({ message: "rate limit exceeded", status: 429 }, "signin")
+      const invalid = resolveAuthOtpError({ message: "Unable to validate email address", status: 400 }, "signin")
+      const badInput = normalizeAuthEmail("not-an-email")
+      const goodInput = normalizeAuthEmail("  qa@example.com ")
+      return (
+        rate.success === false &&
+        rate.kind === "rate_limit" &&
+        invalid.success === false &&
+        invalid.kind === "invalid_email" &&
+        badInput === null &&
+        goodInput === "qa@example.com"
+      )
+    },
   },
   {
     name: "Discord and Google OAuth remain available to create an account",
@@ -71,11 +144,13 @@ const cases = [
       authUtils.includes('provider: "google"') &&
       authUtils.includes("signInWithOAuth") &&
       authUrl.includes('provider: "discord"') &&
-      !authUtils.includes("shouldCreateUser: false"),
+      !authUtils.includes("shouldCreateUser: false") &&
+      authForm.includes("Continue with Discord") &&
+      authForm.includes("Continue with Google"),
   },
   {
-    name: "there is no separate email signUp() path",
-    fn: () => !/auth\.signUp\s*\(/.test(authModal + authUtils + authUrl),
+    name: "there is no auth.signUp() email path",
+    fn: () => !/auth\.signUp\s*\(/.test(authModal + authForm + authUtils + authUrl + authOtpAction),
   },
   {
     name: "createTeam success navigates with assign, not router.push",
@@ -208,7 +283,7 @@ let failed = 0
 for (const c of cases) {
   if (!c.fn()) {
     console.error(`FAIL ${c.name}`)
-    if (c.name.includes("only signInWithOtp")) console.error(" sites:", otpCallSites)
+    if (c.name.includes("signInWithOtp lives")) console.error(" sites:", otpCallSites)
     failed += 1
   } else {
     console.log(`PASS ${c.name}`)
