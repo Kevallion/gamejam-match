@@ -383,7 +383,7 @@ function UpcomingJamsCarouselInner({
         <div
           ref={trackRef}
           tabIndex={0}
-          className="flex snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain pb-2 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 [scrollbar-width:thin]"
+          className="flex snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain p-[3px] pb-2 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 [scrollbar-width:thin]"
         >
           {jams.map((jam, index) => {
             const active = index === activeIndex
