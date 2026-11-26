@@ -20,7 +20,7 @@ export default async function SignUpPage() {
     <div className="flex min-h-screen flex-col">
       <Navbar />
       <main className="flex flex-1 items-center justify-center px-4 py-16 lg:px-6">
-        <div className="w-full max-w-sm rounded-2xl border border-border/60 bg-card shadow-xl">
+        <div className="w-full max-w-sm rounded-2xl border border-border bg-card shadow-[3px_3px_0_0_var(--neo-shadow)]">
           <AuthForm initialMode="signup" />
         </div>
       </main>

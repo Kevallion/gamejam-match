@@ -6,6 +6,7 @@ import { Bell, Gamepad2, Hand, Heart, LayoutDashboard, LoaderCircle, LogIn, LogO
 import { FEEDBACK_URL } from "@/components/FeedbackButton"
 import { SupportNavbarPopover } from "@/components/support-navbar-popover"
 import { Button } from "@/components/ui/button"
+import { AppIcon } from "@/components/ui/app-icon"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
   AlertDialog,
@@ -34,7 +35,7 @@ import {
 } from "@/components/ui/sheet"
 import { useTheme } from "next-themes"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { subscribeToAuthComplete } from "@/lib/auth-utils"
 import { AuthModal } from "@/components/auth-modal"
 import { useIsInAppShell } from "@/components/app-shell/app-shell-context"
@@ -76,6 +77,45 @@ function getDisplayName(user: User | null, profile: NavbarProfile | null): strin
   if (fromMeta && !fromMeta.includes("@") && !fromMeta.includes("+")) return fromMeta
 
   return "Jammer"
+}
+
+
+const GUEST_AUTH_BTN =
+  "h-10 rounded-xl px-3 text-base font-bold shadow-[3px_3px_0_0_var(--neo-shadow)] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+
+function GuestAuthButtons({
+  onSignIn,
+  signUpCurrent,
+  className,
+  signInClassName,
+  signUpClassName,
+}: {
+  onSignIn: () => void
+  signUpCurrent?: boolean
+  className?: string
+  signInClassName?: string
+  signUpClassName?: string
+}) {
+  const pathname = usePathname()
+  const isSignUp = signUpCurrent ?? pathname === "/signup"
+  return (
+    <div className={className ?? "flex items-center gap-2"}>
+      <Button asChild variant="outline" size="sm" className={`${GUEST_AUTH_BTN} border-border bg-card text-foreground hover:bg-muted ${signUpClassName ?? ""}`}>
+        <Link href="/signup" aria-current={isSignUp ? "page" : undefined}>
+          Sign up
+        </Link>
+      </Button>
+      <Button
+        type="button"
+        size="sm"
+        onClick={onSignIn}
+        className={`${GUEST_AUTH_BTN} gap-2 bg-teal text-teal-foreground hover:bg-teal/90 ${signInClassName ?? ""}`}
+      >
+        <AppIcon icon={LogIn} size="sm" />
+        Sign In
+      </Button>
+    </div>
+  )
 }
 
 export function Navbar() {
@@ -355,10 +395,7 @@ function NavbarChrome() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button onClick={() => setAuthModalOpen(true)} size="sm" className="gap-2 rounded-xl bg-teal text-teal-foreground hover:bg-teal/90">
-                <LogIn className="size-3.5" />
-                Sign In
-              </Button>
+              <GuestAuthButtons onSignIn={() => setAuthModalOpen(true)} />
             )}
           </div>
         </nav>
@@ -377,13 +414,19 @@ function NavbarChrome() {
 
           {/* Mobile Actions */}
           <div className="flex shrink-0 items-center gap-1">
-            {mounted ? <SupportNavbarPopover className="size-11" /> : (
+            {!loading && !user ? (
+              <GuestAuthButtons
+                onSignIn={() => setAuthModalOpen(true)}
+                className="mr-1 flex items-center gap-2"
+              />
+            ) : null}
+            {user ? (mounted ? <SupportNavbarPopover className="size-11" /> : (
               <Button variant="ghost" size="icon" className="size-11 rounded-xl" disabled aria-label="Support the project">
                 <Heart className="size-4 opacity-30" />
               </Button>
-            )}
-            {/* Theme */}
-            {mounted && (
+            )) : null}
+            {/* Theme — hidden for guests so Sign up / Sign In fit at 390 */}
+            {mounted && user && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="size-11 rounded-xl">
@@ -500,13 +543,12 @@ function NavbarChrome() {
                           </Button>
                         </div>
                       ) : (
-                        <Button
-                          onClick={() => { setAuthModalOpen(true); setMobileMenuOpen(false); }}
-                          className="w-full rounded-xl bg-teal text-teal-foreground hover:bg-teal/90"
-                        >
-                          <LogIn className="size-4" />
-                          Sign In
-                        </Button>
+                        <GuestAuthButtons
+                          onSignIn={() => { setAuthModalOpen(true); setMobileMenuOpen(false); }}
+                          className="flex w-full flex-col gap-2"
+                          signUpClassName="w-full justify-center"
+                          signInClassName="w-full justify-center"
+                        />
                       )}
                     </div>
 

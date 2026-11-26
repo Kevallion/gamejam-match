@@ -26,7 +26,7 @@ export function AuthModal({
 }: AuthModalProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[calc(100%-2rem)] max-w-sm max-h-[80vh] rounded-2xl border-border/60 bg-card p-0 shadow-xl overflow-y-auto sm:max-w-sm sm:max-h-[90vh]">
+      <DialogContent className="w-[calc(100%-2rem)] max-w-sm max-h-[80vh] rounded-2xl border border-border bg-card p-0 shadow-[3px_3px_0_0_var(--neo-shadow)] overflow-y-auto sm:max-w-sm sm:max-h-[90vh]">
         <DialogHeader className="sr-only">
           <DialogTitle>Sign in or create a GameJamCrew account</DialogTitle>
           <DialogDescription>Choose how you want to continue with Discord, Google, or email.</DialogDescription>

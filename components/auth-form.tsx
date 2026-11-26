@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { GoogleIcon } from "@/components/brand-icons"
 import { LoaderCircle, LogIn } from "lucide-react"
+import { AppIcon } from "@/components/ui/app-icon"
 import { signInWithDiscord, signInWithGoogle } from "@/lib/auth-utils"
 import {
   requestSignInMagicLink,
@@ -107,29 +108,38 @@ export function AuthForm({
 
   return (
     <div className="flex flex-col">
-      <div className="space-y-2 px-5 pt-5 pb-3 text-center">
-        <h2 className="text-lg font-bold tracking-tight text-foreground sm:text-xl">
+      <div className="space-y-2 px-6 pt-6 pb-4 text-center">
+        <h2 className="font-display text-xl font-extrabold tracking-tight text-foreground">
           {isSignUp ? "Create your GameJamCrew account" : "Welcome to GameJamCrew"}
         </h2>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-base text-muted-foreground">
           {isSignUp
             ? "Choose how you want to sign up."
             : "Choose how you want to sign in."}
         </p>
       </div>
 
-      <div className="flex flex-col gap-3 px-5 pb-5">
+      <div className="flex flex-col gap-4 px-6 pb-6">
         <Tabs
           value={mode}
           onValueChange={(value) => {
             if (value === "signin" || value === "signup") setMode(value)
           }}
         >
-          <TabsList className="w-full md:w-full">
-            <TabsTrigger value="signin" className="flex-1">
+          <TabsList
+            aria-label="Sign in or sign up"
+            className="h-12 w-full rounded-xl border border-border bg-muted p-1 shadow-[3px_3px_0_0_var(--neo-shadow)] md:w-full"
+          >
+            <TabsTrigger
+              value="signin"
+              className="h-10 flex-1 rounded-lg text-base font-bold hover:bg-card/70 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-muted data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-none"
+            >
               Sign in
             </TabsTrigger>
-            <TabsTrigger value="signup" className="flex-1">
+            <TabsTrigger
+              value="signup"
+              className="h-10 flex-1 rounded-lg text-base font-bold hover:bg-card/70 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-muted data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-none"
+            >
               Sign up
             </TabsTrigger>
           </TabsList>
@@ -138,12 +148,12 @@ export function AuthForm({
         <Button
           onClick={handleSignInDiscord}
           disabled={isLoading}
-          className="w-full gap-2 rounded-xl bg-[#5865F2] text-white hover:bg-[#4752C4]"
+          className="min-h-12 w-full gap-2 rounded-xl bg-[#5865F2] text-base font-bold text-white shadow-[3px_3px_0_0_var(--neo-shadow)] hover:bg-[#4752C4] focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
         >
           {isLoading ? (
-            <LoaderCircle className="size-4 animate-spin" />
+            <AppIcon icon={LoaderCircle} size="md" className="animate-spin" />
           ) : (
-            <LogIn className="size-4" />
+            <AppIcon icon={LogIn} size="md" />
           )}
           Continue with Discord
         </Button>
@@ -152,7 +162,7 @@ export function AuthForm({
           <div className="absolute inset-0 flex items-center">
             <span className="w-full border-t" />
           </div>
-          <div className="relative flex justify-center text-xs uppercase">
+          <div className="relative flex justify-center text-base uppercase">
             <span className="bg-card px-2 text-muted-foreground">OR</span>
           </div>
         </div>
@@ -161,10 +171,10 @@ export function AuthForm({
           onClick={handleSignInGoogle}
           disabled={isLoading}
           variant="outline"
-          className="w-full gap-2 rounded-xl border-border bg-background"
+          className="min-h-12 w-full gap-2 rounded-xl border-border bg-card text-base font-bold shadow-[3px_3px_0_0_var(--neo-shadow)] focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
         >
           {isLoading ? (
-            <LoaderCircle className="size-4 animate-spin" />
+            <AppIcon icon={LoaderCircle} size="md" className="animate-spin" />
           ) : (
             <GoogleIcon className="size-4" />
           )}
@@ -175,7 +185,7 @@ export function AuthForm({
           <div className="absolute inset-0 flex items-center">
             <span className="w-full border-t" />
           </div>
-          <div className="relative flex justify-center text-xs uppercase">
+          <div className="relative flex justify-center text-base">
             <span className="bg-card px-2 text-muted-foreground">Or use your email</span>
           </div>
         </div>
@@ -195,15 +205,15 @@ export function AuthForm({
               placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="h-11 rounded-xl border-border/60 bg-background text-foreground"
+              className="rounded-xl border-border bg-background text-foreground"
             />
           <Button
             type="submit"
             disabled={isMagicLoading || magicSent}
-            className="w-full gap-2 rounded-xl"
+            className="min-h-12 w-full gap-2 rounded-xl text-base font-bold shadow-[3px_3px_0_0_var(--neo-shadow)] focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
             variant="secondary"
           >
-            {isMagicLoading ? <LoaderCircle className="size-4 animate-spin" /> : null}
+            {isMagicLoading ? <AppIcon icon={LoaderCircle} size="md" className="animate-spin" /> : null}
             {magicSent
               ? "Link sent — check your email"
               : isSignUp
@@ -213,7 +223,7 @@ export function AuthForm({
         </form>
 
         {magicSent && (
-          <p className="mt-1 text-center text-xs text-emerald-500">
+          <p className="mt-1 text-center text-base text-emerald-500">
             {isSignUp ? (
               SIGN_UP_OTP_SUCCESS_MESSAGE
             ) : (
@@ -221,7 +231,7 @@ export function AuthForm({
                 If an account exists for this email, we&apos;ve sent you a sign-in link. New here?{" "}
                 <button
                   type="button"
-                  className="font-medium text-foreground underline underline-offset-2 hover:text-primary"
+                  className="font-medium text-foreground underline underline-offset-2 hover:text-primary focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   onClick={() => setMode("signup")}
                 >
                   Create an account
@@ -231,13 +241,13 @@ export function AuthForm({
           </p>
         )}
 
-        <p className="mt-1 text-center text-xs text-muted-foreground">
+        <p className="mt-1 text-center text-base text-muted-foreground">
           {isSignUp ? (
             <>
               Already have an account?{" "}
               <button
                 type="button"
-                className="font-medium text-foreground underline underline-offset-2 hover:text-primary"
+                className="font-medium text-foreground underline underline-offset-2 hover:text-primary focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 onClick={() => setMode("signin")}
               >
                 Sign in
@@ -248,7 +258,7 @@ export function AuthForm({
               New here?{" "}
               <Link
                 href="/signup"
-                className="font-medium text-foreground underline underline-offset-2 hover:text-primary"
+                className="font-medium text-foreground underline underline-offset-2 hover:text-primary focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 Create an account
               </Link>
