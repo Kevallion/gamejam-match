@@ -255,9 +255,9 @@ export function CreateTeamForm({ embeddedInvite = null, onCompleted }: CreateTea
       }
       const startMs = new Date(dateInputToUtcStart(ymd.start)).getTime()
       const endMs = new Date(dateInputToUtcEnd(ymd.end)).getTime()
-      if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || startMs >= endMs) {
+      if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || startMs > endMs) {
         toast.error("Invalid jam dates.", {
-          description: "Jam end must be after jam start.",
+          description: "Jam end must be on or after jam start.",
         })
         return false
       }

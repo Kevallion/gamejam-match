@@ -12,6 +12,7 @@ import { UserAvatar } from "@/components/user-avatar"
 import { engineOptionLabel, languageOptionLabel } from "@/lib/constants"
 import { TagIcon } from "@/components/tag-icon"
 import { getJamListingStatus } from "@/lib/jam-calendar-status"
+import { formatJamCalendarDate } from "@/lib/jam-date-utc"
 import { toast } from "sonner"
 import { ArrowLeft, ArrowRight, Share2, CircleCheck } from "lucide-react"
 
@@ -47,14 +48,7 @@ function computeAvailableRoles(team: TeamCardData): RoleOption[] {
 }
 
 function formatJamDate(iso?: string | null): string | null {
-  if (!iso) return null
-  const date = new Date(iso)
-  if (!Number.isFinite(date.getTime())) return null
-  return date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  })
+  return formatJamCalendarDate(iso)
 }
 
 interface TeamAnnouncementPublicProps {

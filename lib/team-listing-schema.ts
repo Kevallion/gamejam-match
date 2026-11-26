@@ -33,8 +33,8 @@ export const createTeamFormSchema = z
     jamEndDate: isoTimestamp,
   })
   .refine(
-    (data) => new Date(data.jamStartDate).getTime() < new Date(data.jamEndDate).getTime(),
-    { message: "Jam start must be before jam end.", path: ["jamEndDate"] },
+    (data) => new Date(data.jamStartDate).getTime() <= new Date(data.jamEndDate).getTime(),
+    { message: "Jam start must be on or before jam end.", path: ["jamEndDate"] },
   )
 
 export type CreateTeamLookingForEntry = { role: string; level: string }
@@ -60,8 +60,8 @@ export const updateTeamJamListingSchema = z
     jamEndDate: isoTimestamp,
   })
   .refine(
-    (data) => new Date(data.jamStartDate).getTime() < new Date(data.jamEndDate).getTime(),
-    { message: "Jam start must be before jam end.", path: ["jamEndDate"] },
+    (data) => new Date(data.jamStartDate).getTime() <= new Date(data.jamEndDate).getTime(),
+    { message: "Jam start must be on or before jam end.", path: ["jamEndDate"] },
   )
 
 export type UpdateTeamJamListingInput = z.infer<typeof updateTeamJamListingSchema>

@@ -18,6 +18,7 @@ import {
 } from "@/lib/constants"
 import { enqueueSmartMatchEmailsForNewTeam } from "@/lib/smart-match-new-team-email"
 import { sendTeamCreationFollowUp } from "@/lib/mail"
+import { endOfUtcCalendarDayIso } from "@/lib/jam-date-utc"
 
 const ENGINE_VALUES = new Set<string>(ENGINE_OPTIONS.map((o) => o.value))
 const LANGUAGE_VALUES = new Set<string>(LANGUAGE_OPTIONS.map((o) => o.value))
@@ -121,7 +122,8 @@ export async function createTeam(input: CreateTeamInput): Promise<CreateTeamResu
 
   const jamEndIso = isoTimestampOrNull(jamEndDate)
   const jamStartIso = isoTimestampOrNull(jamStartDate)
-  if (!jamEndIso || !jamStartIso) {
+  const expiresAt = jamEndIso ? endOfUtcCalendarDayIso(jamEndIso) : null
+  if (!jamEndIso || !jamStartIso || !expiresAt) {
     return { success: false, error: "Invalid date." }
   }
   const { sanitizeJamDisplayName } = await import("@/lib/teams-public")
@@ -146,7 +148,7 @@ export async function createTeam(input: CreateTeamInput): Promise<CreateTeamResu
     jam_id: jamId,
     jam_start_date: jamStartIso,
     jam_end_date: jamEndIso,
-    expires_at: jamEndIso,
+    expires_at: expiresAt,
   }
 
   const { error } = await supabase.from("teams").insert([teamData])
@@ -278,7 +280,8 @@ export async function updateTeamJamListing(
 
   const jamEndIso = isoTimestampOrNull(jamEndDate)
   const jamStartIso = isoTimestampOrNull(jamStartDate)
-  if (!jamEndIso || !jamStartIso) {
+  const expiresAt = jamEndIso ? endOfUtcCalendarDayIso(jamEndIso) : null
+  if (!jamEndIso || !jamStartIso || !expiresAt) {
     return { success: false, error: "Invalid date." }
   }
 
@@ -294,7 +297,7 @@ export async function updateTeamJamListing(
       jam_id: rawJamId?.trim() || null,
       jam_start_date: jamStartIso,
       jam_end_date: jamEndIso,
-      expires_at: jamEndIso,
+      expires_at: expiresAt,
     })
     .eq("id", teamId)
     .eq("user_id", user.id)

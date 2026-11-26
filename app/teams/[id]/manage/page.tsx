@@ -58,7 +58,12 @@ import {
 } from "@/app/actions/team-actions"
 import { claimTeamJamCompletedXp } from "@/app/actions/team-gamification-actions"
 import { updateTeamJamListing } from "@/app/actions/create-team-actions"
-import { dateInputToUtcEnd, dateInputToUtcStart, isoTimestampToDateInput } from "@/lib/jam-date-utc"
+import {
+  dateInputToUtcEnd,
+  dateInputToUtcStart,
+  endOfUtcCalendarDayIso,
+  isoTimestampToDateInput,
+} from "@/lib/jam-date-utc"
 import { fetchTeamDiscordLink, upsertTeamDiscordLink } from "@/lib/team-discord"
 import { showGamificationRewards } from "@/components/gamification-reward-toasts"
 import { gamificationRewardHasToast } from "@/lib/gamification-reward-types"
@@ -480,8 +485,8 @@ export default function TeamManagePage() {
       }
       const startMs = new Date(dateInputToUtcStart(editForm.jam_start_date)).getTime()
       const endMs = new Date(dateInputToUtcEnd(editForm.jam_end_date)).getTime()
-      if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || startMs >= endMs) {
-        toast.error("Invalid jam dates.", { description: "Jam end must be after jam start." })
+      if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || startMs > endMs) {
+        toast.error("Invalid jam dates.", { description: "Jam end must be on or after jam start." })
         return
       }
 
@@ -540,17 +545,28 @@ export default function TeamManagePage() {
 
   const handleRenewListing = async () => {
     if (!team) return
-    const currentEndMs = team.jam_end_date ? new Date(team.jam_end_date).getTime() : NaN
-    const baseMs = Number.isFinite(currentEndMs) ? Math.max(Date.now(), currentEndMs) : Date.now()
-    const newEnd = new Date(baseMs + 30 * 24 * 60 * 60 * 1000).toISOString()
+    const todayYmd = new Date().toISOString().slice(0, 10)
+    const currentYmd = isoTimestampToDateInput(team.jam_end_date)
+    const baseYmd = currentYmd && currentYmd >= todayYmd ? currentYmd : todayYmd
+    const renewed = new Date(`${baseYmd}T12:00:00.000Z`)
+    renewed.setUTCDate(renewed.getUTCDate() + 30)
+    const dateInputEnd = renewed.toISOString().slice(0, 10)
+    const newEnd = dateInputToUtcEnd(dateInputEnd)
+    const newExpiresAt = endOfUtcCalendarDayIso(newEnd)
+    if (!newExpiresAt) {
+      toast.error("Could not renew listing.", { description: "Invalid date." })
+      return
+    }
     setRenewListingBusy(true)
     try {
-      const { error } = await supabase.from("teams").update({ jam_end_date: newEnd }).eq("id", teamId)
+      const { error } = await supabase
+        .from("teams")
+        .update({ jam_end_date: newEnd, expires_at: newExpiresAt })
+        .eq("id", teamId)
       if (error) {
         toast.error("Could not renew listing.", { description: error.message })
         return
       }
-      const dateInputEnd = isoTimestampToDateInput(newEnd)
       setTeam((prev) => (prev ? { ...prev, jam_end_date: newEnd } : null))
       setEditForm((p) => ({ ...p, jam_end_date: dateInputEnd }))
       toast.success("Listing renewed.", {
