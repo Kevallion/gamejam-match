@@ -54,10 +54,12 @@ export function LandingHome({
   featuredTeams = [],
   socialProofStats,
   upcomingJams = [],
+  allowMockUpcomingJams = false,
 }: {
   featuredTeams?: LandingFeaturedTeam[]
   socialProofStats: LandingSocialProofStats
   upcomingJams?: LandingUpcomingJam[]
+  allowMockUpcomingJams?: boolean
 }) {
   return (
     <div className="flex min-h-dvh flex-col">
@@ -68,7 +70,7 @@ export function LandingHome({
           socialProofStats={socialProofStats}
           upcomingJams={upcomingJams}
         />
-        <LandingBelowFold />
+        <LandingBelowFold allowMockUpcomingJams={allowMockUpcomingJams} />
       </main>
     </div>
   )

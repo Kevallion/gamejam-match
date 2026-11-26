@@ -144,6 +144,7 @@ export default async function HomePage() {
         featuredTeams={featuredTeams}
         socialProofStats={socialProofStats}
         upcomingJams={upcomingJams}
+        allowMockUpcomingJams={process.env.VERCEL_ENV !== "production"}
       />
     </>
   )

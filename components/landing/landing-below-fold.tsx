@@ -5,11 +5,17 @@ import { LandingFeatures } from "@/components/landing/landing-features"
 import { LandingHowItWorks } from "@/components/landing/landing-how-it-works"
 import { LandingCTA } from "@/components/landing/landing-cta"
 import { LandingMaker } from "@/components/landing/landing-maker"
+import { UpcomingJamsSection } from "@/components/landing/upcoming-jams-carousel"
 
 /** Below-the-fold landing sections (lazy-loaded chunk via dynamic() in landing-home). */
-export function LandingBelowFold() {
+export function LandingBelowFold({
+  allowMockUpcomingJams = false,
+}: {
+  allowMockUpcomingJams?: boolean
+}) {
   return (
     <>
+      <UpcomingJamsSection allowMockFallback={allowMockUpcomingJams} />
       <LandingFeatures />
       <LandingShowcase />
       <LandingHowItWorks />

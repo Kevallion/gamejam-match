@@ -1,0 +1,55 @@
+import type { UpcomingJam } from "@/lib/upcoming-jams"
+
+/** Sample featured jams for dev and preview only. Never shipped as a production fallback. */
+export const MOCK_UPCOMING_JAMS: UpcomingJam[] = [
+  {
+    id: "mock-gmtk-2026",
+    title: "GMTK Game Jam 2026",
+    url: "https://itch.io/jam/gmtk-2026",
+    imageUrl: "/mocks/upcoming-jams/gmtk.png",
+    host: "Mark Brown",
+    startAt: "2026-07-31T12:00:00.000Z",
+    endAt: "2026-08-03T12:00:00.000Z",
+    joinedCount: 32418,
+  },
+  {
+    id: "mock-ludum-dare-59",
+    title: "Ludum Dare 59",
+    url: "https://itch.io/jam/ludum-dare-59",
+    imageUrl: "/mocks/upcoming-jams/ludum-dare.png",
+    host: "Ludum Dare",
+    startAt: "2026-12-04T12:00:00.000Z",
+    endAt: "2026-12-07T12:00:00.000Z",
+    joinedCount: 18042,
+  },
+  {
+    id: "mock-brackeys-2026-2",
+    title: "Brackeys Game Jam 2026.2",
+    url: "https://itch.io/jam/brackeys-14",
+    imageUrl: "/mocks/upcoming-jams/brackeys.png",
+    host: "Brackeys",
+    startAt: "2026-08-16T12:00:00.000Z",
+    endAt: "2026-08-23T12:00:00.000Z",
+    joinedCount: 9560,
+  },
+  {
+    id: "mock-mini-jam-200",
+    title: "Mini Jam 200",
+    url: "https://itch.io/jam/mini-jam-200",
+    imageUrl: "/mocks/upcoming-jams/mini-jam.png",
+    host: "Mini Jam",
+    startAt: "2026-09-11T12:00:00.000Z",
+    endAt: "2026-09-14T12:00:00.000Z",
+    joinedCount: 2144,
+  },
+  {
+    id: "mock-js13k-2026",
+    title: "js13kGames 2026",
+    url: "https://itch.io/jam/js13k-2026",
+    imageUrl: "/mocks/upcoming-jams/js13k.png",
+    host: "js13kGames",
+    startAt: "2026-08-13T12:00:00.000Z",
+    endAt: "2026-09-13T12:00:00.000Z",
+    joinedCount: 831,
+  },
+]
