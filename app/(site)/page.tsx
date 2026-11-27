@@ -9,6 +9,7 @@ import { createAnonClient } from "@/lib/supabase/anon"
 import { AccountDeletedNotice } from "@/components/account-deleted-notice"
 import { sanitizeJamDisplayName } from "@/lib/teams-public"
 import { fetchTeamMemberCounts } from "@/lib/team-member-counts"
+import { allowQaFixtures } from "@/lib/allow-qa-fixtures"
 
 export const revalidate = 300
 
@@ -144,7 +145,7 @@ export default async function HomePage() {
         featuredTeams={featuredTeams}
         socialProofStats={socialProofStats}
         upcomingJams={upcomingJams}
-        allowMockUpcomingJams={process.env.VERCEL_ENV !== "production"}
+        allowMockUpcomingJams={allowQaFixtures()}
       />
     </>
   )

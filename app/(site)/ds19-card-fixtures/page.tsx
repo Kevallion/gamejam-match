@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation"
+import { allowQaFixtures } from "@/lib/allow-qa-fixtures"
 import { Ds19CardFixtures } from "./ds19-card-fixtures"
 
 export const metadata = {
@@ -7,7 +8,7 @@ export const metadata = {
 }
 
 export default function Ds19CardFixturesPage() {
-  if (process.env.VERCEL_ENV === "production") {
+  if (!allowQaFixtures()) {
     notFound()
   }
   return <Ds19CardFixtures />
