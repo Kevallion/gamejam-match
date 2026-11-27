@@ -209,7 +209,7 @@ export function TeamCard({
         createdAt={team.createdAt}
       />
 
-      <div className="mb-4 flex min-h-6 flex-wrap items-center gap-2">
+      <div className="mb-4 flex min-h-8 flex-wrap items-center gap-2">
         <TagIconRow
           items={openRoles.map((role, index) => ({
             kind: "role" as const,
@@ -225,7 +225,7 @@ export function TeamCard({
         )}
       </div>
 
-      <div className="mt-auto flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t border-border/40 pt-4">
+      <div className="mt-auto flex min-h-[3.125rem] flex-wrap items-center justify-between gap-x-4 gap-y-2 border-t border-border/40 pt-4">
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           {team.level.key ? <TagIcon kind="level" value={team.level.key} size="xs" /> : null}
           {engineLabel ? <TagIcon kind="engine" value={team.engine} size="xs" /> : null}

@@ -354,12 +354,12 @@ export function JammerCard({ player, mySquads, cardClassName }: JammerCardProps)
                       <JammerLevelBadge level={player.jammerLevel} className="shrink-0 text-xs" />
                     ) : null}
                   </div>
-                  <div className="min-h-5">
+                  <div className="min-h-7">
                     {player.jammerTitle?.trim() ? (
                       <JammerTitleBadge title={player.jammerTitle.trim()} className="text-xs" />
                     ) : null}
                   </div>
-                  <div className="flex min-h-5 min-w-0 items-center gap-2 text-sm text-muted-foreground">
+                  <div className="flex min-h-6 min-w-0 items-center gap-2 text-sm text-muted-foreground">
                     {languageLabel ? (
                       <>
                         <Globe className="size-3.5 shrink-0 text-teal" />
@@ -401,11 +401,11 @@ export function JammerCard({ player, mySquads, cardClassName }: JammerCardProps)
                 ) : null}
               </div>
 
-              <div className="min-h-6">
+              <div className="min-h-8">
                 <KudosBadgeRow counts={player.kudosCounts} className="gap-2" size="xs" />
               </div>
 
-              <div className="min-h-8">
+              <div className="min-h-9">
                 {player.jam?.title ? (
                   <div className="inline-flex min-w-0 max-w-full items-center gap-2 rounded-lg border border-border/60 bg-muted/30 px-3 py-1 text-xs font-medium text-muted-foreground">
                     <Target className="size-3.5 shrink-0 text-lavender" />
@@ -427,7 +427,7 @@ export function JammerCard({ player, mySquads, cardClassName }: JammerCardProps)
                 ) : null}
               </div>
 
-              <p className="line-clamp-2 min-h-[2.875rem] text-sm leading-relaxed text-muted-foreground">
+              <p className="line-clamp-2 min-h-[3.25rem] text-sm leading-relaxed text-muted-foreground">
                 {player.bio?.trim() ?? ""}
               </p>
             </CardContent>
