@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { format } from "date-fns"
 import type { DateRange } from "react-day-picker"
 import { useParams, useRouter } from "next/navigation"
@@ -58,7 +58,7 @@ import {
 } from "@/app/actions/team-actions"
 import { claimTeamJamCompletedXp } from "@/app/actions/team-gamification-actions"
 import { updateTeamJamListing } from "@/app/actions/create-team-actions"
-import { dateInputToUtcEnd, dateInputToUtcStart, isoTimestampToDateInput } from "@/lib/jam-date-utc"
+import { dateInputToUtcEnd, dateInputToUtcStart, formatJamCalendarDate, isoTimestampToDateInput } from "@/lib/jam-date-utc"
 import { fetchTeamDiscordLink, upsertTeamDiscordLink } from "@/lib/team-discord"
 import { showGamificationRewards } from "@/components/gamification-reward-toasts"
 import { gamificationRewardHasToast } from "@/lib/gamification-reward-types"
@@ -131,6 +131,16 @@ function nextEditableRoleId() {
   return editableRoleIdCounter++
 }
 
+/** Same 30-day extension as handleRenewListing, used to preview the new end date. */
+function computeRenewedJamEndIso(jamEndDate: string | null | undefined): string {
+  const todayYmd = new Date().toISOString().slice(0, 10)
+  const currentEndYmd = isoTimestampToDateInput(jamEndDate)
+  const baseYmd = currentEndYmd && currentEndYmd > todayYmd ? currentEndYmd : todayYmd
+  const baseNoon = new Date(`${baseYmd}T12:00:00.000Z`)
+  baseNoon.setUTCDate(baseNoon.getUTCDate() + 30)
+  return dateInputToUtcEnd(baseNoon.toISOString().slice(0, 10))
+}
+
 export default function TeamManagePage() {
   const params = useParams()
   const router = useRouter()
@@ -162,8 +172,24 @@ export default function TeamManagePage() {
   const [jamXpClaimBusy, setJamXpClaimBusy] = useState(false)
   const [editJamRange, setEditJamRange] = useState<DateRange | undefined>(undefined)
   const [renewListingBusy, setRenewListingBusy] = useState(false)
+  const [renewListingDialogOpen, setRenewListingDialogOpen] = useState(false)
+  const renewListingButtonRef = useRef<HTMLButtonElement>(null)
   const [deleteTeamDialogOpen, setDeleteTeamDialogOpen] = useState(false)
   const [deleteTeamBusy, setDeleteTeamBusy] = useState(false)
+
+  useEffect(() => {
+    if (!renewListingDialogOpen) return
+    const handlePointerDown = (event: PointerEvent) => {
+      if (renewListingBusy) return
+      const content = document.getElementById("renew-listing-dialog")
+      const target = event.target
+      if (content && target instanceof Node && !content.contains(target)) {
+        setRenewListingDialogOpen(false)
+      }
+    }
+    document.addEventListener("pointerdown", handlePointerDown)
+    return () => document.removeEventListener("pointerdown", handlePointerDown)
+  }, [renewListingDialogOpen, renewListingBusy])
 
   const loadTeam = useCallback(async () => {
     if (!teamId) return
@@ -538,12 +564,7 @@ export default function TeamManagePage() {
 
   const handleRenewListing = async () => {
     if (!team) return
-    const todayYmd = new Date().toISOString().slice(0, 10)
-    const currentEndYmd = isoTimestampToDateInput(team.jam_end_date)
-    const baseYmd = currentEndYmd && currentEndYmd > todayYmd ? currentEndYmd : todayYmd
-    const baseNoon = new Date(`${baseYmd}T12:00:00.000Z`)
-    baseNoon.setUTCDate(baseNoon.getUTCDate() + 30)
-    const newEnd = dateInputToUtcEnd(baseNoon.toISOString().slice(0, 10))
+    const newEnd = computeRenewedJamEndIso(team.jam_end_date)
     setRenewListingBusy(true)
     try {
       const { error } = await supabase.from("teams").update({ jam_end_date: newEnd }).eq("id", teamId)
@@ -557,6 +578,7 @@ export default function TeamManagePage() {
       toast.success("Listing renewed.", {
         description: "Your jam end date was extended by 30 days; the listing stays in sync.",
       })
+      setRenewListingDialogOpen(false)
     } catch (err) {
       toast.error("An error occurred.", {
         description: err instanceof Error ? err.message : "Please try again.",
@@ -1095,12 +1117,13 @@ export default function TeamManagePage() {
               </CardHeader>
               <CardContent className="flex flex-col gap-2 sm:flex-row sm:items-center">
                 <Button
+                  ref={renewListingButtonRef}
                   type="button"
                   variant="outline"
                   size="sm"
                   className="gap-2 rounded-xl border-primary/30 text-primary hover:bg-primary/10 hover:text-primary sm:flex-1"
                   disabled={renewListingBusy}
-                  onClick={() => void handleRenewListing()}
+                  onClick={() => setRenewListingDialogOpen(true)}
                 >
                   <RefreshCw className={`size-3.5 ${renewListingBusy ? "animate-spin" : ""}`} />
                   {renewListingBusy ? "Renewing…" : "Renew listing"}
@@ -1170,6 +1193,59 @@ export default function TeamManagePage() {
           </div>
         </section>
       </MainRegion>
+
+      <AlertDialog
+        open={renewListingDialogOpen}
+        onOpenChange={(open) => {
+          if (renewListingBusy) return
+          setRenewListingDialogOpen(open)
+        }}
+      >
+        <AlertDialogContent
+          id="renew-listing-dialog"
+          className="glass-card max-w-[calc(100%-2rem)] rounded-2xl border-border/40 sm:max-w-lg"
+          onCloseAutoFocus={(event) => {
+            event.preventDefault()
+            renewListingButtonRef.current?.focus()
+          }}
+        >
+          <AlertDialogHeader>
+            <div className="flex items-center gap-3">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/15">
+                <RefreshCw className="size-5 text-primary" />
+              </div>
+              <AlertDialogTitle className="text-left">Renew this listing?</AlertDialogTitle>
+            </div>
+            <AlertDialogDescription className="text-left">
+              {team
+                ? `Confirming will extend the jam end date to ${formatJamCalendarDate(computeRenewedJamEndIso(team.jam_end_date)) ?? "a date 30 days later"}. The listing stays in sync and remains discoverable.`
+                : "Confirming will extend the jam end date by 30 days. The listing stays in sync and remains discoverable."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-row flex-wrap gap-2 sm:justify-end">
+            <AlertDialogCancel className="rounded-xl" disabled={renewListingBusy}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="inline-flex gap-2 rounded-xl"
+              disabled={renewListingBusy}
+              onClick={(event) => {
+                event.preventDefault()
+                void handleRenewListing()
+              }}
+            >
+              {renewListingBusy ? (
+                <>
+                  <LoaderCircle className="size-4 shrink-0 animate-spin" />
+                  Renewing…
+                </>
+              ) : (
+                "Confirm"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AlertDialog open={deleteTeamDialogOpen} onOpenChange={setDeleteTeamDialogOpen}>
         <AlertDialogContent className="glass-card rounded-2xl border-border/40">
