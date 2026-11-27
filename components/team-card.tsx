@@ -198,9 +198,9 @@ export function TeamCard({
         </div>
       </div>
 
-      {showStatusBadge ? (
-        <JamStatusBadge status={jamStatus} className="relative z-10 mb-2" />
-      ) : null}
+      <div className="relative z-10 mb-2 min-h-8">
+        {showStatusBadge ? <JamStatusBadge status={jamStatus} /> : null}
+      </div>
 
       <JamDatesChip
         className="relative z-[1] mb-4"

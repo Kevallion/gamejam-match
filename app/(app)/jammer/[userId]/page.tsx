@@ -42,6 +42,41 @@ function normalizePortfolioUrl(url: string | null | undefined): string | null {
   return `https://${raw}`
 }
 
+function isCompletedJamTeam(team: CompletedJamTeam, nowIso: string): boolean {
+  return Boolean(team.jam_end_date && team.jam_end_date < nowIso)
+}
+
+function ProfileJamTeamRow({
+  team,
+  empty,
+}: {
+  team: CompletedJamTeam
+  empty: "flexible" | "end"
+}) {
+  return (
+    <Link
+      href={`/teams/${team.id}`}
+      className="flex items-center justify-between gap-2 rounded-xl border border-border/50 bg-card/70 px-3 py-2 transition-colors hover:border-teal/40"
+    >
+      <div className="min-w-0">
+        <p className="truncate text-sm font-semibold text-foreground">
+          {team.team_name?.trim() || "Untitled squad"}
+        </p>
+        <p className="truncate text-xs text-muted-foreground">
+          {team.game_name?.trim() || "Game jam project"}
+        </p>
+      </div>
+      <JamDatesChip
+        className="shrink-0"
+        empty={empty}
+        jamStartDate={team.jam_start_date}
+        jamEndDate={team.jam_end_date}
+        createdAt={team.created_at}
+      />
+    </Link>
+  )
+}
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { userId } = await params
   if (!UUID_RE.test(userId)) {
@@ -149,14 +184,12 @@ export default async function JammerPublicProfilePage({ params }: PageProps) {
   let alreadyInvitedTeamIds: string[] = []
   let memberTeamIdsForInvitee: string[] = []
   const nowIso = new Date().toISOString()
-  const { data: ownedCompletedTeams } = await supabase
+  const { data: ownedTeams } = await supabase
     .from("teams")
     .select("id, team_name, game_name, jam_start_date, jam_end_date, created_at")
     .eq("user_id", userId)
-    .not("jam_end_date", "is", null)
-    .lt("jam_end_date", nowIso)
-    .order("jam_end_date", { ascending: false })
-    .limit(8)
+    .order("created_at", { ascending: false })
+    .limit(16)
 
   const { data: memberRows } = await supabase
     .from("team_members")
@@ -164,27 +197,31 @@ export default async function JammerPublicProfilePage({ params }: PageProps) {
     .eq("user_id", userId)
 
   const memberTeamIds = [...new Set((memberRows ?? []).map((row) => row.team_id).filter(Boolean))]
-  const { data: memberCompletedTeams } =
+  const { data: memberTeams } =
     memberTeamIds.length > 0
       ? await supabase
           .from("teams")
           .select("id, team_name, game_name, jam_start_date, jam_end_date, created_at")
           .in("id", memberTeamIds)
-          .not("jam_end_date", "is", null)
-          .lt("jam_end_date", nowIso)
-          .order("jam_end_date", { ascending: false })
-          .limit(8)
+          .order("created_at", { ascending: false })
+          .limit(16)
       : { data: [] as CompletedJamTeam[] }
 
-  const completedJamTeamsMap = new Map<string, CompletedJamTeam>()
-  for (const team of (ownedCompletedTeams ?? []) as CompletedJamTeam[]) {
-    completedJamTeamsMap.set(team.id, team)
+  const teamsMap = new Map<string, CompletedJamTeam>()
+  for (const team of (ownedTeams ?? []) as CompletedJamTeam[]) {
+    teamsMap.set(team.id, team)
   }
-  for (const team of (memberCompletedTeams ?? []) as CompletedJamTeam[]) {
-    completedJamTeamsMap.set(team.id, team)
+  for (const team of (memberTeams ?? []) as CompletedJamTeam[]) {
+    teamsMap.set(team.id, team)
   }
-  const completedJamTeams = [...completedJamTeamsMap.values()]
+  const allJamTeams = [...teamsMap.values()]
+  const completedJamTeams = allJamTeams
+    .filter((team) => isCompletedJamTeam(team, nowIso))
     .sort((a, b) => (b.jam_end_date ?? "").localeCompare(a.jam_end_date ?? ""))
+    .slice(0, 8)
+  const currentJamTeams = allJamTeams
+    .filter((team) => !isCompletedJamTeam(team, nowIso))
+    .sort((a, b) => (b.created_at ?? "").localeCompare(a.created_at ?? ""))
     .slice(0, 8)
   const completedJamsCount = completedJamTeams.length
   const isVerifiedJammer = completedJamsCount > 0
@@ -317,6 +354,16 @@ export default async function JammerPublicProfilePage({ params }: PageProps) {
 
         <section className="px-3 py-6 sm:px-4 sm:py-8 lg:px-6 lg:py-10">
           <div className="mx-auto max-w-3xl space-y-6">
+            {currentJamTeams.length > 0 ? (
+              <div className="rounded-2xl border border-border/50 bg-card/60 p-4 sm:p-5">
+                <h2 className="text-base font-bold text-foreground sm:text-lg">Current squads</h2>
+                <div className="mt-3 space-y-2">
+                  {currentJamTeams.map((team) => (
+                    <ProfileJamTeamRow key={team.id} team={team} empty="flexible" />
+                  ))}
+                </div>
+              </div>
+            ) : null}
             <div className="rounded-2xl border border-border/50 bg-card/60 p-4 sm:p-5">
               <h2 className="text-base font-bold text-foreground sm:text-lg">Jam History</h2>
               {completedJamTeams.length === 0 ? (
@@ -324,27 +371,7 @@ export default async function JammerPublicProfilePage({ params }: PageProps) {
               ) : (
                 <div className="mt-3 space-y-2">
                   {completedJamTeams.map((team) => (
-                    <Link
-                      key={team.id}
-                      href={`/teams/${team.id}`}
-                      className="flex items-center justify-between gap-2 rounded-xl border border-border/50 bg-card/70 px-3 py-2 transition-colors hover:border-teal/40"
-                    >
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold text-foreground">
-                          {team.team_name?.trim() || "Untitled squad"}
-                        </p>
-                        <p className="truncate text-xs text-muted-foreground">
-                          {team.game_name?.trim() || "Game jam project"}
-                        </p>
-                      </div>
-                      <JamDatesChip
-                        className="shrink-0"
-                        empty="end"
-                        jamStartDate={team.jam_start_date}
-                        jamEndDate={team.jam_end_date}
-                        createdAt={team.created_at}
-                      />
-                    </Link>
+                    <ProfileJamTeamRow key={team.id} team={team} empty="end" />
                   ))}
                 </div>
               )}

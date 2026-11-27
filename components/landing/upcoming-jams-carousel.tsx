@@ -36,14 +36,25 @@ function slideAt(track: HTMLElement, index: number): HTMLElement | null {
   return track.querySelectorAll<HTMLElement>(SLIDE_SELECTOR)[index] ?? null
 }
 
+function slideLeftInTrack(track: HTMLElement, slide: HTMLElement): number {
+  return track.scrollLeft + (slide.getBoundingClientRect().left - track.getBoundingClientRect().left)
+}
+
+function scrollTrackToSlide(track: HTMLElement, slide: HTMLElement) {
+  track.scrollTo({
+    left: slideLeftInTrack(track, slide),
+    behavior: prefersReducedMotion() ? "auto" : "smooth",
+  })
+}
+
 function nearestSlideIndex(track: HTMLElement): number {
   const slides = [...track.querySelectorAll<HTMLElement>(SLIDE_SELECTOR)]
   if (slides.length === 0) return 0
-  const left = track.scrollLeft
+  const origin = track.getBoundingClientRect().left
   let best = 0
   let bestDist = Number.POSITIVE_INFINITY
   slides.forEach((slide, index) => {
-    const dist = Math.abs(slide.offsetLeft - left)
+    const dist = Math.abs(slide.getBoundingClientRect().left - origin)
     if (dist < bestDist) {
       best = index
       bestDist = dist
@@ -269,10 +280,7 @@ function UpcomingJamsCarouselInner({
     )
     const slide = slideAt(track, next)
     if (!slide) return
-    track.scrollTo({
-      left: slide.offsetLeft,
-      behavior: prefersReducedMotion() ? "auto" : "smooth",
-    })
+    scrollTrackToSlide(track, slide)
   }, [jams.length])
 
   const onRegionKeyDown = useCallback(
@@ -288,10 +296,7 @@ function UpcomingJamsCarouselInner({
         const track = trackRef.current
         const first = track ? slideAt(track, 0) : null
         if (track && first) {
-          track.scrollTo({
-            left: 0,
-            behavior: prefersReducedMotion() ? "auto" : "smooth",
-          })
+          scrollTrackToSlide(track, first)
         }
       } else if (event.key === "End") {
         event.preventDefault()
@@ -299,10 +304,7 @@ function UpcomingJamsCarouselInner({
         if (!track) return
         const last = slideAt(track, jams.length - 1)
         if (last) {
-          track.scrollTo({
-            left: last.offsetLeft,
-            behavior: prefersReducedMotion() ? "auto" : "smooth",
-          })
+          scrollTrackToSlide(track, last)
         }
       }
     },
@@ -374,17 +376,12 @@ function UpcomingJamsCarouselInner({
     )
   } else {
     body = (
-      <div
-        role="region"
-        aria-roledescription="carousel"
-        aria-label="Upcoming featured jams"
-        onKeyDown={onRegionKeyDown}
-        className="w-full min-w-0"
-      >
+      <div className="w-full min-w-0">
         <div
           ref={trackRef}
+          data-jam-track
           tabIndex={0}
-          className="flex snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain p-[3px] pb-2 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 [scrollbar-width:thin]"
+          className="relative flex min-w-0 snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain p-[3px] pb-2 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 [scrollbar-width:thin]"
         >
           {jams.map((jam, index) => {
             const active = index === activeIndex
@@ -411,7 +408,13 @@ function UpcomingJamsCarouselInner({
       className="relative max-w-full overflow-x-hidden px-4 py-20 lg:px-8 lg:py-28"
       aria-labelledby={headingDomId}
     >
-      <div className="relative mx-auto flex max-w-6xl flex-col gap-8">
+      <div
+        className="relative mx-auto flex max-w-6xl flex-col gap-8"
+        role="region"
+        aria-roledescription="carousel"
+        aria-label="Upcoming featured jams"
+        onKeyDown={onRegionKeyDown}
+      >
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div className="min-w-0 max-w-lg">
             <div className="mb-4 inline-flex items-center gap-2 rounded-full border-2 border-foreground bg-card px-4 py-2 text-sm font-bold text-foreground shadow-[3px_3px_0_0_var(--neo-shadow)]">

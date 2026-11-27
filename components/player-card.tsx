@@ -354,15 +354,19 @@ export function JammerCard({ player, mySquads, cardClassName }: JammerCardProps)
                       <JammerLevelBadge level={player.jammerLevel} className="text-xs" />
                     ) : null}
                   </div>
-                  {player.jammerTitle?.trim() ? (
-                    <JammerTitleBadge title={player.jammerTitle.trim()} className="text-xs" />
-                  ) : null}
-                  {languageLabel ? (
-                    <div className="flex min-w-0 items-center gap-2 text-sm text-muted-foreground">
-                      <Globe className="size-3.5 shrink-0 text-teal" />
-                      <span className="truncate">{languageLabel}</span>
-                    </div>
-                  ) : null}
+                  <div className="min-h-5">
+                    {player.jammerTitle?.trim() ? (
+                      <JammerTitleBadge title={player.jammerTitle.trim()} className="text-xs" />
+                    ) : null}
+                  </div>
+                  <div className="flex min-h-5 min-w-0 items-center gap-2 text-sm text-muted-foreground">
+                    {languageLabel ? (
+                      <>
+                        <Globe className="size-3.5 shrink-0 text-teal" />
+                        <span className="truncate">{languageLabel}</span>
+                      </>
+                    ) : null}
+                  </div>
                 </div>
                 <Button
                   variant="ghost"
@@ -375,51 +379,57 @@ export function JammerCard({ player, mySquads, cardClassName }: JammerCardProps)
                 </Button>
               </div>
 
-              <TagIconRow
-                items={[
-                  ...(showRoleChip && player.role.key ? [{ kind: "role" as const, value: player.role.key }] : []),
-                  ...(showLevelChip && player.level.key ? [{ kind: "level" as const, value: player.level.key }] : []),
-                  ...(player.jamStyle?.key ? [{ kind: "style" as const, value: player.jamStyle.key }] : []),
-                  ...(engineLabel ? [{ kind: "engine" as const, value: player.engine }] : []),
-                  ...(languageLabel ? [{ kind: "language" as const, value: player.language }] : []),
-                ]}
-              />
-
-              {player.programmingLanguages && player.programmingLanguages.length > 0 ? (
+              <div className="min-h-8">
                 <TagIconRow
-                  items={player.programmingLanguages.map((value) => ({ kind: "code" as const, value }))}
-                  max={3}
-                  size="xs"
+                  items={[
+                    ...(showRoleChip && player.role.key ? [{ kind: "role" as const, value: player.role.key }] : []),
+                    ...(showLevelChip && player.level.key ? [{ kind: "level" as const, value: player.level.key }] : []),
+                    ...(player.jamStyle?.key ? [{ kind: "style" as const, value: player.jamStyle.key }] : []),
+                    ...(engineLabel ? [{ kind: "engine" as const, value: player.engine }] : []),
+                    ...(languageLabel ? [{ kind: "language" as const, value: player.language }] : []),
+                  ]}
                 />
-              ) : null}
+              </div>
 
-              <KudosBadgeRow counts={player.kudosCounts} className="gap-2" size="xs" />
+              <div className="min-h-8">
+                {player.programmingLanguages && player.programmingLanguages.length > 0 ? (
+                  <TagIconRow
+                    items={player.programmingLanguages.map((value) => ({ kind: "code" as const, value }))}
+                    max={3}
+                    size="xs"
+                  />
+                ) : null}
+              </div>
 
-              {/* Linked game jam */}
-              {player.jam?.title && (
-                <div className="inline-flex min-w-0 max-w-full items-center gap-2 rounded-lg border border-border/60 bg-muted/30 px-3 py-1 text-xs font-medium text-muted-foreground">
-                  <Target className="size-3.5 shrink-0 text-lavender" />
-                  {player.jam.url ? (
-                    <a
-                      href={player.jam.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex min-w-0 max-w-full cursor-pointer items-center gap-1 truncate font-medium text-lavender hover:underline"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <span className="truncate">{player.jam.title}</span>
-                      <ExternalLink className="size-3 shrink-0 opacity-70" aria-hidden />
-                    </a>
-                  ) : (
-                    <span className="min-w-0 truncate">{player.jam.title}</span>
-                  )}
-                </div>
-              )}
+              <div className="min-h-6">
+                <KudosBadgeRow counts={player.kudosCounts} className="gap-2" size="xs" />
+              </div>
 
-              {/* Bio */}
-              {player.bio?.trim() ? (
-                <p className="text-sm leading-relaxed text-muted-foreground line-clamp-2">{player.bio}</p>
-              ) : null}
+              <div className="min-h-8">
+                {player.jam?.title ? (
+                  <div className="inline-flex min-w-0 max-w-full items-center gap-2 rounded-lg border border-border/60 bg-muted/30 px-3 py-1 text-xs font-medium text-muted-foreground">
+                    <Target className="size-3.5 shrink-0 text-lavender" />
+                    {player.jam.url ? (
+                      <a
+                        href={player.jam.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex min-w-0 max-w-full cursor-pointer items-center gap-1 truncate font-medium text-lavender hover:underline"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <span className="truncate">{player.jam.title}</span>
+                        <ExternalLink className="size-3 shrink-0 opacity-70" aria-hidden />
+                      </a>
+                    ) : (
+                      <span className="min-w-0 truncate">{player.jam.title}</span>
+                    )}
+                  </div>
+                ) : null}
+              </div>
+
+              <p className="line-clamp-2 min-h-[2.875rem] text-sm leading-relaxed text-muted-foreground">
+                {player.bio?.trim() ?? ""}
+              </p>
             </CardContent>
 
             <CardFooter className="mt-auto flex flex-row items-center justify-between gap-2 px-4 sm:px-6">
