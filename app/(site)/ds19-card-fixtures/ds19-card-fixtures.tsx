@@ -14,7 +14,7 @@ const MY_SQUADS: SquadOption[] = [{ id: "fixture-squad", team_name: "Fixture squ
 const DIRECTORY_FIXTURES: JammerCardData[] = [
   {
     id: "11111111-1111-4111-8111-111111111111",
-    username: "Jammer_E9B83F_LongName",
+    username: "Jammer_VeryLongUsernameWithoutSpaces_SixtyPlusCharactersXXXXXX",
     avatar_url: null,
     role: ROLE,
     level: LEVEL,
@@ -80,7 +80,7 @@ const DIRECTORY_FIXTURES: JammerCardData[] = [
 const TEAM_FIXTURES: TeamCardData[] = [
   {
     id: "aaaaaaa1-aaaa-4aaa-8aaa-aaaaaaaaaaa1",
-    name: "QA-FORGE DSQA11 dated",
+    name: "QA-FORGE-DSQA12-VeryLongSquadNameWithoutSpaces-SixtyPlusCharsXXXX",
     jam: "Dated Jam",
     engine: "godot",
     language: "en",
@@ -134,7 +134,7 @@ export function Ds19CardFixtures() {
           className="app-card-grid grid w-full list-none grid-cols-1 items-stretch gap-4 p-0 sm:grid-cols-2 lg:grid-cols-3"
         >
           {DIRECTORY_FIXTURES.map((player) => (
-            <li key={player.id} className="h-full min-h-0">
+            <li key={player.id} className="h-full min-h-0 min-w-0">
               <JammerCard player={player} mySquads={MY_SQUADS} />
             </li>
           ))}
@@ -148,7 +148,7 @@ export function Ds19CardFixtures() {
           className="app-card-grid grid list-none items-stretch gap-5 p-0 sm:grid-cols-2 lg:grid-cols-3"
         >
           {TEAM_FIXTURES.map((team) => (
-            <li key={team.id} className="h-full min-h-0">
+            <li key={team.id} className="h-full min-h-0 min-w-0">
               <TeamCard team={team} />
             </li>
           ))}

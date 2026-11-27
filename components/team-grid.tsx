@@ -424,7 +424,7 @@ export function TeamGrid({
         ) : (
           <ul className="app-card-grid grid list-none items-stretch gap-5 p-0 sm:grid-cols-2 lg:grid-cols-3">
             {displayedTeams.map((team) => (
-              <li key={team.id} className="min-h-0 h-full">
+              <li key={team.id} className="min-h-0 h-full min-w-0">
                 <TeamCard team={team} isRecommended={!!team.isRecommended} />
               </li>
             ))}

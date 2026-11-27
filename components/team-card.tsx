@@ -152,18 +152,19 @@ export function TeamCard({
   return (
     <article
       className={cn(
-        "card-interactive group relative flex h-full flex-col rounded-2xl border border-border bg-card p-6 shadow-[3px_3px_0_0_var(--neo-shadow)] transition-colors motion-reduce:transition-none",
+        "card-interactive group relative flex h-full min-w-0 flex-col rounded-2xl border border-border bg-card p-6 shadow-[3px_3px_0_0_var(--neo-shadow)] transition-colors motion-reduce:transition-none",
         "has-[h3_a:focus-visible]:ring-2 has-[h3_a:focus-visible]:ring-ring has-[h3_a:focus-visible]:ring-offset-2 has-[h3_a:focus-visible]:ring-offset-background",
         isRecommended && "border-teal",
       )}
     >
       <div className="mb-4 flex min-w-0 items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <div className="flex min-w-0 flex-wrap items-center gap-2">
-            <h3 className="truncate font-display text-xl font-extrabold text-foreground">
+          <div className="flex min-w-0 flex-nowrap items-center gap-2">
+            <h3 className="min-w-0 flex-1 truncate font-display text-xl font-extrabold text-foreground">
               <Link
                 href={`/teams/${team.id}`}
-                className="rounded-sm outline-none after:absolute after:inset-0 after:z-0 after:rounded-2xl focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                title={team.name}
+                className="block min-w-0 truncate rounded-sm outline-none after:absolute after:inset-0 after:z-0 after:rounded-2xl focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 <span className="relative z-[1]">{team.name}</span>
               </Link>

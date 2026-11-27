@@ -330,7 +330,7 @@ export function JammerCard({ player, mySquads, cardClassName }: JammerCardProps)
     <>
       <Dialog>
         <DialogTrigger asChild>
-          <Card className={cn("card-interactive group relative flex h-full w-full cursor-pointer flex-col overflow-hidden py-4 transition-colors motion-reduce:transition-none hover:ring-2 hover:ring-primary/50 sm:py-6", cardClassName)}>
+          <Card className={cn("card-interactive group relative flex h-full min-w-0 w-full cursor-pointer flex-col overflow-hidden py-4 transition-colors motion-reduce:transition-none hover:ring-2 hover:ring-primary/50 sm:py-6", cardClassName)}>
             <CardContent className="flex flex-1 flex-col gap-4 px-4 pt-0 sm:px-6 sm:pt-0">
               {/* Avatar + Username + Share */}
               <div className="flex min-w-0 items-start gap-4">
@@ -341,10 +341,11 @@ export function JammerCard({ player, mySquads, cardClassName }: JammerCardProps)
                 />
                 <div className="min-w-0 flex-1">
                   <div className="flex min-h-8 min-w-0 flex-nowrap items-center gap-2">
-                    <h3 className="min-w-0 truncate text-lg font-bold text-foreground">
+                    <h3 className="min-w-0 flex-1 truncate text-lg font-bold text-foreground">
                       <Link
                         href={`/jammer/${player.id}`}
-                        className="cursor-pointer transition-colors hover:text-teal"
+                        title={player.username}
+                        className="block min-w-0 truncate cursor-pointer transition-colors hover:text-teal"
                         onClick={(e) => e.stopPropagation()}
                       >
                         {player.username}

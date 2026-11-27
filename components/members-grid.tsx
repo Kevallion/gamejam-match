@@ -216,7 +216,7 @@ export function MembersGrid({
         ) : (
           <ul className="app-card-grid grid w-full list-none grid-cols-1 items-stretch gap-4 p-0 sm:grid-cols-2 lg:grid-cols-3">
             {members.map((jammer) => (
-              <li key={jammer.availabilityPostId ?? jammer.id} className="h-full min-h-0">
+              <li key={jammer.availabilityPostId ?? jammer.id} className="h-full min-h-0 min-w-0">
                 <JammerCard
                   player={jammer}
                   mySquads={mySquads}
