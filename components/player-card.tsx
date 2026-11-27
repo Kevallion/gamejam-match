@@ -340,8 +340,8 @@ export function JammerCard({ player, mySquads, cardClassName }: JammerCardProps)
                   size="md"
                 />
                 <div className="min-w-0 flex-1">
-                  <div className="flex min-w-0 flex-wrap items-center gap-2 gap-y-1">
-                    <h3 className="truncate text-lg font-bold text-foreground">
+                  <div className="flex min-h-7 min-w-0 flex-nowrap items-center gap-2">
+                    <h3 className="min-w-0 truncate text-lg font-bold text-foreground">
                       <Link
                         href={`/jammer/${player.id}`}
                         className="cursor-pointer transition-colors hover:text-teal"
@@ -351,7 +351,7 @@ export function JammerCard({ player, mySquads, cardClassName }: JammerCardProps)
                       </Link>
                     </h3>
                     {typeof player.jammerLevel === "number" ? (
-                      <JammerLevelBadge level={player.jammerLevel} className="text-xs" />
+                      <JammerLevelBadge level={player.jammerLevel} className="shrink-0 text-xs" />
                     ) : null}
                   </div>
                   <div className="min-h-5">
