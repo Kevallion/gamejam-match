@@ -340,7 +340,7 @@ export function JammerCard({ player, mySquads, cardClassName }: JammerCardProps)
                   size="md"
                 />
                 <div className="min-w-0 flex-1">
-                  <div className="flex min-h-7 min-w-0 flex-nowrap items-center gap-2">
+                  <div className="flex min-h-8 min-w-0 flex-nowrap items-center gap-2">
                     <h3 className="min-w-0 truncate text-lg font-bold text-foreground">
                       <Link
                         href={`/jammer/${player.id}`}
